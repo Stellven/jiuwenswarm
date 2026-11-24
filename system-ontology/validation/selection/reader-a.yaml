@@ -1,0 +1,136 @@
+targets:
+  qwen-on-pc:
+  - {node_type: model-conversion, needed: needed, because: "No applies_when; every engine has it, and the target delivers the checkpoint qwen3.8-flash-next-iq3_s that must be pinned and put in the engine's layout.", asks: ""}
+  - {node_type: calibration, needed: needed, because: "No applies_when, so every engine has it; here it would at least rank expert usage for the 12 GB VRAM expert cache.", asks: ""}
+  - {node_type: model-loading, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: memory-planning, needed: needed, because: "No applies_when; and target c-mem sets a hard 12 GB VRAM budget that weights, state and caches must be divided within.", asks: ""}
+  - {node_type: graph-capture, needed: open, because: "machine.yaml names only a gpu0 of kind gpu, with no vendor, architecture or API, so whether pre-recorded graphs or pre-compiled kernels pay off is not stated.", asks: "Which GPU and programming interface gpu0 is, and whether decode on it is launch-bound or needs first-use compilation."}
+  - {node_type: layer-compute, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: device-backend, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: secondary-compute, needed: open, because: "Experts (50.3 GB) cannot fit the 12 GB VRAM budget and cpu0 reads them in host RAM directly, so computing selected experts on the CPU is a candidate, but the target leaves placement to the builder.", asks: "Whether selected experts held in host RAM are computed by cpu0 (or by gpu0 over its direct read of RAM) instead of being copied to VRAM."}
+  - {node_type: model-edit, needed: not_needed, because: "The target interface is plain text in, text out for single_stream_text and offers no run-time changes to the model's behaviour.", asks: ""}
+  - {node_type: step-execution, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: prompt-reading, needed: open, because: "Whether prompts get their own chunked path or share the decode step is a design choice the target does not make.", asks: "Whether the engine reads prompts by a separate chunked path rather than in the same steps as decode rows."}
+  - {node_type: media-preparation, needed: not_needed, because: "target interface input modality is text.", asks: ""}
+  - {node_type: modality-encoding, needed: not_needed, because: "The model has no encoder and the target input modality is text.", asks: ""}
+  - {node_type: expert-source, needed: needed, because: "The model selects 10 of 512 experts per token per layer and the 50.3 GB of expert weights cannot sit in the 12 GB VRAM the GPU computes from.", asks: ""}
+  - {node_type: expert-cache, needed: needed, because: "Not all 50.3 GB of experts fit in 12 GB of VRAM, and target c-mem caps VRAM at 12 GB.", asks: ""}
+  - {node_type: residency-policy, needed: needed, because: "There is a cache of experts in VRAM (see expert-cache), and target c-equiv requires that cache contents not change output.", asks: ""}
+  - {node_type: expert-fetch, needed: needed, because: "There is a cache of experts, and absent ones must be brought over the ram-to-vram transfer path (and from ssd0 by page_in).", asks: ""}
+  - {node_type: expert-dispatch, needed: needed, because: "Selected experts can be in VRAM, in host RAM or on ssd0, and both cpu0 and gpu0 can read RAM.", asks: ""}
+  - {node_type: row-source, needed: needed, because: "The model has ngram_lookup reading a 28.8 GB ngram_table (and a token_embedding read one row per token), which cannot be held in 12 GB VRAM.", asks: ""}
+  - {node_type: storage-reader, needed: open, because: "All weights total about 85 GB against 64 GB of host RAM, so something is read from ssd0 while running, but whether it is more than one kind of data (experts and n-gram rows) depends on placement left to the builder.", asks: "Whether both expert weights and n-gram table rows (or other data) are read from ssd0 while the engine runs."}
+  - {node_type: positional-state-store, needed: needed, because: "No applies_when; the model writes attention_kv, indexer_keys and the draft layer's mtp_kv per position.", asks: ""}
+  - {node_type: recurrent-state-store, needed: needed, because: "The model writes gdn_state, a fixed-size recurrent state that cannot be cut back, and drafting is offered so rejection needs a way back.", asks: ""}
+  - {node_type: state-pool, needed: not_needed, because: "The target workload is single_stream_text, so several sequences do not share one backing memory for state.", asks: ""}
+  - {node_type: state-tiering, needed: open, because: "The context length to offer is not stated, so whether attention state exceeds what fits beside the expert cache in 12 GB VRAM is unknown.", asks: "What context length the engine must offer, and whether its attention and indexer state then fits in the VRAM budget."}
+  - {node_type: prefix-reuse, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: session-persistence, needed: not_needed, because: "The target interface offers no saving or restoring of sessions.", asks: ""}
+  - {node_type: draft-proposal, needed: needed, because: "The model has a draft layer mtp_draft (up to 7 tokens) and an optional dflash2_draft, a cheap source of proposals.", asks: ""}
+  - {node_type: draft-policy, needed: open, because: "Two draft sources exist, but whether the amount or source of drafting is adjusted while running is a design choice the target leaves open.", asks: "Whether the draft length or draft source (mtp or dflash2) is adjusted while running rather than fixed."}
+  - {node_type: draft-verification, needed: needed, because: "Tokens are proposed ahead by the model's mtp_draft, so the full model must accept them and commit attention, gdn and mtp state to the accepted prefix.", asks: ""}
+  - {node_type: sampling, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: output-constraint, needed: not_needed, because: "The target offers plain text output with no constrained output or enforced format.", asks: ""}
+  - {node_type: output-interpretation, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: request-front, needed: needed, because: "No applies_when; every engine has it (here the offline_engine's way of taking requests and streaming results).", asks: ""}
+  - {node_type: prompt-preparation, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: step-scheduler, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: sequence-lifecycle, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: replica-routing, needed: not_needed, because: "One PC serving single_stream_text; no several whole copies of the engine run side by side.", asks: ""}
+  - {node_type: engine-supervision, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: scoring, needed: not_needed, because: "The target interface offers text generation only, no scoring.", asks: ""}
+  - {node_type: model-partitioning, needed: open, because: "The machine has one GPU and one CPU; whether the model is spread over both devices depends on the placement the builder chooses.", asks: "Whether parts of the model (layers or experts) are computed on cpu0 as well as gpu0."}
+  - {node_type: device-communication, needed: open, because: "Needed only if the model is spread over cpu0 and gpu0, which the target leaves to the builder.", asks: "Whether the model is split between cpu0 and gpu0 so that activations or partial results move between them."}
+  - {node_type: configuration, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: resource-governing, needed: open, because: "The 12 GB VRAM budget is fixed, workload is a single stream, and nothing states memory reclaim by the system or a power limit while running.", asks: "Whether host RAM is reclaimed by the OS or a power/thermal limit applies while the engine runs on this PC."}
+  - {node_type: telemetry, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  qwen-on-spark:
+  - {node_type: model-conversion, needed: needed, because: "No applies_when; every engine has it, and the checkpoint qwen3.8-flash-next-iq3_s must be pinned and put in the engine's layout.", asks: ""}
+  - {node_type: calibration, needed: needed, because: "No applies_when, so every engine has it.", asks: ""}
+  - {node_type: model-loading, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: memory-planning, needed: needed, because: "No applies_when; the 128 GB unified pool must be divided among about 85 GB of weights, state and work space.", asks: ""}
+  - {node_type: graph-capture, needed: needed, because: "gpu0 is a Blackwell GPU, and single-stream decode over 48 layers of small kernels benefits from recorded graphs on such a device.", asks: ""}
+  - {node_type: layer-compute, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: device-backend, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: secondary-compute, needed: not_needed, because: "CPU and GPU share one unified memory with no separate VRAM, so nothing has to be moved to the GPU, and the Blackwell GPU has more compute than the CPU.", asks: ""}
+  - {node_type: model-edit, needed: not_needed, because: "The target interface is plain text in, text out and offers no run-time changes to the model's behaviour.", asks: ""}
+  - {node_type: step-execution, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: prompt-reading, needed: open, because: "Whether prompts get their own chunked path or share the decode step is a design choice the target does not make.", asks: "Whether the engine reads prompts by a separate chunked path rather than in the same steps as decode rows."}
+  - {node_type: media-preparation, needed: not_needed, because: "target interface input modality is text.", asks: ""}
+  - {node_type: modality-encoding, needed: not_needed, because: "The model has no encoder and the target input modality is text.", asks: ""}
+  - {node_type: expert-source, needed: not_needed, because: "The 50.3 GB of experts, with about 85 GB of all weights, fit in the 128 GB unified memory the GPU computes from, and the target sets no memory budget.", asks: ""}
+  - {node_type: expert-cache, needed: not_needed, because: "All experts fit in the single unified memory pool, which is the only fast memory, so there is no separate faster copy to keep.", asks: ""}
+  - {node_type: residency-policy, needed: not_needed, because: "There is no expert cache, since all experts stay resident in unified memory.", asks: ""}
+  - {node_type: expert-fetch, needed: not_needed, because: "There is no expert cache, since all experts stay resident in unified memory.", asks: ""}
+  - {node_type: expert-dispatch, needed: not_needed, because: "All experts lie in one memory and are computed by the one GPU, so selected blocks have a single place and device.", asks: ""}
+  - {node_type: row-source, needed: needed, because: "The model has ngram_lookup reading rows of a 28.8 GB ngram_table (and a token_embedding read one row per token).", asks: ""}
+  - {node_type: storage-reader, needed: not_needed, because: "With all weights resident in the 128 GB pool, nothing has to be read from ssd0 while the engine runs.", asks: ""}
+  - {node_type: positional-state-store, needed: needed, because: "No applies_when; the model writes attention_kv, indexer_keys and the draft layer's mtp_kv per position.", asks: ""}
+  - {node_type: recurrent-state-store, needed: needed, because: "The model writes gdn_state, a fixed-size recurrent state, and speculative decoding is in scope (c-equiv), so rejection needs a way back.", asks: ""}
+  - {node_type: state-pool, needed: not_needed, because: "The target workload is single_stream_text, so several sequences do not share one backing memory for state.", asks: ""}
+  - {node_type: state-tiering, needed: open, because: "The context length to offer is not stated, so whether per-sequence state exceeds the roughly 40 GB left after weights is unknown.", asks: "What context length the engine must offer, and whether its state then fits in unified memory beside the weights."}
+  - {node_type: prefix-reuse, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: session-persistence, needed: not_needed, because: "The target interface offers no saving or restoring of sessions.", asks: ""}
+  - {node_type: draft-proposal, needed: needed, because: "The model has mtp_draft and dflash2_draft, and target c-equiv states that speculative decoding must not change output, so drafting is in use.", asks: ""}
+  - {node_type: draft-policy, needed: open, because: "Two draft sources exist, but whether drafting amount or source is adjusted while running is a design choice the target leaves open.", asks: "Whether the draft length or draft source (mtp or dflash2) is adjusted while running rather than fixed."}
+  - {node_type: draft-verification, needed: needed, because: "Tokens are proposed ahead and c-equiv requires the accepted output to equal non-speculative output.", asks: ""}
+  - {node_type: sampling, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: output-constraint, needed: not_needed, because: "The target offers plain text output with no constrained output or enforced format.", asks: ""}
+  - {node_type: output-interpretation, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: request-front, needed: needed, because: "No applies_when; every engine has it (here the offline_engine's way of taking requests and streaming results).", asks: ""}
+  - {node_type: prompt-preparation, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: step-scheduler, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: sequence-lifecycle, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: replica-routing, needed: not_needed, because: "One DGX Spark serving single_stream_text; no several whole copies of the engine run side by side.", asks: ""}
+  - {node_type: engine-supervision, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: scoring, needed: not_needed, because: "The target interface offers text generation only, no scoring.", asks: ""}
+  - {node_type: model-partitioning, needed: not_needed, because: "The model runs on the one GPU of one machine, from one unified memory pool.", asks: ""}
+  - {node_type: device-communication, needed: not_needed, because: "The model is not spread over more than one device or machine.", asks: ""}
+  - {node_type: configuration, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: resource-governing, needed: open, because: "No memory budget or power limit is stated; the unified pool is shared with the OS, but whether the system reclaims memory from the engine while running is not stated.", asks: "Whether a memory budget below 128 GB, OS memory reclaim or a power/thermal limit applies while the engine runs."}
+  - {node_type: telemetry, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  muse-on-spark:
+  - {node_type: model-conversion, needed: needed, because: "No applies_when; the safetensors checkpoint (model_checkpoint UNSET, BF16 or NVFP4) must be obtained, pinned and put in the engine's layout.", asks: ""}
+  - {node_type: calibration, needed: needed, because: "No applies_when, so every engine has it; here it would at least rank expert usage for an expert cache inside the 80 GB budget.", asks: ""}
+  - {node_type: model-loading, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: memory-planning, needed: needed, because: "No applies_when; and c-mem proposes an 80 GB budget in mem0 that must be divided between expert cache and attention state.", asks: ""}
+  - {node_type: graph-capture, needed: needed, because: "gpu0 is a Blackwell GPU, and decode over 62 layers of small kernels benefits from recorded graphs on such a device.", asks: ""}
+  - {node_type: layer-compute, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: device-backend, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: secondary-compute, needed: not_needed, because: "CPU and GPU share one unified memory, so no inputs have to be moved to the GPU, and the Blackwell GPU has more compute than the CPU.", asks: ""}
+  - {node_type: model-edit, needed: not_needed, because: "The target interface is text in, text out and lists no run-time changes to the model's behaviour.", asks: ""}
+  - {node_type: step-execution, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: prompt-reading, needed: open, because: "Whether prompts get their own chunked path or share the decode step is a design choice the target does not make.", asks: "Whether the engine reads prompts by a separate chunked path rather than in the same steps as decode rows."}
+  - {node_type: media-preparation, needed: not_needed, because: "The model accepts image, video and audio, but the target requires input modality text only.", asks: ""}
+  - {node_type: modality-encoding, needed: not_needed, because: "The model has a perception_encoder, but the engine serves text input only (interface.input.modality text, required).", asks: ""}
+  - {node_type: expert-source, needed: needed, because: "The model selects 8 of 256 experts per token per layer and the derived 399.5 GB of experts cannot sit in 128 GB of memory, let alone the 80 GB budget, so they stay on ssd0.", asks: ""}
+  - {node_type: expert-cache, needed: needed, because: "Not all 399.5 GB of experts fit in the 80 GB budget of mem0.", asks: ""}
+  - {node_type: residency-policy, needed: needed, because: "There is a cache of experts in mem0 (see expert-cache).", asks: ""}
+  - {node_type: expert-fetch, needed: needed, because: "There is a cache of experts, and absent ones must be paged in from ssd0 to mem0.", asks: ""}
+  - {node_type: expert-dispatch, needed: needed, because: "Selected experts can be resident in mem0 or only on ssd0, so each must be planned as computed from memory or after a fetch.", asks: ""}
+  - {node_type: row-source, needed: open, because: "The only table read a few rows per token is the 202,048-row token embedding (about 1.66B parameters) inside shared_weights; whether it is held whole or served by rows under the 80 GB budget is not decided.", asks: "Whether the token embedding table is kept whole in mem0 or served row by row from storage to save budget."}
+  - {node_type: storage-reader, needed: open, because: "Expert weights are read from ssd0 while running; whether any other kind (spilled attention state, embedding rows) shares that storage depends on undecided context length and placement.", asks: "Whether anything besides expert weights is read from ssd0 while the engine runs."}
+  - {node_type: positional-state-store, needed: needed, because: "No applies_when; the model keeps attention_kv per position.", asks: ""}
+  - {node_type: recurrent-state-store, needed: not_needed, because: "The model card states no state other than attention.", asks: ""}
+  - {node_type: state-pool, needed: open, because: "target workload is UNSET, so whether several sequences are in the engine at once is not stated.", asks: "Whether the workload runs several sequences concurrently or a single stream."}
+  - {node_type: state-tiering, needed: open, because: "c-context is UNSET and the attention state per token is not on the card (up to 2.0 MB per token, 65 GB at 32k), so whether state exceeds its share of 80 GB is unknown.", asks: "What context length the engine must offer and the attention state size per token from config.json."}
+  - {node_type: prefix-reuse, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: session-persistence, needed: not_needed, because: "The target asks for no saving or restoring of sessions; replayable_run_artifacts are run records, not session state.", asks: ""}
+  - {node_type: draft-proposal, needed: open, because: "The model card mentions no draft head, so only a separate small model or lookup of earlier text could propose, and allowed_transformations is UNSET.", asks: "Whether speculative decoding (prompt lookup or a separate draft model) is to be used for this target."}
+  - {node_type: draft-policy, needed: open, because: "Only relevant if drafting is used and adjusted while running, neither of which the target decides.", asks: "Whether drafting is used and whether its amount is adjusted while running."}
+  - {node_type: draft-verification, needed: open, because: "Needed only if tokens are proposed ahead, which the target does not decide.", asks: "Whether speculative decoding is used for this target."}
+  - {node_type: sampling, needed: needed, because: "No applies_when; every engine has it (c-quality baseline uses greedy sampling).", asks: ""}
+  - {node_type: output-constraint, needed: not_needed, because: "The target requires plain text output and states no constrained output or enforced format.", asks: ""}
+  - {node_type: output-interpretation, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: request-front, needed: needed, because: "No applies_when; every engine has it (boundary form is UNSET but requests must still be taken and answered).", asks: ""}
+  - {node_type: prompt-preparation, needed: needed, because: "No applies_when; every engine has it, and c-quality requires the published tokenizer.", asks: ""}
+  - {node_type: step-scheduler, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: sequence-lifecycle, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: replica-routing, needed: not_needed, because: "One DGX Spark with an 80 GB budget for one copy of an 816B model leaves no room for several whole copies side by side.", asks: ""}
+  - {node_type: engine-supervision, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: scoring, needed: open, because: "c-quality judges a task score with taskset UNSET; whether that taskset scores options by log-probability is not stated.", asks: "Whether the quality taskset needs log-probability scoring of given text or options rather than generation only."}
+  - {node_type: model-partitioning, needed: not_needed, because: "The model runs on the one GPU of one machine, from one unified memory pool.", asks: ""}
+  - {node_type: device-communication, needed: not_needed, because: "The model is not spread over more than one device or machine.", asks: ""}
+  - {node_type: configuration, needed: needed, because: "No applies_when; every engine has it.", asks: ""}
+  - {node_type: resource-governing, needed: needed, because: "c-mem counts page cache of the files the engine reads within 80 GB at any moment, and that page cache grows with expert reads and is reclaimed by the system while running.", asks: ""}
+  - {node_type: telemetry, needed: needed, because: "No applies_when; and c-ttft, c-decode, c-peak and the benchmark_report deliverable require recorded timings and peak memory.", asks: ""}

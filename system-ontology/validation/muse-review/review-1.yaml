@@ -1,0 +1,1020 @@
+leftovers:
+# ---------------- sys/muse-on-spark (system.yaml) ----------------
+- object: "sys/muse-on-spark"
+  field: "flows[operator-memory-settings].description"
+  quote: "prompt chunk, pipeline windows"
+  kind: D
+  because: "Pipeline windows are a setting of Strata's window graphs, which are not carried: 'Replaying one recorded graph per step assumes no wait inside a layer ... To be revisited when the miss rate is measured.' The decode loop runs 'One in the first version' token per step."
+  severity: doubtful
+  fix: "reword: Command-line flags and environment: context length, expert cache size or auto, reserve, prompt chunk."
+- object: "sys/muse-on-spark"
+  field: "flows[device-free-memory].description"
+  quote: "Free device memory as the driver reports it"
+  kind: B
+  because: "machine.yaml: 'CPU 与 GPU 共用同一个内存池，没有独立显存' (one shared pool, no separate GPU memory); target c-mem budgets 'Everything the engine's container holds in the unified pool'."
+  severity: wrong
+  fix: "reword: Free memory of the unified pool as the operating system reports it, read before the cache is sized and again after its slots are written."
+- object: "sys/muse-on-spark"
+  field: "flows[expert-bytes-to-upload].description"
+  quote: "Pointers to blobs to be copied into device memory"
+  kind: B
+  because: "machine.yaml has one unified pool and no device memory; the storage reader reads 'from storage into the staging area or a cache slot', there is no copy into device memory."
+  severity: wrong
+  fix: "reword: Ranges of the prepared file to be read into the staging area or a cache slot (cache fill, replacements, the prompt path's staging)."
+- object: "sys/muse-on-spark"
+  field: "flows[gpu-readable-experts].description"
+  quote: "whether its bytes are registered with the GPU driver and at which address the GPU reads them in place"
+  kind: E
+  because: "Strata's host-resident pinned copy read in place. comp/muse/expert-source is 'not responsible for: Keeping any expert in memory; the cache does that' and its adaptation says 'no copy in memory is possible'; host-memory-admission is not carried."
+  severity: wrong
+  fix: "drop"
+- object: "sys/muse-on-spark"
+  field: "flows[accelerator-expert-plan].description"
+  quote: "published before CPU work starts"
+  kind: C
+  because: "comp/muse/expert-subsystem: 'There is no CPU path.'; cpu-expert-pool is not_carried."
+  severity: wrong
+  fix: "reword: Which routed experts the accelerator computes this layer, from cache slots or from the staging area."
+- object: "sys/muse-on-spark"
+  field: "flows[window-inputs].description"
+  quote: "Token ids, per-row step counts and positions, written to fixed mapped buffers the graph copies from."
+  kind: C
+  because: "comp/muse/token-path: 'no recorded graphs in the first version'; decode-loop tokens-per-step 'One in the first version'; coverage excludes drafting and 'more than one conversation in memory at a time', so there are no several rows."
+  severity: wrong
+  fix: "reword: The token id and its position for this step."
+- object: "sys/muse-on-spark"
+  field: "flows[routed-experts].description"
+  quote: "read by the publish kernel, the device-side resident plan and the combine"
+  kind: D
+  because: "The publish kernel (doorbell) and the device-side resident plan (zero-doorbell graph) are Strata's window-graph kernels; window graphs are not carried and the token path has 'no recorded graphs in the first version'."
+  severity: wrong
+  fix: "reword: 8 expert ids and weights per token; read by expert dispatch and by the combine."
+- object: "sys/muse-on-spark"
+  field: "flows[window-layer-handoff].description"
+  quote: "Only in the doorbell graph; in the zero-doorbell graph the device plans from the residency table and the host is not asked."
+  kind: C
+  because: "Recorded graphs are not in the first version (token-path adaptation 'no recorded graphs in the first version'; window-graphs not_carried). The decode loop hands the routing to the expert subsystem at each layer."
+  severity: wrong
+  fix: "drop"
+- object: "sys/muse-on-spark"
+  field: "flows[window-layer-handoff].description"
+  quote: "with the buffer the unweighted expert rows are to be written into"
+  kind: C
+  because: "A buffer for expert rows written by the host belongs to Strata's CPU expert pool, which is not carried: 'There is no CPU path.'"
+  severity: doubtful
+  fix: "reword: When a layer's routing is known: its feed-forward input and routed ids, handed to expert dispatch."
+- object: "sys/muse-on-spark"
+  field: "flows[kv-pages-for-attention].description"
+  quote: "with the selected blocks made resident first when streaming is on"
+  kind: E
+  because: "comp/muse/kv-store adaptation: 'Moving old keys and values out of memory is not part of the first version.' There is no streaming; 'selected blocks' also assume a sparse selection the model card does not describe."
+  severity: wrong
+  fix: "reword: The keys and values an attention step reads."
+- object: "sys/muse-on-spark"
+  field: "flows[kv-append].description"
+  quote: "written to the host copy always and to the fast-memory slot only if its block is resident"
+  kind: B
+  because: "machine.yaml: one unified pool, '没有独立显存'; kv-store adaptation: moving keys and values out of memory 'is not part of the first version'. There is no host copy."
+  severity: wrong
+  fix: "reword: The new position's keys and values of each attention layer, written into the store."
+- object: "sys/muse-on-spark"
+  field: "flows[engine-commands].description"
+  quote: "Text lines on the engine's standard input"
+  kind: D
+  because: "A process boundary with a line protocol on standard input is how Strata's implementation is built; target.yaml leaves 'form: UNSET  # execution library, offline engine or online service'."
+  severity: doubtful
+  fix: "reword: Commands to the engine: generate with settings and prompt token ids, stop, report memory, save and restore."
+- object: "sys/muse-on-spark"
+  field: "flows[tokens-to-runner].description"
+  quote: "with a heartbeat every 10 s of quiet"
+  kind: D
+  because: "A constant of the source implementation; nothing in model.yaml, machine.yaml or target.yaml sets it, and coverage says 'every number tuned for another model has been turned back into an open choice'."
+  severity: doubtful
+  fix: "reword: Token ids as they arrive, with a heartbeat after a configured time of quiet."
+- object: "sys/muse-on-spark"
+  field: "flows[prompt-to-read].description"
+  quote: "one GEN or BGEN"
+  kind: D
+  because: "Protocol keywords of Strata's engine; BGEN is the batch generation command, and the coverage excludes 'more than one conversation in memory at a time' (engine-command-loop adaptation: 'No batch slots')."
+  severity: wrong
+  fix: "reword: The prompt token ids of one generation, to be read from the resume point."
+- object: "sys/muse-on-spark"
+  field: "flows[take-or-park].description"
+  quote: "take or borrow from the chosen parked entry"
+  kind: C
+  because: "Parked entries are other conversations' state held in memory; coverage: not covered 'more than one conversation in memory at a time'."
+  severity: doubtful
+  fix: "reword: Save the outgoing conversation's state, if parking is kept, and restore the chosen one."
+- object: "sys/muse-on-spark"
+  field: "flows[parked-restore].description"
+  quote: "attention keys and values and running state"
+  kind: A
+  because: "model.yaml: 'The card mentions no ... state other than attention'; layer-kernels adaptation: 'Muse's card names attention state only, so the recurrent state ... do not exist here.'"
+  severity: doubtful
+  fix: "reword: A parked conversation's attention keys and values and its token record, copied back into the live conversation."
+- object: "sys/muse-on-spark"
+  field: "flows[session-file-out].description"
+  quote: "the live running state and every attention layer's keys and values"
+  kind: A
+  because: "model.yaml: no state other than attention; session-files adaptation: 'A session file holds this model's state only, the attention keys and values.'"
+  severity: doubtful
+  fix: "reword: One session file on storage: the conversation's token record and every attention layer's keys and values."
+- object: "sys/muse-on-spark"
+  field: "flows[gpu-busy].description"
+  quote: "utilisation of 10% or more"
+  kind: D
+  because: "A threshold of the source implementation; not supported by the given files. On this engine the GPU may be idle while it waits on storage."
+  severity: doubtful
+  fix: "reword: Whether the GPU is working (utilisation above a configured threshold), read by the frozen-engine check."
+- object: "sys/muse-on-spark"
+  field: "flows[batch-samples].description"
+  quote: "BSTAT and PSTAT lines, at most one a second, when batch telemetry is on"
+  kind: C
+  because: "Batch telemetry is for several conversations generated at once; coverage excludes 'more than one conversation in memory at a time' and engine-command-loop says 'No batch slots'. BSTAT/PSTAT are Strata protocol keywords."
+  severity: wrong
+  fix: "drop"
+# ---------------- comp/muse/run-config-generator ----------------
+- object: "comp/muse/run-config-generator"
+  field: "decisions[spec-window].text"
+  quote: "The speculative window and the confidence floor written by default."
+  kind: C
+  because: "coverage: 'Not covered in the first version: ... drafting'; lookup-drafter, draft-policy and draft-verifier are not_carried."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/run-config-generator"
+  field: "decisions[context].text"
+  quote: "131072 recommended, capped by a memory rule"
+  kind: D
+  because: "A default tuned for Strata's model. target c-context: 'value: UNSET'; at up to 2.0 MB per token (system.yaml) 131,072 tokens would be about 262 GB, over the 80 GB budget; coverage: 'every number tuned for another model has been turned back into an open choice'."
+  severity: wrong
+  fix: "reword: The context length: the person's choice, capped by what the memory budget leaves after the minimum expert cache."
+- object: "comp/muse/run-config-generator"
+  field: "decisions[kv-format].text"
+  quote: "16-bit float at a context of 8192 or less, else 8-bit integer"
+  kind: D
+  because: "Thresholds tuned for Strata; coverage: numbers tuned for another model are turned back into open choices; target 'allowed_transformations: UNSET' does not settle whether 8-bit K/V is allowed."
+  severity: doubtful
+  fix: "reword: The K/V precision, by a rule to be set once the attention state's size per token is known, or the person's choice."
+- object: "comp/muse/run-config-generator"
+  field: "decisions[kv-streaming].text"
+  quote: "Keep only a 32768-token window of K/V in fast memory when the context is 65536 or more and host memory suffices."
+  kind: E
+  because: "comp/muse/kv-store adaptation: 'Moving old keys and values out of memory is not part of the first version.' Also machine.yaml has one unified pool, so there is no separate host memory."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/run-config-generator"
+  field: "decisions[resident-budget].text"
+  quote: "Host memory given to resident experts."
+  kind: B
+  because: "machine.yaml: one unified pool, no separate GPU memory; host-memory-admission is not_carried ('Muse's experts are three times the machine's memory'). The cache size 'is left to the engine' (decision expert-cache)."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/run-config-generator"
+  field: "decisions[hybrid-cpu-workers].text"
+  quote: "the worker count is P - 1 + E/2, at most 32"
+  kind: C
+  because: "CPU expert workers serve Strata's CPU expert pool, which is not_carried; 'There is no CPU path'. The 'without a calibration' case refers to speed-calibration, postponed."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/run-config-generator"
+  field: "invariants[inv/calibration-exact-hardware].text"
+  quote: "A saved calibration is used only for the exact hardware key it was measured on."
+  kind: C
+  because: "comp/strata/speed-calibration is not_carried (postponed): 'It needs first measurements of this engine.'"
+  severity: doubtful
+  fix: "drop"
+- object: "comp/muse/run-config-generator"
+  field: "calls[config_for].takes"
+  quote: "chosen GPUs"
+  kind: B
+  because: "machine.yaml lists one GPU (gpu0); launch-argument-resolver adaptation: 'this machine has one GPU'."
+  severity: wrong
+  fix: "reword: parsed options, RAM, context, KV format, model paths, engine build facts"
+- object: "comp/muse/run-config-generator"
+  field: "calls[GET /config, POST /config].does"
+  quote: "Lets the running server's settings page read and change a fixed set of keys"
+  kind: D
+  because: "A settings page and HTTP endpoints of Strata's server; target leaves 'form: UNSET' and asks for none."
+  severity: doubtful
+  fix: "drop"
+- object: "comp/muse/run-config-generator"
+  field: "equivalence.relative_to"
+  quote: "The model run at full precision without speculation limits"
+  kind: C
+  because: "coverage excludes drafting, so there are no speculation limits; the reference in target c-quality is 'the NVFP4 weights ... greedy sampling', not full precision."
+  severity: doubtful
+  fix: "reword: The published reference implementation with the NVFP4 weights"
+# ---------------- comp/muse/launch-argument-resolver ----------------
+- object: "comp/muse/launch-argument-resolver"
+  field: "decisions[calibration-validity].text"
+  quote: "its model name, context length and image setting"
+  kind: C
+  because: "Speed calibration is postponed (not_carried); targets.input_modalities is 'text' only and 'The perception encoder ... is not loaded in the first version', so there is no image setting."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/launch-argument-resolver"
+  field: "invariants[inv/calibrated-never-overrides-person].text"
+  quote: "A calibrated value never overrides a persisted or explicit one."
+  kind: C
+  because: "comp/strata/speed-calibration is not_carried (postponed); there are no calibrated values in the first version."
+  severity: doubtful
+  fix: "drop"
+- object: "comp/muse/launch-argument-resolver"
+  field: "calls[arg_layers.layer].does"
+  quote: "Applies the four sources in order"
+  kind: D
+  because: "The four sources include the calibration preset (apply_saved_tuning) that is postponed; the count and the function name are those of Strata's implementation."
+  severity: doubtful
+  fix: "reword: Applies the installed configuration, the persisted options and the explicit options in order, and records enough to tell a later hand edit from its own writing."
+- object: "comp/muse/launch-argument-resolver"
+  field: "calls[apply_saved_tuning].does"
+  quote: "Puts the active tuning preset over the configuration; skipped inside a tuning run."
+  kind: C
+  because: "speed-calibration not_carried: 'Its presets were measured on Strata's weight packs. It needs first measurements of this engine.'"
+  severity: wrong
+  fix: "drop"
+# ---------------- comp/muse/loading ----------------
+- object: "comp/muse/loading"
+  field: "needs_resources[cpu].purpose"
+  quote: "parsing, byte conversion, sizing arithmetic"
+  kind: E
+  because: "comp/muse/weight-loader adaptation: 'No byte transforms: the prepared file is already in the form the kernels read'; loading equivalence: 'weights are copied unchanged'."
+  severity: doubtful
+  fix: "reword: parsing, sizing arithmetic"
+- object: "comp/muse/loading"
+  field: "needs_resources[accelerator].purpose"
+  quote: "destination of the weight uploads"
+  kind: B
+  because: "machine.yaml: CPU and GPU share one pool ('没有独立显存'); weights are read from storage into the unified pool, not uploaded to a device."
+  severity: doubtful
+  fix: "drop"
+# ---------------- comp/muse/model-file-reader ----------------
+- object: "comp/muse/model-file-reader"
+  field: "invariants[inv/compiled-shape-match].text"
+  quote: "its architecture is qwen4exp"
+  kind: A
+  because: "The architecture name of Strata's model; model.yaml describes model/muse-spark-open and names no such architecture; the adaptation itself says it 'checks Muse's geometry (62 layers, 256 experts, 8 per token, hidden size 8,192)'."
+  severity: wrong
+  fix: "reword: The engine runs a file only if its metadata names this model and every pinned shape equals the shape the kernels were compiled for."
+# ---------------- comp/muse/expert-layout ----------------
+- object: "comp/muse/expert-layout"
+  field: "invariants[inv/one-expert-address-rule].text"
+  quote: "Blob (layer, expert) starts at the layer's offset plus the expert index times that layer's blob size"
+  kind: D
+  because: "An address formula of the source's layout file. Muse's prepared file has 'a table of where each lies' (preparation) with block-aligned ranges; whether blobs are equal-sized and packed is not settled by the files."
+  severity: doubtful
+  fix: "reword: The range of expert (layer, expert) is the one the range table records; every consumer derives addresses from this one table."
+# ---------------- comp/muse/weight-loader ----------------
+- object: "comp/muse/weight-loader"
+  field: "not_responsible_for[0]"
+  quote: "Allocating the device range (the caller sizes it with pool_bytes and allocates it)"
+  kind: D
+  because: "pool_bytes is a function of the source implementation; 'device range' assumes separate device memory, which machine.yaml rules out ('没有独立显存')."
+  severity: doubtful
+  fix: "reword: Allocating the memory the weights are placed in (startup memory sizing prices it)"
+- object: "comp/muse/weight-loader"
+  field: "not_responsible_for[1]"
+  quote: "or deciding its transform (decided offline by the tool that writes the index)"
+  kind: E
+  because: "The adaptation says 'No byte transforms: the prepared file is already in the form the kernels read'."
+  severity: doubtful
+  fix: "reword: Knowing what a tensor means"
+- object: "comp/muse/weight-loader"
+  field: "not_responsible_for[2]"
+  quote: "The routed experts held in host memory (expert source)"
+  kind: E
+  because: "comp/muse/expert-source: 'not responsible for: Keeping any expert in memory' and 'no copy in memory is possible'; machine.yaml has no separate host memory."
+  severity: wrong
+  fix: "reword: The routed experts (expert subsystem)"
+- object: "comp/muse/weight-loader"
+  field: "invariants[inv/index-row-complete].text"
+  quote: "exactly 19 fields"
+  kind: D
+  because: "The row format of Strata's weight index file; Muse's files are written by comp/muse/preparation and their format is not described anywhere in these files."
+  severity: wrong
+  fix: "reword: A row of the tensor directory that does not parse completely refuses the whole load; no partially parsed directory is used."
+- object: "comp/muse/weight-loader"
+  field: "invariants[inv/segments-match-index].text"
+  quote: "The plane layout the loader builds for a tensor"
+  kind: E
+  because: "Adaptation: 'No byte transforms: the prepared file is already in the form the kernels read'. Plane layouts are the source's transform."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/weight-loader"
+  field: "invariants[inv/no-split-element].text"
+  quote: "A widened or narrowed plane is never cut inside an element: odd fp16 byte counts are refused"
+  kind: E
+  because: "Adaptation: 'No byte transforms'; nothing is widened or narrowed."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/weight-loader"
+  field: "invariants[inv/convert-on-host].text"
+  quote: "Converted bytes are written to a host buffer and cross to the device once; host code never writes through a device address."
+  kind: B
+  because: "machine.yaml: 'CPU 与 GPU 共用同一个内存池，没有独立显存'; adaptation: 'No byte transforms', so nothing is converted and nothing crosses to a device."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/weight-loader"
+  field: "invariants[inv/range-holds-pool].text"
+  quote: "the supplied device range"
+  kind: B
+  because: "machine.yaml: one unified pool, no separate device memory."
+  severity: doubtful
+  fix: "reword: Nothing is written unless the supplied memory range is at least as large as the directory requires."
+# ---------------- comp/muse/startup-memory-sizing ----------------
+- object: "comp/muse/startup-memory-sizing"
+  field: "not_responsible_for[2]"
+  quote: "Host memory decisions (host memory admission)"
+  kind: C
+  because: "comp/strata/host-memory-admission is not_carried (does_not_apply); the adaptation says 'One memory pool instead of card memory and host memory'."
+  severity: wrong
+  fix: "drop"
+# ---------------- comp/muse/expert-cache ----------------
+- object: "comp/muse/expert-cache"
+  field: "not_responsible_for[0]"
+  quote: "the adaptive tier does that"
+  kind: E
+  because: "The adaptive tier is Strata's component; here the choice is made by comp/muse/cache-policy (adaptation: 'releasing is still decided by the policy component')."
+  severity: doubtful
+  fix: "reword: Choosing which experts to hold; the cache policy does that"
+- object: "comp/muse/expert-cache"
+  field: "calls[device_slot].does"
+  quote: "Gives the destination for an upload."
+  kind: B
+  because: "No upload to a device on one unified pool; the storage reader reads 'from storage into ... a cache slot'."
+  severity: doubtful
+  fix: "reword: Gives the destination for a storage read."
+- object: "comp/muse/expert-cache"
+  field: "equivalence[0].holds_when"
+  quote: "the GPU and CPU expert kernels round identically"
+  kind: C
+  because: "comp/muse/expert-subsystem: 'There is no CPU path.'; cpu-expert-pool not_carried."
+  severity: wrong
+  fix: "reword: by design: an expert in a slot is a byte copy of its range in the prepared file"
+# ---------------- comp/muse/expert-dispatch ----------------
+- object: "comp/muse/expert-dispatch"
+  field: "observation_points"
+  quote: "tail_skipped_count"
+  kind: E
+  because: "Its own adaptation: 'Omitting low-ranked experts is not part of the first version because it changes output.' and inv/always-served."
+  severity: wrong
+  fix: "drop"
+# ---------------- comp/muse/prompt-path ----------------
+- object: "comp/muse/prompt-path"
+  field: "invariants[inv/stable-source].text"
+  quote: "An expert handed to the CPU must have weights in slow memory that stay readable for the duration of its computation; the pointers are taken before the CPU thread starts."
+  kind: E
+  because: "Its own adaptation: 'No CPU share: there is no second copy of the experts for the CPU to read.'"
+  severity: wrong
+  fix: "reword: An expert used by a chunk's layer stays in its slot or in the staging area until every token of the chunk has been computed with it."
+- object: "comp/muse/prompt-path"
+  field: "observation_points"
+  quote: "per_object_time_cpu"
+  kind: C
+  because: "No CPU share in the prompt path (adaptation) and 'There is no CPU path' (expert-subsystem)."
+  severity: doubtful
+  fix: "drop"
+# ---------------- comp/muse/decode-loop ----------------
+- object: "comp/muse/decode-loop"
+  field: "not_responsible_for[0]"
+  quote: "Deciding which device computes an expert (expert dispatch, called through the pool callback)"
+  kind: C
+  because: "One GPU computes every expert ('No CPU path, no second accelerator', expert-dispatch adaptation); the pool callback is the hook of Strata's CPU expert pool, not_carried."
+  severity: wrong
+  fix: "reword: Deciding whether an expert is computed from the cache or after a storage read (expert dispatch)"
+- object: "comp/muse/decode-loop"
+  field: "not_responsible_for[1]"
+  quote: "Recording the graph (window graphs)"
+  kind: C
+  because: "window-graphs is not_carried (postponed); the adaptation says the step is 'not as one replayed graph'."
+  severity: doubtful
+  fix: "drop"
+- object: "comp/muse/decode-loop"
+  field: "invariants[inv/payload-before-signal].text"
+  quote: "The layer signal is the last write in stream order"
+  kind: D
+  because: "The doorbell protocol of Strata's recorded window graph; the token path has 'no recorded graphs in the first version'."
+  severity: doubtful
+  fix: "reword: The routing of a layer is complete before the host hands it to the expert subsystem."
+- object: "comp/muse/decode-loop"
+  field: "invariants[inv/cpu-rows-before-flag].text"
+  quote: "The host raises a layer's flag only after the CPU's expert rows for that layer are in the mapped buffer."
+  kind: C
+  because: "'There is no CPU path' (expert-subsystem); cpu-expert-pool not_carried."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/decode-loop"
+  field: "invariants[inv/no-window-after-forced-release].text"
+  quote: "After the GPU's waits were force-released, no further window is run on that verifier."
+  kind: C
+  because: "A verifier is part of drafting (draft-verifier not_carried; coverage excludes drafting); force-releasing GPU waits is a workaround of the source implementation (D)."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/decode-loop"
+  field: "observation_points"
+  quote: "verify_trace"
+  kind: C
+  because: "coverage excludes drafting; draft-verifier is not_carried."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/decode-loop"
+  field: "observation_points"
+  quote: "ms_pool"
+  kind: C
+  because: "Time spent in Strata's CPU expert pool; cpu-expert-pool is not_carried."
+  severity: doubtful
+  fix: "reword: ms_storage_wait"
+# ---------------- comp/muse/layer-kernels ----------------
+- object: "comp/muse/layer-kernels"
+  field: "not_responsible_for[0]"
+  quote: "CPU expert pool"
+  kind: C
+  because: "comp/strata/cpu-expert-pool is not_carried."
+  severity: wrong
+  fix: "reword: Choosing the routed experts (expert router) or computing them (expert dispatch)"
+- object: "comp/muse/layer-kernels"
+  field: "invariants[inv/fixed-addresses].text"
+  quote: "Every buffer a recorded graph touches keeps its address from session set-up until the graphs are freed."
+  kind: C
+  because: "comp/muse/token-path: 'no recorded graphs in the first version'."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/layer-kernels"
+  field: "invariants[inv/halves-share-buffers].text"
+  quote: "The mixed activation and the injection a layer's first half leaves"
+  kind: A
+  because: "A mixed activation and an injection come from the source model's residual mixing; model.yaml describes only expert_router, expert_ffn, shared_blocks and output_projection and nothing of this kind."
+  severity: doubtful
+  fix: "reword: The activations a layer's attention part leaves are untouched until the combine of its experts has read them."
+- object: "comp/muse/layer-kernels"
+  field: "equivalence[0].holds_when"
+  quote: "multi-row window kernels, default configuration; stated by comments"
+  kind: D
+  because: "Refers to code comments of an existing implementation; nothing of this engine is built ('nothing of it has been built'); multi-row windows belong to drafting and batching, both excluded."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/layer-kernels"
+  field: "equivalence[1].holds_when"
+  quote: "several selectable kernel sets exist and kernel numerics were not read"
+  kind: D
+  because: "Describes the source's existing kernel sets and what was read of its code; nothing of this engine exists."
+  severity: wrong
+  fix: "reword: to be shown by this component's parity check against the reference"
+# ---------------- comp/muse/expert-router ----------------
+- object: "comp/muse/expert-router"
+  field: "responsibility"
+  quote: "on the device inside the recorded graph"
+  kind: C
+  because: "comp/muse/token-path: 'no recorded graphs in the first version'."
+  severity: wrong
+  fix: "reword: For each token in each layer, turn the feed-forward input into 256 logits and choose 8 experts with renormalised weights, on the GPU."
+- object: "comp/muse/expert-router"
+  field: "not_responsible_for[1]"
+  quote: "Publishing the choice to the host (the loops' doorbell)"
+  kind: D
+  because: "The doorbell of Strata's window graphs; window-graphs not_carried."
+  severity: doubtful
+  fix: "reword: Handing the choice to the expert subsystem (decode loop)"
+- object: "comp/muse/expert-router"
+  field: "state.reads"
+  quote: "residency_table"
+  kind: C
+  because: "Only the zero-doorbell recorded graph had the device plan from the residency table (flow window-layer-handoff); routing itself depends only on the model, and recorded graphs are not in the first version."
+  severity: doubtful
+  fix: "drop"
+- object: "comp/muse/expert-router"
+  field: "calls[moe_route].does"
+  quote: "when a doorbell is given publishes the input, ids and weights and raises the layer signal last"
+  kind: D
+  because: "Doorbell protocol of the source implementation's recorded graphs; not in the first version."
+  severity: doubtful
+  fix: "reword: Projects and selects."
+- object: "comp/muse/expert-router"
+  field: "calls[moe_route_window].does"
+  quote: "Routes the rows in two launches"
+  kind: D
+  because: "A launch count of an existing kernel; nothing of this engine is built."
+  severity: wrong
+  fix: "reword: Routes the rows; each row equals the single-token call bit for bit."
+# ---------------- comp/muse/kv-store ----------------
+- object: "comp/muse/kv-store"
+  field: "not_responsible_for[0]"
+  quote: "or the resident window"
+  kind: E
+  because: "Its adaptation: 'Moving old keys and values out of memory is not part of the first version', so there is no resident window."
+  severity: doubtful
+  fix: "reword: Choosing the format (start-up flags written by setup)"
+- object: "comp/muse/kv-store"
+  field: "invariants[inv/kv-resident-before-read].text"
+  quote: "Every block a selection names is resident in fast memory before the attention kernel reads it"
+  kind: A
+  because: "A selection of blocks comes from the source model's sparse attention indexer; layer-kernels adaptation: 'the indexer keys ... do not exist here'; and streaming is excluded by kv-store's adaptation."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/kv-store"
+  field: "invariants[inv/host-copy-authoritative].text"
+  quote: "A writer writes the host copy always and the fast-memory slot only if the block is resident, so a slot never goes stale."
+  kind: B
+  because: "machine.yaml: one unified pool, no separate host and device memory; adaptation: moving keys and values out of memory 'is not part of the first version'."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/kv-store"
+  field: "invariants[inv/no-evict-in-use].text"
+  quote: "A slot used by the current resolve call is never taken as a victim in that call."
+  kind: E
+  because: "Eviction of K/V slots is streaming, excluded by the adaptation: 'Moving old keys and values out of memory is not part of the first version.'"
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/kv-store"
+  field: "invariants[inv/addresses-never-move].text"
+  quote: "including when the elastic store grows"
+  kind: D
+  because: "An elastic store is a mechanism of the source implementation; the responsibility here holds every position up to a configured context length sized at startup ('context-plan')."
+  severity: doubtful
+  fix: "reword: Addresses do not change after set-up."
+- object: "comp/muse/kv-store"
+  field: "invariants[inv/min-slots].text"
+  quote: "A streamed layer has at least 1024 slots; fewer stops the process."
+  kind: E
+  because: "No streaming in the first version (adaptation); 1024 is a constant of the source (D)."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/kv-store"
+  field: "equivalence[0].holds_when"
+  quote: "with or without streaming (streaming is tested bitwise equal to resident)"
+  kind: E
+  because: "No streaming in the first version (adaptation), and nothing of this engine is tested ('nothing of it has been built')."
+  severity: wrong
+  fix: "reword: fp16 format"
+- object: "comp/muse/kv-store"
+  field: "equivalence[1].note"
+  quote: "A setup tuner note says a resident window below the context changes answers; this was not reconciled with the parity test."
+  kind: D
+  because: "Refers to a note and a test of the source implementation; this engine has neither a setup tuner nor a resident window."
+  severity: wrong
+  fix: "drop"
+# ---------------- comp/muse/output-head ----------------
+- object: "comp/muse/output-head"
+  field: "decisions[where-it-runs].text"
+  quote: "Window loop: inside the window graph, in column chunks for long windows. Session loop: called by the driver after the layer loop"
+  kind: C
+  because: "window-graphs not_carried (postponed); session-loop not_carried ('It exists for one of Strata's weight packs only'); token-path: 'One loop instead of two ... no recorded graphs'."
+  severity: wrong
+  fix: "reword: Called by the decode loop after the last layer, once per step; whether logits are scanned for non-finite values is a startup choice."
+- object: "comp/muse/output-head"
+  field: "calls[lm_head].does"
+  quote: "activation image"
+  kind: D
+  because: "A step of the source's head kernel; model.yaml's output_projection is 'The projection to the vocabulary of 202,048 tokens' and describes no such step."
+  severity: doubtful
+  fix: "reword: Final norm and vocabulary projection."
+- object: "comp/muse/output-head"
+  field: "calls[lm_head_mix].does"
+  quote: "Only the final residual read, so a different projection can follow."
+  kind: C
+  because: "A different projection after the residual read serves a draft head; model.yaml: 'The card mentions no draft head'; drafting is excluded."
+  severity: doubtful
+  fix: "drop"
+# ---------------- comp/muse/sampler ----------------
+- object: "comp/muse/sampler"
+  field: "needs_resources[accelerator].purpose"
+  quote: "one block per row for greedy; for a sampled request a split top-k over the vocabulary and one warp per row"
+  kind: D
+  because: "Launch geometry of an existing kernel; nothing of this engine is built."
+  severity: doubtful
+  fix: "reword: the pick over the vocabulary of 202,048 tokens"
+- object: "comp/muse/sampler"
+  field: "needs_resources[fast_memory].purpose"
+  quote: "grown on demand outside any recording"
+  kind: C
+  because: "No recorded graphs in the first version (token-path)."
+  severity: doubtful
+  fix: "reword: scratch for the top-k"
+- object: "comp/muse/sampler"
+  field: "decisions[where-it-runs].text"
+  quote: "Greedy: inside the window graph, at no extra launch or synchronisation."
+  kind: C
+  because: "window-graphs and session-loop are not_carried; token-path: 'One loop instead of two ... no recorded graphs in the first version'."
+  severity: wrong
+  fix: "reword: Once per step after the head, with the request's own settings."
+- object: "comp/muse/sampler"
+  field: "decisions[default-settings].text"
+  quote: "The parameter defaults are top-k 20, top-p 0.95, min-p 0, temperature 1.0, penalties off."
+  kind: D
+  because: "Defaults recommended for Strata's model; model.yaml gives no sampling defaults, and coverage says numbers tuned for another model are turned back into open choices."
+  severity: doubtful
+  fix: "reword: A request without settings is greedy. Defaults for a sampled request are those published with the model, once known."
+- object: "comp/muse/sampler"
+  field: "invariants[inv/sampling-outside-graph].text"
+  quote: "Request-specific sampling is never part of a recorded graph"
+  kind: C
+  because: "No recorded graphs in the first version (token-path)."
+  severity: doubtful
+  fix: "drop"
+# ---------------- comp/muse/serving ----------------
+- object: "comp/muse/serving"
+  field: "not_responsible_for[0]"
+  quote: "The Python server holds no model state."
+  kind: D
+  because: "The language of Strata's server; nothing of this engine is built and target leaves 'form: UNSET'."
+  severity: doubtful
+  fix: "reword: The server holds no model state."
+# ---------------- comp/muse/http-front ----------------
+- object: "comp/muse/http-front"
+  field: "not_responsible_for[1]"
+  quote: "slot scheduler and the request runner's turn lock"
+  kind: C
+  because: "comp/strata/slot-scheduler is not_carried (postponed); serving adaptation: 'no slot scheduler'."
+  severity: wrong
+  fix: "reword: Ordering requests onto the engine; it only counts and refuses (the request runner's turn lock)"
+- object: "comp/muse/http-front"
+  field: "calls[POST /v1/chat/completions, /v1/messages, /v1/responses].name"
+  quote: "POST /v1/chat/completions, /v1/messages, /v1/responses"
+  kind: D
+  because: "The exact endpoints of Strata's server; target.yaml: 'form: UNSET  # execution library, offline engine or online service'."
+  severity: doubtful
+  fix: "reword: an inference endpoint taking messages, sampling fields and max tokens, its dialects to be chosen when the form is decided"
+# ---------------- comp/muse/prompt-builder ----------------
+- object: "comp/muse/prompt-builder"
+  field: "needs_resources[cpu].purpose"
+  quote: "byte-level BPE encoding"
+  kind: A
+  because: "model.yaml states only 'vocab_size 202048' and says nothing of the tokenizer's kind."
+  severity: doubtful
+  fix: "reword: Template rendering, encoding with the published tokenizer and incremental decoding, in the server process"
+- object: "comp/muse/prompt-builder"
+  field: "equivalence.note"
+  quote: "effort placement"
+  kind: A
+  because: "A reasoning-effort setting of the source model's template; model.yaml describes no such setting."
+  severity: doubtful
+  fix: "reword: The component defines the prompt, so the template and the output limit it chooses decide what the model is asked."
+# ---------------- comp/muse/request-runner ----------------
+- object: "comp/muse/request-runner"
+  field: "decisions[answer-room].text"
+  quote: "With thinking on and no budget given"
+  kind: A
+  because: "model.yaml describes no thinking mode; the same assumption appears in flow prompt-ids ('the thinking flag')."
+  severity: doubtful
+  fix: "reword: If the model has a thinking mode: with thinking on and no budget given, close the thinking early enough that the answer keeps a share of the output limit."
+- object: "comp/muse/request-runner"
+  field: "decisions[reasoning-loop-recovery].text"
+  quote: "temperature at least 1.0 and presence penalty at least 1.5"
+  kind: D
+  because: "Constants tuned on the source model; coverage: 'every number tuned for another model has been turned back into an open choice'."
+  severity: doubtful
+  fix: "reword: Opt-in: when the thinking repeats whole passages, either end the reply or continue from a rewritten prompt with raised temperature and presence penalty, values to be set."
+- object: "comp/muse/request-runner"
+  field: "decisions[nonfinite-retry].text"
+  quote: "When the engine reports non-finite logits before any token was sent, send the same request once more."
+  kind: D
+  because: "A workaround for a defect observed in the source engine; nothing in these files indicates non-finite logits for this engine."
+  severity: doubtful
+  fix: "drop"
+# ---------------- comp/muse/engine-client ----------------
+- object: "comp/muse/engine-client"
+  field: "decisions[start-retries].text"
+  quote: "after 2, 4 and 8 s"
+  kind: D
+  because: "Constants of the source implementation."
+  severity: doubtful
+  fix: "reword: How often a start that exits before READY for a transient reason is tried again, with growing waits."
+- object: "comp/muse/engine-client"
+  field: "decisions[silence-limit].text"
+  quote: "A first prompt chunk adds min(prompt, 32768)/50 s; after a progress line the allowance is 3 times the last chunk's time."
+  kind: D
+  because: "Tuned to Strata's prompt speed; here prompt reading may read 'up to 6.4 GB read from storage per layer' (prompt-path), so the allowance is not known; coverage: tuned numbers are turned back into open choices."
+  severity: wrong
+  fix: "reword: How long a running request's engine may print nothing before it is killed, with an allowance for prompt reading derived from the measured time per chunk."
+- object: "comp/muse/engine-client"
+  field: "decisions[frozen-limit].text"
+  quote: "at most 0.5 CPU seconds and 1 MiB of I/O in that time, while the GPU is not busy"
+  kind: D
+  because: "Thresholds of the source implementation; this engine spends time waiting on storage reads, so the I/O threshold and 'GPU is not busy' have different meaning here."
+  severity: doubtful
+  fix: "reword: An engine that prints nothing for this long and shows no CPU, storage-read or GPU activity in that time is killed."
+- object: "comp/muse/engine-client"
+  field: "decisions[restart-tries].text"
+  quote: "15 s apart"
+  kind: D
+  because: "A constant of the source implementation."
+  severity: doubtful
+  fix: "reword: How often a dead engine is started again at the next request, and how far apart."
+- object: "comp/muse/engine-client"
+  field: "decisions[top-k-clamp].text"
+  quote: "A top_k outside 1 to 64 is sent as 64, the most candidates the engine's sampled path keeps."
+  kind: D
+  because: "A limit of the source's sampler kernel; this engine's sampler is not built and its limit is unknown."
+  severity: wrong
+  fix: "reword: A top_k outside the range the engine's sampler supports is clamped to its limit."
+- object: "comp/muse/engine-client"
+  field: "invariants[inv/fatal-line-ends-engine].text"
+  quote: "After a verifier-timeout line"
+  kind: C
+  because: "A verifier exists only with drafting; coverage excludes drafting, draft-verifier not_carried."
+  severity: wrong
+  fix: "reword: After a fatal GPU error line the process takes no further request, and its trailing end line is never delivered."
+- object: "comp/muse/engine-client"
+  field: "equivalence.note"
+  quote: "except the top_k clamp to 64 and a default penalty window of 64 tokens"
+  kind: D
+  because: "Constants of the source implementation (see decisions[top-k-clamp])."
+  severity: doubtful
+  fix: "reword: It forwards sampling settings unchanged except the top_k clamp and a default penalty window."
+# ---------------- comp/muse/engine-command-loop ----------------
+- object: "comp/muse/engine-command-loop"
+  field: "not_responsible_for[0]"
+  quote: "The Python server decides and names the slot (slot scheduler)."
+  kind: E
+  because: "Its own adaptation: 'No batch slots: one prompt read or one generation at a time.'; slot-scheduler not_carried."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/engine-command-loop"
+  field: "not_responsible_for[1]"
+  quote: "verification and sampling inside a window (token path, speculation)"
+  kind: C
+  because: "coverage excludes drafting; draft-verifier not_carried; there is no speculation component."
+  severity: wrong
+  fix: "reword: The forward pass and sampling (token path)"
+- object: "comp/muse/engine-command-loop"
+  field: "invariants[inv/batch-row-layout].text"
+  quote: "A window has between 1 and the window capacity rows; each row's slot is in range; a slot's rows are contiguous and its proposed rows have consecutive positions."
+  kind: E
+  because: "Its own adaptation: 'No batch slots'; proposed rows are drafted tokens, excluded by coverage ('drafting')."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/engine-command-loop"
+  field: "observation_points"
+  quote: "BDONE"
+  kind: C
+  because: "The batch end line; 'No batch slots' (adaptation), coverage excludes more than one conversation at a time."
+  severity: wrong
+  fix: "drop"
+# ---------------- comp/muse/conversation-reuse ----------------
+- object: "comp/muse/conversation-reuse"
+  field: "not_responsible_for[0]"
+  quote: "matching is by token ids, image keys and the steering flag"
+  kind: C
+  because: "targets.input_modalities is 'text' only and coverage excludes 'image, video and audio input'; model.yaml describes no steering."
+  severity: wrong
+  fix: "reword: Identifying a conversation by an id. There is none; matching is by token ids."
+# ---------------- comp/muse/resume-decision ----------------
+- object: "comp/muse/resume-decision"
+  field: "not_responsible_for[1]"
+  quote: "Creating checkpoints (checkpoint chain)"
+  kind: C
+  because: "checkpoint-chain is not_carried; own adaptation: 'no chain of checkpoints is needed'."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/resume-decision"
+  field: "not_responsible_for[2]"
+  quote: "Copying state between device and host (parked conversations, checkpoint chain)"
+  kind: B
+  because: "machine.yaml: one unified pool, no separate device memory; checkpoint-chain not_carried."
+  severity: wrong
+  fix: "reword: Copying stored state (parked conversations)"
+- object: "comp/muse/resume-decision"
+  field: "invariants[inv/reuse-needs-tokens-images-steering].text"
+  quote: "the image keys below it are equal, and the steering flag matches"
+  kind: C
+  because: "Text input only (targets.input_modalities: text; coverage excludes image input); model.yaml describes no steering."
+  severity: wrong
+  fix: "reword: A stored prefix is reused only when every token id equals the prompt's."
+- object: "comp/muse/resume-decision"
+  field: "invariants[inv/prefix-ends-at-stored-point].text"
+  quote: "the live end or a checkpoint, never at an arbitrary common prefix"
+  kind: E
+  because: "Own adaptation: 'With attention state only, going back to an earlier point is a truncation of keys and values; no chain of checkpoints is needed.' Truncation allows any common prefix (flow truncate-to-prefix: 'Cut the attention state back to the shared prefix')."
+  severity: wrong
+  fix: "reword: Reading resumes at the longest prefix the prompt shares with the stored state, after truncating the keys and values to it."
+- object: "comp/muse/resume-decision"
+  field: "invariants[inv/drop-checkpoints-past-resume].text"
+  quote: "every checkpoint longer than the resume point or not on this prompt's path is dropped"
+  kind: E
+  because: "Own adaptation: 'no chain of checkpoints is needed'; checkpoint-chain not_carried."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/resume-decision"
+  field: "invariants[inv/nonfinite-flushes-all].text"
+  quote: "all checkpoints, all parked conversations and all idle slots"
+  kind: C
+  because: "No checkpoints (adaptation) and no slots (slot-scheduler not_carried; engine-command-loop 'No batch slots')."
+  severity: wrong
+  fix: "reword: After a step with non-finite logits the next request drops the live session and all parked conversations, and reads from token 0."
+- object: "comp/muse/resume-decision"
+  field: "equivalence[0].holds_when"
+  quote: "and the expert placement the same as a cold read"
+  kind: E
+  because: "Expert placement mattered in Strata because experts ran on CPU or GPU; here expert-dispatch is 'equivalence: bit_exact' with a cache of any size and 'There is no CPU path'."
+  severity: doubtful
+  fix: "reword: The resume point leaves the prompt's chunk boundaries the same as a cold read"
+- object: "comp/muse/resume-decision"
+  field: "equivalence[1].note"
+  quote: "The project's document says chunk geometry can change floating-point results and claims no bitwise parity."
+  kind: D
+  because: "Refers to the source project's document; this engine has no document of its own measurements ('nothing of it has been built')."
+  severity: doubtful
+  fix: "reword: Chunk geometry can change floating-point results; to be measured."
+# ---------------- comp/muse/parked-conversations ----------------
+- object: "comp/muse/parked-conversations"
+  field: "responsibility"
+  quote: "Hold images of other conversations' attention state within a budget"
+  kind: C
+  because: "coverage: not covered 'more than one conversation in memory at a time'; slot-scheduler note: 'A second conversation needs its own attention state in memory, taken from the expert cache.' Parked images are exactly that."
+  severity: doubtful
+  fix: "reword: state that parking is off in the first version, or that parked images are held on storage, not in memory"
+- object: "comp/muse/parked-conversations"
+  field: "not_responsible_for[0]"
+  quote: "The current conversation's rewind points (checkpoint chain)"
+  kind: C
+  because: "checkpoint-chain is not_carried ('Muse's card names attention state only')."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/parked-conversations"
+  field: "not_responsible_for[2]"
+  quote: "The host memory check is a measurement, not a reservation."
+  kind: B
+  because: "machine.yaml: one unified pool, no separate host memory; the adaptation itself says the budget is 'not a separate host memory budget'."
+  severity: wrong
+  fix: "reword: Reserving memory. The memory check is a measurement, not a reservation."
+- object: "comp/muse/parked-conversations"
+  field: "invariants[inv/reuse-needs-tokens-images-steering].text"
+  quote: "the image keys below it are equal, and the steering flag matches"
+  kind: C
+  because: "Text input only (targets.input_modalities: text); model.yaml describes no steering."
+  severity: wrong
+  fix: "reword: A stored prefix is reused only when every token id equals the prompt's."
+- object: "comp/muse/parked-conversations"
+  field: "invariants[inv/retained-kv-bounded-by-rewrites].text"
+  quote: "Retained K/V is reused only for the prefix shared with the conversation it was captured from"
+  kind: D
+  because: "Retained K/V is a mechanism of the source implementation, not described anywhere else in this design."
+  severity: doubtful
+  fix: "drop"
+- object: "comp/muse/parked-conversations"
+  field: "invariants[inv/pinned-and-donor-not-evicted].text"
+  quote: "An entry holding a pinned checkpoint"
+  kind: C
+  because: "No checkpoints (checkpoint-chain not_carried; resume-decision adaptation 'no chain of checkpoints is needed')."
+  severity: wrong
+  fix: "reword: The entry a borrow is copying from is never evicted."
+- object: "comp/muse/parked-conversations"
+  field: "invariants[inv/park-never-fatal].text"
+  quote: "the host memory floor"
+  kind: B
+  because: "machine.yaml: one unified pool; adaptation: 'not a separate host memory budget'."
+  severity: wrong
+  fix: "reword: A park that does not fit the budget or an allocation is skipped; it never fails the request."
+- object: "comp/muse/parked-conversations"
+  field: "invariants[inv/image-matches-runtime].text"
+  quote: "checkpoint prefixes"
+  kind: C
+  because: "No checkpoints in this design (checkpoint-chain not_carried)."
+  severity: wrong
+  fix: "reword: An image is accepted only if its geometry key, layer range and every K/V layer's format and sizes equal the running engine's, checked before any write."
+- object: "comp/muse/parked-conversations"
+  field: "equivalence.note"
+  quote: "which the code relies on"
+  kind: D
+  because: "Refers to existing code; nothing of this engine is built."
+  severity: doubtful
+  fix: "reword: After a prefix restore, cells past the restored point hold the donor's later tokens until the request overwrites them."
+# ---------------- comp/muse/session-files ----------------
+- object: "comp/muse/session-files"
+  field: "needs_resources[slow_memory].purpose"
+  quote: "On a save, two copies of the kept checkpoint, the live state and a 16 MiB write buffer"
+  kind: E
+  because: "Own adaptation: 'The source's other kinds of state and its checkpoints do not exist here'; 16 MiB is a source constant (D)."
+  severity: wrong
+  fix: "reword: On a save, a write buffer; on a read, about the payload plus a buffer"
+- object: "comp/muse/session-files"
+  field: "needs_resources[accelerator].purpose"
+  quote: "Streaming K/V from the device on a save"
+  kind: B
+  because: "machine.yaml: one unified pool readable by CPU and GPU, no separate device memory to stream from."
+  severity: doubtful
+  fix: "drop"
+- object: "comp/muse/session-files"
+  field: "decisions[checkpoints-written].text"
+  quote: "Exactly one checkpoint is written: the deepest, or the deepest pinned one."
+  kind: E
+  because: "Own adaptation: 'The source's other kinds of state and its checkpoints do not exist here'."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/session-files"
+  field: "decisions[save-reclaim].text"
+  quote: "then erases checkpoints other than the one to be written and pinned ones"
+  kind: E
+  because: "Own adaptation: checkpoints 'do not exist here'."
+  severity: wrong
+  fix: "reword: Opt-in: a save short of memory first evicts parked conversations oldest first."
+- object: "comp/muse/session-files"
+  field: "decisions[save-reclaim].text"
+  quote: "first drops retained K/V"
+  kind: D
+  because: "Retained K/V is a mechanism of the source implementation not otherwise part of this design."
+  severity: doubtful
+  fix: "reword: Opt-in: a save short of memory first evicts parked conversations oldest first."
+- object: "comp/muse/session-files"
+  field: "decisions[model-fingerprint].text"
+  quote: "its size and its first and last MiB"
+  kind: D
+  because: "The fingerprint rule of the existing implementation; the prepared files here are written by comp/muse/preparation, which could record a full checksum (weight-loader verification uses 'checksums written by model preparation')."
+  severity: doubtful
+  fix: "reword: What binds a file to a model: the checksums recorded by model preparation."
+- object: "comp/muse/session-files"
+  field: "decisions[server-save-retry].text"
+  quote: "up to 3 times, waiting up to 30 s for memory"
+  kind: D
+  because: "Constants of the source implementation."
+  severity: doubtful
+  fix: "reword: With the reclaim option, the server retries a save refused for memory a configured number of times."
+- object: "comp/muse/session-files"
+  field: "calls[SAVE <path> / RESTORE <path>].returns"
+  quote: "SERR <kind> <published 0|1> <reason>"
+  kind: D
+  because: "Protocol keywords of the source engine's command line."
+  severity: doubtful
+  fix: "reword: the saved or restored token count, bytes and time, or a refusal with its kind and reason"
+- object: "comp/muse/session-files"
+  field: "calls[POST /slots/0?action=save|restore].name"
+  quote: "POST /slots/0?action=save|restore"
+  kind: D
+  because: "The slot endpoint of an existing server; slot-scheduler not_carried and target 'form: UNSET'."
+  severity: doubtful
+  fix: "reword: a save and restore request over the server's interface, if the server form is chosen"
+- object: "comp/muse/session-files"
+  field: "equivalence.note"
+  quote: "A restored session has fewer rewind points than the saved one because one checkpoint is written."
+  kind: E
+  because: "Own adaptation: checkpoints 'do not exist here'."
+  severity: wrong
+  fix: "reword: The model fingerprint does not detect an edit in the middle of a model file."
+# ---------------- comp/muse/engine-diagnostics ----------------
+- object: "comp/muse/engine-diagnostics"
+  field: "invariants[inv/no-device-readback-in-counting].text"
+  quote: "This holds by construction (the header uses no device types); no check asserts it."
+  kind: D
+  because: "Describes an existing header file; nothing of this engine is built ('nothing of it has been built')."
+  severity: wrong
+  fix: "reword: Counting touches host maps only."
+- object: "comp/muse/engine-diagnostics"
+  field: "invariants[inv/batch-sample-valid].text"
+  quote: "A batch window sample with fewer than one processed row"
+  kind: C
+  because: "Batch windows need several conversations at once; coverage excludes 'more than one conversation in memory at a time'."
+  severity: wrong
+  fix: "drop"
+# ---------------- comp/muse/server-metrics ----------------
+- object: "comp/muse/server-metrics"
+  field: "decisions[decode-rate-definition].text"
+  quote: "and so includes the first window"
+  kind: C
+  because: "target.yaml c-decode: 'includes_first_token: false'."
+  severity: wrong
+  fix: "reword: Tokens per second of a finished request is the engine's generated count after the first token divided by the time from the first token to the last. Not reported for fewer than 2 tokens."
+- object: "comp/muse/server-metrics"
+  field: "invariants[inv/refused-admission-not-counted].text"
+  quote: "A request the batch engine refused to admit"
+  kind: C
+  because: "No batch engine: 'No batch slots' (engine-command-loop adaptation); coverage excludes more than one conversation at a time."
+  severity: wrong
+  fix: "reword: A request the engine refused to admit gets an error row but no part in totals or latency histograms."
+- object: "comp/muse/server-metrics"
+  field: "calls[usage and timings of a response].returns"
+  quote: "a timings object in llama.cpp's field names"
+  kind: D
+  because: "The field names of another engine; target leaves 'form: UNSET' and names no such convention."
+  severity: doubtful
+  fix: "reword: a timings object"
+- object: "comp/muse/server-metrics"
+  field: "calls[GET /metrics].does"
+  quote: "in vLLM's metric names"
+  kind: D
+  because: "The metric names of another engine; not required by target.yaml."
+  severity: doubtful
+  fix: "reword: or as Prometheus text when asked."
+- object: "comp/muse/server-metrics"
+  field: "calls[GET /metrics/prometheus].does"
+  quote: "in llama.cpp's metric names"
+  kind: D
+  because: "The metric names of another engine; not required by target.yaml."
+  severity: doubtful
+  fix: "drop"
+- object: "comp/muse/server-metrics"
+  field: "calls[GET /v1/status, /status, /health, /slots, /v1/telemetry].does"
+  quote: "per-slot state"
+  kind: C
+  because: "No slots: slot-scheduler not_carried; 'No batch slots'."
+  severity: wrong
+  fix: "reword: Return a status summary, the live state, a liveness record and a versioned snapshot with the last transition events."
+- object: "comp/muse/server-metrics"
+  field: "observation_points"
+  quote: "pcie_share"
+  kind: B
+  because: "machine.yaml: CPU and GPU share one memory pool ('没有独立显存'); there is no host-to-device transfer over PCIe."
+  severity: wrong
+  fix: "reword: storage_read_share"
+checked:
+  components_read: 36
+  flows_read: 68

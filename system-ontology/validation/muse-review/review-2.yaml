@@ -1,0 +1,475 @@
+leftovers:
+# ---------------- sys/muse-on-spark ----------------
+- object: "sys/muse-on-spark"
+  field: "flows[expert-layout-to-sizing].description"
+  quote: "The largest blob and each layer's blob size"
+  kind: D
+  because: "This design has one range per expert, not a per-layer blob: preparation writes 'every expert as one contiguous block-aligned range', and expert-layout says 'One range per expert, not three tensors per layer.' A per-layer blob size is the source's layout."
+  severity: doubtful
+  fix: "reword: The largest expert range, the unit the expert cache's slots are counted in."
+- object: "sys/muse-on-spark"
+  field: "flows[expert-bytes-from-files].timing"
+  quote: "startup"
+  kind: E
+  because: "The same flow says the bytes are 'read from storage when asked for', and the summary says a missed expert 'is read from storage for that step'; weight-loader says 'Experts are never loaded at startup.' A startup timing is the source's (experts loaded at start into host memory)."
+  severity: wrong
+  fix: "reword: timing: on_demand"
+- object: "sys/muse-on-spark"
+  field: "flows[window-fetch-request].description"
+  quote: "for this window only"
+  kind: C
+  because: "decode-loop decides 'tokens-per-step: One in the first version', and coverage excludes 'drafting'; there is no multi-token window, the unit is a step (or a prompt chunk)."
+  severity: doubtful
+  fix: "reword: Missed experts to copy into the staging area for this step only"
+- object: "sys/muse-on-spark"
+  field: "flows[expert-usage].description"
+  quote: "How many tokens of the window routed each expert"
+  kind: C
+  because: "One token per step in the first version ('tokens-per-step: One in the first version'); without drafting there is no window of tokens in decode."
+  severity: doubtful
+  fix: "reword: How many tokens of the step or prompt chunk routed each expert"
+- object: "sys/muse-on-spark"
+  field: "flows[final-residual-to-head].description"
+  quote: "one per window row"
+  kind: C
+  because: "Coverage excludes 'drafting' and decode is one token per step; windows of rows come from the source's drafted windows."
+  severity: doubtful
+  fix: "reword: The residual after the last layer, one per position."
+- object: "sys/muse-on-spark"
+  field: "flows[logits-to-sampler].description"
+  quote: "in device memory"
+  kind: B
+  because: "machine.yaml: mem0 is 'unified_ram' and gpu0-mem0 notes 'CPU 与 GPU 共用同一个内存池，没有独立显存' (no separate GPU memory)."
+  severity: wrong
+  fix: "reword: One row of vocabulary logits per position, in the unified pool."
+- object: "sys/muse-on-spark"
+  field: "flows[client-request].description"
+  quote: "An HTTP request in OpenAI or Anthropic form"
+  kind: E
+  because: "http-front's adaptation says 'Which request dialects the front offers is open until the form of the engine is decided', and target.yaml has 'form: UNSET'."
+  severity: doubtful
+  fix: "reword: A client request in the dialect the engine's form will define: messages, sampling fields and an output limit"
+- object: "sys/muse-on-spark"
+  field: "flows[prompt-ids].description"
+  quote: "the thinking flag"
+  kind: A
+  because: "model.yaml describes no reasoning or thinking mode; its note says 'only what the card states is described'."
+  severity: doubtful
+  fix: "reword: The prompt token ids and the output limit fitted to the context"
+- object: "sys/muse-on-spark"
+  field: "flows[engine-commands].description"
+  quote: "Text lines on the engine's standard input"
+  kind: D
+  because: "A stdin text-line protocol between a server and a child engine process is the source implementation's transport; target.yaml leaves 'form: UNSET' (execution library, offline engine or online service)."
+  severity: doubtful
+  fix: "reword: Commands to the engine: generate with settings and prompt token ids, stop, report memory, save and restore."
+- object: "sys/muse-on-spark"
+  field: "flows[response-events].description"
+  quote: "Reasoning, content and tool-call events"
+  kind: A
+  because: "model.yaml describes no reasoning channel and no tool-call format; only 'modality_out: text'."
+  severity: doubtful
+  fix: "reword: Content events, pings and one finish record"
+- object: "sys/muse-on-spark"
+  field: "flows[session-file-in].description"
+  quote: "validated before any device write"
+  kind: B
+  because: "machine.yaml: one unified pool, '没有独立显存'; there is no separate device memory to write."
+  severity: doubtful
+  fix: "reword: A session file read back and validated before the live attention state is written"
+- object: "sys/muse-on-spark"
+  field: "flows[hardware-readings].description"
+  quote: "GPU utilisation, memory, temperature and power from the vendor library, and CPU, RAM and disk readings"
+  kind: B
+  because: "A GPU memory reading separate from RAM assumes separate device memory; machine.yaml has one 'unified_ram' pool shared by CPU and GPU."
+  severity: doubtful
+  fix: "reword: GPU utilisation, temperature and power from the vendor library, and CPU, unified memory and disk readings from the operating system, once a second"
+# ---------------- comp/muse/run-config-generator ----------------
+- object: "comp/muse/run-config-generator"
+  field: "needs_resources[storage].purpose"
+  quote: "One JSON file per installed model"
+  kind: D
+  because: "The engine is for one model ('Decide the engine's options for one model on one machine'); a JSON file per installed model is the source's file layout."
+  severity: doubtful
+  fix: "reword: One run configuration file, with a backup of the previous one"
+- object: "comp/muse/run-config-generator"
+  field: "calls[user_args.merge / capture / stamp].name"
+  quote: "user_args.merge / capture / stamp"
+  kind: D
+  because: "A module-qualified function name of an existing implementation; nothing of this engine is built ('nothing of it has been built')."
+  severity: wrong
+  fix: "reword: merge / capture / stamp"
+# ---------------- comp/muse/launch-argument-resolver ----------------
+- object: "comp/muse/launch-argument-resolver"
+  field: "invariants[inv/failed-fit-decides-nothing].text"
+  quote: "A fit estimate that fails changes nothing."
+  kind: D
+  because: "Nothing in this design produces a fit estimate; the component is 'not_responsible_for: Sizing the expert cache; that is left to the engine', and sizing is done by startup memory sizing. The fit estimate is the source's launcher feature."
+  severity: doubtful
+  fix: "drop"
+# ---------------- comp/muse/loading ----------------
+- object: "comp/muse/loading"
+  field: "not_responsible_for[0]"
+  quote: "Changing sizes after READY"
+  kind: D
+  because: "READY is a protocol keyword of the source engine's line protocol (category D)."
+  severity: doubtful
+  fix: "reword: Changing sizes after the engine reports it is ready"
+- object: "comp/muse/loading"
+  field: "needs_resources[slow_memory].purpose"
+  quote: "file mappings and staging buffers"
+  kind: B
+  because: "machine.yaml has one 'unified_ram' pool, no slow/fast split; and expert-dispatch puts the staging area in 'fast_memory' ('the staging area for experts read for this step only'), so this also contradicts the design (E)."
+  severity: wrong
+  fix: "drop"
+- object: "comp/muse/loading"
+  field: "needs_resources[accelerator].purpose"
+  quote: "destination of the weight uploads"
+  kind: B
+  because: "machine.yaml: CPU and GPU share one pool, '没有独立显存'; weights are read into the unified pool, there is no upload to the accelerator."
+  severity: wrong
+  fix: "drop"
+# ---------------- comp/muse/model-file-reader ----------------
+- object: "comp/muse/model-file-reader"
+  field: "needs_resources[slow_memory].purpose"
+  quote: "one whole-file read-only mapping per open"
+  kind: B
+  because: "machine.yaml has a single unified pool (no slow memory tier); and expert-source's 'read-mode' decision weighs bypassing the page cache because it 'takes memory the budget does not count' — a whole-file mapping of a ~400 GB file sits in that same page cache."
+  severity: doubtful
+  fix: "reword: resource: fast_memory, purpose: the header and tensor directory only, read without mapping the expert ranges"
+# ---------------- comp/muse/weight-loader ----------------
+- object: "comp/muse/weight-loader"
+  field: "decisions[head-precision].text"
+  quote: "It moves about 25 GB between these weights and the expert cache."
+  kind: E
+  because: "model.yaml: token_embedding is '202,048 rows of 8,192 values: 1.66B parameters'; 4 to 16 bits adds about 2.5 GB per table (about 5 GB if the head is untied). About 25 GB is the difference for all 17.0B shared weights (system resource_expectations: '34 GB if kept at 16 bits' vs 8.5 GB)."
+  severity: wrong
+  fix: "reword: Whether the embedding table and output head are kept at 4 or 16 bits. It moves about 2.5 GB per table (about 5 GB if the head is not tied to the embedding) between these weights and the expert cache."
+# ---------------- comp/muse/startup-memory-sizing ----------------
+- object: "comp/muse/startup-memory-sizing"
+  field: "invariants[inv/start-ends-on-failed-allocation].text"
+  quote: "the weight range"
+  kind: D
+  because: "A single 'weight range' allocation is the source's loader structure; this design's weight-loader returns 'a table from tensor name to location'."
+  severity: doubtful
+  fix: "reword: The start ends with a message when the weights every token uses, the session state, or an explicitly sized expert cache cannot be allocated; ..."
+# ---------------- comp/muse/expert-router ----------------
+- object: "comp/muse/expert-router"
+  field: "not_responsible_for[0]"
+  quote: "Deciding which device computes a chosen expert"
+  kind: B
+  because: "machine.yaml has one GPU and one pool; expert-dispatch has 'No CPU path, no second accelerator' and cpu-expert-pool is not carried. Dispatch decides cache vs storage read, not a device."
+  severity: wrong
+  fix: "reword: Deciding whether a chosen expert is computed from the cache or after a storage read (expert dispatch)"
+- object: "comp/muse/expert-router"
+  field: "invariants[inv/route-independent-of-window].text"
+  quote: "A token's routing does not depend on how many tokens share its window."
+  kind: C
+  because: "Decode is 'One in the first version' token per step and drafting is excluded by coverage; the multi-token window is the source's."
+  severity: doubtful
+  fix: "reword: A token's routing does not depend on how many tokens share its prompt chunk."
+# ---------------- comp/muse/prompt-path ----------------
+- object: "comp/muse/prompt-path"
+  field: "observation_points"
+  quote: "per_object_time_gpu"
+  kind: D
+  because: "A counter name of the source's telemetry ('object' is not a unit of this design, which works in chunks and layers)."
+  severity: doubtful
+  fix: "reword: per_chunk_time, storage_bytes_per_chunk"
+# ---------------- comp/muse/decode-loop ----------------
+- object: "comp/muse/decode-loop"
+  field: "invariants[inv/window-inside-context].text"
+  quote: "A window's last position is inside the context the session was sized for."
+  kind: C
+  because: "Its own decision 'tokens-per-step: One in the first version' and its adaptation 'with no draft window'."
+  severity: doubtful
+  fix: "reword: A step's position is inside the context the session was sized for."
+- object: "comp/muse/decode-loop"
+  field: "observation_points"
+  quote: "windows"
+  kind: D
+  because: "Counter names of the source's window loop ('ms_host', 'windows'); this loop has no windows ('with no draft window')."
+  severity: doubtful
+  fix: "reword: steps, ms_wait_storage"
+# ---------------- comp/muse/layer-kernels ----------------
+- object: "comp/muse/layer-kernels"
+  field: "invariants[inv/router-activation-format].text"
+  quote: "another format moves the logits enough to change a selection"
+  kind: D
+  because: "A finding measured on the source's model and weights (a workaround for a defect); model.yaml says nothing about the router weight's stored format, and routing is expert-router's component."
+  severity: doubtful
+  fix: "reword: The router reads the activation in the format the reference implementation uses."
+# ---------------- comp/muse/output-head ----------------
+- object: "comp/muse/output-head"
+  field: "invariants[inv/nonfinite-logits-reported].text"
+  quote: "is reported for the window"
+  kind: C
+  because: "One token per step in the first version and no drafting (coverage); there are no windows."
+  severity: doubtful
+  fix: "reword: A row of logits holding a NaN or an infinity is reported for the step, not silently picked from."
+# ---------------- comp/muse/sampler ----------------
+- object: "comp/muse/sampler"
+  field: "calls[sample_tokens].takes"
+  quote: "device logits for n rows"
+  kind: B
+  because: "machine.yaml: one unified pool, '没有独立显存'."
+  severity: doubtful
+  fix: "reword: logits for n rows, optional per-row history, settings"
+- object: "comp/muse/sampler"
+  field: "calls[sample_tokens].returns"
+  quote: "in device or mapped memory"
+  kind: B
+  because: "The device-memory vs host-mapped-memory distinction does not exist on 'LPDDR5x coherent unified system memory'."
+  severity: wrong
+  fix: "reword: one token id per row"
+- object: "comp/muse/sampler"
+  field: "calls[sample_tokens].does"
+  quote: "with no stream it also synchronises the device"
+  kind: D
+  because: "A call-convention detail of an existing implementation's kernel API (stream argument); nothing of this engine is built."
+  severity: doubtful
+  fix: "reword: Applies the chain."
+- object: "comp/muse/sampler"
+  field: "calls[penalty_rows].takes"
+  quote: "the tokens consumed before the window, the window's tokens"
+  kind: C
+  because: "Per-row histories across a window exist for drafted windows; coverage excludes 'drafting' and decode is one token per step."
+  severity: doubtful
+  fix: "reword: the tokens consumed so far, a history length"
+- object: "comp/muse/sampler"
+  field: "calls[penalty_rows].does"
+  quote: "Builds on the host"
+  kind: B
+  because: "Host vs device placement presumes separate device memory; machine.yaml has one pool shared by CPU and GPU."
+  severity: doubtful
+  fix: "reword: Builds the history plain decoding would count."
+- object: "comp/muse/sampler"
+  field: "invariants[inv/draw-tied-to-position].text"
+  quote: "however the output was cut into windows"
+  kind: C
+  because: "Cutting output into windows is the source's drafting; 'No drafting in the first version' (its own adaptation) and coverage."
+  severity: doubtful
+  fix: "reword: A seed gives the same text for the same prompt, because a row's draw depends only on the seed and the position."
+# ---------------- comp/muse/http-front ----------------
+- object: "comp/muse/http-front"
+  field: "responsibility"
+  quote: "Accept OpenAI- and Anthropic-shaped HTTP requests"
+  kind: E
+  because: "Its own adaptation: 'Which request dialects the front offers is open until the form of the engine is decided'; target.yaml: 'form: UNSET'."
+  severity: wrong
+  fix: "reword: Accept HTTP requests in the dialect the engine's form decides, bound how many inference calls are pending, ..."
+- object: "comp/muse/http-front"
+  field: "needs_resources[cpu].purpose"
+  quote: "One thread per connection and one watcher thread per inference request"
+  kind: D
+  because: "The threading model of the source's server implementation; nothing is built and the form is UNSET."
+  severity: doubtful
+  fix: "reword: Connection handling and disconnect watching"
+- object: "comp/muse/http-front"
+  field: "calls[reserve_inference / release_inference].returns"
+  quote: "true, false (limit reached) or none (draining)"
+  kind: D
+  because: "Return values of an existing implementation's function (a language-specific 'none'); this engine has no implementation."
+  severity: doubtful
+  fix: "reword: admitted, refused because the limit is reached, or refused because the server is draining"
+# ---------------- comp/muse/prompt-builder ----------------
+- object: "comp/muse/prompt-builder"
+  field: "needs_resources[slow_memory].purpose"
+  quote: "The tokenizer's tables and the few most recent rendered prompts with their ids"
+  kind: B
+  because: "machine.yaml has one 'unified_ram' pool; there is no slow memory tier separate from fast memory, and all of it counts against the 80 GB budget."
+  severity: doubtful
+  fix: "reword: resource: fast_memory (the one pool), same purpose"
+# ---------------- comp/muse/request-runner ----------------
+- object: "comp/muse/request-runner"
+  field: "calls[run].takes"
+  quote: "thinking flag"
+  kind: A
+  because: "model.yaml describes no thinking/reasoning mode; responsibility's 'reasoning ... and tool-call events' rests on the source model's chat format."
+  severity: doubtful
+  fix: "reword: prompt token ids, output limit, sampling settings, cancel event"
+- object: "comp/muse/request-runner"
+  field: "calls[run].takes"
+  quote: "forced call"
+  kind: D
+  because: "A parameter of the source's tool-call handling; model.yaml describes no tool-call format."
+  severity: doubtful
+  fix: "drop"
+- object: "comp/muse/request-runner"
+  field: "decisions[repeat-stop].text"
+  quote: "End the reply as length when one token repeats this many times in a row."
+  kind: D
+  because: "A workaround for a degenerate-repetition defect observed in the source engine; nothing of this engine has been run."
+  severity: doubtful
+  fix: "drop"
+- object: "comp/muse/request-runner"
+  field: "invariants[inv/continuation-extends-prefix].text"
+  quote: "plus the injected text"
+  kind: D
+  because: "Continuations with injected text belong to the source's tool-call/forced-call loop; model.yaml describes no tool format."
+  severity: doubtful
+  fix: "reword: A continuation's prompt is the previous prompt plus the tokens generated, so the engine continues from the prefix it already holds."
+# ---------------- comp/muse/engine-client ----------------
+- object: "comp/muse/engine-client"
+  field: "decisions[ready-timeout].text"
+  quote: "How long the engine may take to report READY."
+  kind: D
+  because: "READY is a keyword of the source's engine line protocol."
+  severity: doubtful
+  fix: "reword: How long the engine may take to report that it is ready."
+- object: "comp/muse/engine-client"
+  field: "decisions[fatal-gpu-limit].text"
+  quote: "within ten minutes"
+  kind: D
+  because: "A constant set in the source implementation; coverage says 'every number tuned for another model has been turned back into an open choice'."
+  severity: wrong
+  fix: "reword: After this many engine deaths from a fatal GPU error within a set period the engine is not started again until the period has passed."
+- object: "comp/muse/engine-client"
+  field: "invariants[inv/early-leave-drains].text"
+  quote: "causes STOP to be sent"
+  kind: D
+  because: "STOP is a keyword of the source's engine line protocol."
+  severity: doubtful
+  fix: "reword: A caller that leaves early causes the generation to be stopped and read to its end within a time allowance; ..."
+- object: "comp/muse/engine-client"
+  field: "calls[generate].does"
+  quote: "with a heartbeat every 10 s of quiet"
+  kind: D
+  because: "A source constant; the system flow tokens-to-runner says only 'with a heartbeat after a set time of quiet', and coverage says tuned numbers were turned into open choices."
+  severity: wrong
+  fix: "reword: with a heartbeat after a set time of quiet"
+# ---------------- comp/muse/engine-command-loop ----------------
+- object: "comp/muse/engine-command-loop"
+  field: "observation_points"
+  quote: "PP"
+  kind: D
+  because: "PP, RESUME, REUSED, DONE, INFO are line-protocol keywords of the source engine."
+  severity: doubtful
+  fix: "reword: prompt_progress, resume, reused_tokens, generation_end, engine_info"
+- object: "comp/muse/engine-command-loop"
+  field: "invariants[inv/stop-seen-mid-generation].text"
+  quote: "A STOP line is acted on during a generation, because a separate thread reads standard input and sets a flag."
+  kind: D
+  because: "Protocol keyword and the threading of the source implementation; target 'form: UNSET'."
+  severity: doubtful
+  fix: "reword: A stop command is acted on during a generation."
+- object: "comp/muse/engine-command-loop"
+  field: "invariants[inv/done-fields-append-only].text"
+  quote: "so an older server can read a newer engine"
+  kind: C
+  because: "Nothing of this engine is built ('No implementation exists'); version skew between an older server and a newer engine is the source's deployment history."
+  severity: doubtful
+  fix: "drop"
+# ---------------- comp/muse/resume-decision ----------------
+- object: "comp/muse/resume-decision"
+  field: "observation_points"
+  quote: "RESUME"
+  kind: D
+  because: "RESUME and REUSED are line-protocol keywords of the source engine."
+  severity: doubtful
+  fix: "reword: resume, reused_tokens"
+# ---------------- comp/muse/parked-conversations ----------------
+- object: "comp/muse/parked-conversations"
+  field: "responsibility"
+  quote: "Hold images of other conversations' attention state within a budget"
+  kind: C
+  because: "coverage: not covered in the first version is 'more than one conversation in memory at a time'; the not_carried note for slot-scheduler says 'A second conversation needs its own attention state in memory, taken from the expert cache' — which is what parked images do ('this memory is taken from the expert cache')."
+  severity: doubtful
+  fix: "drop (or reword coverage to allow parked, non-live conversations in memory)"
+# ---------------- comp/muse/session-files ----------------
+- object: "comp/muse/session-files"
+  field: "not_responsible_for[0]"
+  quote: "Nothing is written unless a SAVE command arrives."
+  kind: D
+  because: "SAVE is a keyword of the source engine's command protocol."
+  severity: doubtful
+  fix: "reword: Nothing is written unless a save is asked for."
+- object: "comp/muse/session-files"
+  field: "invariants[inv/file-validated-before-device-write].text"
+  quote: "regular single-link file, size bounds, header hash, magic, version"
+  kind: D
+  because: "The exact check order and the magic of the source's session file format; this engine's file format is not designed yet."
+  severity: doubtful
+  fix: "reword: A file is checked for size, integrity, version and model and configuration identity before any state is written."
+- object: "comp/muse/session-files"
+  field: "invariants[inv/file-validated-before-device-write].text"
+  quote: "only then is device state written"
+  kind: B
+  because: "machine.yaml: one unified pool, '没有独立显存'."
+  severity: doubtful
+  fix: "reword: only then is the live attention state written"
+- object: "comp/muse/session-files"
+  field: "invariants[inv/failed-restore-ends-engine].text"
+  quote: "A transfer failure after device writes began ends the engine."
+  kind: B
+  because: "A host-to-device transfer presumes separate device memory; machine.yaml has one shared pool."
+  severity: doubtful
+  fix: "reword: A failure after writing into the live attention state began ends the engine."
+# ---------------- comp/muse/engine-diagnostics ----------------
+- object: "comp/muse/engine-diagnostics"
+  field: "needs_resources[cpu].purpose"
+  quote: "one atomic increment per launched window"
+  kind: C
+  because: "Launched windows are the source's drafted windows / recorded graphs; here decode is one token per step and window-graphs are not carried."
+  severity: doubtful
+  fix: "reword: one counter increment per routed expert"
+# ---------------- comp/muse/server-metrics ----------------
+- object: "comp/muse/server-metrics"
+  field: "needs_resources[slow_memory].purpose"
+  quote: "500 request rows, 128 transition events, 60 samples per hardware series"
+  kind: D
+  because: "Source constants; this component's own decisions 'history-sizes' and 'hardware-sample-period' leave these open (E), and coverage says tuned numbers were turned into open choices."
+  severity: wrong
+  fix: "reword: Bounded histories of finished requests, transition events and hardware samples"
+- object: "comp/muse/server-metrics"
+  field: "decisions[live-rate-window].text"
+  quote: "the last 2 s of samples; before 0.25 s of span"
+  kind: D
+  because: "Constants of the source implementation, given as design facts; coverage: 'every number tuned for another model has been turned back into an open choice'."
+  severity: wrong
+  fix: "reword: The live rate is the token count gained over a set span of recent samples; before a minimum span it is the mean so far."
+- object: "comp/muse/server-metrics"
+  field: "decisions[inter-token-histogram].text"
+  quote: "once per gap; it has no spread within a request"
+  kind: D
+  because: "Describes a known limitation of the source's exporter, not a choice for this engine."
+  severity: doubtful
+  fix: "reword: How the inter-token latency histogram is filled (per gap or per request mean)."
+- object: "comp/muse/server-metrics"
+  field: "calls[Telemetry.snapshot].name"
+  quote: "Telemetry.snapshot"
+  kind: D
+  because: "A class-qualified method name of an existing implementation."
+  severity: doubtful
+  fix: "reword: snapshot"
+- object: "comp/muse/server-metrics"
+  field: "observation_points"
+  quote: "vllm:time_to_first_token_seconds"
+  kind: D
+  because: "Metric names in another engine's namespace (vllm:), carried from the source's exporter."
+  severity: wrong
+  fix: "reword: time_to_first_token_seconds, inter_token_latency_seconds, e2e_request_latency_seconds"
+- object: "comp/muse/server-metrics"
+  field: "observation_points"
+  quote: "llamacpp:predicted_tokens_seconds"
+  kind: D
+  because: "A metric name in another engine's namespace (llamacpp:)."
+  severity: wrong
+  fix: "reword: predicted_tokens_seconds"
+- object: "comp/muse/server-metrics"
+  field: "observation_points"
+  quote: "timings.predicted_per_second"
+  kind: D
+  because: "Response field names of another engine's 'timings' object; the response dialect is open (http-front: 'open until the form of the engine is decided')."
+  severity: doubtful
+  fix: "reword: decode_tokens_per_second, prompt_tokens_per_second"
+- object: "comp/muse/server-metrics"
+  field: "observation_points"
+  quote: "gpu utilisation, memory, temperature and power"
+  kind: B
+  because: "A GPU memory series separate from RAM presumes device memory; machine.yaml: 'CPU 与 GPU 共用同一个内存池，没有独立显存'."
+  severity: doubtful
+  fix: "reword: gpu utilisation, temperature and power; unified memory in use"
+checked:
+  components_read: 36
+  flows_read: 66

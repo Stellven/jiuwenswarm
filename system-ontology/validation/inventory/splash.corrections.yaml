@@ -1,0 +1,67 @@
+# Entries of the inventory that a later reader found wrong and confirmed against the engine's source.
+# The inventory itself is left as first written; read it together with this file.
+engine: splash
+corrections:
+- part: image-preparation
+  field: output_effect
+  recorded: none
+  source_shows: server/images.py:77,115 smart_resize resizes every image to a patch-aligned size within max_pixels, so the
+    pixels the model sees are decided here (defines).
+  found_in: round3
+- part: kv-spill-controller
+  field: output_effect
+  recorded: none
+  source_shows: runtime/engine/Engine.hpp:145-158, 429, 641 the SSD cache's active-KV quota bounds a spilled request's output
+    and ends it at that bound (changes_output).
+  found_in: round3
+- part: model-inspection
+  field: output_effect
+  recorded: none
+  source_shows: 'runtime/model/RopeScaling.hpp:12-23 and server/serve_options.py:487-491: when YaRN is turned on (--max-context
+    past the native window) the static factor changes output at every length (changes_output)'
+  found_in: round4
+- part: document-renderer
+  field: output_effect
+  recorded: none
+  source_shows: server/documents.py:133-153 extracts the page text and renders each page at a scale chosen from the page-pixel
+    limit, so the text and pixels the model sees are decided here (changes_output, defines)
+  found_in: round4
+- part: ane-ffn-split
+  field: output_effect_when
+  recorded: when the split runs (27B prefill with --ane on and a calibrated gain)
+  source_shows: The split is on by default for dense models; the server offers only --disable-ane (default False), which
+    passes --ane off to the engine (server/serve_options.py:755-766).
+  found_in: round5
+- part: draft-proposer
+  field: output_effect
+  recorded: none (while output_effect_when says sampled lanes see different tokens)
+  source_shows: 'Sampled acceptance u*q < p uses the draft''s probabilities (runtime/metal/kernels/decode/sampling.metal:1460-1510,
+    recorded under acceptance-commit as changes_output), so under sampling the proposal changes the draw: changes_output
+    for sampled lanes.'
+  found_in: round5
+- part: lane-admission
+  field: output_effect
+  recorded: none
+  source_shows: 'A suspended request resumes by replaying its generated history through prefill (runtime/engine/Engine.hpp:695-707),
+    so the continuation is computed from recomputed state with prefill kernels and cuts, not the decode steps'' state: numeric.'
+  found_in: round6
+- part: option-scoring
+  field: output_effect
+  recorded: none
+  source_shows: 'server/dialects/scoring.py:24-31, 56-60: it renders a fixed system instruction and JSON payload of its
+    own and softmaxes over the option slots, so the returned probabilities are decided here (changes_output).'
+  found_in: round6
+- part: memory-ledger
+  field: output_effect
+  recorded: none
+  source_shows: 'runtime/engine/MemoryLedger.hpp:79-81, 146-153: one of its victim kinds is the conversion of a Resident
+    lane to Spill, after which the request''s output is bounded by the SSD quota (changes_output for that request).'
+  found_in: round6
+- part: weight-image-loader
+  field: output_effect_when
+  recorded: draft projections are quantized from BF16 at load, which changes draft proposals (not greedy target output)
+  source_shows: Greedy target output depends in the last bits on rows per command (runtime/ops/KernelSelection.cpp:40-180
+    picks tile and split by rows and lanes) and, for MoE, on verified rows chosen from draft confidence (runtime/model/VerifyBudget.hpp);
+    proposals decide accepted counts and so the next verify block. The draft quantization therefore can change greedy target
+    output at rounding level.
+  found_in: round7

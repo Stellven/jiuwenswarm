@@ -1,0 +1,531 @@
+{
+  "outputs": {
+    "brief": {
+      "acceptance_expectations": [
+        {
+          "description": "The delivered engine runs Meta Muse Spark Open on the specified DGX Spark configuration. A determinate correctness judgment remains blocked by the unresolved engine form, environment, checkpoint, context length, transformation permissions and quality contract.",
+          "id": "acceptance.engine",
+          "requirement_ids": [
+            "requirement.engine"
+          ]
+        },
+        {
+          "description": "The engine accepts text input and produces text output; complete interface acceptance remains blocked until engine form and streaming behavior are specified.",
+          "id": "acceptance.interface",
+          "requirement_ids": [
+            "requirement.interface"
+          ]
+        },
+        {
+          "description": "All four required delivery artifacts are present, with a clean rebuild and replay supported in the specified environment. Benchmark acceptance remains blocked until the workload and reporting contract are confirmed.",
+          "id": "acceptance.delivery",
+          "requirement_ids": [
+            "requirement.delivery"
+          ]
+        }
+      ],
+      "assumptions": [],
+      "confirmation": {
+        "basis": "user_request",
+        "source_refs": [
+          {
+            "id": "blob:7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc",
+            "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"
+          }
+        ]
+      },
+      "constraints": [
+        {
+          "category": "delivery",
+          "id": "constraint.packaging",
+          "normalized_value": "container",
+          "operator": "eq",
+          "origin": "user",
+          "scope": "research_run",
+          "source_refs": [
+            {
+              "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+              "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+            }
+          ],
+          "text": "Container packaging is required.",
+          "unit": null
+        },
+        {
+          "category": "interface",
+          "id": "constraint.modalities",
+          "normalized_value": null,
+          "operator": "qualitative",
+          "origin": "user",
+          "scope": "research_run",
+          "source_refs": [
+            {
+              "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+              "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+            }
+          ],
+          "text": "The required interface has text input and text output.",
+          "unit": null
+        },
+        {
+          "category": "delivery",
+          "id": "constraint.deliverables",
+          "normalized_value": null,
+          "operator": "qualitative",
+          "origin": "user",
+          "scope": "research_run",
+          "source_refs": [
+            {
+              "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+              "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+            }
+          ],
+          "text": "Required deliverables are a reproducible container, clean rebuild, benchmark report and replayable run artifacts.",
+          "unit": null
+        }
+      ],
+      "context_refs": [
+        {
+          "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+          "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+        },
+        {
+          "id": "blob:120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a",
+          "sha256": "120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a"
+        },
+        {
+          "id": "blob:b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4",
+          "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"
+        }
+      ],
+      "deliverables": [
+        {
+          "artifact_type": "container",
+          "description": "The custom inference engine packaged in a reproducible container for the specified target machine, subject to resolution of the environment and checkpoint.",
+          "id": "deliverable.container",
+          "name": "Reproducible container"
+        },
+        {
+          "artifact_type": "rebuild_materials",
+          "description": "Materials supporting a clean rebuild of the delivered engine container in the required environment once defined.",
+          "id": "deliverable.clean-rebuild",
+          "name": "Clean rebuild"
+        },
+        {
+          "artifact_type": "report",
+          "description": "A benchmark report whose workload, reporting definitions and acceptance criteria remain subject to the blocking unresolved items.",
+          "id": "deliverable.benchmark-report",
+          "name": "Benchmark report"
+        },
+        {
+          "artifact_type": "run_artifacts",
+          "description": "Run artifacts supporting replay of the reported engine runs in the required environment once defined.",
+          "id": "deliverable.replayable-artifacts",
+          "name": "Replayable run artifacts"
+        }
+      ],
+      "domain_lane": "scientific_research",
+      "evidence_obligations": [
+        {
+          "description": "Provide attributable run artifacts identifying the delivered engine, model checkpoint and target environment, and supporting execution on the specified DGX Spark. Correctness evidence must address the acceptance contract after its unresolved decisions are settled.",
+          "id": "evidence.engine",
+          "requirement_ids": [
+            "requirement.engine"
+          ]
+        },
+        {
+          "description": "Provide replayable artifacts showing text requests and corresponding text outputs, with evidence of the required streaming behavior once specified.",
+          "id": "evidence.interface",
+          "requirement_ids": [
+            "requirement.interface"
+          ]
+        },
+        {
+          "description": "Provide the reproducible container, clean rebuild materials and evidence, benchmark report and replayable run artifacts. Reported results must be attributable to the delivered build and the workload and reporting definitions once confirmed.",
+          "id": "evidence.delivery",
+          "requirement_ids": [
+            "requirement.delivery"
+          ]
+        }
+      ],
+      "in_scope": [
+        {
+          "id": "scope.engine",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "blob:7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc",
+              "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"
+            }
+          ],
+          "text": "A custom inference engine for Meta Muse Spark Open on NVIDIA DGX Spark."
+        },
+        {
+          "id": "scope.interface",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+              "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+            }
+          ],
+          "text": "Text input and text output."
+        },
+        {
+          "id": "scope.implementation-freedom",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+              "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+            }
+          ],
+          "text": "Execution, state, composition, policy and binding are left open to the factory."
+        }
+      ],
+      "input_bindings": [],
+      "intake_ref": {
+        "id": "blob:4688713f458ef7114f6b78a52e21736bced4e4179d5d541d5c41411496e817c6",
+        "sha256": "4688713f458ef7114f6b78a52e21736bced4e4179d5d541d5c41411496e817c6"
+      },
+      "intent_ref": {
+        "id": "blob:433028f944834964af428dddbb6713feede9f3a04ba5a519a7e82bb8e79d5b91",
+        "sha256": "433028f944834964af428dddbb6713feede9f3a04ba5a519a7e82bb8e79d5b91"
+      },
+      "mandatory_requirements": [
+        {
+          "id": "requirement.engine",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "blob:7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc",
+              "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"
+            },
+            {
+              "id": "blob:b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4",
+              "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"
+            }
+          ],
+          "text": "Provide a custom inference engine for Meta Muse Spark Open running on the specified NVIDIA DGX Spark 128 GB configuration. The engine form, execution environment and delivery checkpoint remain unresolved."
+        },
+        {
+          "id": "requirement.interface",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+              "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+            }
+          ],
+          "text": "Provide text input and text output. Streaming behavior remains unresolved."
+        },
+        {
+          "id": "requirement.delivery",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+              "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+            }
+          ],
+          "text": "Deliver the custom engine as a reproducible container, with a clean rebuild, benchmark report and replayable run artifacts."
+        }
+      ],
+      "objective": {
+        "id": "intent.desired-change",
+        "origin": "user",
+        "source_refs": [
+          {
+            "id": "blob:7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc",
+            "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"
+          }
+        ],
+        "text": "Build a custom inference engine for Meta Muse Spark Open that runs on NVIDIA DGX Spark."
+      },
+      "optional_preferences": [],
+      "out_of_scope": [],
+      "resource_refs": [],
+      "schema_version": "3.0.0",
+      "target_metrics": [],
+      "unresolved_items": [
+        {
+          "affected_fields": [
+            "/mandatory_requirements/0",
+            "/acceptance_expectations/0",
+            "/acceptance_expectations/1"
+          ],
+          "blocking": true,
+          "clarification": "Specify the required engine form.",
+          "description": "The engine boundary form is UNSET; execution library, offline engine and online service are alternatives without a selection.",
+          "id": "uncertainty.engine-form",
+          "kind": "missing"
+        },
+        {
+          "affected_fields": [
+            "/mandatory_requirements/0",
+            "/deliverables",
+            "/acceptance_expectations/2"
+          ],
+          "blocking": true,
+          "clarification": "Specify the environment in which the engine must run and its rebuild and benchmark artifacts must be reproducible.",
+          "description": "The target execution environment is explicitly UNSET. The supplied hardware ontology identifies the target configuration but does not establish actual machine availability or the reproducibility environment.",
+          "id": "uncertainty.environment",
+          "kind": "missing"
+        },
+        {
+          "affected_fields": [
+            "/in_scope/1",
+            "/mandatory_requirements/1",
+            "/acceptance_expectations/1"
+          ],
+          "blocking": true,
+          "clarification": "Specify whether streaming output is required.",
+          "description": "Streaming behavior is UNSET, leaving required interface behavior unresolved.",
+          "id": "uncertainty.streaming",
+          "kind": "missing"
+        },
+        {
+          "affected_fields": [
+            "/target_metrics",
+            "/constraints",
+            "/acceptance_expectations/0"
+          ],
+          "blocking": true,
+          "clarification": "Confirm or replace the proposed 80 GB decimal budget and its container accounting boundary.",
+          "description": "Original target target.proposed-memory-budget and original constraint constraint.proposed-memory-accounting are retained here rather than established in target_metrics or constraints because they explicitly await confirmation. The proposal is an 80 GB decimal pass/fail budget in unified pool mem0, applying at every moment to everything the engine's container holds: CPU and GPU process allocations and page cache attributable to files it reads, excluding the operating system and other processes. The budget choice, decimal unit basis and accounting boundary are unconfirmed. This disposition does not assert an accepted numeric limit.",
+          "id": "uncertainty.memory-contract",
+          "kind": "missing"
+        },
+        {
+          "affected_fields": [
+            "/target_metrics",
+            "/mandatory_requirements/0",
+            "/acceptance_expectations/0"
+          ],
+          "blocking": true,
+          "clarification": "Specify the required context length in tokens.",
+          "description": "The required pass/fail context length is UNSET. The model's stated support for 1,000,000 tokens does not select the context length the engine must offer.",
+          "id": "uncertainty.context-length",
+          "kind": "missing"
+        },
+        {
+          "affected_fields": [
+            "/in_scope/2",
+            "/constraints",
+            "/acceptance_expectations/0"
+          ],
+          "blocking": true,
+          "clarification": "Specify the permitted computation and precision transformations and whether output-changing approximations are allowed.",
+          "description": "Allowed computation and precision transformations are UNSET, including quantisation below NVFP4 and approximations that change output. Implementation freedom does not resolve these permissions or determine which proposed quality comparison applies.",
+          "id": "uncertainty.allowed-transformations",
+          "kind": "missing"
+        },
+        {
+          "affected_fields": [
+            "/constraints",
+            "/target_metrics",
+            "/acceptance_expectations/0",
+            "/evidence_obligations/0"
+          ],
+          "blocking": true,
+          "clarification": "Confirm or replace the proposed quality baseline and conditional comparison. If task-score acceptance applies, identify the held-out task set, scoring criterion and pass threshold.",
+          "description": "Original constraint constraint.proposed-quality-comparison is retained here rather than established in constraints because its baseline and conditional comparison are proposed. The proposed baseline is the published reference implementation with NVFP4 weights, the published tokenizer and greedy sampling. If no computation change is allowed, the proposal requires the same output tokens as the baseline; otherwise it requires a task score not below an unset threshold on an unset held-out task set. Output-changing transformation permission, task set, scoring criterion and threshold remain unresolved.",
+          "id": "uncertainty.quality-contract",
+          "kind": "missing"
+        },
+        {
+          "affected_fields": [
+            "/deliverables/2",
+            "/acceptance_expectations/2",
+            "/evidence_obligations/2"
+          ],
+          "blocking": true,
+          "clarification": "Define the fixed benchmark workload, including prompt lengths and the requests used for each reported metric.",
+          "description": "The fixed benchmark workload and the workloads for time to first token, decode rate and peak-memory reporting are UNSET.",
+          "id": "uncertainty.workload",
+          "kind": "missing"
+        },
+        {
+          "affected_fields": [
+            "/constraints",
+            "/deliverables/2",
+            "/acceptance_expectations/2",
+            "/evidence_obligations/2"
+          ],
+          "blocking": true,
+          "clarification": "Confirm or replace the proposed reporting quantities and their timing and accounting definitions.",
+          "description": "Original constraint constraint.proposed-reporting is retained here rather than established in constraints because the reporting quantities and definitions are unconfirmed proposals. Proposed time to first token runs from request admission to the engine's first produced output token, excluding model load. Proposed decode rate excludes the first token. Proposed peak memory uses mem0 and the same accounting boundary as the proposed memory budget. The reporting workload is unset.",
+          "id": "uncertainty.measurement-contract",
+          "kind": "missing"
+        },
+        {
+          "affected_fields": [
+            "/mandatory_requirements/0",
+            "/deliverables/0",
+            "/acceptance_expectations/0",
+            "/evidence_obligations/0"
+          ],
+          "blocking": true,
+          "clarification": "Identify the required model checkpoint and weight precision.",
+          "description": "The single model checkpoint and delivery weight precision are UNSET. BF16 and NVFP4 availability and the proposed NVFP4 quality baseline do not select the delivery checkpoint. The supplied model ontology distinguishes vendor statements from derived weight-size estimates and states that config.json was not read; those estimates do not settle the missing selection.",
+          "id": "uncertainty.checkpoint",
+          "kind": "missing"
+        }
+      ]
+    }
+  },
+  "receipt": {
+    "admitted": true,
+    "capability_id": "requirements.compiler",
+    "check_verdict": "PASS",
+    "checks": [
+      {
+        "check_id": "brief_schema",
+        "outcome": "PASS",
+        "reason": "Exact compiler structure/source/coverage invariant satisfied"
+      },
+      {
+        "check_id": "source_identity",
+        "outcome": "PASS",
+        "reason": "Exact compiler structure/source/coverage invariant satisfied"
+      },
+      {
+        "check_id": "requirement_coverage",
+        "outcome": "PASS",
+        "reason": "Exact compiler structure/source/coverage invariant satisfied"
+      }
+    ],
+    "declaration_sha256": "b3780fe0945eaf7c365c27337c259e3eefd17b9728fc032ee6d09f070e8e33df",
+    "declared_effects": {
+      "effect_class": "read_only",
+      "effects": [
+        {
+          "assurance": "protected bridge enforces scope and limits",
+          "id": "model-disclosure",
+          "idempotent": false,
+          "op": "model_invoke",
+          "resource_key": "approved_model_bridge",
+          "reversibility": "none",
+          "risk": {
+            "blast_radius": "one approved context",
+            "irreversibility": true,
+            "severity": "bounded"
+          },
+          "scope": "bound permitted request context",
+          "undo": null
+        }
+      ]
+    },
+    "finished_at": "2026-11-19T19:37:31.815851Z",
+    "halt": null,
+    "input_sha256": "0caf5f310d5a2f373f9fb3fc57d50703ebc1b862fe3e2f1f488cd2e74f541713",
+    "model_calls": [
+      {
+        "index": 1,
+        "model": null,
+        "prompt_sha256": "003aa4807baa3941cb6fa3678e03254f159b56e57c4fc281e1d7aa93f0faae2b",
+        "provider_kind": "cmd",
+        "reply_sha256": "e405eb13d284626bf3c23ffa10176e2a4d3cfa0efc85dde543982523f1fc76e8",
+        "system_sha256": "8ce805b54c05f22b5851b935d8a3f14dad1971b19be7295c0d8cb24c87f78298",
+        "tokens": null
+      }
+    ],
+    "not_applicable_outside_pipeline": [
+      {
+        "check": "accepted_intent_input",
+        "status": "not_applicable_outside_pipeline",
+        "why": "the pipeline feeds only an Intent that passed its internal acceptance (checks and semantic review); here the supplied Intent is re-checked mechanically (schema, source spans, identity against the request) but its earlier review cannot be evidenced"
+      },
+      {
+        "check": "host_contract, host_identity, host_limits, host_authority",
+        "status": "not_applicable_outside_pipeline",
+        "why": "host checks read run records, library standing and the sealed subnode contract"
+      },
+      {
+        "check": "internal_acceptance, external_output, aggregate_limits",
+        "status": "not_applicable_outside_pipeline",
+        "why": "node finalization and gate decisions belong to the run store"
+      }
+    ],
+    "output_sha256": {
+      "brief": "b33b4099a33f4c40abdca6da0047afc1362b7feb96fcf98328fe6a86ebfffd1c"
+    },
+    "packet_review": null,
+    "receipt_sha256": "b2811cb870e94f2b4be843715eeeaa1919d23ce68d8a5e1134ac2a615b1d0d2e",
+    "release_hash": "28d0a62be3881f57c133cbf67489e15d02ab172f136373bb78b832b557ce2286",
+    "schema": "capsule-runtime-receipt:1",
+    "semantic_verifier": {
+      "calls": [
+        {
+          "index": 1,
+          "model": null,
+          "prompt_sha256": "16a50c8b69b9b20b336448e28ce4ea1be43bf29554a32a08a54347a30c75f21d",
+          "provider_kind": "cmd",
+          "reply_sha256": "3f5908ef5c5ed76705a1c92fcee6370477b018d7c96c259b763191fd84bb3810",
+          "system_sha256": null,
+          "tokens": null
+        }
+      ],
+      "reviews": {
+        "brief": {
+          "findings": [
+            {
+              "criterion_id": "declared_output_conformance",
+              "outcome": "PASS",
+              "reason": "All required brief fields are present with permitted shapes and values. schema_version is 3.0.0; constraints satisfy their operator rules; target_metrics is empty; unresolved_items contain all required uncertainty fields."
+            },
+            {
+              "criterion_id": "internal_consistency",
+              "outcome": "PASS",
+              "reason": "acceptance_expectations.requirement_ids and evidence_obligations.requirement_ids resolve to mandatory_requirements.id values. unresolved_items.affected_fields point to existing fields. Historical proposal IDs in unresolved_items.description are explicitly described as proposals rather than active local records."
+            },
+            {
+              "criterion_id": "limitations_consistency",
+              "outcome": "PASS",
+              "reason": "unresolved_items consistently mark pending decisions as blocking. mandatory_requirements, acceptance_expectations, deliverables and evidence_obligations acknowledge those dependencies; empty target_metrics does not establish the unconfirmed quantitative proposals as targets."
+            },
+            {
+              "criterion_id": "requirement_link_completeness",
+              "outcome": "PASS",
+              "reason": "Each of the three mandatory_requirements.id values appears in both acceptance_expectations.requirement_ids and evidence_obligations.requirement_ids."
+            }
+          ],
+          "limitations": [
+            "Assessment is limited to the supplied declaration and subject_output fields; referenced resources were not inspected."
+          ],
+          "output_sha256": "b33b4099a33f4c40abdca6da0047afc1362b7feb96fcf98328fe6a86ebfffd1c",
+          "predicates": {
+            "assessment_schema": true,
+            "criterion_coverage_exact": true,
+            "declaration_pin_matches": true,
+            "output_hash_matches": true,
+            "verdict_follows_findings": true,
+            "verifier_assessment_schema": true
+          },
+          "required_correction": null,
+          "uncertainties": [],
+          "verdict": "PASS_WITH_KNOWN_LIMITATIONS"
+        }
+      },
+      "status": "reviewed"
+    },
+    "started_at": "2026-11-19T19:35:36.663657Z",
+    "status": "delivered",
+    "trace": null,
+    "verifier_independent": true,
+    "verifiers": {
+      "deterministic": "pass",
+      "packet_review": "not_applicable (output is not a science review packet)",
+      "semantic": "pass",
+      "trace": "not_applicable (no output port carries a trace manifest)"
+    },
+    "version": "m1-9",
+    "worker_model": {
+      "calls": 1,
+      "identity": "cmd:C:\\Users\\<user>\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B <work>\\real-compiler\\codex_call.py worker-requirements-A",
+      "limit": 1,
+      "provider_kind": "cmd"
+    }
+  },
+  "status": "delivered"
+}

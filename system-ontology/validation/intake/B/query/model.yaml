@@ -1,0 +1,66 @@
+kind: model
+id: model/muse-spark-open
+title: "Meta Muse Spark Open (816B parameters in total, 42B active per token)"
+default_status: vendor_stated
+note: "Structure figures are from Meta's model card (https://huggingface.co/meta-models/Muse-Spark-Open-816B-A42B) and release post (https://research.meta.ai/blog/muse-spark-open), read 2026-11-10. config.json needs a login and was not read. The card does not give the size of the expert weights and of the other weights separately, nor the size on disk; the sizes below are derived from the card's totals under one stated assumption. The card mentions no draft head, no always-on shared expert and no state other than attention; only what the card states is described."
+operations:
+  - id: expert_router
+    kind: selection
+    selects: {operation: expert_ffn, out_of: 256, pick: 8, per: "token per layer"}
+  - id: expert_ffn
+    kind: compute
+    reads: [expert_weights]
+  - id: shared_blocks
+    kind: compute
+    reads: [shared_weights, token_embedding]
+    writes: [attention_kv]
+  - id: output_projection
+    kind: compute
+    reads: [output_head_weights]
+    note: "The projection to the vocabulary of 202,048 tokens."
+  - id: perception_encoder
+    kind: compute
+    serves_modality: [image, video, audio]
+    reads: [encoder_weights]
+data:
+  - id: expert_weights
+    kind: weight
+    partitioned_by: [layer, expert]          # 62 layers x 256 = 15,872 experts
+    encoded_bits: 4
+    size:
+      value: 399.5
+      unit: GB
+      unit_basis: decimal
+      status: derived
+      note: "Assumes the 42B active parameters are all the non-expert parameters plus 8 of 256 experts per layer. Then experts E and the rest S satisfy E + S = 816B and E/32 + S = 42B, giving E = 799.0B and S = 17.0B. At 4 bits per parameter (NVFP4) the experts are 399.5 GB, about 25.2 MB each. The true value is in the weight file headers."
+  - id: shared_weights
+    kind: weight
+    size:
+      value: 8.5
+      unit: GB
+      unit_basis: decimal
+      status: derived
+      note: "17.0B non-expert parameters under the same assumption, at 4 bits. It includes the embedding table and the output head. If these are kept at 16 bits the figure is 34 GB."
+  - id: token_embedding
+    kind: weight
+    note: "202,048 rows of 8,192 values: 1.66B parameters, counted inside shared_weights."
+  - id: output_head_weights
+    kind: weight
+    note: "Counted inside shared_weights. Whether it is tied to the embedding table is not stated on the card."
+  - id: encoder_weights
+    kind: weight
+  - {id: attention_kv, kind: model_state, note: "Its size per token is not on the card. If keys and values are as wide as the hidden size and kept at 16 bits, it is 2.0 MB per token over 62 layers, so 65 GB for a context of 32,768 tokens. Grouped or compressed attention would lower this several times. It must be read from config.json."}
+statements:
+  - {subject: model/muse-spark-open, property: params_total,            value: 816e9, status: vendor_stated, source: "hf-model-card#overview"}
+  - {subject: model/muse-spark-open, property: params_active_per_token, value: 42e9,  status: vendor_stated, source: "hf-model-card#overview"}
+  - {subject: model/muse-spark-open, property: layers,                  value: 62,    status: vendor_stated, source: "hf-model-card#language-model"}
+  - {subject: model/muse-spark-open, property: hidden_dim,              value: 8192,  status: vendor_stated, source: "hf-model-card#language-model"}
+  - {subject: model/muse-spark-open, property: vocab_size,              value: 202048, status: vendor_stated, source: "hf-model-card#overview"}
+  - {subject: model/muse-spark-open, property: context_length,          value: 1000000, status: vendor_stated, source: "hf-model-card#overview"}
+  - {subject: model/muse-spark-open, property: modality_in,             value: "text+image+video+audio", status: vendor_stated, source: "hf-model-card#overview"}
+  - {subject: model/muse-spark-open, property: modality_out,            value: text,  status: vendor_stated, source: "hf-model-card#overview"}
+  - {subject: model/muse-spark-open, property: weight_precisions,       value: "BF16, NVFP4", status: vendor_stated, source: "hf-model-card#weights"}
+  - {subject: model/muse-spark-open, property: checkpoint_format,       value: safetensors, status: vendor_stated, source: "hf-model-card#files"}
+  - {subject: model/muse-spark-open, property: vram_required, value: 700,  unit: GB, status: vendor_stated, source: "hf-model-card#weights", conditions: {precision: NVFP4}}
+  - {subject: model/muse-spark-open, property: vram_required, value: 2000, unit: GB, status: vendor_stated, source: "hf-model-card#weights", conditions: {precision: BF16}}
+  - {subject: model/muse-spark-open, property: license,                 value: "Muse Model License", status: vendor_stated, source: "hf-model-card#license"}

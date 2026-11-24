@@ -1,0 +1,113 @@
+engine: splash
+decision_coverage:
+  totals: {decisions: 136, covered: 76, loosely: 39, not_covered: 18, engine_specific: 3}
+  per_type:
+    - {type: "model-conversion", decisions: 3, covered: 1, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "model-loading", decisions: 8, covered: 6, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "configuration", decisions: 3, covered: 1, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "resource-governing", decisions: 11, covered: 6, loosely: 4, not_covered: 1, engine_specific: 0}
+    - {type: "memory-planning", decisions: 6, covered: 3, loosely: 2, not_covered: 1, engine_specific: 0}
+    - {type: "engine-supervision", decisions: 8, covered: 2, loosely: 3, not_covered: 3, engine_specific: 0}
+    - {type: "calibration", decisions: 3, covered: 1, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "secondary-compute", decisions: 3, covered: 1, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "device-backend", decisions: 8, covered: 4, loosely: 1, not_covered: 3, engine_specific: 0}
+    - {type: "layer-compute", decisions: 4, covered: 1, loosely: 0, not_covered: 0, engine_specific: 3}
+    - {type: "modality-encoding", decisions: 4, covered: 0, loosely: 3, not_covered: 1, engine_specific: 0}
+    - {type: "media-preparation", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-cache", decisions: 3, covered: 1, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "residency-policy", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-fetch", decisions: 4, covered: 3, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "storage-reader", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "row-source", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "state-pool", decisions: 4, covered: 2, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "recurrent-state-store", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-proposal", decisions: 4, covered: 2, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "prefix-reuse", decisions: 7, covered: 5, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "state-tiering", decisions: 12, covered: 6, loosely: 4, not_covered: 2, engine_specific: 0}
+    - {type: "prompt-reading", decisions: 3, covered: 1, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "draft-policy", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "sampling", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-verification", decisions: 1, covered: 0, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "output-constraint", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-scheduler", decisions: 4, covered: 3, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "sequence-lifecycle", decisions: 5, covered: 2, loosely: 2, not_covered: 1, engine_specific: 0}
+    - {type: "request-front", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-preparation", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "output-interpretation", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "scoring", decisions: 1, covered: 0, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "telemetry", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+  loosely:
+    - {part: "model-installer", type: "model-conversion", decision: "pairing of a separately trained draft with a target family", nearest_choice: "which derived pieces are built (draft head, shortlist vocabulary, extra copies)"}
+    - {part: "weight-layout-planner", type: "model-loading", decision: "which parts are left out of the image to stream", nearest_choice: "what is loaded at start and what on first use"}
+    - {part: "device-probe", type: "configuration", decision: "which GPU class a family number maps to", nearest_choice: "which settings are fixed per machine class"}
+    - {part: "weight-residency", type: "resource-governing", decision: "restore one part per tick", nearest_choice: "releasing large holdings when idle and restoring them"}
+    - {part: "weight-residency", type: "resource-governing", decision: "abandon a restore when no request waits and memory is refused", nearest_choice: "who may wait for memory and who is refused"}
+    - {part: "memory-governor", type: "resource-governing", decision: "pool growth admitted on its net change when cache funds it", nearest_choice: "when holders that gave memory back may grow again"}
+    - {part: "memory-ledger", type: "resource-governing", decision: "take rights per claim class, timing and priority", nearest_choice: "the order in which holders give up memory"}
+    - {part: "streamed-parts-planner", type: "memory-planning", decision: "expert floor share depending on whether KV can spill", nearest_choice: "how the remainder is split between cache, state and concurrency"}
+    - {part: "memory-plan", type: "memory-planning", decision: "what bounds the context length", nearest_choice: "how the remainder is split between cache, state and concurrency"}
+    - {part: "engine-supervisor", type: "engine-supervision", decision: "which failures are permanent or memory-caused", nearest_choice: "whether a failed start is retried with a reduced configuration"}
+    - {part: "engine-supervisor", type: "engine-supervision", decision: "restart backoff base and cap", nearest_choice: "restart, and what happens to requests in flight"}
+    - {part: "native-loop", type: "engine-supervision", decision: "bound the input queue to one largest frame", nearest_choice: "the transport between the serving side and the engine"}
+    - {part: "ane-ffn-calibrator", type: "calibration", decision: "noise tolerance for the least chunk rows", nearest_choice: "the rule that accepts or rejects a measured result"}
+    - {part: "ane-ffn-split", type: "secondary-compute", decision: "which program size a chunk uses", nearest_choice: "how work is cut into jobs"}
+    - {part: "ane-ffn-split", type: "secondary-compute", decision: "stop it when a window of commands shows no gain", nearest_choice: "when a share is too small or too large to hand over"}
+    - {part: "metal-command-backend", type: "device-backend", decision: "spin the GPU through short host steps or not", nearest_choice: "where a step is split so host work can run inside it"}
+    - {part: "vision-encoder", type: "modality-encoding", decision: "build the arena only when an image waits", nearest_choice: "memory window for the encoder"}
+    - {part: "image-embedding-cache", type: "modality-encoding", decision: "least recently used first", nearest_choice: "caching of encoded media and its key"}
+    - {part: "image-embedding-cache", type: "modality-encoding", decision: "held entries form the floor", nearest_choice: "caching of encoded media and its key"}
+    - {part: "expert-store", type: "expert-cache", decision: "which size's chunk to release or regrow", nearest_choice: "total size and whether it can grow or shrink while running"}
+    - {part: "expert-store", type: "expert-cache", decision: "release one chunk, or all to floor under critical pressure", nearest_choice: "total size and whether it can grow or shrink while running"}
+    - {part: "expert-read-ahead", type: "expert-fetch", decision: "read-ahead piece size", nearest_choice: "staging area and how many fetches at once"}
+    - {part: "kv-page-pool", type: "state-pool", decision: "extent size target", nearest_choice: "page geometry shared by kinds of state of different sizes"}
+    - {part: "draft-state", type: "draft-proposal", decision: "cache the window, not the ring", nearest_choice: "where the proposer's own state is kept"}
+    - {part: "draft-state", type: "draft-proposal", decision: "rebuild the ring in the next prefill chunk after a restore", nearest_choice: "how the proposer's state is built while the prompt is read"}
+    - {part: "prefix-block-cache", type: "prefix-reuse", decision: "resident blocks form a root subtree", nearest_choice: "what is evicted first"}
+    - {part: "composite-state-cache", type: "prefix-reuse", decision: "retire rolling checkpoints once a newer one is published", nearest_choice: "what is evicted first"}
+    - {part: "ssd-cache-tier", type: "state-tiering", decision: "share of writes in flight per kind", nearest_choice: "the tier's size and write budget"}
+    - {part: "ssd-cache-tier", type: "state-tiering", decision: "drop states not in use while the write budget is spent", nearest_choice: "what is done when the tier is full or a read fails"}
+    - {part: "kv-spill-controller", type: "state-tiering", decision: "which requests spill at admission", nearest_choice: "what leaves first"}
+    - {part: "spilled-kv-reader", type: "state-tiering", decision: "one or two staging buffers to overlap reads with attention", nearest_choice: "copying ahead of need"}
+    - {part: "prefill-runner", type: "prompt-reading", decision: "number of layer passes", nearest_choice: "how it shares the device with generation in progress"}
+    - {part: "acceptance-commit", type: "draft-verification", decision: "emit a stop or last budgeted token without a target cycle", nearest_choice: "who may shorten the accepted prefix afterwards (stop conditions, limits)"}
+    - {part: "request-scheduler", type: "step-scheduler", decision: "group commands run in layer passes", nearest_choice: "sequences and rows per step"}
+    - {part: "lane-admission", type: "sequence-lifecycle", decision: "rank for memory", nearest_choice: "admission when resources are short"}
+    - {part: "lane-admission", type: "sequence-lifecycle", decision: "projected output tokens for admission", nearest_choice: "admission when resources are short"}
+    - {part: "prompt-builder", type: "prompt-preparation", decision: "reuse cached tokens only where the tokenizer provably splits", nearest_choice: "caches of rendered or tokenized prompts"}
+    - {part: "option-scoring", type: "scoring", decision: "which options have single-token slots", nearest_choice: "limits on what can be scored"}
+    - {part: "telemetry", type: "telemetry", decision: "a status read never moves admission", nearest_choice: "what is recorded by default and what on request"}
+  not_covered:
+    - {part: "model-installer", type: "model-conversion", decision: "whether to include the vision tower", kind: "policy", missing_choice: "which optional parts of the published model are included in what the engine is given"}
+    - {part: "model-inspection", type: "model-loading", decision: "which family a configuration describes", kind: "policy", missing_choice: "how the model's architecture is recognised from its files and matched to what the kernels support"}
+    - {part: "device-probe", type: "configuration", decision: "core count assumed when none is reported", kind: "failure", missing_choice: "what is assumed when a fact about the machine cannot be read"}
+    - {part: "memory-ledger", type: "resource-governing", decision: "claim rank among competing claims", kind: "precedence", missing_choice: "the order in which competing claims for memory are served"}
+    - {part: "streamed-parts-planner", type: "memory-planning", decision: "replan with fewer streamed parts when that streams more", kind: "policy", missing_choice: "how the set of large parts that stream instead of staying resident is chosen, and whether alternative sets are compared"}
+    - {part: "bootstrap-sequencer", type: "engine-supervision", decision: "warm up on reserved pages without allocating serving state", kind: "policy", missing_choice: "where warmup gets its memory, and whether it may take memory serving will need"}
+    - {part: "native-loop", type: "engine-supervision", decision: "rerun memory control at the next command-free point", kind: "timing", missing_choice: "where the process loop runs housekeeping between steps"}
+    - {part: "native-loop", type: "engine-supervision", decision: "flush newest restore points on clean stop within a budget", kind: "timing", missing_choice: "what is saved on a clean stop, and within what time"}
+    - {part: "ane-ffn-calibrator", type: "calibration", decision: "remember a no-gain result too", kind: "policy", missing_choice: "whether a negative result is recorded and reused like a positive one"}
+    - {part: "metal-command-backend", type: "device-backend", decision: "bound versus addressed buffer reach", kind: "placement", missing_choice: "how the buffers a submission may touch are declared to the device"}
+    - {part: "metal-command-backend", type: "device-backend", decision: "per-encoder residency instead of queue residency", kind: "placement", missing_choice: "at what granularity memory is made resident for submitted work"}
+    - {part: "metal-command-backend", type: "device-backend", decision: "heartbeat and keep-alive of the residency set", kind: "timing", missing_choice: "how memory is kept resident for the device between submissions"}
+    - {part: "vision-encoder", type: "modality-encoding", decision: "per-image patch cap", kind: "threshold", missing_choice: "the largest input the encoder accepts"}
+    - {part: "kv-page-pool", type: "state-pool", decision: "KV format for the whole run", kind: "format", missing_choice: "precision and layout of the state the pages hold"}
+    - {part: "write-behind", type: "state-tiering", decision: "pause while a claim waits for memory", kind: "timing", missing_choice: "whether copying to the slower tier yields to work waiting for memory"}
+    - {part: "kv-spill-controller", type: "state-tiering", decision: "convert on refused growth", kind: "timing", missing_choice: "what event moves a sequence's state to the slower tier"}
+    - {part: "prefill-runner", type: "prompt-reading", decision: "group or single chunk", kind: "policy", missing_choice: "whether chunks of several sequences are read together, layer by layer"}
+    - {part: "lane-admission", type: "sequence-lifecycle", decision: "which lane yields first", kind: "precedence", missing_choice: "which running sequence gives way when resources run short"}
+contradictions:
+  - {part: "model-installer", type: "model-conversion", claim: "Offline, turn the published model into the files this engine reads: weights in the engine's layout and precision, and any derived pieces", evidence: "The installer converts no weights and writes no prepared copy; it pins snapshots and publishes an assembly of links plus a digest record. Conversion into kernel layout happens at every start in weight-image-loader (absent: offline weight conversion).", fix: "Offline, obtain, pin and record the published model and any derived pieces the engine reads; weights are put in the engine's layout and precision here when conversion is offline, otherwise at load."}
+  - {part: "weight-image-loader", type: "model-loading", claim: "summary: 'At startup, open the model's files ...'", evidence: "Images are rewritten from source again on demand when weight-residency restores weights after an idle release (runs: startup, on_demand).", fix: "At startup, and again whenever released weights are restored, open the model's files, check them and make the weights every token uses readable."}
+  - {part: "weight-image-loader", type: "model-loading", claim: "effect_on_output: approximate when weights are quantised or otherwise reduced while loading", evidence: "The draft is quantized from BF16 to 4-bit at load; this changes proposals only, which the full model checks: greedy output is unchanged and sampled output keeps its distribution.", fix: "approximate when weights the full model computes with are quantised while loading; quantising weights used only for proposals is exact under greedy decoding and resampled under sampling."}
+  - {part: "ane-ffn-split", type: "secondary-compute", claim: "Compute a share of a layer's work on a second device, from weights that device can read where they lie.", evidence: "The ANE's int8 weights are requantized by the GPU one layer ahead into shared surfaces; the second device does not read them where they lie.", fix: "Compute a share of a layer's work on a second device, from weights it can read where they lie or that are prepared for it ahead of the layer."}
+  - {part: "kv-page-pool", type: "state-pool", claim: "effect_on_output: exact", evidence: "The pool stores K/V as INT8 with per-token scales by default (changes_output against --kv-format bf16); its page forms also fix stored precision.", fix: "exact in itself; where the pool also fixes the stored format, approximate when state is stored quantised (or assign the format to positional-state-store)."}
+  - {part: "gdn-state-cells", type: "recurrent-state-store", claim: "Hold state that is fixed in size and overwritten as the sequence advances, with the snapshots needed to go back. gives: a snapshot to restore from", evidence: "Verify never advances the cell; acceptance records pending rows and swaps the parity of two cells, and the next step folds the taped rows in. Going back needs no snapshot.", fix: "Hold state that is fixed in size and overwritten as the sequence advances, with what is needed to go back: snapshots, a second copy, or a commit deferred until acceptance is known."}
+  - {part: "kv-spill-controller", type: "state-tiering", claim: "effect_on_output: exact when state comes back as it left; rounding when held at another precision", evidence: "A spilled request's output is bounded by the tier's active-KV quota and the request is ended at that bound (Engine.hpp:145-158, 429, 641); no listed case covers ending output.", fix: "add: defines, when the slower tier's capacity bounds how long a sequence may grow and output is ended at that bound."}
+relaxations:
+  - {part: "prefill-runner", type: "prompt-reading", rule: "Where chunk boundaries change stored state, the chunking is part of the key under which that state is reused.", how: "With bf16 recurrent state, chunk ends and capture points round the state, yet stored composite states are reused by a resumed request whose cold run would have rounded at other boundaries; the key does not include the chunking."}
+wrong_assignments:
+  - {part: "draft-state", assigned: "draft-proposal", better: "positional-state-store", why: "It owns the draft model's per-position ring K/V and the window it is computed from; positional-state-store names a draft model's per-position state explicitly, while draft-proposal declares no state."}
+  - {part: "kv-page-pool", assigned: "state-pool", better: "state-pool, also positional-state-store", why: "Besides handing out and compacting pages it fixes the stored K/V format (INT8 with scales, page forms), which is positional-state-store's choice and the source of its output effect."}
+inventory_errors:
+  - {part: "image-preparation", field: "output_effect", recorded: "none", source_shows: "server/images.py:77,115 smart_resize resizes every image to a patch-aligned size within max_pixels, so the pixels the model sees are decided here (defines)."}
+  - {part: "kv-spill-controller", field: "output_effect", recorded: "none", source_shows: "runtime/engine/Engine.hpp:145-158, 429, 641 the SSD cache's active-KV quota bounds a spilled request's output and ends it at that bound (changes_output)."}

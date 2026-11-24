@@ -1,0 +1,50 @@
+engine: hyperqwen
+decision_coverage:
+  totals: {decisions: 125, covered: 102, loosely: 11, not_covered: 2, engine_specific: 10}
+  per_type:
+    - {type: "model-conversion", decisions: 14, covered: 12, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "calibration", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "configuration", decisions: 9, covered: 5, loosely: 4, not_covered: 0, engine_specific: 0}
+    - {type: "graph-capture", decisions: 6, covered: 6, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "model-loading", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "memory-planning", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "state-pool", decisions: 6, covered: 5, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "recurrent-state-store", decisions: 3, covered: 2, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "positional-state-store", decisions: 7, covered: 6, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "prefix-reuse", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "state-tiering", decisions: 3, covered: 1, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "request-front", decisions: 8, covered: 6, loosely: 0, not_covered: 0, engine_specific: 2}
+    - {type: "prompt-preparation", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-interpretation", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "engine-supervision", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-scheduler", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-execution", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "layer-compute", decisions: 13, covered: 10, loosely: 1, not_covered: 0, engine_specific: 2}
+    - {type: "modality-encoding", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "sampling", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "output-constraint", decisions: 2, covered: 1, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "draft-proposal", decisions: 12, covered: 10, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "draft-policy", decisions: 6, covered: 5, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "draft-verification", decisions: 2, covered: 1, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "model-partitioning", decisions: 2, covered: 1, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "telemetry", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+  loosely:
+    - {part: "draft-vocab-builder", type: "model-conversion", decision: "which extra scripts are appended to the draft vocabulary and under what row budget", nearest_choice: "the data a derived piece is selected or fitted from, and what is eligible for it (eligibility, not forced inclusion of rows outside the counted selection with its own budget)"}
+    - {part: "gptq-requantizer", type: "model-conversion", decision: "bits and group size; no act-order so the kernel needs no index", nearest_choice: "precision per kind of weight (names the precision, not the quantisation method or its options chosen for kernel compatibility)"}
+    - {part: "launch-profile-resolver", type: "configuration", decision: "drafter kind and number of draft tokens", nearest_choice: "named profiles and what each fixes"}
+    - {part: "launch-profile-resolver", type: "configuration", decision: "pin the pool by bytes or by utilisation; skip the pin under tensor parallelism", nearest_choice: "whether an operator value is a hard limit or a target"}
+    - {part: "launch-profile-resolver", type: "configuration", decision: "prefix caching on with align-mode recurrent state, and the snapshot retention interval", nearest_choice: "which settings that change output are on by default, and in which profile"}
+    - {part: "correctness-pins", type: "configuration", decision: "whether an explicit operator override of a pin is honoured", nearest_choice: "precedence: operator values, presets, measured values and defaults"}
+    - {part: "kvarn-staging-quantizer", type: "positional-state-store", decision: "keep retired fp16 sinks resident; evict oldest first only when slots run dry", nearest_choice: "which positions are kept at higher precision than the stored format (names what is kept, not when or in what order the higher-precision copies are evicted)"}
+    - {part: "kv-offload-tier", type: "state-tiering", decision: "which groups count as draft attention for the tier", nearest_choice: "which kinds of state the slower tier holds"}
+    - {part: "full-attention-compute", type: "layer-compute", decision: "sparse attention budget when sparse attention is on", nearest_choice: "any deliberate change to the model's arithmetic (names the change, not the budget that sets its strength)"}
+    - {part: "sampler", type: "sampling", decision: "use one top-k selection instead of a full-vocabulary sort when every request's top-k is small", nearest_choice: "the kernel used for the sampling arithmetic, and how it changes with the number of rows (here it changes with the requested settings, not the rows)"}
+    - {part: "mtp-drafter", type: "draft-proposal", decision: "draft from the target's top-k/top-p support; optional draft temperature scale", nearest_choice: "the set of tokens proposals are restricted to (covers the support, not a temperature of the proposer's own)"}
+  not_covered:
+    - {part: "verify-length-controller", type: "draft-policy", decision: "take the long block unconditionally below a context length", kind: "threshold", missing_choice: "a context length below which the larger round width is taken regardless of the other signals"}
+    - {part: "draft-acceptance", type: "draft-verification", decision: "acceptance kernels must not specialise on batch size", kind: "policy", missing_choice: "which step dimensions the acceptance kernels may be compiled or specialised on"}
+contradictions:
+  - {part: "draft-acceptance", type: "draft-verification", claim: "effect exact when 'greedy decoding with exact agreement, or sampling where each position's draw is keyed independently of the proposal...'", evidence: "The inventory records that greedy output under speculation depends on block length, batch and cache state through rounding (draft-acceptance output_effect_when; surprises); the checked block always runs on the split-KV verify path, not single-token decoding, so greedy with exact agreement is not bit-exact here.", fix: "exact when greedy decoding with exact agreement and the checked block is computed by the same kernels and accumulation order as single-token decoding; otherwise rounding"}
+relaxations: []
+wrong_assignments: []
+inventory_errors: []

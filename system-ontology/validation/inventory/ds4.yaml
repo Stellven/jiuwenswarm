@@ -1,0 +1,1084 @@
+engine: "ds4 (DwarfStar)"
+revision: "b3f50180ec2c7324892be1f50bc83555ccb8d5e7 (2026-11-03)"
+basis: "Read in code, directly: ds4.h (public API and options), ds4_ssd.c (whole), ds4_engram.c (structure, reader, batch reader, warmer), ds4.c regions for shape tables (602-950), model_open (2951-3001), engine open (73752-74087), expert profiler (1714-2058), power throttle (17955-17994), prefill layer page-in (20030-20118, 21248-21330), SSD auto cache (71028-71207), GLM memory guard (47210-47264), DSpark scheduler (63216-63335), sampling (46892-46962, 80136-80188), session batch dispatch (82834-82923, 83233-83292, 83943-84015, 88033-88092), V4.1 DSpark round (88302-88433), Qwen sync path (78807-78916); ds4_metal.m expert eviction and heat (14674-14803, 15796-15870); ds4_cuda.cu SSD expert cache (29015-29214, 35570-35851); ds4_rocm.cu head, ds4_rocm_memory.h. Read in code by delegated readers whose reports carry file:line evidence (not re-read line by line by me): ds4_server.c (HTTP boundary, rendering, slots, scheduler, kvstore policy), ds4_kvstore.c, session payload save/load/rewind/invalidate in ds4.c (63008-63120, 65243-66823, 89460-89679), ds4_tp.c/.h, ds4_distributed.c, multi-GPU placement in ds4.c (72209-72713, 74380-74440), ds4_layer_pack.c, ds4_prompt_prefix.c, ds4_agent.c (identity only). Read only in documents: docs/MODELS.md, docs/STRIX_HALO.md, dir-steering/README.md, AGENT.md, parts of docs/QWEN38_FLASH_NEXT.md; gguf-tools/ only its file list and README headings. Earlier notes (engines/ds4.md) were used as a guide and their Metal expert-cache and Engram claims spot-checked."
+concurrency: batched
+models: "One model family per process, chosen at load from GGUF metadata into a global shape table (ds4.c 602-950, macros 922-950): DeepSeek V4 Flash and V4 PRO, DeepSeek V4.1 Flash, GLM 5.2, GLM 5.3 Flash (and full GLM 5.3), Qwen3.8 Flash Next (internally 'qwen4'). All are large mixture-of-experts models (256 to 512 routed experts per layer, 6 to 10 used, one shared expert). Unusual: DeepSeek V4 keeps a 128-row raw window plus compressed history rows with a learned compressor and an indexer that selects up to 512 compressed rows; the first 3 DeepSeek layers route experts by a token-id hash table, not a learned router; DeepSeek, GLM 5.3 and Qwen use hyper-connections (several residual streams mixed by Sinkhorn-normalised matrices). V4.1 adds two disk-resident Engram lookup tables (189 GiB) indexed by a hash of the last 4 tokens; Qwen adds a 95 GiB BF16 n-gram (per-layer embedding) table also read from disk. GLM 5.3 and Qwen mix in linear-attention layers with recurrent state (KDA, GDN). Draft heads: external DSpark support files for DeepSeek V4/V4.1 (block drafter with a Markov head and a confidence head), built-in MTP blocks for GLM and Qwen. Image input for GLM 5.3, Qwen3.8, V4.1 Flash and the DeepSeek V4 Flash Vision-Exp checkpoint, each with its own encoder file. No audio."
+parts:
+  - id: "offline-converter-quantizer"
+    engine_name: "gguf-tools (deepseek4-quantize.c, deepseek41_quantize.py, glm53_quantize.py, qwen4_pack.py, merge_deepseek41_shards.py)"
+    does: "Builds the project's own GGUF files from source checkpoints, with low-bit formats spent on routed experts, layout padding the kernels expect, page-aligned disk tables and separate draft and vision files."
+    not: "Not a general GGUF accepter; the engine refuses files whose layout or metadata do not match its shape tables."
+    runs: [offline]
+    takes:
+      - {from: "outside: model_files", what: "Original checkpoints (safetensors, HF n-gram shards, DSpark checkpoints)"}
+      - {from: "imatrix-collector", what: "Importance matrix per routed expert tensor"}
+    gives:
+      - {to: "outside: storage", what: "GGUF main model, DSpark support GGUF, vision encoder GGUF"}
+    owns_state: []
+    exists_because: "The kernels read tensors in place from the mapped file, so the file layout must already be the execution layout; routed experts dominate size and tolerate aggressive quantization."
+    output_effect: changes_output
+    output_effect_when: "Always, compared with the original-precision model: quantization is an approximation calibrated by imatrix."
+    decisions:
+      - "Which tensor format each tensor class gets (routed gate/up, routed down, attention, shared expert, output)"
+      - "Whether some layers' routed experts get a higher-precision format (mixed Q2/Q4 recipe)"
+      - "Padding of expert input width to a kernel-friendly size (Qwen 640 to 768)"
+      - "Alignment of disk-only tables inside the file (Engram 16 KiB)"
+    when_things_go_wrong: ["Merge script verifies shard sizes and checksums and keeps the previous default model if verification fails (per docs)"]
+    must_never: ["Produce a file whose tensor layout differs from what the engine's shape table expects"]
+    evidence: ["gguf-tools/ file list and README headings", "docs/MODELS.md 33-42, 99-108, 145-151"]
+    read: docs
+  - id: "imatrix-collector"
+    engine_name: "imatrix collector (ds4_engine_collect_imatrix)"
+    does: "Runs the engine over a calibration text set and accumulates per-expert activation statistics for the gate/up and down matrices, then writes them as an importance matrix."
+    runs: [on_demand]
+    takes:
+      - {from: "outside: operator", what: "Calibration dataset path and token cap"}
+      - {from: "routed-expert-ffn", what: "Activations entering each routed expert"}
+    gives:
+      - {to: "offline-converter-quantizer", what: "Importance matrix file with per-tensor coverage"}
+    owns_state: ["Per-layer, per-expert accumulated squared activations and sample counts"]
+    exists_because: "Low-bit quantization of routed experts needs to know which input channels matter."
+    output_effect: none
+    decisions:
+      - "Minimum samples per expert before an entry counts as covered"
+    when_things_go_wrong: ["Reports coverage of experts that received too few samples"]
+    must_never: ["Change inference output while collecting"]
+    evidence: ["ds4.c 37488-37716", "ds4.h 343"]
+    read: code
+  - id: "expert-locality-profiler"
+    engine_name: "Metal expert locality profiler (DS4_EXPERT_PROFILE, DS4_EXPERT_HOTLIST)"
+    does: "Records every routing decision during a run, simulates per-layer LRU caches of several sizes, and writes a profile and a hot-expert list that can seed the expert cache."
+    not: "Not the runtime cache policy; it only observes and writes files."
+    runs: [per_layer]
+    takes:
+      - {from: "expert-router", what: "Selected expert ids and weights per layer and position, and whether the layer is hash-routed"}
+      - {from: "outside: operator", what: "Profile and hotlist output paths"}
+    gives:
+      - {to: "outside: storage", what: "Profile JSON with simulated hit rates per cache size; hotlist file ordered by hits"}
+    owns_state: ["Simulated LRU contents, hits and weighted hits per cache capacity and layer"]
+    exists_because: "The built-in hotlists that seed SSD streaming were gathered offline from observed routing."
+    output_effect: none
+    decisions:
+      - "Set of simulated cache capacities"
+      - "Metal only; ignored with a warning on other backends"
+    when_things_go_wrong: []
+    must_never: []
+    evidence: ["ds4.c 1714-2058", "ds4.c 74040-74054", "ds4.c 24028, 50663"]
+    read: code
+  - id: "engine-option-validator"
+    engine_name: "ds4_engine_open_internal option checks, ds4_acquire_instance_lock"
+    does: "At startup refuses option combinations the chosen model family and backend do not support, and takes a machine-wide lock so only one huge model process runs at a time."
+    runs: [startup]
+    takes:
+      - {from: "outside: operator", what: "Command-line options (backend, ssd streaming, TP role, layers, dspark, mtp, vision, power, steering)"}
+      - {from: "model-loader", what: "Selected model family and shape"}
+    gives:
+      - {to: "weight-binder", what: "Accepted configuration"}
+    owns_state: ["Instance lock"]
+    exists_because: "Each family has a different, partially implemented feature matrix; a wrong combination would fail late or silently mis-execute."
+    output_effect: none
+    decisions:
+      - "Which features each family allows (e.g. Qwen refuses TP, pipeline, multi-GPU, DSpark, external MTP, power below 100)"
+      - "Default draft count, MTP margin and DSpark confidence threshold per backend"
+      - "Whether vision needs a GPU backend and one GPU"
+    when_things_go_wrong: ["Prints the reason and returns failure before allocating"]
+    must_never: ["Start with a feature combination the family's graph does not implement"]
+    evidence: ["ds4.c 73752-73947", "ds4.c 74026-74039", "AGENT.md 26-29"]
+    read: code
+  - id: "model-loader"
+    engine_name: "model_open, parse_metadata, parse_tensors, config_validate_model"
+    does: "Maps the GGUF file read-only, parses metadata and tensor directory, selects the model family shape, and unmaps the regions of disk-only tables so they never count as mapped."
+    not: "Does not copy or place weights on a device."
+    runs: [startup]
+    takes:
+      - {from: "outside: model_files", what: "GGUF v3 main model, optional DSpark/MTP and vision GGUFs"}
+    gives:
+      - {to: "weight-binder", what: "Tensor directory with file offsets and types"}
+      - {to: "engine-option-validator", what: "Model family and shape"}
+      - {to: "engram-row-reader", what: "Engram table offsets inside the file"}
+      - {to: "ngram-row-reader", what: "Qwen n-gram tensor offset"}
+    owns_state: ["The file mapping and descriptor", "The global model shape (one family per process)"]
+    exists_because: "Every engine needs it; here the shape is a global, so a process serves exactly one family."
+    output_effect: none
+    decisions:
+      - "Shared mapping for GPU backends, private mapping for the CPU backend (to avoid a macOS VM failure)"
+      - "Only GGUF version 3; unknown layouts are fatal"
+    when_things_go_wrong: ["Dies with a message on open, stat, mmap or metadata failure"]
+    must_never: ["Accept a file whose metadata does not match a known shape"]
+    evidence: ["ds4.c 2951-3001", "ds4.c 880-950", "ds4.c 73886-73894"]
+    read: code
+  - id: "weight-binder"
+    engine_name: "weights_bind, model_warm_weights, Metal no-copy buffers, CUDA host registration"
+    does: "Makes the mapped weights readable by the GPU without a second copy (or copies them when asked), binding only a layer slice or one expert half when the process owns only part of the model."
+    runs: [startup]
+    takes:
+      - {from: "model-loader", what: "Tensor directory and mapping"}
+      - {from: "multi-gpu-placer", what: "Which device each layer goes to"}
+      - {from: "network-tensor-parallel", what: "Which routed-expert half this rank owns"}
+    gives:
+      - {to: "gpu-backend", what: "Device-visible views of every bound tensor"}
+    owns_state: ["Per-tensor device views and registrations", "Locked non-routed weights in SSD streaming mode"]
+    exists_because: "Primary targets are unified-memory machines, where the GPU can read the CPU's mapped pages directly, so one copy suffices."
+    output_effect: none
+    decisions:
+      - "Register the mapping, copy it to device memory, or register only an owned expert range"
+      - "Whether to pre-fault (warm) the whole model or only the owned shard"
+      - "Whether non-routed weights are wired so streaming cannot evict them"
+    when_things_go_wrong: ["Startup fails when a required tensor is missing (e.g. V4.1 vision router biases)"]
+    must_never: ["Eagerly copy the whole GGUF in the default Metal path"]
+    evidence: ["ds4.c 74055-74087", "ds4.c 71958-71985", "ds4_metal.m 2340-2354 (per notes)", "ds4_cuda.cu 4020-4055, 4152-4187 (per notes)", "AGENT.md 11"]
+    read: code
+  - id: "memory-admission-guard"
+    engine_name: "ds4_context_memory_estimate_with_prefill_mode, glm_graph_memory_guard, ds41_session_bytes admission, ds4_rocm_allocation_fits"
+    does: "Estimates context, scratch and model bytes for the requested context and session count and refuses to start (or refuses an allocation) when they exceed the machine's budget minus a reserve."
+    not: "Does not size the expert cache; that is the SSD cache planner."
+    runs: [startup, on_demand]
+    takes:
+      - {from: "outside: os", what: "Recommended GPU working set, physical and non-movable memory, wired limit"}
+      - {from: "outside: operator", what: "Context size, session count, prefill chunk"}
+    gives:
+      - {to: "session-timeline", what: "Admission of each session's full-context allocation"}
+      - {to: "ssd-cache-planner", what: "Context-aware cap on model-plus-cache bytes"}
+    owns_state: []
+    exists_because: "Models are sized to just fit 96-128 GB unified-memory machines; overcommitting there triggers the OS OOM killer instead of a clean error."
+    output_effect: none
+    decisions:
+      - "Budget fraction and fixed reserve per machine class and family"
+      - "Whether an explicitly raised wired limit overrides the heuristics"
+      - "OS reserve kept back for every ROCm allocation on integrated GPUs"
+    when_things_go_wrong: ["Refuses with a message before allocation; ROCm returns out-of-memory for the single allocation"]
+    must_never: ["Admit a configuration whose estimated bytes exceed the guarded budget"]
+    evidence: ["ds4.c 47210-47264", "ds4.c 40552-40643 (delegated)", "ds4.c 76344-76351 (delegated)", "ds4_rocm_memory.h 20-60"]
+    read: code
+  - id: "ssd-cache-planner"
+    engine_name: "ds4_engine_configure_streaming_auto_cache, ds4_ssd_auto_cache_plan"
+    does: "Computes at startup how many routed experts the expert cache may hold, from the recommended working set times a percentage, capped by a context-aware limit, minus non-routed weight bytes, divided by one expert's bytes."
+    runs: [startup]
+    takes:
+      - {from: "outside: os", what: "Recommended working set size"}
+      - {from: "weight-binder", what: "Non-routed bytes, bytes per expert, number of cacheable experts"}
+      - {from: "memory-admission-guard", what: "Context-aware cap (Apple) and guard cap (ROCm GLM)"}
+      - {from: "outside: operator", what: "Optional explicit slot count or byte size; DS4_SSD_AUTO_CACHE_PCT"}
+    gives:
+      - {to: "routed-expert-cache", what: "Slot budget and expert size"}
+    owns_state: []
+    exists_because: "When the model does not fit, the cache must use what is left after fixed weights without starving them."
+    output_effect: none
+    decisions:
+      - "Default percentage (80, or 86 on Apple for non-GLM), override range 50 to 95"
+      - "At least one slot, at most the model's expert count"
+      - "A user-given size is a target, not a guarantee"
+    when_things_go_wrong: ["Fails startup when the working set or expert size cannot be measured", "A layer slice without routed experts disables the cache"]
+    must_never: []
+    evidence: ["ds4_ssd.c 80-140", "ds4.c 71028-71207"]
+    read: code
+  - id: "multi-gpu-placer"
+    engine_name: "engine_classify_multi_tier, ds4_compute_layer_placement (ds4_layer_pack.c), engine_compute_cuda_ep_placement"
+    does: "On one CUDA machine with several GPUs, assigns embedding, each layer and the output head to GPUs in order within per-GPU budgets, or pairs GPUs so each holds half of every layer's routed experts."
+    runs: [startup]
+    takes:
+      - {from: "outside: operator", what: "Per-GPU budgets, context hint, session count hint, --cuda-tensor-parallel"}
+      - {from: "model-loader", what: "Per-layer byte sizes"}
+    gives:
+      - {to: "weight-binder", what: "Device of each layer and expert half; vocab-row shards of the output head"}
+      - {to: "cross-gpu-transfer", what: "Device boundaries the graph must cross"}
+    owns_state: ["Placement table"]
+    exists_because: "Discrete GPUs have separate memories smaller than the model."
+    output_effect: none
+    decisions:
+      - "Greedy contiguous packing in layer order"
+      - "Expert split only for DeepSeek V4 with an even GPU count"
+      - "Refuse any layout that would place layers on the CPU"
+      - "Refuse multi-GPU together with SSD streaming"
+    when_things_go_wrong: ["Prints the layout and refuses to start when anything spills to CPU or a budget is zero"]
+    must_never: ["Execute a layer on the CPU in production"]
+    evidence: ["ds4_layer_pack.c 14-45", "ds4.c 72209-72713", "ds4.c 74380-74440 (delegated)"]
+    read: code
+  - id: "routed-expert-cache"
+    engine_name: "stream expert cache (g_stream_expert_cache on Metal, g_stream_expert_slots on CUDA)"
+    does: "Holds a bounded set of routed experts (gate, up and down blocks) in separately allocated GPU-visible buffers and answers which slot holds a selected expert of a layer."
+    not: "Does not choose victims (expert-eviction-policy) or read from disk (expert-ssd-reader); there is no path that computes a missing expert on the CPU or skips it."
+    runs: [per_layer, startup]
+    takes:
+      - {from: "ssd-cache-planner", what: "Slot budget"}
+      - {from: "expert-router", what: "Selected expert ids of the layer"}
+      - {from: "expert-ssd-reader", what: "Expert blocks read into a slot"}
+      - {from: "expert-eviction-policy", what: "Slot to reuse"}
+    gives:
+      - {to: "routed-expert-ffn", what: "Slot remap of the selected experts"}
+    owns_state: ["Map from (layer, expert) or file offset to slot, with in-flight marks and last-use stamps"]
+    exists_because: "Only in SSD streaming mode: the model does not fit, and only ~2% of experts are used per token."
+    output_effect: none
+    output_effect_when: "Release checklist requires identical logits across cache policies and capacities for the same prefill chunking (docs, not run)."
+    decisions:
+      - "Metal: buffers locked with mlock; lock failure lowers the effective limit"
+      - "CUDA: capacity backs off by a quarter until allocation succeeds, keeping 8 GiB system headroom; single GPU only"
+      - "A hit requires matching file offsets of all three blocks"
+    when_things_go_wrong: ["If the selected experts of one layer cannot all be staged, the step fails rather than using stale data", "CUDA refuses when fewer slots than unique selected experts fit"]
+    must_never: ["Reclaim a slot that a submitted GPU command still reads", "Let experts selected for the current layer evict each other"]
+    evidence: ["ds4_metal.m 15796-15870, 16695-16828 (per notes), 14188-14245 (per notes)", "ds4_cuda.cu 29015-29214, 35793-35851"]
+    read: code
+  - id: "expert-eviction-policy"
+    engine_name: "route hotness (Metal), used stamp (CUDA)"
+    does: "Chooses which cached expert gives up its slot: on Metal the lowest decaying selection count then oldest use; on CUDA simply the oldest use stamp after all hits of the step are protected."
+    runs: [per_layer]
+    takes:
+      - {from: "expert-router", what: "Selected ids (counted on hits and misses alike)"}
+      - {from: "routed-expert-cache", what: "Entries with in-flight and protection marks"}
+    gives:
+      - {to: "routed-expert-cache", what: "Victim slot"}
+    owns_state: ["Metal: per-(layer, expert) heat counter and decay clock"]
+    exists_because: "Cache slots are far fewer than experts; which ones stay decides SSD traffic."
+    output_effect: none
+    decisions:
+      - "Heat increments on every selection, not only hits"
+      - "Heat halves every 16 decoded tokens; prefill does not advance the clock; a fresh prefill resets heat"
+      - "On Metal, wait once for in-flight commands and retry when only in-flight entries remain"
+      - "CUDA keeps no heat (reset is a no-op)"
+    when_things_go_wrong: ["No victim found leads to step failure"]
+    must_never: ["Pick an in-flight or currently protected entry"]
+    evidence: ["ds4_metal.m 14697-14803, 15796-15870", "ds4_cuda.cu 29105-29165, 35817-35818"]
+    read: code
+  - id: "expert-ssd-reader"
+    engine_name: "stream expert load (pread threads), cuda_model_copy_to_device_streamed"
+    does: "Copies a missing expert's three blocks from the model file into its cache slot with several reader threads, starting as soon as the selected ids are known."
+    runs: [per_layer, on_demand]
+    takes:
+      - {from: "outside: storage", what: "Model file on local SSD"}
+      - {from: "routed-expert-cache", what: "Destination slot and file offsets"}
+    gives:
+      - {to: "routed-expert-cache", what: "Filled slot"}
+    owns_state: []
+    exists_because: "Experts beyond the cache live only on SSD."
+    output_effect: none
+    decisions:
+      - "Start reads while the GPU computes the shared expert"
+      - "CUDA batched prefill: sort misses by file offset and merge adjacent reads"
+    when_things_go_wrong: ["A failed read fails the step; the cache never publishes a partially read slot"]
+    must_never: ["Advertise a slot as a hit before all its copies complete"]
+    evidence: ["ds4_cuda.cu 29123-29214", "ds4.c 27055-27080 (per notes)", "ds4_metal.m 16695-16828 (per notes)"]
+    read: code
+  - id: "resident-missing-split"
+    engine_name: "stream expert split"
+    does: "When three or more selected experts of a layer are missing, computes the resident ones first while the missing ones are read, then the late ones, and does the down projection and sum once at the end."
+    runs: [per_layer]
+    takes:
+      - {from: "routed-expert-cache", what: "Which selected experts are resident"}
+    gives:
+      - {to: "routed-expert-ffn", what: "Two-stage submission order for the layer"}
+    owns_state: []
+    exists_because: "Hides SSD read time behind computation of experts already in memory."
+    output_effect: none
+    output_effect_when: "Summation order is fixed regardless of split, so output is unchanged."
+    decisions:
+      - "Split threshold on missing experts per layer"
+      - "Enable only after a few decoded tokens and once the cache holds enough entries"
+    when_things_go_wrong: ["Second stage waits for the first stage's commands before reusing its staging area"]
+    must_never: ["Change the final accumulation order"]
+    evidence: ["ds4_metal.m 14674-14695", "ds4_metal.m 13520-13531, 44190-44345 (per notes)"]
+    read: code
+  - id: "expert-cache-preloader"
+    engine_name: "streaming hotlist preload (ds4_streaming_hotlist.inc)"
+    does: "Fills the expert cache at startup from a built-in list of frequently used experts gathered offline, up to a cap, so the first tokens do not cause thousands of reads."
+    runs: [startup]
+    takes:
+      - {from: "expert-locality-profiler", what: "Hot-expert lists (compiled in, or a hotlist file)"}
+    gives:
+      - {to: "expert-ssd-reader", what: "Experts to read at startup"}
+    owns_state: []
+    exists_because: "Cold-start misses are expensive and routing popularity is stable enough to profile offline."
+    output_effect: none
+    decisions:
+      - "Preload cap in automatic mode"
+      - "Not used for Qwen and off by default for GLM 5.2"
+    when_things_go_wrong: []
+    must_never: []
+    evidence: ["ds4_streaming_hotlist.inc", "ds4.c 23054-23087 (per notes)", "ds4.c 73900-73907"]
+    read: code
+  - id: "prefill-layer-pagein"
+    engine_name: "metal_graph_stream_prefill_layer_pagein (pread, madvise, readahead variants)"
+    does: "During wide prefills in streaming mode, touches the next layer's routed-weight pages of the mapped file from helper threads so they are in the page cache when that layer runs."
+    not: "Does not fill the expert cache; it warms the file mapping."
+    runs: [per_layer]
+    takes:
+      - {from: "outside: storage", what: "Model file pages"}
+      - {from: "prompt-prefill-driver", what: "Which layer comes next"}
+    gives:
+      - {to: "routed-expert-ffn", what: "Resident mapped pages for the next layer"}
+    owns_state: []
+    exists_because: "Layer-major prefill needs each layer's experts once for a whole chunk, so reading the next layer during the current one hides latency."
+    output_effect: none
+    decisions:
+      - "Which variant runs: pread is on by default; madvise, page-in and readahead are opt-in by environment"
+      - "Only routed matrices when non-routed weights are already wired (GLM)"
+    when_things_go_wrong: ["Failure marks the job not ok; inference still reads the pages on demand (inferred)"]
+    must_never: []
+    evidence: ["ds4.c 19862-20118", "ds4.c 21248-21330"]
+    read: code
+  - id: "engram-row-reader"
+    engine_name: "ds4_engram (table, reader, read_batch)"
+    does: "For V4.1, hashes each new token with the 3 previous ones into 24 row numbers per table and reads those rows directly from the file with an uncached descriptor, decoding E4M3 to BF16."
+    runs: [per_step, per_request]
+    takes:
+      - {from: "outside: storage", what: "Engram tables inside the GGUF"}
+      - {from: "decode-step", what: "New token id"}
+      - {from: "prompt-prefill-driver", what: "Batch of prompt tokens"}
+    gives:
+      - {to: "engram-lookup-compute", what: "Rows for layers 1 and 14"}
+    owns_state: ["3-token history (not serialised; rebuilt from the last tokens on load)"]
+    exists_because: "The tables are far larger than memory but each token needs only 48 fixed-size rows, whose numbers are known before any layer runs."
+    output_effect: none
+    decisions:
+      - "Bypass the page cache (F_NOCACHE on macOS, POSIX_FADV_RANDOM on Linux)"
+      - "Decode: start reads before layer 0, wait at layer 1"
+      - "Prefill: sort rows of up to 2048 tokens, reuse duplicate rows, read in parallel"
+    when_things_go_wrong: ["Short read becomes EIO and the step fails", "Out-of-range row is rejected"]
+    must_never: ["Read through a descriptor that would read ahead and push model pages out"]
+    evidence: ["ds4_engram.c 23-135, 175-332, 562-668", "ds4.c 43719-43760", "ds4.c 65337-65338 (delegated)"]
+    read: code
+  - id: "engram-prewarm"
+    engine_name: "ds41_engram_warm, ds4_engram_warm_start"
+    does: "When memory clearly allows, reads the Engram tables sequentially in background threads to fill the page cache, stopping under OS memory pressure."
+    runs: [startup, background]
+    takes:
+      - {from: "outside: os", what: "Physical memory size, memory pressure level"}
+      - {from: "outside: storage", what: "Engram tables"}
+    gives:
+      - {to: "outside: os", what: "Page cache pages (a hint, reclaimable)"}
+    owns_state: ["Warm job progress and stop flag"]
+    exists_because: "Random row reads from slow disks are too slow; a sequential pass makes later reads cheap when RAM is available."
+    output_effect: none
+    decisions:
+      - "Warm only when model plus runtime plus table plus a fixed reserve fits physical memory"
+      - "Number of warm threads; check pressure every 64 reads"
+    when_things_go_wrong: ["Stops on memory pressure or read error"]
+    must_never: ["Reserve memory; pages remain reclaimable"]
+    evidence: ["ds4_engram.c 380-523", "ds4.c 41264-41289"]
+    read: code
+  - id: "ngram-row-reader"
+    engine_name: "qwen4_ngram_read, qwen4_ple_prefetch"
+    does: "For Qwen3.8, reads BF16 n-gram embedding rows for each token from the on-disk table with pread, and during prefill reads the next chunk's rows in a background thread."
+    runs: [per_step, per_request]
+    takes:
+      - {from: "outside: storage", what: "N-gram table inside the GGUF (never mapped)"}
+      - {from: "prompt-prefill-driver", what: "Next chunk's tokens"}
+    gives:
+      - {to: "engram-lookup-compute", what: "Per-layer embedding rows"}
+    owns_state: ["N-gram history (ple_hist, ple_prev) per session"]
+    exists_because: "95 GiB of per-layer embeddings cannot be resident; each token needs only a few rows."
+    output_effect: none
+    decisions:
+      - "Prefetch only for chunks of at least 256 tokens and buffers up to 128 MiB"
+    when_things_go_wrong: ["Prefetch buffer allocation failure falls back to synchronous reads"]
+    must_never: []
+    evidence: ["ds4.c 59711-59800", "ds4.c 78872-78916", "ds4.c 74062-74065"]
+    read: code
+  - id: "tokenizer-and-chat-renderer"
+    engine_name: "ds4_tokenize_text, ds4_tokenize_rendered_chat, render_*_chat_prompt_text (server)"
+    does: "Turns a conversation into tokens with hand-written per-family chat renderers (not templates) and the model's tokenizer, keeping both rendered text and tokens."
+    runs: [per_request]
+    takes:
+      - {from: "http-api-server", what: "Parsed messages, tools, thinking mode"}
+      - {from: "tool-call-codec", what: "Exact previously sampled tool-call text to replay"}
+    gives:
+      - {to: "slot-router", what: "Rendered text and tokens"}
+    owns_state: []
+    exists_because: "Every engine needs it; here renderers are tuned so the cache boundary falls before dynamic content."
+    output_effect: changes_output
+    output_effect_when: "Rendering choices (dropping old reasoning, order of tool schemas) change the prompt the model sees compared with the official template."
+    decisions:
+      - "Tool schemas rendered before system content so the checkpoint trim cuts the dynamic tail"
+      - "Old reasoning dropped unless tool context or after the last user message"
+      - "Suffix-only retokenization after a reused prefix to avoid BPE merges across the boundary"
+    when_things_go_wrong: ["Malformed request yields 400"]
+    must_never: []
+    evidence: ["ds4.h 372-394", "ds4_server.c 3106-3184, 3454, 3632, 3663-3744, 11492 (delegated)"]
+    read: code
+  - id: "image-input-encoder"
+    engine_name: "ds4_image (PNG/JPEG decode), ds4_engine_vision_encode_*, vision weights per family"
+    does: "Decodes PNG or JPEG data into pixels and runs the family's vision encoder to produce visual token embeddings that are spliced into the prompt at image markers."
+    runs: [per_request]
+    takes:
+      - {from: "http-api-server", what: "Data-URI or base64 images"}
+      - {from: "outside: model_files", what: "Vision encoder GGUF"}
+    gives:
+      - {to: "prompt-prefill-driver", what: "Vision spans with embeddings and fingerprints"}
+    owns_state: ["Server LRU of embeddings keyed by exact bytes"]
+    exists_because: "Four model variants accept images."
+    output_effect: none
+    decisions:
+      - "Size limits on encoded bytes, dimensions and pixels"
+      - "Remote URLs and file paths rejected"
+      - "Sessions with images are never stored to disk"
+    when_things_go_wrong: ["Request without --vision gets 400"]
+    must_never: []
+    evidence: ["ds4_image.h", "ds4.h 264-293", "ds4.c 73961-74011", "ds4_server.c 540, 3678-3700, 10063-10156 (delegated)"]
+    read: code
+  - id: "session-timeline"
+    engine_name: "ds4_session (checkpoint, checkpoint_valid, logits, sync, rewind, invalidate)"
+    does: "Represents one mutable inference timeline: the exact token list whose state is live, a validity flag, the last logits and image identities; callers give full prefixes and it reuses, extends or rebuilds."
+    runs: [per_request, per_step]
+    takes:
+      - {from: "slot-router", what: "Full token prefix to reach"}
+      - {from: "memory-admission-guard", what: "Admission of the full-context allocation"}
+    gives:
+      - {to: "prompt-prefill-driver", what: "Common prefix length to keep"}
+      - {to: "token-sampler", what: "Logits"}
+    owns_state: ["Token list matching the live state", "Validity flag", "Logits", "Image identities"]
+    exists_because: "Clients resend whole conversations; reuse depends on knowing exactly which tokens the state represents."
+    output_effect: none
+    decisions:
+      - "Each session allocates full-context capacity at creation"
+      - "DeepSeek state cannot be truncated except within the speculative window; any other rewind invalidates and forces re-prefill"
+      - "GLM can truncate; Qwen restores one of three snapshots or replays"
+    when_things_go_wrong: ["Any failure invalidates the session; the caller re-syncs from tokens"]
+    must_never: ["Claim validity for a token list whose state was not fully computed"]
+    evidence: ["ds4.h 11-17, 406-618", "ds4.c 63008-63120, 89460-89679 (delegated)", "ds4.c 80147-80151"]
+    read: code
+  - id: "compressed-attention-state"
+    engine_name: "layer_raw_cache, layer_attn_comp_cache, layer_index_comp_cache, compressor state kv/score, layer_n_comp"
+    does: "Holds DeepSeek attention state per layer: a 128-row ring of raw rows, appended compressed rows, indexer rows, the compressor's pending group, and row counters that define which rows are valid."
+    runs: [per_step, per_layer]
+    takes:
+      - {from: "attention-compute", what: "New raw rows, compressed rows and pending-group updates"}
+      - {from: "draft-verify-commit", what: "Restored frontier and counters for an accepted prefix"}
+    gives:
+      - {to: "attention-compute", what: "Visible rows"}
+      - {to: "session-payload-serializer", what: "Live rows only"}
+    owns_state: ["Raw window ring", "Compressed and indexer rows", "Compressor frontier", "Row counters"]
+    exists_because: "DeepSeek V4/V4.1 attention compresses history; the state is small and append-only but the compressor frontier cannot be rolled back by truncation."
+    output_effect: none
+    decisions:
+      - "Compression ratio per layer (none, every 4, every 128) is a model property"
+      - "Rows for rejected positions stay in place, hidden by counters"
+      - "Compressed rows optionally stored as F16"
+    when_things_go_wrong: []
+    must_never: ["Expose rows beyond the counters"]
+    evidence: ["ds4.c 17263-17591, 19269-19276 (delegated)", "ds4.c 41079-41128, 65243-65259 (delegated)", "ds4.c 1461-1475 (per notes)"]
+    read: code
+  - id: "dense-attention-cache"
+    engine_name: "GLM layer_key_cache/layer_value_cache, kv_lora + k_rope compact caches, indexer key cache; Qwen attention K/V and block_key"
+    does: "Holds per-position key/value (or compact latent) rows and sparse-attention indexer keys for GLM and for Qwen's attention layers."
+    runs: [per_step, per_layer]
+    takes:
+      - {from: "attention-compute", what: "New rows"}
+    gives:
+      - {to: "attention-compute", what: "Cached rows"}
+      - {to: "session-payload-serializer", what: "Live rows"}
+    owns_state: ["Per-layer K/V or latent rows, indexer keys, valid length"]
+    exists_because: "GLM and Qwen attention layers keep one row per position."
+    output_effect: none
+    decisions:
+      - "Full dense cache length cap versus compact latent cache"
+    when_things_go_wrong: []
+    must_never: []
+    evidence: ["ds4.c 47279-47474, 59939-60033 (delegated)"]
+    read: code
+  - id: "recurrent-layer-state"
+    engine_name: "GLM 5.3 KDA conv/recurrent state; Qwen layer_lin_state and layer_lin_hist; snap/snap2/snap0"
+    does: "Holds fixed-size recurrent and convolution state of linear-attention layers, plus up to three snapshots used to roll back after rejected drafts."
+    runs: [per_step, per_layer]
+    takes:
+      - {from: "linear-attention-compute", what: "Updated state"}
+    gives:
+      - {to: "linear-attention-compute", what: "State for the next token"}
+      - {to: "session-payload-serializer", what: "State for checkpoints"}
+    owns_state: ["Recurrent matrices", "Convolution history", "Snapshots for verify rollback"]
+    exists_because: "Linear-attention state is overwritten in place, so rollback needs explicit snapshots or replay."
+    output_effect: none
+    decisions:
+      - "Batched Qwen sessions draw state from a shared slot pool"
+    when_things_go_wrong: ["If no snapshot matches the rewind position, state is reset and the kept transcript is replayed"]
+    must_never: []
+    evidence: ["ds4.c 63753-63763, 65844-65855, 76414-76418, 89633-89662 (delegated)"]
+    read: code
+  - id: "prompt-prefill-driver"
+    engine_name: "ds4_session_sync"
+    does: "Brings a session from its live token list to a requested prompt by keeping the common prefix and running the remainder through the model chunk by chunk, layer-major, with progress and cancel checks between chunks."
+    runs: [per_request]
+    takes:
+      - {from: "session-timeline", what: "Live token list and validity"}
+      - {from: "image-input-encoder", what: "Vision spans"}
+      - {from: "request-scheduler", what: "Prefill quantum size"}
+    gives:
+      - {to: "gpu-backend", what: "Chunks of tokens to run through all layers"}
+      - {to: "engram-row-reader", what: "Prompt tokens for batched row reads"}
+      - {to: "ngram-row-reader", what: "Next chunk tokens for prefetch"}
+      - {to: "prefill-layer-pagein", what: "Next layer index"}
+    owns_state: []
+    exists_because: "Every engine needs it; chunk size here also fixes compressor-row finalisation, which is why checkpoint boundaries align to it."
+    output_effect: numeric
+    output_effect_when: "Batched prefill versus token-by-token decode of the same tokens differ in summation order."
+    decisions:
+      - "Prefill chunk size per family (graph-selected for GLM)"
+      - "Leave the partial frontier valid on interrupt so it can be reused"
+    when_things_go_wrong: ["Returns an interrupted code on cancel", "Prompt not shorter than context is rejected"]
+    must_never: ["Mark the session valid before a chunk's logits and state are both complete"]
+    evidence: ["ds4.c 78807-78916", "ds4.h 437-441"]
+    read: code
+  - id: "decode-step"
+    engine_name: "ds4_session_eval"
+    does: "Runs one token through the model for one session, updating its state and logits."
+    runs: [per_step]
+    takes:
+      - {from: "token-sampler", what: "The chosen token"}
+    gives:
+      - {to: "gpu-backend", what: "One-token graph"}
+      - {to: "engram-row-reader", what: "Token for row reads before layer 0"}
+      - {to: "session-timeline", what: "New logits and appended token"}
+    owns_state: []
+    exists_because: "Every engine needs it."
+    output_effect: none
+    decisions: ["Whether to probe the MTP head in the same step"]
+    when_things_go_wrong: ["Failure invalidates the session"]
+    must_never: []
+    evidence: ["ds4.c 77122, 81087-81340", "ds4.c 43322-43331 (per notes)"]
+    read: code
+  - id: "gpu-backend"
+    engine_name: "ds4_metal.m + metal/*.metal, ds4_cuda.cu + cuda/, ds4_rocm*.cu + rocm/ (HIP build of the CUDA source), CPU reference in ds4.c"
+    does: "Encodes and runs the model's operations as GPU kernels specialised per tensor format, per family and per batch shape."
+    not: "The CPU backend is a reference and debug path, not a production fallback."
+    runs: [per_layer]
+    takes:
+      - {from: "weight-binder", what: "Device views of weights"}
+      - {from: "prompt-prefill-driver", what: "Chunks"}
+      - {from: "decode-step", what: "Single tokens"}
+      - {from: "session-batch-executor", what: "Batches of rows"}
+    gives:
+      - {to: "output-head", what: "Final hidden state"}
+    owns_state: ["Command buffers or streams, scratch and prefill workspaces"]
+    exists_because: "Every engine needs it."
+    output_effect: numeric
+    output_effect_when: "Scalar, batched and tensor-parallel kernels are not numerically identical (docs)."
+    decisions:
+      - "Kernel per tensor format (F32, F16, BF16, Q4_0, Q4_1, Q8_0, Q2_K, Q4_K, Q5_K, Q6_K, Q8_K, IQ2_XXS, I8, I32, MXFP4)"
+      - "Native FP4 matrix instructions on Blackwell for batched expert work"
+      - "Prefill workspace shared between sessions in server batch mode"
+    when_things_go_wrong: ["Command failure is reported up and invalidates sessions"]
+    must_never: ["Keep a faster path with unexplained attention, cache or logits drift (project rule)"]
+    evidence: ["ds4.c 2452-2466 (per notes)", "ds4_rocm.cu 1-60", "AGENT.md 9-14", "docs/MODELS.md 38-42, 123-127"]
+    read: inferred
+  - id: "hyper-connection-mixer"
+    engine_name: "HC (n_hc streams, Sinkhorn iterations)"
+    does: "Keeps several residual streams per token and mixes them before and after each sublayer with Sinkhorn-normalised weights."
+    runs: [per_layer]
+    takes: [{from: "gpu-backend", what: "Residual streams"}]
+    gives: [{to: "attention-compute", what: "Mixed sublayer input"}, {to: "pipeline-parallel", what: "Hidden state of n_hc x n_embd per token"}]
+    owns_state: []
+    exists_because: "Model property of DeepSeek V4, GLM 5.3 and Qwen3.8."
+    output_effect: none
+    decisions: ["Number of streams and Sinkhorn iterations are model constants"]
+    when_things_go_wrong: []
+    must_never: []
+    evidence: ["ds4.c 626-627, 946-947", "ds4.c 75233-75237 (delegated)"]
+    read: code
+  - id: "attention-compute"
+    engine_name: "DeepSeek compressed sparse attention with compressor and indexer; GLM DSA/MLA; Qwen attention layers"
+    does: "Computes attention for each token over the visible cached rows, including compressing new rows and selecting the top compressed rows with an indexer."
+    runs: [per_layer]
+    takes:
+      - {from: "hyper-connection-mixer", what: "Sublayer input"}
+      - {from: "compressed-attention-state", what: "Visible rows"}
+      - {from: "dense-attention-cache", what: "Cached rows"}
+    gives:
+      - {to: "compressed-attention-state", what: "New rows and frontier"}
+      - {to: "dense-attention-cache", what: "New rows"}
+      - {to: "directional-steering", what: "Attention output"}
+    owns_state: []
+    exists_because: "Model computation."
+    output_effect: none
+    decisions: ["Indexer top-k (512) and raw window (128) are model constants"]
+    when_things_go_wrong: []
+    must_never: []
+    evidence: ["ds4.c 602-661", "ds4.c 25939-26013 (delegated)"]
+    read: code
+  - id: "linear-attention-compute"
+    engine_name: "GLM 5.3 KDA layers, Qwen GDN layers"
+    does: "Updates the recurrent state and produces output for linear-attention layers."
+    runs: [per_layer]
+    takes: [{from: "recurrent-layer-state", what: "Current state"}]
+    gives: [{to: "recurrent-layer-state", what: "Updated state"}]
+    owns_state: []
+    exists_because: "Model property of GLM 5.3 and Qwen3.8."
+    output_effect: none
+    decisions: []
+    when_things_go_wrong: []
+    must_never: []
+    evidence: ["docs/MODELS.md 183-185", "metal/glm53_kda.metal (name only)", "ds4.c 63753-63763 (delegated)"]
+    read: inferred
+  - id: "engram-lookup-compute"
+    engine_name: "ds41 Engram layers, Qwen PLE"
+    does: "Combines rows fetched from the disk lookup tables into the hidden state at the layers that use them."
+    runs: [per_layer]
+    takes:
+      - {from: "engram-row-reader", what: "Engram rows"}
+      - {from: "ngram-row-reader", what: "N-gram embedding rows"}
+    gives: [{to: "gpu-backend", what: "Updated hidden state"}]
+    owns_state: []
+    exists_because: "Model property of V4.1 Flash (layers 1 and 14) and Qwen3.8."
+    output_effect: none
+    decisions: []
+    when_things_go_wrong: ["Waits on the row read; a failed read fails the step"]
+    must_never: []
+    evidence: ["ds4.c 1487, 41250-41266"]
+    read: code
+  - id: "expert-router"
+    engine_name: "ffn gate / probs, ffn_gate_tid2eid (hash layers), ffn_exp_probs_vl (V4.1 visual bias)"
+    does: "Chooses the routed experts and their weights per token and layer: by a learned gate, or in the first DeepSeek layers by a token-id lookup table."
+    runs: [per_layer]
+    takes: [{from: "hyper-connection-mixer", what: "FFN input"}]
+    gives:
+      - {to: "routed-expert-cache", what: "Selected ids (streaming)"}
+      - {to: "expert-eviction-policy", what: "Selected ids for heat"}
+      - {to: "routed-expert-ffn", what: "Ids and weights"}
+      - {to: "expert-locality-profiler", what: "Ids and weights"}
+    owns_state: []
+    exists_because: "Model computation; selected ids must be read back to the CPU in streaming mode, which creates the sync point streaming builds on."
+    output_effect: none
+    decisions: ["Hash-routed layer count is a model constant (3 for DeepSeek V4, 0 for V4.1)", "V4.1 image tokens use a separate router bias"]
+    when_things_go_wrong: ["Out-of-range id fails the layer"]
+    must_never: []
+    evidence: ["ds4.c 621, 941, 5804, 6127", "ds4.c 74066-74075"]
+    read: code
+  - id: "routed-expert-ffn"
+    engine_name: "moe kernels (metal/moe.metal, cuda mmq)"
+    does: "Computes the selected experts' gate/up/SwiGLU/down and their weighted sum for each token."
+    runs: [per_layer]
+    takes:
+      - {from: "expert-router", what: "Ids and weights"}
+      - {from: "routed-expert-cache", what: "Slot remap in streaming mode"}
+      - {from: "resident-missing-split", what: "Submission order"}
+      - {from: "prefill-layer-pagein", what: "Warm mapped pages"}
+    gives:
+      - {to: "directional-steering", what: "FFN output"}
+      - {to: "imatrix-collector", what: "Expert inputs when collecting"}
+      - {to: "network-tensor-parallel", what: "Partial sum over owned experts"}
+    owns_state: []
+    exists_because: "Model computation."
+    output_effect: none
+    decisions: ["Under TP each rank computes its expert-id half (or half of every expert's intermediate width for CUDA MXFP4)"]
+    when_things_go_wrong: []
+    must_never: []
+    evidence: ["ds4.c 42424, 43275, 27638-27656 (delegated)"]
+    read: inferred
+  - id: "shared-and-dense-ffn"
+    engine_name: "shared expert (shexp), leading dense layers"
+    does: "Computes the always-on shared expert and the dense FFN of leading dense layers."
+    runs: [per_layer]
+    takes: [{from: "hyper-connection-mixer", what: "FFN input"}]
+    gives: [{to: "routed-expert-ffn", what: "Shared output added to routed sum"}]
+    owns_state: []
+    exists_because: "Model computation; its compute time is what hides SSD reads of missing experts."
+    output_effect: none
+    decisions: ["Under TP, V4 splits the shared expert by width; V4.1 gives it to one rank, alternating by layer parity"]
+    when_things_go_wrong: []
+    must_never: []
+    evidence: ["ds4.c 27590-27596, 42294-42298 (delegated)", "ds4.c 82899-82908"]
+    read: code
+  - id: "directional-steering"
+    engine_name: "directional steering (--dir-steering-file, --dir-steering-ffn, --dir-steering-attn)"
+    does: "Removes or amplifies one stored direction per layer from attention and/or FFN outputs at run time."
+    runs: [per_layer]
+    takes:
+      - {from: "outside: operator", what: "Steering file (one f32 direction per layer) and scales"}
+      - {from: "attention-compute", what: "Attention output"}
+      - {from: "routed-expert-ffn", what: "FFN output"}
+    gives: [{to: "gpu-backend", what: "Edited residual contribution"}]
+    owns_state: ["Per-session steering scale"]
+    exists_because: "A deliberate behaviour edit offered by the engine; not needed by the model."
+    output_effect: changes_output
+    output_effect_when: "When a steering file is given with a non-zero scale, compared with the unsteered model."
+    decisions: ["Apply after FFN (default when a file is given) or after attention", "Not implemented for GLM 5.2", "Disables the shared-weight session batch path"]
+    when_things_go_wrong: ["Startup refuses a scale without a file"]
+    must_never: []
+    evidence: ["dir-steering/README.md 1-35", "ds4.c 73835-73847, 82916-82917", "ds4.h 410-413"]
+    read: code
+  - id: "output-head"
+    engine_name: "output head (vocab projection)"
+    does: "Projects the final hidden state to vocabulary logits."
+    runs: [per_step]
+    takes: [{from: "gpu-backend", what: "Final hidden state"}]
+    gives: [{to: "session-timeline", what: "Logits"}, {to: "network-tensor-parallel", what: "Vocabulary half under TP"}]
+    owns_state: []
+    exists_because: "Model computation."
+    output_effect: none
+    decisions: ["Split by vocabulary halves under TP (V4 and V4.1 CUDA) or across GPUs under CUDA expert split"]
+    when_things_go_wrong: []
+    must_never: []
+    evidence: ["ds4.c 76698-76702, 72243-72274 (delegated)"]
+    read: code
+  - id: "power-throttle"
+    engine_name: "--power N (graph_power_sleep)"
+    does: "Sleeps after each prefill layer or decoded token for a time proportional to a smoothed measured work time, so the GPU duty cycle approximates the requested percentage."
+    runs: [per_layer, per_step]
+    takes: [{from: "outside: operator", what: "Power percent 1 to 100"}]
+    gives: []
+    owns_state: ["Smoothed per-layer prefill time and decode token time"]
+    exists_because: "Users run on desktops and small boxes where sustained full GPU load is undesirable."
+    output_effect: none
+    decisions: ["Smoothing factor of the moving average", "Not available for Qwen; GLM requires 100"]
+    when_things_go_wrong: []
+    must_never: []
+    evidence: ["ds4.c 17955-17994", "ds4.h 249-250, 408-409"]
+    read: code
+  - id: "token-sampler"
+    engine_name: "sample_top_p_min_p, sample_full_vocab, ds4_session_top_logprobs"
+    does: "Chooses the next token from logits by greedy argmax or by temperature with top-k, top-p and min-p, and computes log-probabilities."
+    runs: [per_step]
+    takes:
+      - {from: "session-timeline", what: "Logits"}
+      - {from: "tool-call-sampling-mode", what: "Whether this token is sampled greedily"}
+    gives: [{to: "decode-step", what: "Next token"}]
+    owns_state: ["Per-request RNG state (held by caller)"]
+    exists_because: "Every engine needs it."
+    output_effect: none
+    decisions:
+      - "Defaults temperature 1.0, top_p 1.0, min_p 0.05"
+      - "Top-k capped at 1024; non-finite logits skipped"
+      - "Thinking-mode defaults apply only to knobs the client left unset"
+    when_things_go_wrong: ["Degenerate distribution falls back to the top candidate"]
+    must_never: []
+    evidence: ["ds4.c 46892-46962, 80136-80188", "ds4.h 59-61", "ds4_server.c 13972-13981 (delegated)"]
+    read: code
+  - id: "tool-call-sampling-mode"
+    engine_name: "dsml_decode_tracker"
+    does: "Tracks whether generated text is inside tool-call structure or a string payload and makes structural tokens greedy while payload text keeps the request temperature."
+    not: "Not a grammar or logit mask; it never forbids a token."
+    runs: [per_step]
+    takes: [{from: "server-generation-loop", what: "Generated text so far"}]
+    gives: [{to: "token-sampler", what: "Greedy or payload sampling"}, {to: "draft-verify-commit", what: "Mode flips inside an accepted block"}]
+    owns_state: ["Five-state parser position over DSML, GLM and Qwen tag sets"]
+    exists_because: "Low-temperature sampling of tool-call syntax reduces malformed calls without a grammar engine."
+    output_effect: changes_output
+    output_effect_when: "Temperature above 0 compared with plain sampling: structural tokens become argmax."
+    decisions: ["Which tag sets count as structure", "On a mode flip inside an accepted draft block, discard the rest and rewind to the boundary"]
+    when_things_go_wrong: []
+    must_never: []
+    evidence: ["ds4_server.c 7358-7775, 13982-13987, 14263-14288 (delegated)"]
+    read: code
+  - id: "dspark-drafter"
+    engine_name: "DSpark support file (--dspark --mtp-model), ds41_session_draft, ds41_dspark_markov"
+    does: "For DeepSeek V4/V4.1, proposes up to five next tokens from the target model's hidden features with a small block drafter, each with a confidence, stopping when confidence falls below a threshold."
+    runs: [per_step]
+    takes:
+      - {from: "outside: model_files", what: "DSpark GGUF from the same checkpoint"}
+      - {from: "gpu-backend", what: "Target-layer features of the last 128 positions"}
+      - {from: "dspark-scheduler", what: "Whether to draft this round"}
+    gives: [{to: "draft-verify-commit", what: "Draft tokens and (exact mode) draft probabilities"}]
+    owns_state: ["128-position feature window with position tags per stage"]
+    exists_because: "Decode is memory-bandwidth bound; verifying several tokens in one pass amortises weight reads."
+    output_effect: none
+    decisions:
+      - "Confidence threshold (default 0.6 Metal, 0.7 otherwise, settable)"
+      - "Draft only when the full 128-position feature window is present; otherwise decode ordinarily to refill it"
+      - "Disabled by --quality or --dspark-strict"
+    when_things_go_wrong: ["Failure invalidates the session"]
+    must_never: ["Invent missing features from a restored session"]
+    evidence: ["ds4.c 3008-3045, 73812-73834", "ds4.c 88302-88357"]
+    read: code
+  - id: "builtin-mtp-drafter"
+    engine_name: "GLM MTP block (--mtp), Qwen MTP layer"
+    does: "Drafts one or two tokens with the model's own multi-token-prediction block."
+    runs: [per_step]
+    takes: [{from: "gpu-backend", what: "Last hidden state"}]
+    gives: [{to: "draft-verify-commit", what: "Draft tokens"}]
+    owns_state: ["MTP tail row and its position (Qwen)"]
+    exists_because: "GLM and Qwen ship an MTP block; no separate file is needed."
+    output_effect: none
+    decisions: ["Qwen depth adapts between 1 and 2 from recent first-draft acceptance", "How prefill prepares the predictor history (DS4_QWEN4_MTP_PREFILL)"]
+    when_things_go_wrong: []
+    must_never: []
+    evidence: ["ds4.c 77578-77603 (per notes)", "ds4.c 78836-78860", "docs/MODELS.md 191-197"]
+    read: code
+  - id: "dspark-scheduler"
+    engine_name: "ds4_session_dspark_scheduler"
+    does: "Decides per round whether drafting runs, pausing it for some rounds when recent acceptance counts show it does not pay."
+    runs: [per_step]
+    takes: [{from: "draft-verify-commit", what: "Accepted count per round and no-draft events"}]
+    gives: [{to: "dspark-drafter", what: "Skip or draft"}]
+    owns_state: ["Window counters, pause remaining, lifetime acceptance"]
+    exists_because: "Speculation is slower than plain decode when acceptance is low."
+    output_effect: numeric
+    output_effect_when: "Which path (verify batch or single step) advances a token changes summation order; decisions are count-only so this is reproducible."
+    decisions:
+      - "Window size, minimum mean acceptance and pause length, with platform variants"
+      - "Longer pauses after rounds with no draft"
+      - "Time-based judgement off by default"
+      - "Reset at the start of each request"
+    when_things_go_wrong: []
+    must_never: ["Use elapsed time by default"]
+    evidence: ["ds4.c 63216-63335"]
+    read: code
+  - id: "draft-verify-commit"
+    engine_name: "ds41_session_verify / ds41_session_commit, ds4_session_eval_dspark_speculative_*, ds4_session_rewind_speculative"
+    does: "Runs the last token plus drafts through the full model in one batch, accepts the longest matching prefix (or by probability ratio in exact mode), and leaves state exactly as for the accepted prefix."
+    runs: [per_step]
+    takes:
+      - {from: "dspark-drafter", what: "Drafts"}
+      - {from: "builtin-mtp-drafter", what: "Drafts"}
+      - {from: "tool-call-sampling-mode", what: "Mode flips"}
+    gives:
+      - {to: "compressed-attention-state", what: "Restored frontier and counters"}
+      - {to: "dspark-scheduler", what: "Accepted count"}
+      - {to: "session-timeline", what: "Accepted tokens and logits"}
+    owns_state: ["Frontier snapshots for up to 5 prefix lengths", "Pre-verify logits", "Rewind window end"]
+    exists_because: "Speculative decoding needs rollback, and compressor state cannot be truncated."
+    output_effect: changes_output
+    output_effect_when: "Temperature 0: numeric only (batched verify state). Temperature above 0 default mode: a draft equal to the greedy token is accepted, which changes the distribution. Exact mode: distribution preserved, path differs."
+    decisions:
+      - "Greedy compare, or accept with probability target over draft and resample from the residual"
+      - "On correction, evaluate the corrected token ordinarily"
+    when_things_go_wrong: ["Any failure invalidates the session and marks TP failed; the caller re-prefills"]
+    must_never: ["Leave state of a rejected position visible"]
+    evidence: ["ds4.c 88378-88433", "ds4.c 3008-3016", "ds4.c 89533-89618 (delegated)", "ds4.c 65081-65200 (per notes)"]
+    read: code
+  - id: "session-payload-serializer"
+    engine_name: "ds4_session_save_payload / load_payload / stage_payload / save_snapshot"
+    does: "Writes or reads a session's tokens, logits, row counters and live state rows in a versioned binary payload, validating dimensions and counts on load."
+    runs: [on_demand]
+    takes:
+      - {from: "compressed-attention-state", what: "Live rows"}
+      - {from: "dense-attention-cache", what: "Live rows"}
+      - {from: "recurrent-layer-state", what: "State"}
+    gives: [{to: "disk-kv-checkpoint-store", what: "Staged payload file"}]
+    owns_state: []
+    exists_because: "State is small enough to save and restore whole, which makes long agent sessions cheap to resume."
+    output_effect: none
+    decisions:
+      - "Only live rows written, so size scales with tokens not context"
+      - "Engram history not stored; rebuilt from tokens"
+      - "Under TP, load only tokens and re-prefill"
+    when_things_go_wrong: ["Mismatched dimensions, window, counts or trailing bytes reject the load"]
+    must_never: ["Load a payload into a smaller context than it needs"]
+    evidence: ["ds4.c 65353-65464, 65772-66289, 66752-66823 (delegated)", "ds4.h 642-669"]
+    read: code
+  - id: "disk-kv-checkpoint-store"
+    engine_name: "ds4_kvstore (.kv files)"
+    does: "Keeps session checkpoints on disk keyed by the SHA-1 of the rendered text prefix, finds the longest saved prefix of a new prompt, and evicts by a decaying hit score within a disk budget."
+    runs: [per_request]
+    takes:
+      - {from: "session-payload-serializer", what: "Payload"}
+      - {from: "slot-router", what: "Store and lookup requests with reasons"}
+    gives: [{to: "session-payload-serializer", what: "Payload to load"}, {to: "outside: storage", what: ".kv files"}]
+    owns_state: ["Checkpoint files with header (model id, quant bits, context, hits, last use)"]
+    exists_because: "Clients resend long conversations across restarts and slot evictions."
+    output_effect: numeric
+    output_effect_when: "Reuse across quantizations is allowed by default, bringing state computed by another quantization."
+    decisions:
+      - "Store thresholds (min 512, cold max 30000, every 10240 continued) and boundary trimmed 32 and aligned to 2048"
+      - "Cold store at the last user marker before the first assistant marker"
+      - "Score = (decayed hits + 1) x tokens / bytes, 6 h half-life, doubled for anchor reasons"
+      - "Directory rescanned on every lookup, no index"
+    when_things_go_wrong: ["Token-count mismatch deletes the file; other load failures leave it", "Prefill failure after a disk hit deletes the entry"]
+    must_never: ["Truncate a live session to store it; it stores only when tokens match exactly"]
+    evidence: ["ds4_kvstore.c 33-42, 393-472, 538-613, 706-754, 929-1161, 1196-1346 (delegated)", "ds4_kvstore.h 11-66"]
+    read: code
+  - id: "http-api-server"
+    engine_name: "ds4-server (client_main, worker threads)"
+    does: "Accepts OpenAI chat/completions/responses and Anthropic messages over hand-written HTTP/1.1, streams SSE, detects disconnects and cancels jobs."
+    runs: [per_request]
+    takes: [{from: "outside: client", what: "HTTP requests"}]
+    gives:
+      - {to: "tokenizer-and-chat-renderer", what: "Parsed request"}
+      - {to: "request-scheduler", what: "Job"}
+      - {to: "image-input-encoder", what: "Images"}
+      - {to: "outside: client", what: "SSE or JSON responses"}
+    owns_state: ["One thread per connection; job lifetime"]
+    exists_because: "Boundary to agent clients."
+    output_effect: none
+    decisions:
+      - "Body cap 64 MiB, socket timeouts, fail slow clients rather than block the worker"
+      - "Durable response state rejected; client must replay input"
+      - "No metrics, health or overload rejection"
+    when_things_go_wrong: ["400 parse, 404, 409 lost live state, 500 prefill failure, 503 only on shutdown", "Disconnect polled every 100 ms cancels the job cooperatively"]
+    must_never: []
+    evidence: ["ds4_server.c 5771-5796, 6919-7025, 15061-15107, 15225-15403, 16105-16165 (delegated)"]
+    read: code
+  - id: "tool-call-codec"
+    engine_name: "DSML parse/repair, tool_memory"
+    does: "Parses generated tool calls per family, repairs a missing wrapper, retries once with a model-visible error, and remembers the exact sampled call text by id so history replays byte-identically."
+    runs: [per_request]
+    takes: [{from: "server-generation-loop", what: "Generated message"}]
+    gives:
+      - {to: "http-api-server", what: "Structured tool calls"}
+      - {to: "tokenizer-and-chat-renderer", what: "Exact text to replay"}
+    owns_state: ["LRU map from tool-call id to sampled text (100k ids, 512 MiB), also persisted in checkpoint trailers"]
+    exists_because: "Re-rendering a client's JSON would not match the tokens already in the live state."
+    output_effect: none
+    decisions: ["Retry on invalid call only for non-streaming requests"]
+    when_things_go_wrong: ["Second failure returns the text with finish reason error"]
+    must_never: []
+    evidence: ["ds4_server.c 6137-6806, 10271-10455, 10700, 11005-11115, 12633, 14328-14394 (delegated)"]
+    read: code
+  - id: "server-generation-loop"
+    engine_name: "generate_job_inner"
+    does: "Drives one job: sync, then sample and evaluate tokens, tracking thinking, stop sequences and EOS, streaming text, and triggering continued checkpoints."
+    runs: [per_request, per_step]
+    takes:
+      - {from: "slot-router", what: "Chosen slot and reuse tier"}
+      - {from: "token-sampler", what: "Tokens"}
+    gives:
+      - {to: "tool-call-sampling-mode", what: "Text"}
+      - {to: "tool-call-codec", what: "Final message"}
+      - {to: "request-scheduler", what: "Per-token decode requests"}
+      - {to: "disk-kv-checkpoint-store", what: "Continued stores"}
+    owns_state: ["Per-slot live tool and thinking bindings"]
+    exists_because: "Every server needs it."
+    output_effect: none
+    decisions: ["A client stop-sequence hit invalidates the live session", "Speculative decoding only in single-session mode (except Qwen Metal)"]
+    when_things_go_wrong: ["Batch error invalidates all member sessions"]
+    must_never: []
+    evidence: ["ds4_server.c 13458-14490 (delegated)"]
+    read: code
+  - id: "slot-router"
+    engine_name: "slot_probe_reuse_locked, job_slot_score, dispatch_jobs_locked"
+    does: "Matches a request to the session slot with the most reusable live state through seven ordered tiers and, when needed, picks a slot to repurpose, saving its old state to disk first."
+    runs: [per_request]
+    takes: [{from: "tokenizer-and-chat-renderer", what: "Text and tokens"}]
+    gives:
+      - {to: "session-timeline", what: "Prefix to sync"}
+      - {to: "disk-kv-checkpoint-store", what: "Lookup when no live tier matched; evict store"}
+      - {to: "server-generation-loop", what: "Slot and tier"}
+    owns_state: ["Per-slot last use and live continuation bindings"]
+    exists_because: "Several fixed slots each hold one full-context session; reuse depends on routing to the right one."
+    output_effect: none
+    decisions:
+      - "Tier order: visible transcript, tool-output bindings, GLM rewind, token prefix, thinking-visible, rendered-text prefix"
+      - "Victim preference: empty, idle over 1 h, then shortest checkpoint; busy slots never"
+      - "Continuations pinned to their slot"
+    when_things_go_wrong: ["Lost live state for a tool-output-only continuation gives 409"]
+    must_never: ["Evict a slot with a running job"]
+    evidence: ["ds4_server.c 11614-11748, 13626-13642, 14803-14937 (delegated)"]
+    read: code
+  - id: "request-scheduler"
+    engine_name: "decode_worker_main, server_prefill_enter, server_session_sync"
+    does: "Runs queued jobs on slot threads, coalesces their pending decode tokens into one batch, and admits prefill one quantum at a time only when no decode is pending, round-robin across slots."
+    runs: [per_step]
+    takes: [{from: "server-generation-loop", what: "Pending decode tokens and prefill demand"}, {from: "http-api-server", what: "Jobs"}]
+    gives:
+      - {to: "session-batch-executor", what: "Decode batch"}
+      - {to: "prompt-prefill-driver", what: "Prefill quantum"}
+    owns_state: ["FIFO job queue", "Pending-decode count, active generations, last prefill slot"]
+    exists_because: "Several sessions share one model; decode latency must not wait behind long prompts."
+    output_effect: none
+    decisions:
+      - "Coalesce window 2 ms or until all active generations post"
+      - "Prefill quantum 128 tokens while any generation is active (at least 1024 for GLM 5.3), larger otherwise"
+      - "Decode has strict priority over prefill; prefill and decode never fused"
+      - "Unbounded queue"
+    when_things_go_wrong: ["Cancel unlinks queued jobs or withdraws pending decode tokens"]
+    must_never: ["Split a prefill quantum inside an image span"]
+    evidence: ["ds4_server.c 12379-12553, 13182-13410, 14939-14988 (delegated)"]
+    read: code
+  - id: "session-batch-executor"
+    engine_name: "ds4_sessions_eval_batch, ds4_sessions_eval_batch_native"
+    does: "Advances several sessions by one token in one call, using a family-specific fused path when supported, encoding several graphs before one synchronisation on CUDA, or evaluating them one after another."
+    runs: [per_step]
+    takes: [{from: "request-scheduler", what: "Session and token rows"}]
+    gives: [{to: "gpu-backend", what: "Batched rows"}, {to: "network-tensor-parallel", what: "Mirrored batch"}]
+    owns_state: []
+    exists_because: "Shared weight reads can be amortised over sessions on bandwidth-bound machines."
+    output_effect: numeric
+    output_effect_when: "Batched versus scalar kernels differ in summation order (docs); CUDA V4 path keeps one-token kernels."
+    decisions:
+      - "Fused only when every member qualifies (no streaming, no steering, same engine, valid state)"
+      - "Shared-expert and QKV weights shared across rows on Metal V4 when Q8_0"
+    when_things_go_wrong: ["Any failure invalidates every member, even on the sequential path"]
+    must_never: ["Leave some members advanced after a failure"]
+    evidence: ["ds4.c 82834-82923, 83233-83292, 83943-84015, 88033-88092"]
+    read: code
+  - id: "network-tensor-parallel"
+    engine_name: "ds4_tp (--tensor-parallel), leader and worker"
+    does: "Runs the model in lockstep on two machines, each holding half of the routed experts (and half of some projections), exchanging f32 partial sums at up to two gates per layer over RDMA or TCP, with the worker mirroring every session call."
+    runs: [per_layer, per_request]
+    takes:
+      - {from: "routed-expert-ffn", what: "Partial sums"}
+      - {from: "output-head", what: "Vocabulary half"}
+      - {from: "session-batch-executor", what: "Batches to mirror"}
+    gives: [{to: "weight-binder", what: "Owned expert half"}, {to: "gpu-backend", what: "Summed partials in canonical order"}]
+    owns_state: ["Connection, gate sequence numbers, command mailbox, failed flag, leader-to-worker session id map"]
+    exists_because: "Two 128 GB machines together hold models one cannot, and per-layer partial sums are small."
+    output_effect: numeric
+    output_effect_when: "Compared with single-machine execution; both ranks add partials rank 0 first so they agree bit for bit with each other."
+    decisions:
+      - "Hello exchange must match model, quant, context and gate schedule"
+      - "Cancellation only agreed at prefill checkpoints"
+      - "Speculation: leader drafts; verify sharded; commit as full, prefix or rollback-replay"
+    when_things_go_wrong: ["Transport error marks failed, leader invalidates the session; worker exits, no reconnect", "Gate timeout 750 ms on RDMA"]
+    must_never: ["Sample cancellation independently inside a gate"]
+    evidence: ["ds4_tp.c 48, 138-186, 483-553, 635-757, 1920-2008, 2328-2538, 2588-2859, 3149-3171, 3729-3960 (delegated)", "ds4.h 98-129"]
+    read: code
+  - id: "pipeline-parallel"
+    engine_name: "ds4_distributed (--role coordinator/worker, --layers)"
+    does: "Splits consecutive layer ranges across machines, forwarding tokens and hidden state stage to stage and returning logits, with route discovery from worker registrations."
+    runs: [per_layer, per_request]
+    takes: [{from: "hyper-connection-mixer", what: "Hidden state per token"}]
+    gives: [{to: "session-timeline", what: "Logits from the last stage"}]
+    owns_state: ["Worker registry and route plan, rolling token-prefix hash per worker"]
+    exists_because: "Models larger than one host (PRO Q4, GLM 5.2) run as layer slices."
+    output_effect: numeric
+    output_effect_when: "When activations are sent as f16 or fp8 instead of f32."
+    decisions: ["Activation bits on the wire", "Prefill pipelining window", "DeepSeek V4 and GLM only"]
+    when_things_go_wrong: ["Prefix hash mismatch rejected", "Coordinator rebuilds the route and replays the transcript; workers reconnect forever"]
+    must_never: ["Let a worker continue from a different token prefix"]
+    evidence: ["ds4_distributed.c 78-89, 786-1025, 1856-2313, 2670-2987, 7492-7499, 7938-8021, 8369-8407 (delegated)"]
+    read: code
+  - id: "cross-gpu-transfer"
+    engine_name: "ds4_gpu_tensor_copy_xdev, ds4_gpu_add_xdev_tensor"
+    does: "Moves activations between GPUs at layer boundaries and reduces expert-split partials, by peer copy or a pinned host bounce."
+    runs: [per_layer]
+    takes: [{from: "multi-gpu-placer", what: "Device boundaries"}]
+    gives: [{to: "gpu-backend", what: "Tensor on the next device"}]
+    owns_state: ["Peer-access matrix"]
+    exists_because: "Layers placed on different discrete GPUs."
+    output_effect: none
+    decisions: ["Peer copy when available, else host bounce"]
+    when_things_go_wrong: []
+    must_never: []
+    evidence: ["ds4_gpu_mgpu.h 129-189 (delegated)"]
+    read: code
+  - id: "logging-and-trace"
+    engine_name: "ds4_log categories, server --trace, DS4_DSPARK_STATS, timing env switches"
+    does: "Reports prefill and decode progress, cache decisions, tool events, speculative statistics and optional per-stage timings to stderr or a trace file."
+    runs: [per_step, per_request]
+    takes: [{from: "server-generation-loop", what: "Events"}, {from: "draft-verify-commit", what: "Proposed and accepted counts, timings"}]
+    gives: [{to: "outside: operator", what: "Log lines and trace file"}]
+    owns_state: ["Speculative statistics counters per session"]
+    exists_because: "Every engine needs it; there is no metrics endpoint."
+    output_effect: none
+    decisions: ["Log categories; batch timing only with DS4_SERVER_BATCH_LOG"]
+    when_things_go_wrong: []
+    must_never: []
+    evidence: ["ds4.h 35-45, 334-335", "ds4.c 88315-88424", "ds4_server.c 9880, 11792-12110, 12162 (delegated)"]
+    read: code
+absent:
+  - {job: "Computing cold experts on the CPU", why: "Missing experts are always read into the cache and computed on the GPU; layouts needing CPU execution are refused."}
+  - {job: "Paged or block KV allocator", why: "Each session allocates full-context state at creation; there is no shared block pool (except Qwen recurrent state slots on Metal)."}
+  - {job: "Grammar or JSON-schema constrained decoding", why: "Only a greedy-on-structure sampling switch; tool_choice other than none and response_format are ignored."}
+  - {job: "Mixed prefill and decode in one step (continuous batching)", why: "The engine API exists but the server never calls it; decode strictly preempts prefill."}
+  - {job: "Request preemption or swapping of running sessions", why: "Busy slots are never evicted; idle slots are saved to disk before reuse."}
+  - {job: "Overload admission (queue cap, 429)", why: "Unbounded queue and thread per connection."}
+  - {job: "Audio input", why: "No supported model has audio."}
+  - {job: "Adapters or LoRA", why: "Not implemented; directional steering is the only run-time weight-free edit."}
+  - {job: "Quantization at load time", why: "Files must come pre-converted by the project's tools."}
+  - {job: "Metrics or health endpoint", why: "Logging only."}
+outside_engine:
+  - {name: "ds4 CLI (ds4_cli.c, linenoise)", what: "Interactive REPL client embedding the engine"}
+  - {name: "ds4-agent (ds4_agent.c, ds4_web.c)", what: "Terminal coding agent embedding the engine with its own checkpoint policy, bash tools and web search"}
+  - {name: "ds4-bench, ds4-eval, speed-bench/", what: "Benchmarks and quality evaluation against reference cases"}
+  - {name: "tests/", what: "Unit, kernel parity and live server tests"}
+  - {name: "download_model.sh", what: "Downloader, shard merger and checksum verifier"}
+  - {name: "dir-steering/tools", what: "Builds steering direction files from paired prompts"}
+  - {name: "QA_BEFORE_RELEASES.md, misc/", what: "Release checklist and planning notes"}
+  - {name: "Makefile, ds4_gpu_args.c, ds4_help.c", what: "Build and command-line plumbing"}
+surprises:
+  - "The expert cache policy differs by backend for the same job: Metal evicts by a decaying selection count that also counts misses, CUDA by plain least-recent use with no heat, and CUDA streaming works only on one GPU."
+  - "Two kinds of disk-resident model data are read by row on every token (V4.1 Engram, Qwen n-grams), with row numbers known from token ids before any layer runs; the first DeepSeek layers also route experts by token-id lookup."
+  - "DeepSeek session state cannot be rewound by truncation because of the compressor frontier: any rewind outside the last verify block invalidates the session and forces re-prefill or a disk checkpoint."
+  - "One model family per process through a global shape table; feature support is a matrix of family x backend x mode, enforced by refusals at startup."
+  - "Disk checkpoints are keyed by a hash of rendered text, not tokens, are reused across quantizations by default, and the store rescans the directory on every lookup."
+  - "Default speculative sampling at temperature above 0 deliberately changes the output distribution; exact sampling is opt-in."
+  - "The server's scheduler gives decode strict priority and never fuses prefill with decode, although the engine has an API for it."
+  - "A client stop-sequence hit throws away the live session state."
+  - "The CPU backend exists only as a reference; production refuses any CPU placement."
+not_read: "Kernel sources under metal/, cuda/, rocm/ and the bulk of ds4_metal.m, ds4_cuda.cu and ds4_rocm*.cu (only the expert cache, TP and memory pieces); most of ds4.c's per-family graph builders (attention, KDA, GDN, HC, vision encoders) beyond shapes and entry points; the tokenizer implementation; GLM MTP and V4 Flash DSpark main loops; gguf-tools sources; ds4_agent.c, ds4_cli.c, ds4_web.c, ds4_eval.c beyond identity; most docs (SERVER.md, SSD_STREAMING.md, SPECULATIVE_DECODING.md, DISTRIBUTED.md, DGX_SPARK.md, PERFORMANCE.md) were not re-read; tests. Server, kvstore, TP, pipeline and multi-GPU placement were read by delegated readers and not re-checked line by line. Nothing was built or run."

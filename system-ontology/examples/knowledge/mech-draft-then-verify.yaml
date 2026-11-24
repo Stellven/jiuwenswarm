@@ -1,0 +1,49 @@
+kind: mechanism
+id: mech/draft-then-verify
+family: draft-verify-commit
+summary: "A cheap draft operation guesses the next few tokens, the full model verifies the whole window in one pass, and only the accepted prefix is committed"
+equivalence:
+  level: bit_exact
+  relative_to: "greedy decoding one token at a time"
+  holds_when: "Greedy sampling, with a verify kernel that is equivalent token by token. Of the five engines only Strata claims this; ds4 states that its batched verification is not bit_exact; NInfer and HyperQwen are distribution_exact under random sampling"
+because:
+  - id: draft
+    predicate: has_draft_operation
+    text: "The model comes with (or can be given) a draft operation that proposes the next tokens"
+  - id: sparse
+    predicate: sparse_selection
+    args: {max_pick_ratio: 0.5}
+    essential: false
+    text: "The model selects only some of the objects each time"
+    effect_if_fails: "There is no saving from taking the union of the selected objects within a window; the gain comes only from reading the shared weights once"
+  - id: acceptance
+    predicate: measured_property
+    args: {property: draft_acceptance_rate}
+    text: "There is a measured value of the draft acceptance rate"
+do:
+  - {aspect: execution, item: stages,   text: "Add two stages, draft and verify; the verify stage processes the last confirmed token plus several draft tokens in one pass"}
+  - {aspect: state,     item: states,   text: "Each kind of model state declares what is done to it when a prefix is accepted and when a suffix is rejected"}
+  - {aspect: policy,    item: policies, text: "The length of the draft window is adjusted by the acceptance rate and the cost of a round"}
+needs:
+  state_rules: [on_accept, on_reject]
+  invariants:
+    - {id: inv/no-read-rejected,   text: "State that belongs to a rejected suffix is not read as valid history"}
+    - {id: inv/commit-same-prefix, text: "All states are committed to the same accepted prefix"}
+  observation_points: [drafts_offered, drafts_accepted, verify_time, commit_time]
+expect:
+  - {quantity: decode_rate, direction: increase}
+cost:
+  - "A verify round costs more than decoding one token; rejected drafts are wasted work"
+  - "Every kind of state needs an implementation of commit and of rollback"
+validate_by: "Compare with decoding one token at a time; measure the time per round and the tokens produced per round; on a fixed greedy regression set, compare the output token by token"
+claims:
+  - text: "On average 2.4 to 3.2 tokens per round, 1.6 to 1.8 times faster overall"
+    status: reported
+    source: "strata docs/HOW_IT_WORKS.md:41-43"
+    conditions: {model: qwen3.8-flash-next, hardware: pc cuda}
+    baseline: "decoding one token at a time (the document gives no details of the measurement conditions)"
+  - text: "Union of the objects the CPU must compute within a window: 1.75 times that of a single token for 2 tokens, 2.4 times for 3, 3.05 times for 4"
+    status: reported
+    source: "strata include/strata/core/verify.hpp:10-11"
+    conditions: {model: qwen3.8-flash-next}
+    baseline: "the number of misses when decoding one token"

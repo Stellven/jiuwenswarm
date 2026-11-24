@@ -1,0 +1,9 @@
+warm-up 0: TTFT 2.960 s, decode 62.45 tok/s (not counted)
+warm-up 1: TTFT 1.864 s, decode 60.25 tok/s (not counted)
+prompt 0 run 0: TTFT 2.006 s, decode 60.90 tok/s, 128 tokens
+prompt 1 run 0: TTFT 1.908 s, decode 53.09 tok/s, 128 tokens
+prompt 2 run 0: TTFT 2.120 s, decode 57.26 tok/s, 128 tokens
+prompt 3 run 0: TTFT 1.800 s, decode 55.72 tok/s, 128 tokens
+median TTFT 1.9571 s; median decode 56.4884 tok/s; largest drop in system memory 1.07 GB
+the runtime's own timings: prompt 1263.95 tok/s, generation 56.1 tok/s
+wrote /home/<spark-user>/system-ontology-run-20261119/strata-runs/iq3s/evidence-iq3s-2k.yaml

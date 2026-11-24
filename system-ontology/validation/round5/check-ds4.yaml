@@ -1,0 +1,101 @@
+engine: ds4
+# Decisions are counted under the type whose choice they were judged against; for a part with an `also` type the
+# decision is counted under whichever of its types names it (under the assigned type when none does).
+decision_coverage:
+  totals: {decisions: 124, covered: 103, loosely: 12, not_covered: 0, engine_specific: 9}
+  per_type:
+    - {type: "model-conversion", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "calibration", decisions: 3, covered: 2, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "configuration", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "model-loading", decisions: 5, covered: 4, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "memory-planning", decisions: 6, covered: 4, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "model-partitioning", decisions: 10, covered: 10, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-cache", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "residency-policy", decisions: 6, covered: 5, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "expert-fetch", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-dispatch", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "row-source", decisions: 6, covered: 4, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-preparation", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "media-preparation", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "modality-encoding", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "sequence-lifecycle", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prefix-reuse", decisions: 6, covered: 4, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "positional-state-store", decisions: 4, covered: 2, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "recurrent-state-store", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-reading", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-execution", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "device-backend", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "layer-compute", decisions: 7, covered: 3, loosely: 0, not_covered: 0, engine_specific: 4}
+    - {type: "model-edit", decisions: 3, covered: 2, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "resource-governing", decisions: 2, covered: 1, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "sampling", decisions: 5, covered: 4, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "draft-proposal", decisions: 5, covered: 5, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-policy", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-verification", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "session-persistence", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "request-front", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-interpretation", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-scheduler", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "device-communication", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "telemetry", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+  engine_specific_list:   # for traceability; not required by the brief
+    - {part: "expert-locality-profiler", decision: "Metal only; ignored with a warning on other backends"}
+    - {part: "model-loader", decision: "Shared mapping for GPU backends, private for CPU (workaround for a macOS VM failure)"}
+    - {part: "compressed-attention-state", decision: "Compression ratio per layer is a model property"}
+    - {part: "hyper-connection-mixer", decision: "Number of streams and Sinkhorn iterations are model constants"}
+    - {part: "attention-compute", decision: "Indexer top-k and raw window are model constants"}
+    - {part: "expert-router", decision: "Hash-routed layer count is a model constant"}
+    - {part: "expert-router", decision: "V4.1 image tokens use a separate router bias (model property)"}
+    - {part: "directional-steering", decision: "Not implemented for GLM 5.2"}
+    - {part: "power-throttle", decision: "Not available for Qwen; GLM requires 100"}
+  loosely:
+    - {part: "memory-admission-guard", type: "memory-planning", decision: "Whether an explicitly raised OS wired limit overrides the budget heuristics", nearest_choice: "an operator's explicit size against the computed one"}
+    - {part: "ssd-cache-planner", type: "memory-planning", decision: "Default share of the working set and the range an operator override is clamped to", nearest_choice: "the reserve left free"}
+    - {part: "routed-expert-cache", type: "expert-cache", decision: "Metal: cache buffers locked in memory; lock failure lowers the effective limit", nearest_choice: "what is done when the cache cannot be allocated at its planned size"}
+    - {part: "expert-eviction-policy", type: "residency-policy", decision: "Heat increments on every selection, misses included, not only hits", nearest_choice: "the replacement rule"}
+    - {part: "engram-prewarm", type: "row-source", decision: "Warm only when model, runtime, table and a reserve fit physical memory", nearest_choice: "warming the table in the background and when to stop"}
+    - {part: "ngram-row-reader", type: "row-source", decision: "Prefetch only for chunks above a minimum size and within a buffer cap", nearest_choice: "prefetching rows for coming or drafted tokens"}
+    - {part: "slot-router", type: "prefix-reuse", decision: "Ordered tiers of match kinds (visible transcript, tool-output bindings, rewind, token prefix, rendered-text prefix)", nearest_choice: "which store is used when several hold a match"}
+    - {part: "slot-router", type: "prefix-reuse", decision: "Continuations pinned to their slot", nearest_choice: "whether a request may pin stored state against eviction"}
+    - {part: "dense-attention-cache", type: "positional-state-store", decision: "Full dense cache with a length cap versus compact latent cache", nearest_choice: "precision and layout of stored state"}
+    - {part: "gpu-backend", type: "device-backend", decision: "Prefill workspace shared between sessions in server batch mode", nearest_choice: "scratch and command buffers"}
+    - {part: "tool-call-sampling-mode", type: "sampling", decision: "Which tag sets count as structure", nearest_choice: "whether settings change per position, for example greedy on structure and sampled on content"}
+    - {part: "session-payload-serializer", type: "session-persistence", decision: "Under tensor parallelism, load only tokens and re-prefill", nearest_choice: "in which configurations saving and restoring is offered"}
+  not_covered: []
+contradictions:
+  - part: "pipeline-parallel"
+    type: "model-partitioning"
+    claim: "effect_on_output: approximate when activations cross between devices at reduced precision (and rounding only when partial results are combined)"
+    evidence: "Correction (round4): f16 on the wire is numeric only (another floating-point width); only the 8-bit FP8 E4M3 wire format changes output. The type has no rounding case for a narrower float on the wire, so it files f16 as approximate."
+    fix: "rounding when partial results are combined across devices or activations cross at another floating-point width; approximate when activations cross quantised (8-bit or lower)"
+  - part: "gpu-backend"
+    type: "device-backend"
+    claim: "effect_on_output: exact when one variant per operation; rounding when the variant chosen depends on device class, step shape or batch width"
+    evidence: "ds4_cuda.cu 1236-1277: on a single CUDA GPU the default kernel tier for steps of 2 or more rows (prefill and batched verify) quantises activations to Q8_1 before the matmul; 14787-14792: the indexer runs in MXFP4 for steps of 32 or more tokens. Both are off with --quality (DS4_CUDA_MMQ=0 for the first). The backend's own variant choice by step width thus reduces activation precision, which none of its cases covers."
+    fix: "add: approximate when the variant it chooses for a device or step width computes activations at reduced precision; such a variant is on only explicitly or as a recorded default that can be turned off"
+  - part: "routed-expert-ffn"
+    type: "layer-compute"
+    claim: "must: Unless an approximation is in effect that was turned on at conversion or at run time, explicitly or as a recorded default, the sequence of layers and operations the model defines is kept. (effect approximate: where the weights carry a permit for it, this can depend on how many rows a step holds)"
+    evidence: "ds4_cuda.cu 1236-1277: Q8_1 activation quantisation for routed IQ2_XXS/Q2_K and dense Q8_0 GEMMs at 2 or more rows is on by default; nothing records it with the run's settings (a message is printed only when it is turned off), and the weights carry no permit for it; the kernel tier, not the weights, decides it by row count."
+    fix: "Unless an approximation is in effect that was turned on explicitly or as a default that can be turned off, ...; a reduced activation precision may depend on how many rows a step holds, whether permitted by the weights or chosen by the kernel tier, and is stated with the run's settings"
+  - part: "prompt-prefill-driver"
+    type: "prompt-reading"
+    claim: "must: ... the state it leaves is the state of that prompt up to rounding, or up to the reduced activation precision the weights permit for wide chunks, whatever the chunking."
+    evidence: "On CUDA the default prefill tier quantises activations to Q8_1 for any chunk of 2 or more tokens (ds4_cuda.cu 1236-1277); this precision is not one the weights permit or record, and it is not an explicitly turned-on approximate path."
+    fix: "... up to rounding, or up to a reduced activation precision for wide chunks that the weights permit or the run's settings state, whatever the chunking"
+  - part: "draft-verify-commit"
+    type: "draft-verification"
+    claim: "effect_on_output: approximate when ... the checked block runs at a reduced activation precision that the weights permit"
+    evidence: "Batched verify (2 or more rows) on CUDA goes through the same Q8_1 activation tier by default (ds4_cuda.cu 1236-1250, 'prefill and batched verify'); the weights carry no such permit, so the case's condition misses this engine's cause."
+    fix: "approximate when ... the checked block runs at a reduced activation precision selected by its width, whether the weights or the kernel tier permit it"
+relaxations: []
+wrong_assignments: []
+inventory_errors:
+  - part: "gpu-backend"
+    field: "output_effect"
+    recorded: "numeric (scalar, batched and tensor-parallel kernels are not numerically identical)"
+    source_shows: "ds4_cuda.cu 1236-1277: single-GPU CUDA uses the vendored mmq tier by default for steps of 2 or more rows, quantising activations to Q8_1 (off with --quality, DS4_CUDA_MMQ=0 or several GPUs); ds4_cuda.cu 14787-14792: MXFP4 indexer for steps of 32 or more tokens with 1024 or more compressed rows (off with --quality). Reduced activation precision is changes_output, on by default, settable off."
+  - part: "prompt-prefill-driver"
+    field: "output_effect"
+    recorded: "numeric (batched prefill versus token-by-token decode differ in summation order)"
+    source_shows: "Same source as above: on CUDA, prefill chunks of 2 or more tokens run with Q8_1-quantised activations by default (ds4_cuda.cu 1236-1277), so prefill versus decode differs beyond summation order unless --quality is set."

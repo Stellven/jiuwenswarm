@@ -1,0 +1,1150 @@
+# Strata, serving area: parts for the system file and the engine specs. No `kind`, so the loader ignores this file.
+flows:
+- id: client-request
+  sender: external
+  receiver: comp/strata/http-front
+  carries:
+    content: request
+  timing: per_request
+  description: 'An HTTP request in OpenAI or Anthropic form: messages, tools, sampling fields and an output limit'
+- id: client-response
+  sender: comp/strata/http-front
+  receiver: external
+  carries:
+    content: response
+  timing: per_window
+  description: A server-sent event stream or one JSON body, with usage and timings at the end
+- id: messages-to-prompt
+  sender: comp/strata/http-front
+  receiver: comp/strata/prompt-builder
+  carries:
+    content: request
+  timing: per_request
+  description: Messages, tools and template arguments in one internal form
+- id: prompt-ids
+  sender: comp/strata/prompt-builder
+  receiver: comp/strata/request-runner
+  carries:
+    content: tokens
+  timing: per_request
+  description: The prompt token ids, the thinking flag and the output limit fitted to the context
+- id: generation-call
+  sender: comp/strata/request-runner
+  receiver: comp/strata/engine-client
+  carries:
+    content: tokens
+  timing: per_request
+  description: Prompt token ids, output limit, sampling settings and a cancel event for one engine generation; a
+    request may make several
+- id: generation-to-replica
+  sender: comp/strata/replica-router
+  receiver: comp/strata/engine-client
+  carries:
+    content: control
+  timing: per_request
+  description: 'With replicas on: the generation handed to the chosen engine process'
+- id: generation-to-slots
+  sender: comp/strata/engine-client
+  receiver: comp/strata/slot-scheduler
+  carries:
+    content: control
+  timing: per_request
+  description: 'With batch slots on: the generation handed to the scheduler, which decides solo or slot'
+- id: engine-commands
+  sender: comp/strata/engine-client
+  receiver: comp/strata/engine-command-loop
+  carries:
+    content: control
+  timing: per_request
+  description: 'Text lines on the engine''s standard input: GEN with keys and prompt ids, STOP, VRAM, SAVE and RESTORE'
+- id: slot-commands
+  sender: comp/strata/slot-scheduler
+  receiver: comp/strata/engine-command-loop
+  carries:
+    content: control
+  timing: per_request
+  description: 'Text lines naming a slot: BGEN with the prompt ids, BSTOP, BYIELD and the opt-in BCO'
+- id: engine-token-lines
+  sender: comp/strata/engine-command-loop
+  receiver: comp/strata/engine-client
+  carries:
+    content: tokens
+  timing: per_window
+  description: T <id> lines on the solo path, several per verify window when drafts are accepted
+- id: slot-token-lines
+  sender: comp/strata/engine-command-loop
+  receiver: comp/strata/slot-scheduler
+  carries:
+    content: tokens
+  timing: per_window
+  description: BT <slot> <id> lines, routed to the slot's own queue, then BDONE; BADM and YIELDED on the control
+    lines
+- id: engine-stat-lines
+  sender: comp/strata/engine-command-loop
+  receiver: comp/strata/server-metrics
+  carries:
+    content: metrics
+  timing: per_request
+  description: INFO at start; per request PP progress, RESUME and a DONE line with counts, prompt and decode milliseconds,
+    drafts, reused tokens and expert cache hits
+- id: tokens-to-runner
+  sender: comp/strata/engine-client
+  receiver: comp/strata/request-runner
+  carries:
+    content: tokens
+  timing: per_window
+  description: Token ids as they arrive, with a heartbeat every 10 s of quiet
+- id: response-events
+  sender: comp/strata/request-runner
+  receiver: comp/strata/http-front
+  carries:
+    content: response
+  timing: per_window
+  description: Reasoning, content and tool-call events, pings and one finish record
+- id: prompt-to-read
+  sender: comp/strata/engine-command-loop
+  receiver: comp/strata/prompt-path
+  carries:
+    content: tokens
+  timing: per_request
+  description: The prompt token ids of one GEN or BGEN, to be read from the resume point
+- id: resume-point
+  sender: comp/strata/resume-decision
+  receiver: comp/strata/prompt-path
+  carries:
+    content: plan
+  timing: per_request
+  description: How many prompt tokens the session already holds, so reading starts there
+- id: rewind-to-checkpoint
+  sender: comp/strata/resume-decision
+  receiver: comp/strata/checkpoint-chain
+  carries:
+    content: control
+  timing: per_request
+  description: Restore the chosen checkpoint and drop the ones past it
+- id: take-or-park
+  sender: comp/strata/resume-decision
+  receiver: comp/strata/parked-conversations
+  carries:
+    content: control
+  timing: per_request
+  description: Park the outgoing conversation; take or borrow from the chosen parked entry
+- id: checkpoint-restore
+  sender: comp/strata/checkpoint-chain
+  receiver: comp/strata/session-loop
+  carries:
+    content: model_state
+    refs:
+    - gdn_state
+    - ple_history
+    - indexer_keys
+  timing: on_demand
+  description: Running state copied back to the device at a rewind
+- id: parked-restore
+  sender: comp/strata/parked-conversations
+  receiver: comp/strata/kv-store
+  carries:
+    content: model_state
+    refs:
+    - attention_kv
+    - indexer_keys
+    - gdn_state
+    - ple_history
+  timing: on_demand
+  description: A parked conversation's K/V, indexer rows and running state copied back to the device
+- id: session-file-out
+  sender: comp/strata/session-files
+  receiver: external
+  carries:
+    content: model_state
+    refs:
+    - attention_kv
+    - indexer_keys
+    - gdn_state
+    - ple_history
+  timing: on_demand
+  description: 'One session file on storage: live running state, one checkpoint, every attention layer''s K/V and
+    the draft layer''s K/V'
+- id: session-file-in
+  sender: external
+  receiver: comp/strata/session-files
+  carries:
+    content: model_state
+    refs:
+    - attention_kv
+    - indexer_keys
+    - gdn_state
+    - ple_history
+  timing: on_demand
+  description: A session file read back and validated before any device write
+- id: operator-choices
+  sender: external
+  receiver: comp/strata/run-config-generator
+  carries:
+    content: control
+  timing: offline
+  description: 'The person''s setup answers and options: model, context length, KV format, cards, reserve'
+- id: run-config
+  sender: comp/strata/run-config-generator
+  receiver: comp/strata/launch-argument-resolver
+  carries:
+    content: plan
+  timing: startup
+  description: 'The run configuration file: engine path, argument list, environment, the person''s own options and
+    server keys'
+- id: measured-settings
+  sender: comp/strata/speed-calibration
+  receiver: comp/strata/run-config-generator
+  carries:
+    content: plan
+  timing: offline
+  description: Settings a calibration kept for this hardware key, written into the argument list
+- id: preset-overlay
+  sender: comp/strata/speed-calibration
+  receiver: comp/strata/launch-argument-resolver
+  carries:
+    content: plan
+  timing: startup
+  description: The active tuning preset's arguments, environment and per-request values, applied over the configuration
+    if still valid
+- id: calibration-generations
+  sender: comp/strata/speed-calibration
+  receiver: comp/strata/engine-client
+  carries:
+    content: control
+  timing: offline
+  description: Engine starts and generations made by the calibration to time candidates
+- id: engine-argv
+  sender: comp/strata/launch-argument-resolver
+  receiver: comp/strata/engine-client
+  carries:
+    content: plan
+  timing: startup
+  description: The engine process's argument list and environment
+- id: memory-options
+  sender: comp/strata/launch-argument-resolver
+  receiver: comp/strata/startup-memory-sizing
+  carries:
+    content: plan
+  timing: startup
+  description: Context length, KV format and resident window, VRAM reserve, resident budget, expert cache request
+    and batch slot count, as engine arguments
+- id: drafter-options
+  sender: comp/strata/launch-argument-resolver
+  receiver: comp/strata/draft-policy
+  carries:
+    content: plan
+  timing: startup
+  description: The drafter chosen for the run, the speculative window and the confidence floor, as engine arguments
+- id: request-figures
+  sender: comp/strata/server-metrics
+  receiver: comp/strata/http-front
+  carries:
+    content: metrics
+  timing: per_request
+  description: Usage with cached tokens and the timings object placed in the response
+- id: metrics-out
+  sender: comp/strata/server-metrics
+  receiver: external
+  carries:
+    content: metrics
+  timing: on_demand
+  description: JSON and Prometheus text on the metrics and status endpoints
+- id: hardware-readings
+  sender: external
+  receiver: comp/strata/server-metrics
+  carries:
+    content: signal
+  timing: background
+  description: GPU utilisation, memory, temperature and power from the vendor library, and CPU, RAM and disk readings
+    from the operating system, once a second
+- id: gpu-busy
+  sender: comp/strata/server-metrics
+  receiver: comp/strata/engine-client
+  carries:
+    content: signal
+  timing: background
+  description: Whether the GPU is working (utilisation of 10% or more), read by the frozen-engine check
+- id: diagnostic-files
+  sender: comp/strata/engine-diagnostics
+  receiver: external
+  carries:
+    content: metrics
+  timing: on_demand
+  description: The dispatch count report at exit and the run manifest, each only when an environment variable names
+    a file
+- id: batch-samples
+  sender: comp/strata/engine-diagnostics
+  receiver: comp/strata/server-metrics
+  carries:
+    content: metrics
+  timing: background
+  description: BSTAT and PSTAT lines, at most one a second, when batch telemetry is on
+declares:
+  stages: []
+  states:
+  - admission_counters
+  - prompt_encode_cache
+  - engine_process_state
+  - live_conversation_record
+  - batch_slot_table
+  - slot_ledger
+  - replica_index
+  - conversation_checkpoints
+  - parked_conversations
+  - run_config
+  - calibration_record
+  - tuning_presets
+  - dispatch_counts
+  - run_manifest_record
+  - request_history
+  policies:
+  - conversation-resume
+  - checkpoint-retention
+  - parked-eviction
+  - slot-admission
+  - batch-window-composition
+  - replica-routing
+policies:
+- id: conversation-resume
+  controls:
+    aspect: execution
+    item: stages
+    stage: prefill
+    work: prompt tokens read again instead of restored from stored state
+  signals:
+  - id: stored-prefix-lengths
+    per:
+    - live session
+    - checkpoint
+    - idle batch slot
+    - parked conversation
+    update: Compared with the prompt's token ids, image keys and steering flag at each request
+    freshness: current
+  - id: nonfinite-pending
+    update: Set by a window whose logits were non-finite
+    freshness: from the previous request
+  actions:
+  - id: continue-live
+    steps: Keep the session; read from the end of the matched prefix.
+  - id: rewind-to-checkpoint
+    steps: Park the outgoing conversation if it would be lost; restore the checkpoint's running state; drop checkpoints
+      past it; read from there.
+  - id: take-parked
+    steps: Validate the parked image; park the outgoing conversation; restore the whole image; read from the matched
+      point.
+  - id: borrow-parked
+    steps: Validate; copy only the K/V up to a shallower checkpoint and the checkpoints on the path; leave the entry
+      parked.
+  - id: cold-read
+    steps: Zero the session, clear the chain and read from token 0.
+  trigger: Once per request, after the request line is parsed and before any prompt token is read
+  scope: request
+  parameters:
+    checkpoint_capacity:
+      value: 6
+      status: reported
+      source: strata src/program/generate.cpp lines 927 and 16327 to 16367
+    copy_stream_reserve_mib:
+      value: 64
+      status: reported
+      source: strata src/program/generate.cpp lines 927 and 16327 to 16367
+- id: checkpoint-retention
+  controls:
+    aspect: binding
+    item: residency
+    data: conversation_checkpoints
+  signals:
+  - id: last-use
+    per:
+    - checkpoint
+    update: Advanced at creation, when a new checkpoint lands on the same length, and when a request resumes through
+      it
+  - id: pinned
+    per:
+    - checkpoint
+    update: Set by the request key pin=N; at most one at a time
+  actions:
+  - id: drop-one
+    steps: 'When the chain exceeds its capacity: never the shortest; a non-newest tail checkpoint first; never a
+      pinned one unless all others are pinned; otherwise the least recently used.'
+  trigger: Inside every checkpoint save
+  scope: engine
+  parameters:
+    capacity:
+      value: 6
+      status: reported
+      source: strata src/program/generate.cpp lines 927, 947 and 952; include/strata/program/conv_cache.hpp lines
+        35 to 119
+    periodic_interval_tokens:
+      value: 16384
+      status: reported
+      source: strata src/program/generate.cpp lines 927, 947 and 952; include/strata/program/conv_cache.hpp lines
+        35 to 119
+    root_min_position_tokens:
+      value: 2048
+      status: reported
+      source: strata src/program/generate.cpp lines 927, 947 and 952; include/strata/program/conv_cache.hpp lines
+        35 to 119
+    spread:
+      value: false
+      status: reported
+      source: strata src/program/generate.cpp lines 927, 947 and 952; include/strata/program/conv_cache.hpp lines
+        35 to 119
+- id: parked-eviction
+  controls:
+    aspect: binding
+    item: residency
+    data: parked_conversations
+  signals:
+  - id: parked-bytes
+    update: Sum of image sizes
+  - id: host-memory-available
+    update: Read from the operating system and control-group limits at each park
+    freshness: current; unknown counts as refusal
+  - id: park-order
+    per:
+    - parked conversation
+    update: Least recently active first
+  actions:
+  - id: supersede
+    steps: Drop entries whose deepest checkpoint is contained in the incoming conversation's chain with the same
+      steering flag.
+  - id: evict-oldest
+    steps: Evict oldest first until the entry count and bytes fit; skip entries holding a pinned checkpoint and
+      the entry a borrow copies from.
+  - id: skip-park
+    steps: If only protected entries remain, or host memory would fall below the floor, do not park.
+  trigger: 'When a conversation is parked: on a switch or rewind, and before a batch slot is overwritten'
+  scope: engine
+  budget:
+    derive:
+      fraction: 0.4
+      reserve:
+        value: 2560
+        unit: MiB
+        unit_basis: binary
+    resolved_at: startup
+    source: 'include/strata/core/conversation_memory.hpp lines 70 to 78: 40% of available host memory above the
+      floor, capped at 8192 MiB, in steps of 256 MiB, zero below 1024 MiB'
+  parameters:
+    entries:
+      value: 4
+      status: reported
+      source: strata src/program/generate.cpp lines 929 to 939; include/strata/core/conversation_memory.hpp lines
+        70 to 78
+    cap_mib:
+      value: 8192
+      status: reported
+      source: strata src/program/generate.cpp lines 929 to 939; include/strata/core/conversation_memory.hpp lines
+        70 to 78
+    min_tokens:
+      value: 0
+      status: reported
+      source: strata src/program/generate.cpp lines 929 to 939; include/strata/core/conversation_memory.hpp lines
+        70 to 78
+    park_gain:
+      value: 0
+      status: reported
+      source: strata src/program/generate.cpp lines 929 to 939; include/strata/core/conversation_memory.hpp lines
+        70 to 78
+optional_policies:
+- id: slot-admission
+  controls:
+    aspect: execution
+    item: stages
+    stage: prefill
+    work: which requests decode together, in which slot, and whose prompt is read next
+  signals:
+  - id: busy-slots
+    per:
+    - slot
+    update: Set at a claim, cleared at the engine's end line for the slot
+  - id: waiting-requests
+    update: Requests waiting for the prompt-reading channel, with their prompt lengths and arrival times
+  - id: held-tokens
+    per:
+    - slot
+    update: The server's record of the token ids each slot holds
+    note: A model of engine state; cleared on cancel and failure paths.
+  actions:
+  - id: run-solo
+    steps: 'Alone and with more than one token left: send GEN; the path with drafts.'
+  - id: promote-to-slot
+    steps: 'When another request starts waiting: STOP after the next token, then BGEN with the prompt plus what
+      was generated.'
+  - id: admit-to-slot
+    steps: Pick a free slot by held prefix, then empty, then least recently used; send BGEN; with none free, give
+      the channel back and wait.
+  - id: yield-read
+    steps: 'When a waiting prompt is at most half as long: BYIELD; the part read waits in a slot and the read goes
+      on after the shorter one.'
+  - id: return-to-solo
+    steps: 'Alone in a slot with nobody waiting: BSTOP, then GEN with the prompt plus output.'
+  trigger: At each request's arrival, at each token of a solo request, at each prompt progress line, and when a
+    slot's request is left alone
+  scope: batch
+  parameters:
+    yields_max:
+      value: 2
+      status: reported
+      source: strata serve/server.py lines 351 to 359, 2072, 2211 to 2212 and 2644 to 2645
+    solo_again_max:
+      value: 2
+      status: reported
+      source: strata serve/server.py lines 351 to 359, 2072, 2211 to 2212 and 2644 to 2645
+    solo_again_min_tokens_left:
+      value: 32
+      status: reported
+      source: strata serve/server.py lines 351 to 359, 2072, 2211 to 2212 and 2644 to 2645
+    slot_prefix_min_tokens:
+      value: 512
+      status: reported
+      source: strata serve/server.py lines 351 to 359, 2072, 2211 to 2212 and 2644 to 2645
+    branch_boundary_min_tokens:
+      value: 8192
+      status: reported
+      source: strata serve/server.py lines 351 to 359, 2072, 2211 to 2212 and 2644 to 2645
+    short_first_tokens:
+      value: 0
+      status: reported
+      source: strata serve/server.py lines 351 to 359, 2072, 2211 to 2212 and 2644 to 2645
+    short_first_max_wait_s:
+      value: 30
+      status: reported
+      source: strata serve/server.py lines 351 to 359, 2072, 2211 to 2212 and 2644 to 2645
+- id: batch-window-composition
+  controls:
+    aspect: execution
+    item: stages
+    stage: verify
+    work: rows of each batch window given to each active slot
+  signals:
+  - id: active-slots
+    per:
+    - slot
+    update: Set at admission, cleared at stop, end token or output limit
+  - id: pending-command
+    update: Whether a command line is waiting; a waiting line is handled before the next window
+  actions:
+  - id: one-window
+    steps: 'Take rows from active slots scanning from a start index: one row per slot, or two with slot drafts;
+      run the window; print each slot''s token.'
+  - id: decode-between-chunks
+    steps: While a prompt is read, after each chunk let the slots decode for a share of the chunk's time.
+  trigger: Whenever a slot is active and no command line is waiting
+  scope: batch
+  parameters:
+    window_rows:
+      value: 8
+      status: reported
+      source: strata include/strata/kernels/window_limits.hpp lines 14 to 23; src/program/generate.cpp lines 14584
+        to 14587 and 17194 to 17198
+    rows_per_slot_with_drafts:
+      value: 2
+      status: reported
+      source: strata include/strata/kernels/window_limits.hpp lines 14 to 23; src/program/generate.cpp lines 14584
+        to 14587 and 17194 to 17198
+    decode_share:
+      value: 0.5
+      status: reported
+      source: strata include/strata/kernels/window_limits.hpp lines 14 to 23; src/program/generate.cpp lines 14584
+        to 14587 and 17194 to 17198
+- id: replica-routing
+  controls:
+    aspect: execution
+    item: stages
+    stage: prefill
+    work: which engine process serves a generation
+  signals:
+  - id: matched-blocks
+    per:
+    - replica
+    update: Hashes of 64-token blocks of prompts and answers each replica served
+  - id: in-flight
+    per:
+    - replica
+    update: Requests running on the replica
+  actions:
+  - id: route
+    steps: Choose the living replica with the lowest cost; ties go to fewer in flight, then fewer routed.
+  - id: heal
+    steps: Start a dead replica again in the background and forget its index.
+  trigger: Once per generation
+  scope: request
+  parameters:
+    load_tokens:
+      value: 3000
+      status: reported
+      source: strata serve/replicas.py lines 44 to 47
+    block_tokens:
+      value: 64
+      status: reported
+      source: strata serve/replicas.py lines 44 to 47
+    index_max:
+      value: 262144
+      status: reported
+      source: strata serve/replicas.py lines 44 to 47
+    heal_cooldown_s:
+      value: 60
+      status: reported
+      source: strata serve/replicas.py lines 44 to 47
+policy_target_pc:
+- id: checkpoint-retention
+  controls:
+    pool: ram
+  budget:
+    value: 0.71
+    unit: GB
+    unit_basis: decimal
+    status: derived
+    source: 6 x about 118 MB; the per-checkpoint figure is from comments in strata src/program/generate.cpp
+- id: parked-eviction
+  controls:
+    pool: ram
+  budget:
+    value: 8192
+    unit: MiB
+    unit_basis: binary
+    status: reported
+    note: The upper limit. The actual budget is 40 percent of the host memory still available above a 2560 MiB floor,
+      computed at start.
+    source: engines/strata-notes/serving.md
+policy_target_spark:
+- id: checkpoint-retention
+  controls:
+    pool: mem0
+  budget:
+    value: 0.71
+    unit: GB
+    unit_basis: decimal
+    status: derived
+    source: 6 x about 118 MB; the per-checkpoint figure is from comments in strata src/program/generate.cpp
+- id: parked-eviction
+  controls:
+    pool: mem0
+  budget:
+    value: 8192
+    unit: MiB
+    unit_basis: binary
+    status: reported
+    note: The upper limit. The actual budget is 40 percent of the host memory still available above a 2560 MiB floor,
+      computed at start.
+    source: engines/strata-notes/serving.md
+states:
+- id: admission_counters
+  scope: engine
+  note: 'Reserved, rejected and timed-out inference calls, disconnect cancels and the draining flag; in the server
+    process. Owner: HTTP front.'
+- id: prompt_encode_cache
+  scope: engine
+  note: 'The last few rendered prompts with their token ids and special-token boundaries; in the server process.
+    Owner: prompt builder.'
+- id: engine_process_state
+  scope: engine
+  note: 'The child process handle, its line queues, the INFO facts, the context length, the last end-line figures,
+    a generation counter that changes at each restart, and the command to start it again. Owner: engine client.'
+- id: live_conversation_record
+  scope: engine
+  on_accept: advance
+  on_reject: unchanged
+  note: 'The token ids and image keys the session currently holds, whether it is complete, and the steering flag
+    it was read with; in the engine process. Owner: engine command loop. Rewritten by the resume decision and by
+    a session restore.'
+- id: batch_slot_table
+  scope: batch
+  on_accept: advance
+  on_reject: unchanged
+  note: 'Per batch slot: active and stop flags, next token, position, produced count, the token ids its session
+    holds, whether it is an idle cache, its own checkpoints, and whether it holds a prompt read that gave way. Owner:
+    engine command loop.'
+- id: slot_ledger
+  scope: batch
+  note: 'The server''s record of each slot: busy, claimed, releasing, the token ids it believes the slot holds,
+    last use; plus the lock on the prompt-reading channel and the waiting list. Owner: slot scheduler. Kept across
+    engine restarts for the waiting list; slot records are remade.'
+- id: replica_index
+  scope: engine
+  note: 'Hashes of 64-token blocks each replica served, and per replica the requests in flight and routed. Owner:
+    replica router.'
+- id: conversation_checkpoints
+  scope: engine
+  on_accept: unchanged
+  on_reject: unchanged
+  checkpoint:
+    interval: at the last turn token of each prompt, at the first turn token at or beyond 2048 tokens when reading
+      from 0, and every 16384 freshly read tokens
+    identity:
+    - token ids of the prefix
+    - image keys below the prefix
+    - steering flag (control vector on or off)
+    stored_in: host memory
+  note: 'Up to 6 host copies of the running state (recurrent state and its convolution history, n-gram history,
+    and per attention layer the indexer tail, dead row and block position) at chosen prefix lengths of the live
+    conversation, with a use stamp and a pinned mark. No attention K/V. Owner: checkpoint chain.'
+- id: parked_conversations
+  scope: engine
+  on_accept: unchanged
+  on_reject: unchanged
+  checkpoint:
+    interval: when the session switches to another conversation or rewinds, and before a batch slot is overwritten
+    identity:
+    - token ids of the prefix
+    - image keys below the prefix
+    - steering flag (control vector on or off)
+    - runtime geometry key and layer range
+    stored_in: host memory
+  note: 'Up to 4 whole-conversation images: an 18-integer geometry key, layer range, the live running state, the
+    checkpoint chain, the K/V of every attention layer and of the draft layer, and the steering flag. Owner: parked
+    conversation cache.'
+- id: run_config
+  scope: engine
+  note: 'One JSON file per installed model: engine path, argument list, environment, server keys, the person''s
+    own options, what setup last wrote, and the origin of calibrated values. Owner: run configuration generator.'
+- id: calibration_record
+  scope: engine
+  note: 'Per hardware key: the settings a calibration kept, environment entries, the measured rate and a date; in
+    a settings file. Owner: speed calibration.'
+- id: tuning_presets
+  scope: engine
+  note: 'Preset files bound to hardware, engine and model identity, an index of the active one and a history of
+    every trial. Owner: speed calibration.'
+- id: dispatch_counts
+  scope: engine
+  note: 'Process-wide counts per kernel variant, tensor type, shape and window scope, and launches per window width
+    and kind. Owner: engine diagnostics.'
+- id: run_manifest_record
+  scope: engine
+  note: 'Engine choice, budgets, fast paths taken or declined with a reason, and tensor formats held, for the optional
+    manifest file. Owner: engine diagnostics.'
+- id: request_history
+  scope: engine
+  note: 'The last 500 finished requests, totals since start, the live rate samples, latency histograms, the last
+    128 transition events and 60 hardware samples per series; in the server process. Owner: server metrics.'
+composition_pc:
+- id: http-front
+  component_ref: comp/strata/http-front
+  uses:
+  - where: cpu0
+    purpose: One thread per connection and a disconnect watcher per inference request
+- id: prompt-builder
+  component_ref: comp/strata/prompt-builder
+  uses:
+  - where: cpu0
+    purpose: Template rendering, BPE encoding and detokenizing in the server process
+  - where: ram
+    purpose: Vocabulary, merges and up to 4 kept prompts
+    allocation: pinned
+- id: request-runner
+  component_ref: comp/strata/request-runner
+  uses:
+  - where: cpu0
+    purpose: Per-token parsing on the request's thread
+- id: engine-client
+  component_ref: comp/strata/engine-client
+  uses:
+  - where: cpu0
+    purpose: One reader thread per engine process and the in-engine watchdog thread
+- id: engine-command-loop
+  component_ref: comp/strata/engine-command-loop
+  implements:
+  - prefill
+  - verify
+  uses:
+  - where: cpu0
+    purpose: The command loop thread and the standard-input reader thread
+  - where: vram
+    purpose: One session state per batch slot, only when batch slots are configured
+    allocation: pinned
+    amount:
+      value: 0.56
+      unit: GB
+      unit_basis: binary
+      status: reported
+      source: strata docs/BATCHING.md lines 145 to 147
+      note: Per slot at a 32K context with 8-bit KV; zero with the default of no batch slots.
+- id: slot-scheduler
+  component_ref: comp/strata/slot-scheduler
+  active: false
+  inactive_reason: Batch slots are off unless the configuration asks for them. The project's setup does not recommend
+    them on a 12 GB card, where the experts mostly run on the CPU (docs/BATCHING.md lines 152 to 157).
+- id: replica-router
+  component_ref: comp/strata/replica-router
+  active: false
+  inactive_reason: Opt-in, and it needs at least two groups of cards; this target has one GPU.
+- id: resume-decision
+  component_ref: comp/strata/resume-decision
+  implements:
+  - prefill
+  uses:
+  - where: cpu0
+    purpose: Token comparison on the engine's command loop thread
+- id: checkpoint-chain
+  component_ref: comp/strata/checkpoint-chain
+  uses:
+  - where: ram
+    purpose: Up to 6 checkpoints of running state
+    allocation: pinned
+    amount:
+      value: 0.71
+      unit: GB
+      unit_basis: decimal
+      status: derived
+      source: 6 x about 118 MB per checkpoint; the per-checkpoint figure is from code comments (strata src/program/generate.cpp
+        lines 925 to 926)
+      note: Upper bound at the default capacity.
+  - where: gpu0
+    purpose: Device synchronise and copies at each save and restore
+  manages:
+  - data: conversation_checkpoints
+    pool: ram
+- id: parked-conversations
+  component_ref: comp/strata/parked-conversations
+  uses:
+  - where: ram
+    purpose: Parked conversation images
+    allocation: elastic
+  - where: gpu0
+    purpose: Copies between device and host at a park and a restore
+  note: 'Budget computed at start: 40% of available host memory above a 2560 MiB floor, at most 8192 MiB, zero below
+    1024 MiB. Occupancy changes while running.'
+  manages:
+  - data: parked_conversations
+    pool: ram
+- id: session-files
+  component_ref: comp/strata/session-files
+  uses:
+  - where: ssd0
+    purpose: Session files, written only on an explicit save
+    allocation: pinned
+  - where: ram
+    purpose: Buffers during a save or restore
+    allocation: transient
+  note: About the conversation's K/V plus running state per file; 4096 MiB of disk must remain free. Two checkpoint
+    copies, the live state and a 16 MiB buffer on a save.
+- id: run-config-generator
+  component_ref: comp/strata/run-config-generator
+  uses:
+  - where: ssd0
+    purpose: The run configuration file and its backup
+    allocation: pinned
+  note: A small JSON file.
+- id: launch-argument-resolver
+  component_ref: comp/strata/launch-argument-resolver
+  uses:
+  - where: cpu0
+    purpose: Negligible, at each launch and engine start
+  note: The start-time fit may lower the K/V window kept in VRAM for the one card.
+- id: speed-calibration
+  component_ref: comp/strata/speed-calibration
+  uses:
+  - where: gpu0
+    purpose: The whole machine for 15 to 30 minutes when a calibration is run; never during serving
+  - where: ssd0
+    purpose: Calibration results and preset files
+    allocation: pinned
+  note: Runs only on request. Small JSON files.
+- id: engine-diagnostics
+  component_ref: comp/strata/engine-diagnostics
+  uses:
+  - where: cpu0
+    purpose: Counting at each kernel choice and window launch
+  - where: ram
+    purpose: Count maps and the manifest record
+    allocation: pinned
+  note: Its file outputs and batch samples are off unless an environment variable is set. Grows with distinct choices,
+    not with tokens.
+- id: server-metrics
+  component_ref: comp/strata/server-metrics
+  uses:
+  - where: cpu0
+    purpose: One sampler thread at one sample a second; work per scrape
+  - where: ram
+    purpose: 500 request rows, 128 events and 60 samples per hardware series
+    allocation: pinned
+  observation_points:
+  - timings.predicted_per_second
+  - timings.prompt_per_second
+  - vllm:time_to_first_token_seconds
+  - first_engine_token_s
+composition_spark:
+- id: http-front
+  component_ref: comp/strata/http-front
+  uses:
+  - where: cpu0
+    purpose: One thread per connection and a disconnect watcher per inference request
+- id: prompt-builder
+  component_ref: comp/strata/prompt-builder
+  uses:
+  - where: cpu0
+    purpose: Template rendering, BPE encoding and detokenizing in the server process
+  - where: mem0
+    purpose: Vocabulary, merges and up to 4 kept prompts
+    allocation: pinned
+- id: request-runner
+  component_ref: comp/strata/request-runner
+  uses:
+  - where: cpu0
+    purpose: Per-token parsing on the request's thread
+- id: engine-client
+  component_ref: comp/strata/engine-client
+  uses:
+  - where: cpu0
+    purpose: One reader thread per engine process and the in-engine watchdog thread
+- id: engine-command-loop
+  component_ref: comp/strata/engine-command-loop
+  implements:
+  - prefill
+  - verify
+  uses:
+  - where: cpu0
+    purpose: The command loop thread and the standard-input reader thread
+  - where: mem0
+    purpose: One session state per batch slot, only when batch slots are configured
+    allocation: pinned
+    amount:
+      value: 0.56
+      unit: GB
+      unit_basis: binary
+      status: reported
+      source: strata docs/BATCHING.md lines 145 to 147
+      note: Per slot at a 32K context with 8-bit KV; zero with the default of no batch slots.
+- id: slot-scheduler
+  component_ref: comp/strata/slot-scheduler
+  active: false
+  inactive_reason: Batch slots are off unless the configuration asks for them. Whether setup recommends them on
+    this machine was not established.
+- id: replica-router
+  component_ref: comp/strata/replica-router
+  active: false
+  inactive_reason: Opt-in, and it needs at least two groups of cards; this target has one GPU.
+- id: resume-decision
+  component_ref: comp/strata/resume-decision
+  implements:
+  - prefill
+  uses:
+  - where: cpu0
+    purpose: Token comparison on the engine's command loop thread
+- id: checkpoint-chain
+  component_ref: comp/strata/checkpoint-chain
+  uses:
+  - where: mem0
+    purpose: Up to 6 checkpoints of running state
+    allocation: pinned
+    amount:
+      value: 0.71
+      unit: GB
+      unit_basis: decimal
+      status: derived
+      source: 6 x about 118 MB per checkpoint; the per-checkpoint figure is from code comments (strata src/program/generate.cpp
+        lines 925 to 926)
+      note: Upper bound at the default capacity.
+  - where: gpu0
+    purpose: Device synchronise and copies at each save and restore
+  manages:
+  - data: conversation_checkpoints
+    pool: mem0
+- id: parked-conversations
+  component_ref: comp/strata/parked-conversations
+  uses:
+  - where: mem0
+    purpose: Parked conversation images
+    allocation: elastic
+  - where: gpu0
+    purpose: Copies between device and host at a park and a restore
+  note: 'Budget computed at start: 40% of available host memory above a 2560 MiB floor, at most 8192 MiB, zero below
+    1024 MiB. Occupancy changes while running.'
+  manages:
+  - data: parked_conversations
+    pool: mem0
+- id: session-files
+  component_ref: comp/strata/session-files
+  uses:
+  - where: ssd0
+    purpose: Session files, written only on an explicit save
+    allocation: pinned
+  - where: mem0
+    purpose: Buffers during a save or restore
+    allocation: transient
+  note: About the conversation's K/V plus running state per file; 4096 MiB of disk must remain free. Two checkpoint
+    copies, the live state and a 16 MiB buffer on a save.
+- id: run-config-generator
+  component_ref: comp/strata/run-config-generator
+  uses:
+  - where: ssd0
+    purpose: The run configuration file and its backup
+    allocation: pinned
+  note: 'On this machine type setup also writes the GB10 options: experts mapped from the file, a 32768-token prompt
+    chunk and 4-bit draft-layer options (strata_control/setup_config.py lines 240 to 255). A small JSON file.'
+- id: launch-argument-resolver
+  component_ref: comp/strata/launch-argument-resolver
+  uses:
+  - where: cpu0
+    purpose: Negligible, at each launch and engine start
+  note: The start-time fit changes only the K/V window kept in fast memory; whether it acts on unified memory was
+    not established.
+- id: speed-calibration
+  component_ref: comp/strata/speed-calibration
+  uses:
+  - where: gpu0
+    purpose: The whole machine for 15 to 30 minutes when a calibration is run; never during serving
+  - where: ssd0
+    purpose: Calibration results and preset files
+    allocation: pinned
+  note: Runs only on request. The first-install offer is made on NVIDIA machines; whether it is made on this machine
+    type was not established. Small JSON files.
+- id: engine-diagnostics
+  component_ref: comp/strata/engine-diagnostics
+  uses:
+  - where: cpu0
+    purpose: Counting at each kernel choice and window launch
+  - where: mem0
+    purpose: Count maps and the manifest record
+    allocation: pinned
+  note: Its file outputs and batch samples are off unless an environment variable is set. Grows with distinct choices,
+    not with tokens.
+- id: server-metrics
+  component_ref: comp/strata/server-metrics
+  uses:
+  - where: cpu0
+    purpose: One sampler thread at one sample a second; work per scrape
+  - where: mem0
+    purpose: 500 request rows, 128 events and 60 samples per hardware series
+    allocation: pinned
+  observation_points:
+  - timings.predicted_per_second
+  - timings.prompt_per_second
+  - vllm:time_to_first_token_seconds
+  - first_engine_token_s
+model_additions:
+- data:
+    id: tokenizer_vocabulary
+    kind: weight
+    note: The model's byte-level BPE vocabulary (248,320 tokens), merge table, token types and Jinja chat template,
+      carried in the model file's metadata and extracted into the pack's tokenizer directory. The prompt builder
+      reads it; the model description has no entry for it. It does not change while the model runs, so the nearest
+      kind is weight, which is not a good fit (see notes).
+  note: 'Needed by comp/strata/prompt-builder. Source: tools/strata_tokenizer.py lines 1 to 16 (header comment).'
+- data:
+    id: draft_layer_kv
+    kind: model_state
+    note: The draft layer's own attention K/V. A parked conversation image and a session file both include it, but
+      the model description lists no state for the draft operation.
+  note: 'Needed by comp/strata/parked-conversations and comp/strata/session-files. Source: include/strata/core/conversation_cache.hpp
+    line 181.'
+uncatalogued_mechanisms:
+- family: prefix-state-checkpoints
+  summary: Keep host copies of the small running state at turn boundaries and fixed intervals of the current conversation,
+    relying on the positional K/V staying in place, so a later request that shares a prefix rewinds instead of re-reading.
+- family: parked-conversation-cache
+  summary: When the session switches conversation, copy the outgoing conversation's whole state including K/V to
+    host memory within a budget tied to free memory, and restore or borrow from it when a prompt matches by tokens,
+    pictures and steering flag.
+- family: multi-sequence-batch-windows
+  summary: Keep several sequences open in one engine, each with its own session state, and carry one row of each
+    through the same window so shared weights are read once per window; a lone request stays on the single-sequence
+    path with drafts and is moved into a slot when a second arrives.
+- family: cooperative-prompt-read-preemption
+  summary: A long prompt read gives way at a chunk boundary to a waiting request with a much shorter prompt; the
+    part read waits in a slot and continues afterwards with the same chunks, and decoding slots get a share of time
+    between a prompt's chunks.
+- family: cache-affinity-request-routing
+  summary: Send a request to the slot or engine process that already holds the longest start of its prompt, weighed
+    against load, so a conversation's next turn returns to where its state is.
+- family: incremental-prompt-tokenization
+  summary: Reuse the token ids of an earlier prompt up to the last special-token boundary both texts share and encode
+    only the rest, which is exact because encoding never crosses a special-token match.
+- family: measured-per-machine-settings
+  summary: On demand, time a bounded set of engine settings on the machine at hand with the real engine, keep a
+    value only if it beats the default by more than noise, and bind the result to a hardware identity so it is not
+    applied elsewhere.
+- family: engine-process-supervision
+  summary: Run the engine as a child process on a line protocol, detect silence, a frozen process and fatal device
+    errors with separate limits, and restart it between requests with a cap on repeated fatal errors.
+notes:
+- 'Dropped id: comp/strata/engine-supervisor. Supervision (READY timeout, start retries, silence and frozen-engine
+  limits, fatal GPU handling, restart) and the pipe protocol are one class with one invariant, keeping server and
+  engine in step, so they are written as one component, comp/strata/engine-client, with role supervisor. A flow
+  that another area addressed to engine-supervisor should name engine-client.'
+- 'Folded: the engine''s batch slots and batch windows (BSlot, batch_step, batch_rows.hpp, batch_groups.hpp) are
+  inside comp/strata/engine-command-loop. They could be split out as their own leaf if the token-path area describes
+  window execution for several sequences.'
+- 'Folded: snapshot capture and restore and the host-memory guard are inside comp/strata/parked-conversations; the
+  Python slot chooser is inside comp/strata/slot-scheduler; the save and restore HTTP relay is inside comp/strata/session-files;
+  the hardware sampler and all HTTP metric endpoints are inside comp/strata/server-metrics; the launch-time layering
+  and the server''s start-time argument building are one component, comp/strata/launch-argument-resolver; the calibration,
+  the auto-tuner with its preset store and a third tuning path (strata_control/tuning.py, read by header only) are
+  one component, comp/strata/speed-calibration.'
+- 'Not made a component: serving profiles and the owner runtime (strata_control/profiles.py, runtime.py). They keep
+  operator overrides outside the setup file and run one server per profile under a supervising process. They sit
+  above the server and were read only at their start path.'
+- 'Not made a component: serve/cache_drop.py. After the engine has exited it asks the operating system to drop the
+  model files'' page cache, opt-in by an environment variable. It is not conversation reuse.'
+- 'Not made a component: include/strata/program/gpu_report.hpp. It explains a failed GPU allocation at start by
+  asking the vendor library which processes hold memory. It belongs with loading, not telemetry.'
+- 'Unsupported claim in source: the header of dispatch_stats.hpp says the --stats option prints the dispatch report;
+  no call that would do so exists at this revision. The only output is the file named by STRATA_DISPATCH_REPORT.'
+- 'Flows whose sender is in another area and which therefore are not declared here, but which this area receives:
+  running state into the checkpoint chain at a save (from the session loop: gdn_state, ple_history, indexer_keys);
+  K/V and running state into a parked image at a park (from the K/V store and session loop); kernel and window-graph
+  choices into the engine diagnostics (from layer kernels, the window graphs and the prompt path); hit, draft and
+  reuse counters into the engine''s DONE line (from expert dispatch, the expert source and the draft policy).'
+- 'The model states gdn_state, ple_history, indexer_keys and attention_kv are owned by other areas. Their checkpoint
+  rules are described here on the engine states conversation_checkpoints and parked_conversations. If the format
+  expects the checkpoint field on the model states themselves, the values are: interval and identity as written
+  on those two states, stored in host memory.'
+- No conversation identity exists. The earlier description had a flow 'conversation identity for reuse' from serving
+  to the conversation store; the engine matches token ids, image keys and the steering flag itself, and the server
+  sends only ckpt=0, pin=N, img_keys= and cvec= on the request line.
+- Bit-exactness is not established for conversation reuse or for batch slots. The equivalence cases say under which
+  condition each level is claimed and by whom.
+- The default queue is a lock, not an ordered queue; arrival order is not enforced on the default path.
+- 'Format: no role fits a component whose job is to carry a request across a process boundary on a private protocol.
+  engine-client is written as supervisor (which also fits its restart duty); request-runner is written as api_server
+  although it speaks no external protocol itself.'
+- 'Format: a policy ''controls'' either binding or execution. Admission and routing policies (slot-admission, replica-routing)
+  decide which requests run together and where; they are written as execution/stages with a ''work'' text, which
+  is a loose fit. The field reference says request lifecycle, concurrency and scheduling are not defined.'
+- 'Format: ''timing'' has no value for ''once per engine restart'' or ''once per launch''; startup is used for both.
+  Calibration and setup use offline.'
+- 'Format: the commit rules on_accept and on_reject do not apply to server-side bookkeeping states; they are left
+  out for those states.'
+- 'Format: model data kinds are weight and model_state only. The tokenizer vocabulary and chat template are neither;
+  they are proposed as weight in model_additions for want of a better kind.'
+- 'Format: a component whose effect on output is ''none by itself, but it selects among values that do'' (the launch
+  argument resolver, the resume decision) has no exact equivalence level. The nearest level is given with the condition
+  in holds_when or note.'
+- 'Format: ''equivalence'' relative_to differs per component (the engine''s token stream, the saved state, a cold
+  read). The level alone is not comparable across components without reading relative_to.'
+- 'Amounts not established from code: the size of a checkpoint (about 118 MB) and of a parked image (about 1 GB
+  for a long conversation) come from comments; the per-slot session size (0.56 GiB at 32K) from a document.'
+- 'pc target, policy checkpoint-retention: Checkpoints are ordinary host allocations; at most 6, about 118 MB each
+  per code comments.'
+- 'pc target, policy parked-eviction: The budget is computed at start from the host memory still available after
+  the model is loaded: 40% above a 2560 MiB floor, at most 8192 MiB. No figure for this target was established.'
+- 'pc target, policy conversation-resume: No pool. A restore needs 64 MiB free on a card that would have to create
+  its copy stream.'
+- 'spark target, policy checkpoint-retention: Checkpoints are ordinary host allocations; at most 6, about 118 MB
+  each per code comments.'
+- 'spark target, policy parked-eviction: The budget is computed at start from the host memory still available after
+  the model is loaded: 40% above a 2560 MiB floor, at most 8192 MiB. No figure for this target was established.'
+- 'spark target, policy conversation-resume: No pool. A restore needs 64 MiB free on a card that would have to create
+  its copy stream.'
+residency_pc:
+- data: conversation_checkpoints
+  pool: ram
+  by_policy: checkpoint-retention
+  note: At most 6 checkpoints of about 118 MB each, per code comments.
+- data: parked_conversations
+  pool: ram
+  by_policy: parked-eviction
+  note: Budget computed at start from the host memory still available after the model is loaded.
+residency_spark:
+- data: conversation_checkpoints
+  pool: mem0
+  by_policy: checkpoint-retention
+  note: At most 6 checkpoints of about 118 MB each, per code comments.
+- data: parked_conversations
+  pool: mem0
+  by_policy: parked-eviction
+  note: Budget computed at start from the host memory still available after the model is loaded.

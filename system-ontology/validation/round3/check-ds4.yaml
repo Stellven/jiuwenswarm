@@ -1,0 +1,95 @@
+engine: ds4
+decision_coverage:
+  totals: {decisions: 124, covered: 76, loosely: 25, not_covered: 12, engine_specific: 11}
+  per_type:
+    - {type: "model-conversion", decisions: 4, covered: 2, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "calibration", decisions: 3, covered: 1, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "configuration", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "model-loading", decisions: 5, covered: 4, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "memory-planning", decisions: 6, covered: 4, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "model-partitioning", decisions: 10, covered: 5, loosely: 3, not_covered: 1, engine_specific: 1}
+    - {type: "expert-cache", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "residency-policy", decisions: 6, covered: 4, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "expert-fetch", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-source", decisions: 2, covered: 0, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "expert-dispatch", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "row-source", decisions: 6, covered: 4, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-preparation", decisions: 3, covered: 1, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "modality-encoding", decisions: 3, covered: 1, loosely: 0, not_covered: 2, engine_specific: 0}
+    - {type: "sequence-lifecycle", decisions: 6, covered: 3, loosely: 1, not_covered: 2, engine_specific: 0}
+    - {type: "positional-state-store", decisions: 4, covered: 3, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "recurrent-state-store", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-reading", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-execution", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "device-backend", decisions: 3, covered: 1, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "layer-compute", decisions: 7, covered: 3, loosely: 0, not_covered: 0, engine_specific: 4}
+    - {type: "model-edit", decisions: 3, covered: 1, loosely: 0, not_covered: 1, engine_specific: 1}
+    - {type: "resource-governing", decisions: 2, covered: 0, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "sampling", decisions: 5, covered: 2, loosely: 2, not_covered: 1, engine_specific: 0}
+    - {type: "draft-proposal", decisions: 5, covered: 3, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "draft-policy", decisions: 4, covered: 2, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "draft-verification", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "session-persistence", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "prefix-reuse", decisions: 4, covered: 3, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "request-front", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "output-interpretation", decisions: 3, covered: 2, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "step-scheduler", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "device-communication", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "telemetry", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+  # memory-admission-guard's decisions are counted once, under its assigned type memory-planning (also: resource-governing).
+  loosely:
+    - {part: "offline-converter-quantizer", type: "model-conversion", decision: "higher-precision routed experts in some layers (mixed recipe)", nearest_choice: "precision per kind of weight (per kind, not per layer)"}
+    - {part: "offline-converter-quantizer", type: "model-conversion", decision: "padding a tensor's input width to a kernel-friendly size", nearest_choice: "file layout, alignment and ordering of weights (padding changes a tensor's stored shape, not only its placement)"}
+    - {part: "expert-locality-profiler", type: "calibration", decision: "set of simulated cache capacities", nearest_choice: "what is measured and on which prompts"}
+    - {part: "memory-admission-guard", type: "memory-planning", decision: "whether an explicitly raised OS wired limit overrides the budget heuristics", nearest_choice: "an operator's explicit size against the computed one"}
+    - {part: "multi-gpu-placer", type: "model-partitioning", decision: "greedy contiguous packing of layers in order within per-device budgets", nearest_choice: "split by layers, by parts of each layer, or by selectively used weights"}
+    - {part: "multi-gpu-placer", type: "model-partitioning", decision: "expert split offered only for one family and an even device count", nearest_choice: "split by layers, by parts of each layer, or by selectively used weights"}
+    - {part: "network-tensor-parallel", type: "model-partitioning", decision: "under speculation: leader drafts, verify is sharded, commit as full, prefix or rollback-replay", nearest_choice: "how work outside the layers is divided between the parts"}
+    - {part: "expert-eviction-policy", type: "residency-policy", decision: "use counts decay per decoded token, prefill does not age them, a new prefill resets them", nearest_choice: "the replacement rule"}
+    - {part: "expert-cache-preloader", type: "residency-policy", decision: "preload not used for some families and off by default for one", nearest_choice: "which ranking is used when no recorded ranking matches the model"}
+    - {part: "prefill-layer-pagein", type: "expert-source", decision: "only routed matrices are paged in when non-routed weights are already locked", nearest_choice: "how much of the full set is made directly readable by a device, and which part first"}
+    - {part: "engram-row-reader", type: "row-source", decision: "start row reads before the first layer, wait at the layer that uses them", nearest_choice: "prefetching rows for coming or drafted tokens"}
+    - {part: "engram-prewarm", type: "row-source", decision: "number of warming threads and how often memory pressure is checked", nearest_choice: "warming the table in the background and when to stop"}
+    - {part: "tokenizer-and-chat-renderer", type: "prompt-preparation", decision: "old reasoning dropped from history except in tool context or after the last user message", nearest_choice: "the template used and how it is corrected"}
+    - {part: "slot-router", type: "sequence-lifecycle", decision: "which slot is repurposed: empty, long idle, then shortest checkpoint; busy never", nearest_choice: "admission when resources are short"}
+    - {part: "gpu-backend", type: "device-backend", decision: "kernel per stored tensor format", nearest_choice: "how a kernel variant is chosen per device and step shape (format is not named; it is under layer-compute)"}
+    - {part: "gpu-backend", type: "device-backend", decision: "prefill workspace shared between sessions in batch mode", nearest_choice: "scratch and command buffers"}
+    - {part: "power-throttle", type: "resource-governing", decision: "smoothing of the measured work time the sleep is derived from", nearest_choice: "the duty cycle allowed and the window it is averaged over"}
+    - {part: "token-sampler", type: "sampling", decision: "default values of temperature, top-p and min-p", nearest_choice: "default settings against the request's"}
+    - {part: "token-sampler", type: "sampling", decision: "candidate cap and skipping non-finite logits", nearest_choice: "limits on candidates considered (handling of non-finite logits is not named)"}
+    - {part: "builtin-mtp-drafter", type: "draft-proposal", decision: "draft depth adapts from recent first-draft acceptance", nearest_choice: "how many per round (adaptation is draft-policy's)"}
+    - {part: "dspark-scheduler", type: "draft-policy", decision: "time-based judgement off by default, counts only", nearest_choice: "what it optimises"}
+    - {part: "dspark-scheduler", type: "draft-policy", decision: "estimates reset at the start of each request", nearest_choice: "how fresh the signals it decides from must be"}
+    - {part: "draft-verify-commit", type: "draft-verification", decision: "after a correction, the corrected token is evaluated as an ordinary step", nearest_choice: "commit at once or with the next step"}
+    - {part: "session-payload-serializer", type: "session-persistence", decision: "under tensor parallelism only tokens are restored and the prompt is read again", nearest_choice: "in which configurations saving and restoring is offered"}
+    - {part: "http-api-server", type: "request-front", decision: "no metrics, health or overload rejection", nearest_choice: "what is done on disconnect, timeout or overload"}
+  not_covered:
+    - {part: "multi-gpu-placer", type: "model-partitioning", decision: "multi-GPU split refused together with weight streaming from storage", kind: "policy", missing_choice: "which other engine features may be combined with splitting the model, and which are refused"}
+    - {part: "prefill-layer-pagein", type: "expert-source", decision: "page-in mechanism: explicit read by default; advice, touching or read-ahead opt-in", kind: "policy", missing_choice: "the mechanism by which the stored set is brought into readable memory ahead of use (explicit read, a hint to the operating system, touching a mapping)"}
+    - {part: "tokenizer-and-chat-renderer", type: "prompt-preparation", decision: "only the suffix after a reused prefix is tokenized", kind: "policy", missing_choice: "whether the prompt is tokenized whole or in pieces joined at a reuse boundary"}
+    - {part: "image-input-encoder", type: "modality-encoding", decision: "size limits on encoded bytes, dimensions and pixels", kind: "threshold", missing_choice: "limits on the size and dimensions of media accepted for encoding"}
+    - {part: "image-input-encoder", type: "modality-encoding", decision: "remote URLs and file paths rejected", kind: "policy", missing_choice: "which sources of media are accepted (inline data, remote fetch, local files)"}
+    - {part: "session-timeline", type: "sequence-lifecycle", decision: "state that cannot be truncated: a rewind outside the speculative window invalidates and forces reading again", kind: "policy", missing_choice: "how a sequence is taken back to an earlier position: truncation, restoring a snapshot, or rebuilding from its tokens"}
+    - {part: "session-timeline", type: "sequence-lifecycle", decision: "per model: truncate, or restore one of a few snapshots, else replay", kind: "policy", missing_choice: "how a sequence is taken back to an earlier position: truncation, restoring a snapshot, or rebuilding from its tokens"}
+    - {part: "directional-steering", type: "model-edit", decision: "an active edit disables the shared-weight batched path", kind: "policy", missing_choice: "whether an edited sequence may share a batched step with others, and what is done otherwise"}
+    - {part: "tool-call-sampling-mode", type: "sampling", decision: "on a mode flip inside an accepted draft block, discard the rest and rewind to the boundary", kind: "policy", missing_choice: "what is done with accepted proposed tokens when the per-position settings change inside them"}
+    - {part: "dspark-drafter", type: "draft-proposal", decision: "drafting disabled in quality and strict modes", kind: "policy", missing_choice: "whether proposing is offered in modes that require output equal to non-speculative decoding"}
+    - {part: "disk-kv-checkpoint-store", type: "prefix-reuse", decision: "store directory rescanned on every lookup, no kept index", kind: "policy", missing_choice: "whether stored prefixes are found through a kept index or by scanning the store"}
+    - {part: "server-generation-loop", type: "output-interpretation", decision: "speculative decoding only when one session is served", kind: "policy", missing_choice: "which generation features (speculation) are used when several requests are served together"}
+contradictions:
+  - {part: "offline-converter-quantizer", type: "model-conversion", claim: "must: An interrupted or mismatched conversion is never left looking complete.", evidence: "gguf-tools/deepseek4-quantize.c 2042, 2793-2856 opens the final out_path with fopen(\"wb\"), writes header and tensor directory first and calls exit(1) on a size mismatch, leaving a partial file under the final name; only the loader's bounds check (ds4.c 2846 'tensor points outside GGUF file') later rejects it. The Python tools write .partial and rename.", fix: "An interrupted or mismatched conversion is never accepted as complete: it is written under a temporary name until finished, or it is rejected when loaded."}
+  - {part: "expert-locality-profiler", type: "calibration", claim: "summary: Measure the model or the machine, offline or at startup", evidence: "Records every routing decision per layer during an ordinary inference run (opt-in by environment) and writes the profile and hotlist at the end; it measures neither offline nor at startup.", fix: "Measure the model or the machine offline, at startup, or during an opt-in profiling run, and record results that other nodes take as fixed input."}
+  - {part: "power-throttle", type: "resource-governing", claim: "must: Where it limits duty cycle, the average over the stated window stays at or below the requested level.", evidence: "ds4.c 17963-17994: sleeps work_avg*(100-p)/p after each prefill layer or decoded token, from an exponential average (0.875/0.125) of past work time, not the current sample; no window is stated and when work time rises the duty cycle exceeds the target until the average catches up.", fix: "should: Where it limits duty cycle, idle time is inserted in proportion to measured work so the duty cycle approaches the requested level; relaxed: one engine estimates work from a moving average and states no window."}
+  - {part: "request-scheduler", type: "step-scheduler", claim: "must: Every admitted sequence is served, or ended with an explicit error within a stated wait.", evidence: "Unbounded FIFO queue, no overload rejection, no wait limit or timeout; decode has strict priority and prefill is admitted only when no decode is pending, so a queued prompt has no stated bound on its wait (only client disconnect or shutdown ends it).", fix: "Every admitted sequence is eventually served or ended with an explicit error; where the engine bounds the wait, the bound is stated."}
+relaxations:
+  - {part: "prompt-prefill-driver", type: "prompt-reading", rule: "Where chunk boundaries change stored state, the chunking is part of the key under which that state is reused.", how: "The prefill quantum changes with load (small while any generation is active, larger otherwise) and chunk size fixes compressor-row finalisation, yet disk checkpoints are keyed by a hash of rendered text with model id and quantization only; the engine aligns store boundaries to a fixed multiple instead of keying on the chunking."}
+wrong_assignments:
+  - {part: "prefill-layer-pagein", assigned: "expert-source", better: "expert-fetch", why: "It does not keep the full set obtainable; it warms the next layer's routed-weight pages ahead of need, best effort, which is expert-fetch's 'best-effort warming ahead of need' form, and its mechanism decision is an expert-fetch choice."}
+  - {part: "image-input-encoder", assigned: "modality-encoding", better: "modality-encoding, with also: media-preparation", why: "It also decodes PNG/JPEG, enforces size limits and rejects remote and file sources, which is media-preparation's job; two of its three decisions are not covered without that type."}
+  - {part: "network-tensor-parallel", assigned: "model-partitioning", better: "model-partitioning, with also: device-communication", why: "It also owns the RDMA/TCP transport, gate exchange of partial sums and gate timeouts; no other ds4 part carries device-communication between machines."}
+  - {part: "pipeline-parallel", assigned: "model-partitioning", better: "model-partitioning, with also: device-communication", why: "It also forwards hidden state between machines, owns worker registration and route discovery and reconnection; no other part carries that transport."}
+inventory_errors:
+  - {part: "compressed-attention-state", field: "output_effect", recorded: "none (and decision 'Compressed rows optionally stored as F16')", source_shows: "ds4.c 17236-17246: on Apple the persistent compressed KV cache is stored in F16 by build (DS4_GPU_ATTN_COMP_CACHE_F16=1), F32 elsewhere, with F32 staging; storage width differs by platform, so the effect is numeric and the F16 choice is fixed per platform, not optional."}
+  - {part: "dense-attention-cache", field: "output_effect", recorded: "none", source_shows: "ds4.c 17248-17250: GLM's persistent compact cache is stored in F16 on all GPU backends while producers keep F32 staging; stored width is reduced, so the effect is numeric."}
+  - {part: "disk-kv-checkpoint-store", field: "output_effect", recorded: "numeric (reuse across quantizations brings state computed by another quantization)", source_shows: "ds4_kvstore.c 518-519, 616-643, 852-858: cross-quant reuse is accepted unless reject_different_quant is set; state computed under other routed-expert weights differs by more than last bits, so changes_output."}
+  - {part: "offline-converter-quantizer", field: "when_things_go_wrong", recorded: "Merge script verifies shard sizes and checksums and keeps the previous default model (per docs)", source_shows: "gguf-tools/deepseek4-quantize.c 2042, 2793-2856 writes directly to the output path and exits on error leaving a partial file; deepseek41_quantize.py 248-314 and glm53_quantize.py 1113 write .partial (with a journal) and rename on completion. Shard checksum verification belongs to download_model.sh, listed outside the engine."}

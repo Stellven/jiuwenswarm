@@ -1,0 +1,288 @@
+assignments:
+- {item: R9001, node_type: "sampling", fit: clean, second: null, note: ""}
+- {item: R9002, node_type: "scoring", fit: clean, second: null, note: ""}
+- {item: R9003, node_type: "recurrent-state-store", fit: clean, second: null, note: ""}
+- {item: R9004, node_type: "modality-encoding", fit: clean, second: null, note: ""}
+- {item: R9005, node_type: "expert-fetch", fit: clean, second: null, note: "best-effort warming form; the prediction of what comes next borders on residency-policy"}
+- {item: R9006, node_type: "request-front", fit: clean, second: null, note: ""}
+- {item: R9007, node_type: "layer-compute", fit: clean, second: null, note: ""}
+- {item: R9008, node_type: "layer-compute", fit: partial, second: null, note: "hands hidden features to the drafter's context; a transfer between contexts, not a listed job"}
+- {item: R9009, node_type: "layer-compute", fit: clean, second: null, note: "embedding lookup; table placement in VRAM or pinned host is a loading choice"}
+- {item: R9010, node_type: "layer-compute", fit: clean, second: null, note: ""}
+- {item: R9011, node_type: "output-constraint", fit: clean, second: null, note: ""}
+- {item: R9012, node_type: "expert-cache", fit: clean, second: null, note: ""}
+- {item: R9013, node_type: "graph-capture", fit: clean, second: null, note: ""}
+- {item: R9014, node_type: "request-front", fit: clean, second: null, note: ""}
+- {item: R9015, node_type: "expert-source", fit: clean, second: null, note: ""}
+- {item: R9016, node_type: "memory-planning", fit: clean, second: null, note: ""}
+- {item: R9017, node_type: "step-scheduler", fit: clean, second: "step-execution", note: "builds the shared batch and also runs it in chunks"}
+- {item: R9018, node_type: "residency-policy", fit: clean, second: null, note: ""}
+- {item: R9019, node_type: "modality-encoding", fit: clean, second: null, note: ""}
+- {item: R9020, node_type: "layer-compute", fit: partial, second: "recurrent-state-store", note: "also keeps per-sequence state the kernels read"}
+- {item: R9021, node_type: "layer-compute", fit: clean, second: null, note: ""}
+- {item: R9022, node_type: "draft-verification", fit: clean, second: null, note: ""}
+- {item: R9023, node_type: "prompt-reading", fit: clean, second: null, note: ""}
+- {item: R9024, node_type: "prefix-reuse", fit: clean, second: "state-tiering", note: "blocks span RAM and SSD"}
+- {item: R9025, node_type: "session-persistence", fit: clean, second: null, note: ""}
+- {item: R9026, node_type: "expert-fetch", fit: clean, second: null, note: ""}
+- {item: R9027, node_type: "telemetry", fit: clean, second: null, note: ""}
+- {item: R9028, node_type: "layer-compute", fit: clean, second: null, note: ""}
+- {item: R9029, node_type: "draft-policy", fit: clean, second: null, note: ""}
+- {item: R9030, node_type: "prompt-preparation", fit: clean, second: "output-constraint", note: "also derives the grammar for tool-call constraint"}
+- {item: R9031, node_type: "model-loading", fit: clean, second: null, note: ""}
+- {item: R9032, node_type: "engine-supervision", fit: partial, second: "step-scheduler", note: "transport between HTTP threads and inference thread, deferral and idle sleep"}
+- {item: R9033, node_type: "expert-fetch", fit: clean, second: null, note: ""}
+- {item: R9034, node_type: "request-front", fit: clean, second: null, note: ""}
+- {item: R9035, node_type: "request-front", fit: clean, second: null, note: ""}
+- {item: R9036, node_type: "state-tiering", fit: clean, second: null, note: ""}
+- {item: R9037, node_type: "row-source", fit: clean, second: null, note: ""}
+- {item: R9038, node_type: "expert-dispatch", fit: clean, second: "secondary-compute", note: ""}
+- {item: R9039, node_type: "model-partitioning", fit: partial, second: "model-loading", note: "assigns tensors to devices and buffer types at load; partition vs loading choice hard to separate"}
+- {item: R9040, node_type: "draft-verification", fit: clean, second: null, note: "commit half of verification"}
+- {item: R9041, node_type: "prompt-preparation", fit: clean, second: null, note: ""}
+- {item: R9042, node_type: "prefix-reuse", fit: clean, second: "session-persistence", note: ""}
+- {item: R9043, node_type: "draft-proposal", fit: clean, second: null, note: ""}
+- {item: R9044, node_type: "sampling", fit: clean, second: null, note: ""}
+- {item: R9045, node_type: "device-backend", fit: clean, second: "layer-compute", note: "kernel encoding per format and shape; device-backend vs layer-compute hard to tell"}
+- {item: R9046, node_type: "prompt-reading", fit: clean, second: null, note: ""}
+- {item: R9047, node_type: "output-constraint", fit: clean, second: null, note: "budget forcing; output-interpretation also lists reasoning budget as a choice"}
+- {item: R9048, node_type: "model-conversion", fit: clean, second: null, note: ""}
+- {item: R9049, node_type: "expert-cache", fit: clean, second: "resource-governing", note: "returns chunks under memory pressure"}
+- {item: R9050, node_type: "secondary-compute", fit: clean, second: null, note: ""}
+- {item: R9051, node_type: "state-pool", fit: clean, second: null, note: ""}
+- {item: R9052, node_type: "model-partitioning", fit: clean, second: "device-communication", note: ""}
+- {item: R9053, node_type: "output-interpretation", fit: clean, second: null, note: ""}
+- {item: R9054, node_type: "model-loading", fit: clean, second: null, note: ""}
+- {item: R9055, node_type: "draft-proposal", fit: clean, second: "positional-state-store", note: "keeps the draft layer's K/V"}
+- {item: R9056, node_type: "device-backend", fit: partial, second: "device-communication", note: "remote devices as local backends over TCP"}
+- {item: R9057, node_type: "draft-verification", fit: partial, second: "recurrent-state-store", note: "rollback/commit of state after rejection without the acceptance decision"}
+- {item: R9058, node_type: "layer-compute", fit: clean, second: null, note: ""}
+- {item: R9059, node_type: "output-interpretation", fit: partial, second: "sequence-lifecycle", note: "also drives the request through engine generations"}
+- {item: R9060, node_type: "replica-routing", fit: partial, second: "engine-supervision", note: "routes by model name to different child models, not copies of one engine; starts/stops children"}
+- {item: R9061, node_type: "request-front", fit: clean, second: null, note: ""}
+- {item: R9062, node_type: "draft-proposal", fit: clean, second: null, note: ""}
+- {item: R9063, node_type: "expert-cache", fit: partial, second: "residency-policy", note: "also replacement policy, slot mapping and CPU share of misses (dispatch)"}
+- {item: R9064, node_type: "sampling", fit: clean, second: null, note: ""}
+- {item: R9065, node_type: "telemetry", fit: clean, second: null, note: ""}
+- {item: R9066, node_type: "configuration", fit: clean, second: null, note: ""}
+- {item: R9067, node_type: "calibration", fit: clean, second: "residency-policy", note: "offline ranking with validity check; consumed as fixed startup residency"}
+- {item: R9068, node_type: "sampling", fit: partial, second: null, note: "per-position sampling settings without forbidding tokens (per output-constraint's not-field)"}
+- {item: R9069, node_type: "step-execution", fit: clean, second: "secondary-compute", note: ""}
+- {item: R9070, node_type: "prompt-reading", fit: clean, second: null, note: ""}
+- {item: R9071, node_type: "output-interpretation", fit: partial, second: null, note: "turns tokens into audio via extra stage models; no type covers non-text output generation"}
+- {item: R9072, node_type: "model-partitioning", fit: clean, second: null, note: ""}
+- {item: R9073, node_type: "resource-governing", fit: clean, second: null, note: ""}
+- {item: R9074, node_type: "state-tiering", fit: clean, second: "session-persistence", note: ""}
+- {item: R9075, node_type: "draft-proposal", fit: clean, second: null, note: ""}
+- {item: R9076, node_type: "draft-verification", fit: clean, second: null, note: ""}
+- {item: R9077, node_type: "memory-planning", fit: clean, second: null, note: ""}
+- {item: R9078, node_type: "device-backend", fit: partial, second: "step-execution", note: "frames/tickets, ordered result and retirement delivery across ranks"}
+- {item: R9079, node_type: "device-communication", fit: clean, second: null, note: ""}
+- {item: R9080, node_type: "layer-compute", fit: clean, second: null, note: ""}
+- {item: R9081, node_type: "output-constraint", fit: clean, second: null, note: ""}
+- {item: R9082, node_type: "positional-state-store", fit: clean, second: null, note: "draft model's per-position state"}
+- {item: R9083, node_type: "expert-dispatch", fit: clean, second: null, note: ""}
+- {item: R9084, node_type: "recurrent-state-store", fit: clean, second: null, note: ""}
+- {item: R9085, node_type: "graph-capture", fit: clean, second: null, note: ""}
+- {item: R9086, node_type: "model-loading", fit: partial, second: "configuration", note: "identifies family, checks digests and fixes capabilities; does not make weights readable"}
+- {item: R9087, node_type: "prefix-reuse", fit: clean, second: null, note: ""}
+- {item: R9088, node_type: "prefix-reuse", fit: partial, second: "state-tiering", note: "also ranks restore sources, reclaim/demotion victims and attention-owner rank"}
+- {item: R9089, node_type: "model-loading", fit: clean, second: null, note: ""}
+- {item: R9090, node_type: "residency-policy", fit: clean, second: null, note: ""}
+- {item: R9091, node_type: "modality-encoding", fit: clean, second: "media-preparation", note: ""}
+- {item: R9092, node_type: "secondary-compute", fit: clean, second: null, note: ""}
+- {item: R9093, node_type: "positional-state-store", fit: clean, second: null, note: ""}
+- {item: R9094, node_type: "engine-supervision", fit: clean, second: null, note: ""}
+- {item: R9095, node_type: "layer-compute", fit: clean, second: null, note: ""}
+- {item: R9096, node_type: "memory-planning", fit: clean, second: null, note: ""}
+- {item: R9097, node_type: "draft-proposal", fit: clean, second: null, note: ""}
+- {item: R9098, node_type: "draft-verification", fit: clean, second: null, note: ""}
+- {item: R9099, node_type: "configuration", fit: partial, second: null, note: "reads machine facts and refuses unsupported machines; no settings resolution"}
+- {item: R9100, node_type: "sampling", fit: clean, second: null, note: ""}
+- {item: R9101, node_type: "resource-governing", fit: clean, second: null, note: ""}
+- {item: R9102, node_type: "configuration", fit: clean, second: null, note: ""}
+- {item: R9103, node_type: "model-edit", fit: clean, second: null, note: ""}
+- {item: R9104, node_type: "model-loading", fit: clean, second: null, note: ""}
+- {item: R9105, node_type: "state-pool", fit: partial, second: "memory-planning", note: "startup page geometry and admission capacity"}
+- {item: R9106, node_type: "draft-policy", fit: clean, second: null, note: ""}
+- {item: R9107, node_type: "model-conversion", fit: clean, second: null, note: ""}
+- {item: R9108, node_type: "draft-verification", fit: clean, second: null, note: ""}
+- {item: R9109, node_type: "engine-supervision", fit: clean, second: null, note: ""}
+- {item: R9110, node_type: "model-loading", fit: clean, second: null, note: ""}
+- {item: R9111, node_type: "draft-proposal", fit: clean, second: null, note: ""}
+- {item: R9112, node_type: "model-conversion", fit: clean, second: null, note: ""}
+- {item: R9113, node_type: "sequence-lifecycle", fit: partial, second: "output-interpretation", note: "per-request generation driver: state machine, stop strings, limits, emits results"}
+- {item: R9114, node_type: "calibration", fit: partial, second: "model-conversion", note: "produces drafter training data and Hessians for later conversion"}
+- {item: R9115, node_type: "draft-verification", fit: clean, second: "step-execution", note: ""}
+- {item: R9116, node_type: "expert-fetch", fit: clean, second: null, note: ""}
+- {item: R9117, node_type: "prefix-reuse", fit: partial, second: "sequence-lifecycle", note: "slot matching by reusable state plus slot repurposing"}
+- {item: R9118, node_type: "model-partitioning", fit: clean, second: "device-communication", note: ""}
+- {item: R9119, node_type: "request-front", fit: clean, second: null, note: "stored responses store"}
+- {item: R9120, node_type: "layer-compute", fit: clean, second: null, note: ""}
+- {item: R9121, node_type: "layer-compute", fit: clean, second: null, note: ""}
+- {item: R9122, node_type: "secondary-compute", fit: clean, second: null, note: ""}
+- {item: R9123, node_type: "sampling", fit: clean, second: null, note: ""}
+- {item: R9124, node_type: "expert-cache", fit: clean, second: null, note: ""}
+- {item: R9125, node_type: "sequence-lifecycle", fit: clean, second: null, note: ""}
+- {item: R9126, node_type: "calibration", fit: clean, second: null, note: ""}
+- {item: R9127, node_type: "output-constraint", fit: clean, second: null, note: ""}
+- {item: R9128, node_type: "expert-dispatch", fit: partial, second: null, note: "orders computation of resident vs late experts within a layer"}
+- {item: R9129, node_type: "memory-planning", fit: clean, second: null, note: ""}
+- {item: R9130, node_type: "model-conversion", fit: clean, second: null, note: ""}
+- {item: R9131, node_type: "model-conversion", fit: clean, second: null, note: ""}
+- {item: R9132, node_type: "calibration", fit: clean, second: null, note: ""}
+- {item: R9133, node_type: "calibration", fit: clean, second: null, note: ""}
+- {item: R9134, node_type: "state-tiering", fit: partial, second: null, note: "decides per request resident vs spill and bounds output by tier quota"}
+- {item: R9135, node_type: "memory-planning", fit: clean, second: null, note: ""}
+- {item: R9136, node_type: "telemetry", fit: clean, second: null, note: ""}
+- {item: R9137, node_type: "model-conversion", fit: clean, second: null, note: ""}
+- {item: R9138, node_type: "sampling", fit: clean, second: null, note: ""}
+- {item: R9139, node_type: "modality-encoding", fit: clean, second: null, note: ""}
+- {item: R9140, node_type: "row-source", fit: clean, second: null, note: ""}
+- {item: R9141, node_type: "draft-proposal", fit: clean, second: null, note: ""}
+- {item: R9142, node_type: "row-source", fit: clean, second: null, note: "background warming of the table"}
+- {item: R9143, node_type: "output-constraint", fit: clean, second: null, note: "thinking-budget forcing; output-interpretation lists reasoning budget too"}
+- {item: R9144, node_type: "model-loading", fit: clean, second: null, note: ""}
+- {item: R9145, node_type: "configuration", fit: clean, second: null, note: ""}
+- {item: R9146, node_type: "prompt-reading", fit: clean, second: "prefix-reuse", note: ""}
+- {item: R9147, node_type: "layer-compute", fit: clean, second: null, note: ""}
+- {item: R9148, node_type: "step-scheduler", fit: clean, second: null, note: ""}
+- {item: R9149, node_type: "modality-encoding", fit: clean, second: "media-preparation", note: ""}
+- {item: R9150, node_type: "device-backend", fit: clean, second: null, note: ""}
+- {item: R9151, node_type: "model-partitioning", fit: clean, second: null, note: ""}
+- {item: R9152, node_type: "output-interpretation", fit: clean, second: null, note: ""}
+- {item: R9153, node_type: "expert-fetch", fit: clean, second: null, note: ""}
+- {item: R9154, node_type: "model-loading", fit: clean, second: null, note: ""}
+- {item: R9155, node_type: "memory-planning", fit: clean, second: null, note: ""}
+- {item: R9156, node_type: "positional-state-store", fit: partial, second: "recurrent-state-store", note: "chooses and presents the per-sequence memory type per architecture"}
+- {item: R9157, node_type: "state-pool", fit: clean, second: "positional-state-store", note: ""}
+- {item: R9158, node_type: "session-persistence", fit: clean, second: null, note: ""}
+- {item: R9159, node_type: "prefix-reuse", fit: clean, second: null, note: ""}
+- {item: R9160, node_type: "engine-supervision", fit: partial, second: null, note: "only notices stalls and warns"}
+- {item: R9161, node_type: "graph-capture", fit: clean, second: null, note: ""}
+- {item: R9162, node_type: "state-pool", fit: clean, second: null, note: ""}
+- {item: R9163, node_type: "memory-planning", fit: clean, second: null, note: ""}
+- {item: R9164, node_type: "draft-proposal", fit: clean, second: null, note: ""}
+- {item: R9165, node_type: "configuration", fit: clean, second: null, note: ""}
+- {item: R9166, node_type: "model-conversion", fit: clean, second: null, note: ""}
+- {item: R9167, node_type: "telemetry", fit: clean, second: null, note: ""}
+- {item: R9168, node_type: "device-backend", fit: partial, second: "secondary-compute", note: "assigns graph nodes to backends, splits and pipelines across them"}
+- {item: R9169, node_type: "model-conversion", fit: clean, second: null, note: ""}
+- {item: R9170, node_type: "engine-supervision", fit: clean, second: null, note: ""}
+- {item: R9171, node_type: "engine-supervision", fit: partial, second: "model-loading", note: "idle unload of weights and restore before next request"}
+- {item: R9172, node_type: "recurrent-state-store", fit: clean, second: null, note: ""}
+- {item: R9173, node_type: "sequence-lifecycle", fit: clean, second: null, note: ""}
+- {item: R9174, node_type: "sequence-lifecycle", fit: clean, second: null, note: ""}
+- {item: R9175, node_type: "calibration", fit: clean, second: null, note: ""}
+- {item: R9176, node_type: "configuration", fit: clean, second: null, note: ""}
+- {item: R9177, node_type: "prompt-preparation", fit: partial, second: "output-interpretation", note: "tokenizer in both directions"}
+- {item: R9178, node_type: "output-constraint", fit: clean, second: null, note: ""}
+- {item: R9179, node_type: "layer-compute", fit: clean, second: null, note: ""}
+- {item: R9180, node_type: "step-scheduler", fit: clean, second: null, note: ""}
+- {item: R9181, node_type: "media-preparation", fit: clean, second: null, note: ""}
+- {item: R9182, node_type: "layer-compute", fit: clean, second: null, note: ""}
+- {item: R9183, node_type: "draft-proposal", fit: clean, second: null, note: ""}
+- {item: R9184, node_type: "prefix-reuse", fit: clean, second: null, note: ""}
+- {item: R9185, node_type: "model-conversion", fit: clean, second: null, note: ""}
+- {item: R9186, node_type: "step-scheduler", fit: clean, second: null, note: ""}
+- {item: R9187, node_type: "sampling", fit: clean, second: null, note: ""}
+- {item: R9188, node_type: "draft-policy", fit: clean, second: null, note: ""}
+- {item: R9189, node_type: "output-interpretation", fit: clean, second: null, note: ""}
+- {item: R9190, node_type: "positional-state-store", fit: clean, second: null, note: ""}
+- {item: R9191, node_type: "row-source", fit: clean, second: null, note: ""}
+- {item: R9192, node_type: "graph-capture", fit: clean, second: null, note: ""}
+- {item: R9193, node_type: "configuration", fit: clean, second: null, note: ""}
+- {item: R9194, node_type: "model-loading", fit: clean, second: null, note: ""}
+- {item: R9195, node_type: "step-scheduler", fit: partial, second: "engine-supervision", note: "engine process loop advancing every active slot; little step-content decision"}
+- {item: R9196, node_type: "draft-verification", fit: clean, second: null, note: ""}
+- {item: R9197, node_type: "draft-proposal", fit: clean, second: null, note: ""}
+- {item: R9198, node_type: "telemetry", fit: clean, second: null, note: ""}
+- {item: R9199, node_type: "model-partitioning", fit: clean, second: "device-communication", note: ""}
+- {item: R9200, node_type: "step-execution", fit: clean, second: null, note: ""}
+- {item: R9201, node_type: "model-loading", fit: clean, second: null, note: ""}
+- {item: R9202, node_type: "step-execution", fit: clean, second: null, note: ""}
+- {item: R9203, node_type: "request-front", fit: clean, second: null, note: ""}
+- {item: R9204, node_type: "residency-policy", fit: clean, second: null, note: ""}
+- {item: R9205, node_type: "expert-source", fit: clean, second: null, note: ""}
+- {item: R9206, node_type: "positional-state-store", fit: clean, second: "state-pool", note: ""}
+- {item: R9207, node_type: "memory-planning", fit: clean, second: null, note: ""}
+- {item: R9208, node_type: "draft-policy", fit: clean, second: null, note: ""}
+- {item: R9209, node_type: "layer-compute", fit: clean, second: null, note: ""}
+- {item: R9210, node_type: "step-scheduler", fit: clean, second: null, note: ""}
+- {item: R9211, node_type: "output-interpretation", fit: clean, second: null, note: ""}
+- {item: R9212, node_type: "modality-encoding", fit: clean, second: null, note: "cache of encoded media"}
+- {item: R9213, node_type: "layer-compute", fit: clean, second: null, note: ""}
+- {item: R9214, node_type: "prompt-preparation", fit: clean, second: null, note: ""}
+- {item: R9215, node_type: "prompt-preparation", fit: clean, second: null, note: ""}
+- {item: R9216, node_type: "device-communication", fit: clean, second: null, note: ""}
+- {item: R9217, node_type: "step-scheduler", fit: clean, second: null, note: ""}
+- {item: R9218, node_type: "row-source", fit: clean, second: null, note: ""}
+- {item: R9219, node_type: "step-scheduler", fit: partial, second: "sequence-lifecycle", note: "slot assignment and prompt-channel order at the server; keeps slot record consistent"}
+- {item: R9220, node_type: "calibration", fit: clean, second: null, note: ""}
+- {item: R9221, node_type: "layer-compute", fit: clean, second: null, note: ""}
+- {item: R9222, node_type: "residency-policy", fit: clean, second: null, note: ""}
+- {item: R9223, node_type: "model-loading", fit: clean, second: null, note: ""}
+- {item: R9224, node_type: "output-interpretation", fit: clean, second: null, note: ""}
+- {item: R9225, node_type: "step-execution", fit: clean, second: "secondary-compute", note: ""}
+- {item: R9226, node_type: "engine-supervision", fit: clean, second: null, note: ""}
+- {item: R9227, node_type: "resource-governing", fit: clean, second: null, note: ""}
+- {item: R9228, node_type: "media-preparation", fit: clean, second: null, note: ""}
+- {item: R9229, node_type: "residency-policy", fit: clean, second: null, note: ""}
+- {item: R9230, node_type: "positional-state-store", fit: clean, second: "state-tiering", note: ""}
+- {item: R9231, node_type: "row-source", fit: clean, second: null, note: ""}
+- {item: R9232, node_type: "configuration", fit: partial, second: "device-backend", note: "discovers devices and loads backend libraries"}
+- {item: R9233, node_type: "prompt-preparation", fit: clean, second: null, note: ""}
+- {item: R9234, node_type: "media-preparation", fit: clean, second: null, note: ""}
+- {item: R9235, node_type: "memory-planning", fit: clean, second: "resource-governing", note: ""}
+- {item: R9236, node_type: "calibration", fit: clean, second: null, note: ""}
+- {item: R9237, node_type: "device-backend", fit: clean, second: null, note: ""}
+- {item: R9238, node_type: "layer-compute", fit: clean, second: null, note: ""}
+- {item: R9239, node_type: "positional-state-store", fit: clean, second: null, note: ""}
+- {item: R9240, node_type: "prefix-reuse", fit: partial, second: "sequence-lifecycle", note: "picks the slot by shared prefix, falling back to LRU slot"}
+- {item: R9241, node_type: "prefix-reuse", fit: clean, second: null, note: ""}
+- {item: R9242, node_type: "state-pool", fit: partial, second: null, note: "logical identities, copy-on-write, cross-rank demands and context transactions beyond page handling"}
+- {item: R9243, node_type: "layer-compute", fit: clean, second: null, note: ""}
+- {item: R9244, node_type: "positional-state-store", fit: clean, second: null, note: ""}
+- {item: R9245, node_type: "device-backend", fit: clean, second: null, note: ""}
+- {item: R9246, node_type: "expert-cache", fit: clean, second: null, note: ""}
+- {item: R9247, node_type: "expert-fetch", fit: clean, second: null, note: "best-effort warming via the page cache"}
+- {item: R9248, node_type: "expert-fetch", fit: clean, second: null, note: ""}
+- {item: R9249, node_type: "telemetry", fit: clean, second: null, note: ""}
+- {item: R9250, node_type: "recurrent-state-store", fit: clean, second: null, note: ""}
+- {item: R9251, node_type: "step-execution", fit: clean, second: null, note: ""}
+- {item: R9252, node_type: "model-loading", fit: partial, second: "expert-source", note: "only answers where expert bytes lie in the files"}
+- {item: R9253, node_type: "prompt-preparation", fit: clean, second: null, note: ""}
+- {item: R9254, node_type: "session-persistence", fit: clean, second: null, note: ""}
+- {item: R9255, node_type: "model-partitioning", fit: clean, second: "device-communication", note: ""}
+- {item: R9256, node_type: "prefix-reuse", fit: clean, second: null, note: ""}
+- {item: R9257, node_type: "draft-policy", fit: clean, second: null, note: ""}
+- {item: R9258, node_type: "step-execution", fit: partial, second: null, note: "validates and splits a batch into micro-batches"}
+- {item: R9259, node_type: "request-front", fit: clean, second: null, note: ""}
+- {item: R9260, node_type: "scoring", fit: clean, second: null, note: ""}
+- {item: R9261, node_type: "engine-supervision", fit: clean, second: null, note: ""}
+- {item: R9262, node_type: "model-conversion", fit: clean, second: null, note: ""}
+- {item: R9263, node_type: "draft-proposal", fit: clean, second: null, note: ""}
+- {item: R9264, node_type: "state-tiering", fit: clean, second: null, note: ""}
+- {item: R9265, node_type: "draft-proposal", fit: clean, second: null, note: ""}
+- {item: R9266, node_type: "memory-planning", fit: partial, second: "graph-capture", note: "worst-case graph reservation of compute buffers"}
+- {item: R9267, node_type: "step-execution", fit: clean, second: null, note: ""}
+- {item: R9268, node_type: "replica-routing", fit: clean, second: null, note: ""}
+- {item: R9269, node_type: "configuration", fit: partial, second: null, note: "offline generation of the run configuration file"}
+- {item: R9270, node_type: "model-edit", fit: partial, second: null, note: "adapters and control vectors; adapters are more than a direction edit"}
+- {item: R9271, node_type: "state-tiering", fit: clean, second: null, note: ""}
+- {item: R9272, node_type: "model-conversion", fit: clean, second: null, note: ""}
+- {item: R9273, node_type: "layer-compute", fit: clean, second: null, note: ""}
+- {item: R9274, node_type: "row-source", fit: clean, second: null, note: ""}
+- {item: R9275, node_type: "output-interpretation", fit: partial, second: "sequence-lifecycle", note: "drives one job: sampling, thinking/stop tracking, streaming, checkpoints"}
+- {item: R9276, node_type: "model-loading", fit: partial, second: "memory-planning", note: "plans weight images and which parts stream"}
+- {item: R9277, node_type: "scoring", fit: clean, second: null, note: ""}
+- {item: R9278, node_type: "engine-supervision", fit: clean, second: null, note: ""}
+- {item: R9279, node_type: "step-execution", fit: clean, second: null, note: ""}
+- {item: R9280, node_type: "request-front", fit: clean, second: null, note: "stream reattachment buffer"}
+- {item: R9281, node_type: "memory-planning", fit: clean, second: null, note: ""}
+- {item: R9282, node_type: "storage-reader", fit: clean, second: null, note: ""}
+- {item: R9283, node_type: "prefix-reuse", fit: clean, second: null, note: ""}
+- {item: R9284, node_type: "telemetry", fit: clean, second: null, note: ""}
+- {item: R9285, node_type: "layer-compute", fit: clean, second: null, note: ""}
+- {item: R9286, node_type: "state-tiering", fit: clean, second: null, note: ""}
+- {item: R9287, node_type: "positional-state-store", fit: clean, second: null, note: ""}

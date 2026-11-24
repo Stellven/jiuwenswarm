@@ -1,0 +1,34 @@
+# What the Strata project itself reports for DGX Spark. Third-party figures taken from its document; I did not
+# build or run the engine. Used only to test my own arithmetic against a real engine.
+kind: evidence
+id: evidence/strata-on-spark/reported
+verifies: []
+engine_build_digest: "Strata at revision 504b143, as documented by the project; not built by me"
+quality: single_run
+measured_under:
+  model: model/qwen3.8-flash-125b-a6b
+  hardware: hw/dgx-spark
+  environment: env/dgx-spark-strata-reported
+  status: reported
+  source: "strata docs/DGX_SPARK_LINUX.md:70-100"
+  note: "One machine, 27 October 2026. The document says the figures move a few percent between sessions. Context 64K, 8-bit attention state. Drafting is on by default."
+baseline: "none; these are the engine's own speeds, not a comparison"
+results:
+  packs:
+    - pack: IQ3_S
+      expert_bytes: {value: 50.3, unit: GB, unit_basis: decimal}
+      decode_tok_per_s: {at_4k: 45.5, at_16k: 46.5, at_32k: 46.5}
+      decode_tok_per_s_table_off: {at_4k: 48.5, at_16k: 45.3, at_32k: 45.2}
+      prompt_tok_per_s: {at_4k: 1296, at_16k: 1680, at_32k: 1735}
+      expert_cache: {slots: 24576, of: 24576, size: {value: 46.84, unit: GiB, unit_basis: binary}}
+      lookup_table: {size: {value: 28.8, unit: GB, unit_basis: decimal}, held: "locked in memory"}
+      free_memory_at_start: {value: 1.0, unit: GiB, unit_basis: binary}
+    - pack: NVFP4
+      expert_bytes: {value: 68.0, unit: GB, unit_basis: decimal}
+      decode_tok_per_s: {at_4k: 42.8, at_16k: 40.5, at_32k: 40.1}
+      decode_tok_per_s_table_off: {at_4k: 41.0, at_16k: 41.2, at_32k: 38.4}
+      prompt_tok_per_s: {at_4k: 1408, at_16k: 1670, at_32k: 1698}
+      expert_cache: {slots: 24576, of: 24576, size: {value: 63.29, unit: GiB, unit_basis: binary}}
+      lookup_table: {size: {value: 51.2, unit: GB, unit_basis: decimal}, held: "read from storage"}
+      free_memory_at_start: {value: 1.2, unit: GiB, unit_basis: binary}
+  drafting: {tokens_per_pass: "2.4 to 3.2", source: "strata docs/HOW_IT_WORKS.md:41-43", note: "Not stated for this machine."}

@@ -1,0 +1,687 @@
+{
+  "schema_version": "2.0.0",
+  "intake_ref": {"id": "request", "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"},
+  "intent_ref": {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"},
+  "context_refs": [
+    {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+    {"id": "model", "sha256": "120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a"},
+    {"id": "machine", "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"},
+    {"id": "node-types", "sha256": "a65acca0ad5f54476bb1953fd7d79ac45059779d1a13365b4c068d5f7e6ce4fb"}
+  ],
+  "domain_lane": "scientific_research",
+  "objective": {
+    "id": "obj",
+    "text": "Build a custom inference engine for Meta Muse Spark Open (model/muse-spark-open) that runs on NVIDIA DGX Spark, 128 GB configuration (hw/dgx-spark), judged against the attached target specification (spec/muse-spark-open-on-dgx-spark/target) and delivered as a reproducible container with a clean rebuild, a benchmark report and replayable run artifacts.",
+    "origin": "user",
+    "source_refs": [
+      {"id": "request", "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"},
+      {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+      {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+    ]
+  },
+  "in_scope": [
+    {
+      "id": "scope-engine",
+      "text": "Building a custom inference engine for Meta Muse Spark Open that runs on NVIDIA DGX Spark.",
+      "origin": "user",
+      "source_refs": [
+        {"id": "request", "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    },
+    {
+      "id": "scope-deliverable-container",
+      "text": "Deliverable: a reproducible container (required).",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    },
+    {
+      "id": "scope-deliverable-rebuild",
+      "text": "Deliverable: a clean rebuild (required).",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    },
+    {
+      "id": "scope-deliverable-benchmark",
+      "text": "Deliverable: a benchmark report (required).",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    },
+    {
+      "id": "scope-deliverable-artifacts",
+      "text": "Deliverable: replayable run artifacts (required).",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    },
+    {
+      "id": "scope-factory-open",
+      "text": "Execution, state, composition, policy and binding of the engine are left open for the factory to decide (the target marks them `open`).",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    }
+  ],
+  "out_of_scope": [],
+  "mandatory_requirements": [
+    {
+      "id": "req-engine",
+      "text": "A custom inference engine for Meta Muse Spark Open (model/muse-spark-open) exists and runs on NVIDIA DGX Spark, 128 GB configuration (hw/dgx-spark).",
+      "origin": "user",
+      "source_refs": [
+        {"id": "request", "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"},
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    },
+    {
+      "id": "req-judged-on-target",
+      "text": "The engine is judged against the attached target specification; the attached files are taken as the statement of what is wanted.",
+      "origin": "user",
+      "source_refs": [
+        {"id": "request", "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    },
+    {
+      "id": "req-text-io",
+      "text": "The engine takes text input and produces text output (both required, stated by the scope page).",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    },
+    {
+      "id": "req-memory-budget",
+      "text": "Pass/fail: the engine stays within the memory budget of constraint con-memory-budget in pool mem0 (proposed: 80 GB decimal, with the target's accounting boundary; to be confirmed).",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    },
+    {
+      "id": "req-context-length",
+      "text": "Pass/fail: the engine offers the required context length in tokens (constraint con-context-length); the value is not given.",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    },
+    {
+      "id": "req-quality",
+      "text": "Pass/fail: the engine meets the quality requirement against the proposed fixed reference baseline (the published reference implementation with the NVFP4 weights, the published tokenizer and greedy sampling): if no change to the computation is allowed, the same output tokens as the baseline; otherwise a task score not below the threshold. Task set and threshold are not given.",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    },
+    {
+      "id": "req-report-ttft",
+      "text": "Report time to first token (no threshold); proposed timing from the engine admitting the request to the engine producing the first output token, model load excluded.",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    },
+    {
+      "id": "req-report-decode",
+      "text": "Report decode rate (no threshold); proposed to exclude the first token.",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    },
+    {
+      "id": "req-report-peak",
+      "text": "Report peak memory in pool mem0 (no threshold); proposed with the same accounting boundary as the memory budget.",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    },
+    {
+      "id": "req-fixed-workload",
+      "text": "Measurements are taken on a fixed workload (stated by the scope page); the workload is not defined.",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    },
+    {
+      "id": "req-one-checkpoint",
+      "text": "The engine uses one model checkpoint (stated by the scope page); which checkpoint is not set.",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    },
+    {
+      "id": "req-container",
+      "text": "The engine is packaged and delivered as a reproducible container (packaging required by the scope page; deliverable required by the target).",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    },
+    {
+      "id": "req-clean-rebuild",
+      "text": "A clean rebuild is delivered (required by the target).",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    },
+    {
+      "id": "req-benchmark-report",
+      "text": "A benchmark report is delivered (required by the target).",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    },
+    {
+      "id": "req-run-artifacts",
+      "text": "Replayable run artifacts are delivered (required by the target).",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ]
+    }
+  ],
+  "optional_preferences": [],
+  "input_bindings": [
+    {"id": "in-target", "role": "reference_document", "resource_ref": {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"}},
+    {"id": "in-model", "role": "reference_document", "resource_ref": {"id": "model", "sha256": "120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a"}},
+    {"id": "in-machine", "role": "reference_document", "resource_ref": {"id": "machine", "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"}},
+    {"id": "in-node-types", "role": "reference_document", "resource_ref": {"id": "node-types", "sha256": "a65acca0ad5f54476bb1953fd7d79ac45059779d1a13365b4c068d5f7e6ce4fb"}}
+  ],
+  "resource_refs": [
+    {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+    {"id": "model", "sha256": "120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a"},
+    {"id": "machine", "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"},
+    {"id": "node-types", "sha256": "a65acca0ad5f54476bb1953fd7d79ac45059779d1a13365b4c068d5f7e6ce4fb"}
+  ],
+  "constraints": [
+    {
+      "id": "con-model",
+      "text": "The engine runs the given model Meta Muse Spark Open (model/muse-spark-open).",
+      "category": "model",
+      "origin": "user",
+      "source_refs": [
+        {"id": "request", "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"},
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "model", "sha256": "120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a"}
+      ],
+      "scope": "scientific_execution",
+      "normalized_value": "model/muse-spark-open",
+      "unit": null,
+      "operator": "eq"
+    },
+    {
+      "id": "con-hardware",
+      "text": "The engine runs on the given hardware NVIDIA DGX Spark, 128 GB configuration (hw/dgx-spark).",
+      "category": "hardware",
+      "origin": "user",
+      "source_refs": [
+        {"id": "request", "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"},
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "machine", "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"}
+      ],
+      "scope": "scientific_execution",
+      "normalized_value": "hw/dgx-spark",
+      "unit": null,
+      "operator": "eq"
+    },
+    {
+      "id": "con-packaging",
+      "text": "The engine is packaged as a container (required, stated by the scope page).",
+      "category": "format",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ],
+      "scope": "research_run",
+      "normalized_value": "container",
+      "unit": null,
+      "operator": "eq"
+    },
+    {
+      "id": "con-input-text",
+      "text": "The engine's input modality is text (required, stated by the scope page).",
+      "category": "interface",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ],
+      "scope": "scientific_execution",
+      "normalized_value": "text",
+      "unit": null,
+      "operator": "eq"
+    },
+    {
+      "id": "con-output-text",
+      "text": "The engine's output modality is text (required, stated by the scope page).",
+      "category": "interface",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ],
+      "scope": "scientific_execution",
+      "normalized_value": "text",
+      "unit": null,
+      "operator": "eq"
+    },
+    {
+      "id": "con-memory-budget",
+      "text": "Proposed pass/fail memory budget of 80 GB (decimal) in pool mem0, accounted as everything the engine's container holds in the unified pool at any moment (CPU and GPU allocations of the process and page cache attributable to the files it reads), excluding the operating system and other processes. The value, unit basis and accounting boundary are proposals to be confirmed (status: proposed).",
+      "category": "resource",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ],
+      "scope": "scientific_execution",
+      "normalized_value": 80,
+      "unit": "GB",
+      "operator": "le"
+    },
+    {
+      "id": "con-context-length",
+      "text": "There is a pass/fail requirement on the context length, in tokens, that the engine must offer; its value is not given (UNSET in the target). The model allows 1,000,000 tokens, which is a model fact, not the requirement.",
+      "category": "resource",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ],
+      "scope": "scientific_execution",
+      "normalized_value": null,
+      "unit": null,
+      "operator": "qualitative"
+    },
+    {
+      "id": "con-fixed-workload",
+      "text": "Measurements use a fixed workload (stated by the scope page); the workload is not defined (UNSET in the target).",
+      "category": "evaluation",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ],
+      "scope": "research_run",
+      "normalized_value": null,
+      "unit": null,
+      "operator": "qualitative"
+    },
+    {
+      "id": "con-one-checkpoint",
+      "text": "The engine uses one model checkpoint (stated by the scope page); which checkpoint is not set (UNSET in the target).",
+      "category": "data",
+      "origin": "user",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ],
+      "scope": "scientific_execution",
+      "normalized_value": 1,
+      "unit": "model_checkpoint",
+      "operator": "eq"
+    }
+  ],
+  "target_metrics": [
+    {
+      "id": "tm-quality",
+      "metric": "quality_score",
+      "target_text": "Pass/fail against the proposed fixed reference baseline: if no change to the computation is allowed, the same output tokens as the baseline; otherwise a task score not below a threshold. Task set and threshold are not given.",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ],
+      "origin": "user",
+      "requirement_ids": ["req-quality"],
+      "unit": null,
+      "comparison": null
+    },
+    {
+      "id": "tm-ttft",
+      "metric": "ttft",
+      "target_text": "Reported (no threshold), proposed timing from the engine admitting the request to the engine producing the first output token, model load excluded; workload not given.",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ],
+      "origin": "user",
+      "requirement_ids": ["req-report-ttft", "req-fixed-workload"],
+      "unit": null,
+      "comparison": null
+    },
+    {
+      "id": "tm-decode",
+      "metric": "decode_rate",
+      "target_text": "Reported (no threshold), proposed to exclude the first token; workload not given.",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ],
+      "origin": "user",
+      "requirement_ids": ["req-report-decode", "req-fixed-workload"],
+      "unit": null,
+      "comparison": null
+    },
+    {
+      "id": "tm-peak-memory",
+      "metric": "peak_memory",
+      "target_text": "Reported (no threshold) for pool mem0, proposed with the same accounting boundary as the memory budget; workload not given.",
+      "source_refs": [
+        {"id": "target", "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"},
+        {"id": "intent_ir", "sha256": "3d17c385cf2adb72469d7087ec1b01258129a68726643dc478c704a1f6a18a00"}
+      ],
+      "origin": "user",
+      "requirement_ids": ["req-report-peak", "req-fixed-workload"],
+      "unit": null,
+      "comparison": null
+    }
+  ],
+  "deliverables": [
+    {
+      "id": "del-container",
+      "name": "Reproducible container",
+      "description": "The engine packaged as a reproducible container (required).",
+      "artifact_type": "reproducible_container"
+    },
+    {
+      "id": "del-clean-rebuild",
+      "name": "Clean rebuild",
+      "description": "A clean rebuild of the delivered engine (required).",
+      "artifact_type": "clean_rebuild"
+    },
+    {
+      "id": "del-benchmark-report",
+      "name": "Benchmark report",
+      "description": "A benchmark report on the engine as judged against the target specification (required).",
+      "artifact_type": "benchmark_report"
+    },
+    {
+      "id": "del-run-artifacts",
+      "name": "Replayable run artifacts",
+      "description": "Replayable artifacts of the engine's runs (required).",
+      "artifact_type": "replayable_run_artifacts"
+    }
+  ],
+  "acceptance_expectations": [
+    {
+      "id": "acc-engine-runs",
+      "requirement_ids": ["req-engine", "req-text-io", "req-one-checkpoint"],
+      "description": "The delivered engine loads one checkpoint of Meta Muse Spark Open and, running on the NVIDIA DGX Spark, turns text input into text output."
+    },
+    {
+      "id": "acc-memory-budget",
+      "requirement_ids": ["req-memory-budget"],
+      "description": "The benchmark report states a pass or fail for the memory budget of con-memory-budget in pool mem0, using the stated accounting boundary."
+    },
+    {
+      "id": "acc-context-length",
+      "requirement_ids": ["req-context-length"],
+      "description": "The benchmark report states a pass or fail for the required context length once its value is given."
+    },
+    {
+      "id": "acc-quality",
+      "requirement_ids": ["req-quality"],
+      "description": "The benchmark report states a pass or fail for quality against the fixed reference baseline, using the comparison that applies to the allowed transformations."
+    },
+    {
+      "id": "acc-reported-metrics",
+      "requirement_ids": ["req-report-ttft", "req-report-decode", "req-report-peak", "req-fixed-workload"],
+      "description": "The benchmark report gives values for time to first token, decode rate and peak memory in pool mem0, each measured on the fixed workload, with no pass/fail threshold applied to them."
+    },
+    {
+      "id": "acc-target-coverage",
+      "requirement_ids": ["req-judged-on-target", "req-benchmark-report"],
+      "description": "The benchmark report addresses each requirement of the target specification's contract (c-mem, c-context, c-quality, c-ttft, c-decode, c-peak) and states the outcome for each."
+    },
+    {
+      "id": "acc-container-rebuild",
+      "requirement_ids": ["req-container", "req-clean-rebuild"],
+      "description": "The engine is delivered as a container, and a clean rebuild of it is delivered."
+    },
+    {
+      "id": "acc-run-artifacts",
+      "requirement_ids": ["req-run-artifacts"],
+      "description": "The run artifacts behind the benchmark report are delivered in a form that allows the runs to be replayed."
+    }
+  ],
+  "evidence_obligations": [
+    {
+      "id": "ev-run-record",
+      "requirement_ids": ["req-engine", "req-text-io", "req-one-checkpoint"],
+      "description": "A run record from the DGX Spark naming the machine, the container and the single checkpoint used, with the text inputs given and the text outputs produced."
+    },
+    {
+      "id": "ev-memory-measurement",
+      "requirement_ids": ["req-memory-budget", "req-report-peak"],
+      "description": "Memory measurements of pool mem0 over the measured runs, taken within the stated accounting boundary, from which the budget outcome and the peak memory are read."
+    },
+    {
+      "id": "ev-context-length",
+      "requirement_ids": ["req-context-length"],
+      "description": "A run record showing the engine operating at the required context length."
+    },
+    {
+      "id": "ev-quality-comparison",
+      "requirement_ids": ["req-quality"],
+      "description": "The outputs of the engine and of the fixed reference baseline on the same inputs, with the comparison result (identical tokens, or task score against the threshold)."
+    },
+    {
+      "id": "ev-timing-measurements",
+      "requirement_ids": ["req-report-ttft", "req-report-decode", "req-fixed-workload"],
+      "description": "Timing records for time to first token and decode rate on the fixed workload, with the timing start and end points used, and the workload definition itself."
+    },
+    {
+      "id": "ev-benchmark-report",
+      "requirement_ids": ["req-benchmark-report", "req-judged-on-target"],
+      "description": "The benchmark report itself, mapping each requirement of the target specification to its measured outcome and to the run records it rests on."
+    },
+    {
+      "id": "ev-rebuild-record",
+      "requirement_ids": ["req-container", "req-clean-rebuild"],
+      "description": "The container's build definition and the record of a clean rebuild from it."
+    },
+    {
+      "id": "ev-replay-record",
+      "requirement_ids": ["req-run-artifacts"],
+      "description": "The replayable run artifacts and a record of at least one run replayed from them."
+    }
+  ],
+  "assumptions": [],
+  "unresolved_items": [
+    {
+      "id": "unr-context-length",
+      "kind": "missing",
+      "description": "The context length the engine must offer is a pass/fail requirement but its value is UNSET (a project decision). The target notes the engine cannot be sized until it is given, because attention state is taken from the same 80 GB budget as the expert cache. No authorized default exists. Blocking: a mandatory pass/fail requirement cannot be stated or judged without it.",
+      "affected_fields": ["/constraints/6", "/mandatory_requirements/4", "/acceptance_expectations/2", "/evidence_obligations/2"],
+      "blocking": true,
+      "clarification": "What context length, in tokens, must the engine offer?"
+    },
+    {
+      "id": "unr-allowed-transformations",
+      "kind": "missing",
+      "description": "Whether quantisation below NVFP4 or approximations that change output are allowed is UNSET (a project decision). The form of the pass/fail quality comparison (identical tokens vs a task score not below a threshold) depends on it. Blocking: the mandatory quality requirement cannot be judged without it.",
+      "affected_fields": ["/mandatory_requirements/5", "/target_metrics/0", "/acceptance_expectations/3"],
+      "blocking": true,
+      "clarification": "Are quantisation below NVFP4 or other output-changing approximations allowed?"
+    },
+    {
+      "id": "unr-quality-taskset-threshold",
+      "kind": "missing",
+      "description": "The held-out task set and the pass threshold for the quality requirement are UNSET (the scope page names neither). Blocking while unr-allowed-transformations is open: if output-changing transformations are allowed, the mandatory quality requirement cannot be judged without them; if they are not allowed, the identical-token comparison applies and this item becomes moot.",
+      "affected_fields": ["/mandatory_requirements/5", "/target_metrics/0", "/evidence_obligations/3"],
+      "blocking": true,
+      "clarification": "Which held-out task set and which pass threshold apply to the quality score (needed only if output-changing transformations are allowed)?"
+    },
+    {
+      "id": "unr-workload",
+      "kind": "missing",
+      "description": "The fixed workload (prompt lengths, requests) is UNSET (a project decision) for the target as a whole and for TTFT, decode rate and peak memory. Prompt lengths decide time to first token, and memory held at any moment depends on the workload. Blocking: the mandatory fixed-workload requirement and the memory-budget pass/fail cannot be judged without it, and the target reserves the choice to the project rather than leaving it open to the factory.",
+      "affected_fields": ["/constraints/7", "/mandatory_requirements/9", "/target_metrics/1", "/target_metrics/2", "/target_metrics/3", "/acceptance_expectations/4", "/evidence_obligations/4"],
+      "blocking": true,
+      "clarification": "What fixed workload (prompts and their lengths, output lengths, concurrency) are the measurements taken on?"
+    },
+    {
+      "id": "unr-checkpoint",
+      "kind": "missing",
+      "description": "Which single checkpoint is used is UNSET (a project decision). The model offers BF16 and NVFP4; the target comments that only NVFP4 is within reach and the proposed quality baseline names the NVFP4 weights, but the choice is not set. Blocking: the engine's primary input and the meaning of the quality comparison depend on it, and no authorized default exists.",
+      "affected_fields": ["/constraints/8", "/mandatory_requirements/10", "/mandatory_requirements/5"],
+      "blocking": true,
+      "clarification": "Is the NVFP4 checkpoint the one the engine must use?"
+    },
+    {
+      "id": "unr-proposed-status",
+      "kind": "ambiguous",
+      "description": "The memory budget (value, unit basis, accounting boundary), the quality baseline and comparison, and the TTFT, decode-rate and peak-memory definitions are marked status: proposed, to be confirmed or replaced. The request says to take the attached files as the statement of what is wanted, so the Brief carries them as stated, with their proposed status visible. Non-blocking: the request itself gives a basis to proceed on the proposals.",
+      "affected_fields": ["/constraints/5", "/mandatory_requirements/3", "/mandatory_requirements/5", "/target_metrics/0", "/target_metrics/1", "/target_metrics/2", "/target_metrics/3"],
+      "blocking": false,
+      "clarification": "Are the proposed values (80 GB decimal budget and its accounting boundary, the quality baseline, the timing definitions) confirmed as requirements?"
+    },
+    {
+      "id": "unr-memory-figure",
+      "kind": "ambiguous",
+      "description": "The scope page names three memory figures (128 GB nominal, 12 GB GPU working set, 80 GB); the target chose 80 GB, cited as 'Strata-Spark: 80 GB Unified Memory'. The choice is the target author's interpretation and the scope page is not among the supplied sources, so it cannot be checked. Non-blocking: carried as the proposed budget under unr-proposed-status.",
+      "affected_fields": ["/constraints/5"],
+      "blocking": false,
+      "clarification": "Is 80 GB of the unified pool the memory budget the engine is judged on?"
+    },
+    {
+      "id": "unr-vendor-memory",
+      "kind": "conflicting",
+      "description": "The model card states 700 GB of memory required at NVFP4 (2000 GB at BF16), while the machine has 128 GB nominal unified memory and the proposed budget is 80 GB. This is a tension between a vendor statement and the given budget, not between two stated requirements; the sources do not say how it is resolved. Non-blocking: no user requirement conflicts, and the engine design must address it without the Brief choosing a method.",
+      "affected_fields": ["/constraints/5", "/mandatory_requirements/0"],
+      "blocking": false,
+      "clarification": "None needed from the user unless the budget or the machine changes; the engine design must address it."
+    },
+    {
+      "id": "unr-form",
+      "kind": "missing",
+      "description": "The engine's form (execution library, offline engine or online service) is UNSET (a project decision). Non-blocking: no pass/fail requirement or deliverable depends on it; it must not be chosen silently downstream.",
+      "affected_fields": ["/mandatory_requirements/0", "/deliverables/0"],
+      "blocking": false,
+      "clarification": "Should the engine be an execution library, an offline engine or an online service?"
+    },
+    {
+      "id": "unr-environment",
+      "kind": "missing",
+      "description": "The given software environment is UNSET (a project decision). Non-blocking: no pass/fail requirement depends on it; the container and clean rebuild must record whatever environment is used.",
+      "affected_fields": ["/mandatory_requirements/11", "/mandatory_requirements/12"],
+      "blocking": false,
+      "clarification": "In which software environment must the engine run and be rebuilt?"
+    },
+    {
+      "id": "unr-streaming",
+      "kind": "missing",
+      "description": "Whether the engine streams its text output is UNSET (a project decision). Non-blocking: no pass/fail requirement depends on it.",
+      "affected_fields": ["/constraints/4"],
+      "blocking": false,
+      "clarification": "Must the engine stream its output?"
+    },
+    {
+      "id": "unr-non-text-modalities",
+      "kind": "ambiguous",
+      "description": "The model accepts text, image, video and audio, while the target requires text input. Whether the other input modalities are excluded from the engine or merely not required is not stated. Non-blocking: the required text interface is unaffected; the Brief leaves out_of_scope empty rather than inventing an exclusion.",
+      "affected_fields": ["/constraints/3", "/out_of_scope"],
+      "blocking": false,
+      "clarification": "Must the engine reject or omit image, video and audio input, or are they simply not required?"
+    },
+    {
+      "id": "unr-model-facts-unverified",
+      "kind": "missing",
+      "description": "Model sizes in the model description are derived under a stated assumption; attention-state size per token is not on the model card; config.json was not read. The SSD read bandwidth of the machine is not given. Non-blocking: these are facts to be read from the weight files and config.json and measured on the machine, not user decisions.",
+      "affected_fields": ["/input_bindings/1", "/input_bindings/2"],
+      "blocking": false,
+      "clarification": "No user decision needed; these facts are to be read from the weight files and config.json and measured on the machine."
+    },
+    {
+      "id": "unr-model-resources-not-supplied",
+      "kind": "missing",
+      "description": "The model weights, tokenizer, config.json and the published reference implementation named by the quality baseline are not among the supplied resources; the model description says config.json needs a login and names the Muse Model License. How they are obtained is not stated. Non-blocking for the Brief: no requirement is changed, but planned work that needs them must obtain them through an authorized path.",
+      "affected_fields": ["/resource_refs", "/input_bindings", "/mandatory_requirements/5"],
+      "blocking": false,
+      "clarification": "Will the model weights, tokenizer, config.json and reference implementation be supplied, or may the run obtain them, under the Muse Model License?"
+    },
+    {
+      "id": "unr-node-types-role",
+      "kind": "ambiguous",
+      "description": "The request says the attached files describe the model, the machine and the target; the node-types draft 0.9 is none of these, and it states no requirement for this engine. It is bound as a reference document only. Non-blocking: no requirement is drawn from it.",
+      "affected_fields": ["/input_bindings/3"],
+      "blocking": false,
+      "clarification": "Is the node-types draft supplied as reference vocabulary only, or must the engine be described or structured in its terms?"
+    }
+  ],
+  "confirmation": {
+    "basis": "user_request",
+    "source_refs": [
+      {"id": "request", "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"}
+    ]
+  },
+  "ext": {
+    "req.intent_links": {
+      "obj": ["interp-desired-change", "interp-requested-result"],
+      "req-engine": ["scope-engine", "interp-desired-change", "ctx-model", "ctx-machine"],
+      "req-judged-on-target": ["ctx-target-spec", "interp-requested-result"],
+      "req-text-io": ["con-input-text", "con-output-text"],
+      "req-memory-budget": ["con-memory-budget", "ctx-mem0"],
+      "req-context-length": ["con-context-length"],
+      "req-quality": ["tgt-quality", "ctx-quality-baseline"],
+      "req-report-ttft": ["tgt-ttft"],
+      "req-report-decode": ["tgt-decode"],
+      "req-report-peak": ["tgt-peak-memory"],
+      "req-fixed-workload": ["con-fixed-workload"],
+      "req-one-checkpoint": ["con-one-checkpoint"],
+      "req-container": ["scope-deliverable-container", "con-packaging"],
+      "req-clean-rebuild": ["scope-deliverable-rebuild"],
+      "req-benchmark-report": ["scope-deliverable-benchmark"],
+      "req-run-artifacts": ["scope-deliverable-artifacts"],
+      "unr-context-length": ["unc-context-length"],
+      "unr-allowed-transformations": ["unc-allowed-transformations"],
+      "unr-quality-taskset-threshold": ["unc-quality-taskset-threshold"],
+      "unr-workload": ["unc-workload"],
+      "unr-checkpoint": ["unc-checkpoint"],
+      "unr-proposed-status": ["unc-proposed-status"],
+      "unr-memory-figure": ["unc-memory-figure", "ctx-scope-page"],
+      "unr-vendor-memory": ["unc-vendor-memory"],
+      "unr-form": ["unc-form-environment-streaming"],
+      "unr-environment": ["unc-form-environment-streaming"],
+      "unr-streaming": ["unc-form-environment-streaming"],
+      "unr-non-text-modalities": ["unc-non-text-modalities"],
+      "unr-model-facts-unverified": ["unc-model-facts-unverified", "ctx-ssd0"],
+      "unr-node-types-role": ["unc-node-types-role", "ctx-node-types"]
+    }
+  }
+}

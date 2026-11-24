@@ -1,0 +1,303 @@
+# Strata, area "loading": the parts of the system file and of the engine specs that this area contributes.
+# No `kind`, so the loader ignores this file. Written from engines/strata-notes/loading.md.
+flows:
+  - id: gguf-shards-read
+    sender: model_files
+    receiver: comp/strata/model-file-reader
+    carries: {content: weights, refs: [shared_weights, expert_weights]}
+    timing: startup
+    description: "The GGUF shards, mapped read-only: header, metadata, tensor directory and tensor bytes."
+  - id: model-geometry
+    sender: comp/strata/model-file-reader
+    receiver: comp/strata/startup-memory-sizing
+    carries: {content: plan}
+    timing: startup
+    description: "Layer count, widths, expert count and experts per token read from the metadata shard and checked against the compiled shapes; every later size is computed from it. The same record is passed to the session, the expert source and the expert cache."
+  - id: gguf-tensor-bytes
+    sender: comp/strata/model-file-reader
+    receiver: comp/strata/native-weight-loader
+    carries: {content: weights, refs: [shared_weights]}
+    timing: startup
+    description: "Pointers into the mapping for the projections, the output head and the token embedding, uploaded unchanged."
+  - id: expert-layout-file
+    sender: model_files
+    receiver: comp/strata/expert-layout
+    carries: {content: plan}
+    timing: startup
+    description: "The pack's native_experts.txt: per-layer blob size and formats, and the file and offset of each layer's gate, up and down tensors."
+  - id: expert-layout-to-source
+    sender: comp/strata/expert-layout
+    receiver: comp/strata/expert-source
+    carries: {content: plan}
+    timing: startup
+    description: "Blob size and offset per layer, total bytes, and the GGUF spans the arena is filled from."
+  - id: expert-layout-to-sizing
+    sender: comp/strata/expert-layout
+    receiver: comp/strata/startup-memory-sizing
+    carries: {content: plan}
+    timing: startup
+    description: "The largest blob and each layer's blob size, the unit the expert cache's slots are counted in."
+  - id: expert-layout-to-admission
+    sender: comp/strata/expert-layout
+    receiver: comp/strata/host-memory-admission
+    carries: {content: plan}
+    timing: startup
+    description: "Total bytes of all routed experts, the arena size the n-gram table is priced against."
+  - id: pack-dense-read
+    sender: model_files
+    receiver: comp/strata/weight-loader
+    carries: {content: weights, refs: [shared_weights]}
+    timing: startup
+    description: "The pack's index.txt and data files (dense.bin, embd.bin, extra.bin), read in 8 MiB chunks."
+  - id: natively-served-names
+    sender: comp/strata/native-weight-loader
+    receiver: comp/strata/weight-loader
+    carries: {content: plan}
+    timing: startup
+    description: "The names of the tensors the native loaders will serve, so the pack loader skips them and its device range is sized without them."
+  - id: weight-table-to-native
+    sender: comp/strata/weight-loader
+    receiver: comp/strata/native-weight-loader
+    carries: {content: engine_state}
+    timing: startup
+    description: "The name-to-location table; the native loader checks each projection against its row and attaches the GGUF-form pointer to it."
+  - id: dense-weights-in-vram
+    sender: comp/strata/weight-loader
+    receiver: comp/strata/layer-kernels
+    carries: {content: weights, refs: [shared_weights]}
+    timing: startup
+    description: "Device locations of the dense tensors in engine form, by name."
+  - id: native-projections-in-vram
+    sender: comp/strata/native-weight-loader
+    receiver: comp/strata/layer-kernels
+    carries: {content: weights, refs: [shared_weights]}
+    timing: startup
+    description: "Device locations of the per-layer projections in GGUF block form, and the token embedding where the GPU reads one row per token."
+  - id: native-head-weights
+    sender: comp/strata/native-weight-loader
+    receiver: comp/strata/output-head
+    carries: {content: weights, refs: [shared_weights]}
+    timing: startup
+    description: "The output projection in GGUF block form, on the card or in page-locked host memory."
+  - id: operator-memory-settings
+    sender: external
+    receiver: comp/strata/startup-memory-sizing
+    carries: {content: plan}
+    timing: startup
+    description: "Command-line flags and environment: context length, expert cache size or auto, reserve, prompt chunk, pipeline windows."
+  - id: device-free-memory
+    sender: external
+    receiver: comp/strata/startup-memory-sizing
+    carries: {content: signal}
+    timing: startup
+    description: "Free device memory as the driver reports it, read before the cache is sized and again after its slots are written."
+  - id: expert-cache-size
+    sender: comp/strata/startup-memory-sizing
+    receiver: comp/strata/expert-cache
+    carries: {content: plan}
+    timing: startup
+    description: "Number of slots, and for a native pack the byte size of each slot in profile order."
+  - id: prompt-buffer-plan
+    sender: comp/strata/startup-memory-sizing
+    receiver: comp/strata/prompt-path
+    carries: {content: plan}
+    timing: startup
+    description: "Whether the prompt path borrows cache slots or keeps its own buffers, its chunk size, and how many slots a loan leaves in the cache."
+  - id: head-to-host
+    sender: comp/strata/startup-memory-sizing
+    receiver: comp/strata/native-weight-loader
+    carries: {content: control}
+    timing: startup
+    description: "Last resort when the cache has no slot: move the output head from the card to page-locked host memory."
+  - id: host-memory-readings
+    sender: external
+    receiver: comp/strata/host-memory-admission
+    carries: {content: signal}
+    timing: startup
+    description: "Available RAM, the tightest cgroup limit, and the operator's --ram-keep-gib and --ple-io settings."
+  - id: ngram-residency-decision
+    sender: comp/strata/host-memory-admission
+    receiver: comp/strata/ngram-reader
+    carries: {content: plan}
+    timing: startup
+    description: "Whether the n-gram table is mapped and locked in RAM or read directly from storage; and later, an instruction to give the lock back when the arena or the conversation cache needs the RAM."
+  - id: arena-admission-settings
+    sender: comp/strata/host-memory-admission
+    receiver: comp/strata/expert-source
+    carries: {content: plan}
+    timing: startup
+    description: "Whether reading from the file source instead is allowed, the RAM to keep free, the headroom under a hard limit, and the budget of the reduced RAM copy."
+  - id: arena-outcome
+    sender: comp/strata/expert-source
+    receiver: comp/strata/host-memory-admission
+    carries: {content: signal}
+    timing: startup
+    description: "Whether RAM was short, and how many bytes of the arena the GPU driver registered (used for the page-locked reserve's release and its hint)."
+  - id: expert-bytes-from-files
+    sender: model_files
+    receiver: comp/strata/expert-source
+    carries: {content: weights, refs: [expert_weights]}
+    timing: startup
+    description: "Every routed expert, read into the arena from the GGUF shards or experts.bin. In file-source mode the files are mapped instead and read on demand."
+  - id: expert-bytes-in-host-memory
+    sender: comp/strata/expert-source
+    receiver: comp/strata/cpu-expert-pool
+    carries: {content: weights, refs: [expert_weights]}
+    timing: per_layer
+    description: "Pointers to the blobs of the experts the CPU computes."
+  - id: expert-bytes-to-upload
+    sender: comp/strata/expert-source
+    receiver: comp/strata/host-to-device-transfer
+    carries: {content: weights, refs: [expert_weights]}
+    timing: on_demand
+    description: "Pointers to blobs to be copied into device memory (cache fill, swaps, the prompt path's staging)."
+  - id: gpu-readable-experts
+    sender: comp/strata/expert-source
+    receiver: comp/strata/expert-dispatch
+    carries: {content: signal}
+    timing: per_layer
+    description: "For an expert or a layer, whether its bytes are registered with the GPU driver and at which address the GPU reads them in place."
+declares: {stages: [], states: [], policies: []}
+policies: []
+states: []
+composition_pc:
+  - id: model-file-reader
+    component_ref: comp/strata/model-file-reader
+    uses:
+      - {where: ssd0, purpose: "the GGUF shards"}
+      - {where: ram, purpose: "whole-file read-only mapping while a shard is open", allocation: reclaimable_mapping, resolved_at: startup, note: "Short-lived: each open in the startup code is a local object (inferred). backed_by ssd0."}
+      - {where: cpu0, purpose: "header parsing"}
+  - id: expert-layout
+    component_ref: comp/strata/expert-layout
+    uses:
+      - {where: ssd0, purpose: "native_experts.txt in the pack"}
+      - {where: cpu0, purpose: "parsing"}
+  - id: weight-loader
+    component_ref: comp/strata/weight-loader
+    implements: [load]
+    manages:
+      - {data: shared_weights, pool: vram}
+    uses:
+      - where: vram
+        purpose: "one range holding the kept dense tensors in engine form"
+        allocation: pinned
+        amount: {value: 4.522, unit: GB, unit_basis: binary, status: reported, source: "include/strata/core/weights.hpp:17-18 (comment)", note: "The whole canonical set. With --native about 2.7 GB of it is skipped (generate.cpp:5011-5012, comment); the exact size is the index pool number computed at startup."}
+        resolved_at: startup
+      - {where: ram, purpose: "two page-locked staging buffers", allocation: transient, amount: {value: 24, unit: MB, unit_basis: binary, status: reported, source: "src/core/weights.cpp:27, 257-263"}, resolved_at: design}
+      - {where: ssd0, purpose: "index.txt and the pack's data files"}
+      - {where: cpu0, purpose: "byte conversion on the main thread"}
+      - {where: gpu0, purpose: "destination of synchronous copies"}
+  - id: native-weight-loader
+    component_ref: comp/strata/native-weight-loader
+    implements: [load]
+    manages:
+      - {data: shared_weights, pool: vram}
+    uses:
+      - {where: vram, purpose: "one allocation per projection matrix, in 2 MiB granules", allocation: pinned, resolved_at: startup}
+      - {where: vram, purpose: "the output head in GGUF form", allocation: pinned, amount: {value: 0.41, unit: GB, unit_basis: binary, status: reported, source: "src/program/generate.cpp:5063, 8125 (comments: the Q5_K head of this model family)"}, resolved_at: startup, note: "Moved to ram, page-locked and GPU-mapped, by the sizing's last resort."}
+      - {where: ram, purpose: "the token embedding in page-locked host memory, one row read by the GPU per token", allocation: pinned, resolved_at: startup}
+      - {where: gpu0, purpose: "destination of the uploads"}
+  - id: startup-memory-sizing
+    component_ref: comp/strata/startup-memory-sizing
+    uses:
+      - {where: vram, purpose: "the reserve left free after loading", allocation: pinned, amount: {value: 700, unit: MB, unit_basis: binary, status: reported, source: "src/program/generate.cpp:799"}, resolved_at: startup, note: "Not an allocation: memory deliberately left unallocated. Lowered to as little as 300 MiB by the sizing ladder; plus 256 MiB for unpriced late allocations."}
+      - {where: cpu0, purpose: "arithmetic on the main thread"}
+      - {where: gpu0, purpose: "free-memory readings and zeroing the opened cache"}
+  - id: host-memory-admission
+    component_ref: comp/strata/host-memory-admission
+    uses:
+      - {where: ram, purpose: "soft page-locked reserve, held while the arena registers", allocation: transient, amount: {value: 640, unit: MB, unit_basis: binary, status: reported, source: "include/strata/core/pin_budget.hpp:89-97"}, resolved_at: startup, note: "Windows CUDA only. On Linux nothing is reserved unless STRATA_PIN_RESERVE_MIB is set."}
+      - {where: ram, purpose: "hard page-locked reserve, held until READY or the first refused guarded allocation", allocation: transient, amount: {value: 160, unit: MB, unit_basis: binary, status: reported, source: "include/strata/core/pin_budget.hpp:127"}, resolved_at: startup, note: "Windows CUDA only."}
+      - {where: cpu0, purpose: "arithmetic"}
+  - id: expert-source
+    component_ref: comp/strata/expert-source
+    implements: [load]
+    manages:
+      - {data: expert_weights, pool: ram}
+    uses:
+      - where: ram
+        purpose: "the arena: every routed expert plus one spare largest blob"
+        allocation: pinned
+        amount: {value: 33.97, unit: GB, unit_basis: decimal, status: reported, source: "include/strata/core/pinned.hpp:3 (comment, the Q2_0 pack)", note: "Computed at startup as the layout total plus one largest blob. Other packs per comments: 46.84 GiB (generate.cpp:7771), about 51 GiB for IQ3_S (ple_residency.hpp:16). Which pack this target runs is not established here."}
+        resolved_at: startup
+        note: "Kept resident best effort: registered with the GPU driver whole, or as a per-layer prefix with the rest locked by the operating system; large pages take no lock. On a 64 GB Windows PC the driver was seen to refuse registration at about half the RAM (pin_budget.hpp:3-7, comment)."
+      - {where: ram, purpose: "file-source mode: read-only mappings of experts.bin or the GGUF shards", allocation: reclaimable_mapping, resolved_at: startup, note: "Instead of the arena, with --mmap-experts or when RAM is short. backed_by ssd0."}
+      - {where: ssd0, purpose: "experts.bin or the GGUF shards"}
+      - {where: cpu0, purpose: "6 reader threads at startup, 16 when reading unbuffered"}
+      - {where: gpu0, purpose: "reads registered host memory in place"}
+composition_spark:
+  - id: model-file-reader
+    component_ref: comp/strata/model-file-reader
+    uses:
+      - {where: ssd0, purpose: "the GGUF shards"}
+      - {where: mem0, purpose: "whole-file read-only mapping while a shard is open", allocation: reclaimable_mapping, resolved_at: startup}
+      - {where: cpu0, purpose: "header parsing"}
+  - id: expert-layout
+    component_ref: comp/strata/expert-layout
+    uses:
+      - {where: ssd0, purpose: "native_experts.txt in the pack"}
+  - id: weight-loader
+    component_ref: comp/strata/weight-loader
+    implements: [load]
+    manages:
+      - {data: shared_weights, pool: mem0}
+    uses:
+      - {where: mem0, purpose: "one device range holding the kept dense tensors in engine form", allocation: pinned, resolved_at: startup}
+      - {where: mem0, purpose: "two page-locked staging buffers", allocation: transient, amount: {value: 24, unit: MB, unit_basis: binary, status: reported, source: "src/core/weights.cpp:27, 257-263"}, resolved_at: design}
+      - {where: ssd0, purpose: "index.txt and the pack's data files"}
+  - id: native-weight-loader
+    component_ref: comp/strata/native-weight-loader
+    implements: [load]
+    manages:
+      - {data: shared_weights, pool: mem0}
+    uses:
+      - {where: mem0, purpose: "projection matrices, output head and token embedding in GGUF form", allocation: pinned, resolved_at: startup}
+  - id: startup-memory-sizing
+    component_ref: comp/strata/startup-memory-sizing
+    uses:
+      - {where: mem0, purpose: "the reserve left free after loading", allocation: pinned, amount: {value: 700, unit: MB, unit_basis: binary, status: reported, source: "src/program/generate.cpp:799"}, resolved_at: startup}
+    note: "The rule that sizes the cache from the smaller of the GPU's free figure and the operating system's available RAM (uma_cache.hpp) is compiled only for HIP builds; in the CUDA build read here nothing discounts the host arena from the device's free figure on a unified-memory machine. Whether Strata has other handling for this target (the checkout has a spark directory) was not read."
+  - id: host-memory-admission
+    component_ref: comp/strata/host-memory-admission
+    uses:
+      - {where: mem0, purpose: "page-locked reserves", allocation: transient, amount: {value: 0, unit: MB, unit_basis: binary, status: reported, source: "include/strata/core/pin_budget.hpp:89-97, 126"}, resolved_at: startup, note: "Linux default: nothing is reserved."}
+    note: "The n-gram and arena admission rules run here as on any Linux host."
+  - id: expert-source
+    component_ref: comp/strata/expert-source
+    implements: [load]
+    manages:
+      - {data: expert_weights, pool: mem0}
+    uses:
+      - {where: mem0, purpose: "the arena: every routed expert plus one spare largest blob", allocation: pinned, resolved_at: startup, note: "Linux: whole-arena registration with the GPU driver is attempted first; huge pages when a pool holds the whole mapping."}
+      - {where: ssd0, purpose: "experts.bin or the GGUF shards"}
+      - {where: cpu0, purpose: "6 reader threads at startup"}
+    note: "Nothing in the code read is specific to this target; amounts were not established."
+model_additions:
+  - {id: token_embedding, kind: weight, note: "token_embd.weight is loaded and placed separately from the other dense weights (page-locked host memory, one row read per token), so a binding needs to name it apart from shared_weights. Size 0.444 GiB per the weights.hpp comment."}
+  - {id: output_head_weights, kind: weight, note: "output.weight is loaded by its own loader in GGUF form and is the one dense tensor the sizing may move from device memory to host memory; about 0.41 GiB per generate.cpp comments."}
+uncatalogued_mechanisms:
+  - {family: degrade-before-refuse-startup-sizing, summary: "Each memory consumer is sized in a fixed order from the free memory actually left, and a shortage walks a fixed ladder (smaller loan, lower reserve, own smaller prompt buffers, output head moved to host memory, cache reopened smaller) before the start is ended."}
+  - {family: touch-then-recheck-reserve, summary: "After a large device allocation its memory is written, free memory is read again, and the allocation is shrunk until the intended reserve is really left, because the free figure read before the allocation can be too high."}
+  - {family: gpu-readable-host-weights, summary: "Weights kept in host memory are registered with the GPU driver before they are written, so the GPU can read a selected piece in place over the bus without a staging copy; what cannot be registered is kept resident by an operating-system lock."}
+  - {family: page-locked-headroom, summary: "A small amount of page-locked memory is held back while a large region registers and released afterwards, so later small page-locked buffers do not fail on a platform with a ceiling on such memory."}
+  - {family: serve-weights-in-file-encoding, summary: "Tensors are uploaded in the block encoding the model file already uses and computed on by kernels for that encoding, and the engine-form copy of the same tensor is not loaded."}
+  - {family: lossless-load-time-reencoding, summary: "A tensor stored in a wider container than its values need is narrowed at load by an exact transform, and a plane the kernels want wider is widened exactly, so the on-disk form and the in-memory form can differ without changing any value."}
+  - {family: fall-back-to-file-source-when-ram-short, summary: "When host memory cannot hold all expert weights after a bounded wait, the engine reads them from their files through the page cache, with a copy of the hottest ones in the RAM that is available, instead of refusing or loading into a shortage."}
+notes:
+  - "Not on the run path, so not a component: include/strata/plan/plan.hpp (make_plan, DoesNotClose) and src/plan/plan_main.cpp. The calculator is called only by the strata-plan command-line tool and by the strata-device diagnostic (src/core/device_main.cpp:87, with all costs zero). generate.cpp never calls it. Its arithmetic: K/V bytes per token 12 x (1024 + 32 + 32) = 13,056; recurrent state 36 x 3,268,608 B = 117.7 MB; default pool 5,943,000,000 B; slots = (pool - K/V - fixed) / 1,382,400. No test references it."
+  - "Not on the CUDA run path: include/strata/core/uma_cache.hpp. uma_desktop_reserve_bytes and uma_cache_room_bytes are compiled only for HIP on Linux (generate.cpp:7925, 8028); wddm_auto_reserve_mib only for HIP on Windows (generate.cpp:7966). Tested by src/core/uma_cache_test.cpp."
+  - "Listed id comp/strata/startup-memory-sizing is kept with role memory_planner, but it is inline code in main of generate.cpp, not a unit with an interface; its only callable piece is auto_cache_slots. It sends no size to the K/V store: the session is one allocation of session_bytes(geometry, max context, experts per token) made by the session code."
+  - "Added leaves under comp/strata/loading beyond the listed ids: comp/strata/expert-layout, comp/strata/native-weight-loader, comp/strata/host-memory-admission."
+  - "Folded, not separate components: the architecture and geometry guard is inside comp/strata/model-file-reader; the pin budget (pin_budget.hpp) is inside comp/strata/host-memory-admission; the host arena allocator (PinnedArena), the operating-system lock (platform/memory.hpp), the arena (ArenaExpertSource) and the file source (FileExpertSource) are all inside comp/strata/expert-source."
+  - "Stand-alone tools in this area that are not components: strata-gguf (reader CLI with --check), strata-load (arena load and bandwidth measurement)."
+  - "Opt-in variants recorded only as decisions or not at all: STRATA_ARENA_MMAP=1 (Linux: the arena object maps experts.bin read-only, unlocked, unregistered, and writes that file on the first start), --shared-expert-arena (one arena file shared by several engine processes, with a state word saying who fills it), STRATA_DEFERRED_REGISTER=1 (Windows: per-layer registration on a thread ahead of the readers)."
+  - "A contradiction in the source about output effect: generate.cpp:7963 says the cache size changes no output bit; generate.cpp:8427-8439 prints at every start that the GPU rounds cached experts differently from the CPU so a reply can differ slightly. The components use the second."
+  - "Not determined: what the engine does after an automatic cache ends at zero slots (generate.cpp:8153-8174 prints what is short and has no exit)."
+  - "Comments describe opt-in modes in which the expert cache gives up slots while running (--kv-grow, --vram-elastic; generate.cpp:6744-6762, 8296-8309). Only the comments were read; if confirmed, a memory_governor component belongs in the expert subsystem or token path, not here."
+  - "Format: a flow from model_files that carries layout or index text rather than weights (native_experts.txt, index.txt) has no fitting content kind; `plan` was used for native_experts.txt."
+  - "Format: command-line flags and operating-system readings entering a planner from `external` have no content kind of their own; `plan` and `signal` were used."
+  - "Format: composition uses[] cannot express memory deliberately left unallocated (the reserve); it is written as a use with a note."
+  - "Format: allocation reclaimable_mapping is said to need backed_by, but composition uses[] has no backed_by field; the backing pool is given in the note."
+  - "Format: one component with two alternative resource shapes chosen at startup (arena or file mappings) has to list both under uses with the alternative explained in notes."
+  - "Format: a loader that is the first to place data in a pool is written under manages, although nothing manages that residency after startup."
+  - "Format: a component's needs_resources kind for page-locked host memory the GPU reads in place is slow_memory; the distinction between pageable, locked and GPU-registered host memory has no field."

@@ -1,0 +1,69 @@
+kind: model
+id: model/qwen3.8-flash-125b-a6b
+title: "Qwen3.8-Flash-Next (written Qwen3.8-Flash-125B-A6B in the reference slide), the model Strata is written for; IQ3_S quantisation"
+default_status: reported
+note: "Structure figures are taken from the documents and source comments of Strata at revision 504b143, read 2026-11-10. They are a third party's report, not the model publisher's statement and not my measurement. The size of the weights every token uses is not given in the documents as one figure."
+operations:
+  - id: expert_router
+    kind: selection
+    selects: {operation: expert_ffn, out_of: 512, pick: 10, per: "token per layer"}   # docs/DETAILS.md:108
+  - id: expert_ffn
+    kind: compute
+    reads: [expert_weights]
+  - id: shared_blocks
+    kind: compute
+    reads: [shared_weights, token_embedding]
+    writes: [attention_kv, indexer_keys, gdn_state]
+  - id: ngram_lookup
+    kind: compute
+    reads: [ngram_table]
+    writes: [ple_history]
+  - id: output_projection
+    kind: compute
+    reads: [output_head_weights]
+    note: "The final residual read and the projection to the vocabulary. A step apart from the layers; the engine places its weights separately."
+  - id: mtp_draft
+    kind: draft
+    drafts: {up_to: 7, proposes: "the next tokens"}
+    reads: [mtp_weights, token_embedding, output_head_weights]
+    writes: [mtp_kv]
+    note: "Up to 7 drafts per round is what the code allows (strata src/core/mtp.cpp:285,1731). The 3 quoted in docs/HOW_IT_WORKS.md:43 is the value for one command-line setting."
+  - id: dflash2_draft
+    kind: draft
+    drafts: {up_to: 7, proposes: "the next tokens"}
+    reads: [dflash2_weights]
+    note: "A second, separate drafter (5 layers, hidden size 2560) that reads the model's hidden states after layers 5, 15, 25, 35 and 45. Optional. Source: strata include/strata/core/dflash2.hpp:1-15."
+data:
+  - id: expert_weights
+    kind: weight
+    partitioned_by: [layer, expert]            # 48 layers x 512 = 24,576
+    size: {value: 50.3, unit: GB, unit_basis: decimal, status: reported, source: "strata docs/DGX_SPARK_LINUX.md:75"}
+  - id: shared_weights
+    kind: weight
+    size: {value: 4.522, unit: GiB, unit_basis: binary, status: reported, source: "strata include/strata/core/weights.hpp:17-18 (comment)", note: "The whole set in the engine's canonical form. Native packs skip about 2.7 GiB of it."}
+    note: "The weights every token uses, other than the embedding table and the output head listed below."
+  - id: token_embedding
+    kind: weight
+    size: {value: 0.444, unit: GiB, unit_basis: binary, status: reported, source: "strata include/strata/core/weights.hpp (comment)"}
+    note: "One row is read per token; the engine places it apart from the other weights."
+  - id: output_head_weights
+    kind: weight
+    size: {value: 0.41, unit: GiB, unit_basis: binary, status: reported, source: "strata src/program/generate.cpp (comment)"}
+    note: "The one dense tensor the engine's startup sizing may move from fast to slow memory."
+  - id: ngram_table
+    kind: weight
+    size: {value: 28.8, unit: GB, unit_basis: decimal, status: reported, source: "strata docs/HOW_IT_WORKS.md:31"}
+  - id: mtp_weights
+    kind: weight
+    size: {value: 0.82, unit: GB, unit_basis: decimal, status: derived, source: "strata include/strata/core/mtp.hpp:19; src/core/mtp.cpp:122", note: "708 MB of experts plus a 111 MiB dense part; approximate"}
+    note: "The draft layer has weights of its own: dense projections and 512 routed experts."
+  - id: dflash2_weights
+    kind: weight
+    note: "The weights of the optional second drafter. Size not read."
+  - {id: attention_kv, kind: model_state}
+  - {id: indexer_keys, kind: model_state}
+  - {id: gdn_state,    kind: model_state}
+  - {id: ple_history,  kind: model_state}
+  - {id: mtp_kv,       kind: model_state, note: "The draft layer's own attention keys and values, one cell per position."}
+statements:
+  - {subject: model/qwen3.8-flash-125b-a6b, property: layers, value: 48, status: reported, source: "strata include/strata/core/verify.hpp:3"}

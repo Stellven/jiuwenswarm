@@ -1,0 +1,1019 @@
+engine: "Splash"
+revision: "9124ff2 (Serving benchmark, pressure release gate and architecture rules #694)"
+basis: "Implementation read in code: runtime/engine/MemoryGovernor.hpp+.cpp (whole), MemoryLedger.hpp (whole) and MemoryLedger.cpp reclaim order (lines 300-540), ReclaimClass.hpp, MemoryPlan.hpp (whole), StreamedMemoryPlan.hpp (whole), Engine.hpp (lines 1-400 and 920-1160), Scheduler.hpp (whole), WeightResidency.hpp; runtime/model/Runtime.cpp decode path (lines 276-580, 2083-2700: draft graph, verify forward, acceptance, commits, finalizeDecode, ConstrainedDecodeTicket), VerifyBudget.hpp, QwenState.hpp (lines 1-140), ExpertStore.hpp (whole design comment and API), DFlashDraft.hpp (1-80); runtime/ops/KernelSelection.hpp+.cpp (lines 40-180), KernelCalibration.hpp (1-120), ExecutionPlans.hpp, PagedKv.hpp (extent constants); runtime/metal/kernels/decode/sampling.metal (residual draw 680-780, draft_verify_rows 1396-1448, acceptance 1460-1510, greedy argmax); runtime/engine/RuntimeResources.mm (ANE calibration key 1520-1540), AneFfnStartup.cpp (remember/recall); runtime/Supervision.hpp; server/constraints.py, tokenization.py, supervision.py (whole). Read as header/design comments and declarations only (not function bodies): the remaining runtime/engine headers (Cache, KvCache, StateCache, KvPool, KvPageTier, KvTier, WriteBehind, CacheDirectory, DiskSpace, Capture, PassCommand, MemoryControl, MemoryAudit, ReleasableMemory, ThermalState, Bootstrap, NativeRuntime, Protocol, FdTransport, NativeArguments, Status), runtime/model headers (GgufImage, GgufPreparation, WeightImages, WeightSource, SafetensorsImage, ModelFactory, ModelSizing, ModelDescriptor, SparseRowStore, SlotRecycler, SsdReaders, KvBlockCache, SpilledKvReads, KvHistoryStream, DraftCheckpoint, RuntimeArenas, SlotFile, StateTransfer, QwenVision, VisionPreparation, RopeScaling, CommandCost, Flint, QwenTarget), runtime/ane and runtime/ops headers (Program, Handoff, AneFfn, AneFfnCalibration, AneFfnMeasurement, Vision, NgramEmbedding, BlockIndexer, HyperConnection, MoE, GDN, DraftSelector, Sampling, StopTokens, PageStorage, KvSlotFormat, Embedding), runtime/metal headers (MetalBackend, CommandGraph, Residency, CommandWatchdog, DeviceCapabilities, Allocation); module docstrings and public names of every server/*.py and server/dialects/*.py and install/*.py. The earlier notes (engines/splash.md) and earlier list (validation/splash.yaml) were used as a starting point and checked against the above. Nothing built, run or measured. In parts, read: code means function bodies, kernels or detailed declarations were read; read: docs means the part was confirmed only from the design comments and declarations in its source headers (or module docstrings), not from docs/*.md."
+concurrency: batched
+models: "Five families on one Apple-Silicon GPU: Qwen3.8-27B (dense FFN), Qwen3.6-35B-A3B and Qwen3.5-122B-A10B (MoE, 256 experts, top 8), Qwen3.8-Flash-Next (MoE 512 experts top 10, four hyper-connected residual streams, block-sparse attention with a block indexer, a per-layer n-gram embedding table of about 29 GB that stays on SSD), and Flint (all-attention MoE with a sigmoid router, learned attention sinks and sliding-window layers). The Qwen families are hybrids: three of every four layers are GDN linear attention with fixed-size recurrent state, one in four is full attention with KV. Every target is paired with its own separately trained DFlash2 draft (a few non-causal layers that read chosen target layer outputs, share the target's vocabulary projection and propose seven tokens in one forward). Image input through a Qwen vision tower; PDF pages arrive as text plus images. No audio."
+parts:
+  - id: "model-installer"
+    engine_name: "install/ (assembly, upstream, families, hub, gguf, local)"
+    does: "Offline, selects a target repository and the DFlash2 draft trained for its family, derives config and tokenizer metadata from a GGUF header, pins the Hub snapshots and publishes an immutable assembly directory of links plus a model.json naming every file's digest."
+    not: "It converts no weights and writes no prepared weight copy; conversion into kernel layout happens in weight-image-loader at every start."
+    runs: [offline]
+    takes:
+      - {from: "outside: operator", what: "model selection (repository, revision, draft, language-only)"}
+      - {from: "outside: storage", what: "Hugging Face cache snapshots or local GGUF/safetensors files"}
+      - {from: "model-inspection", what: "the engine's model rules applied to configs and GGUF headers before any download (check_model)"}
+    gives:
+      - {to: "model-inspection", what: "assembly directory and model.json record of source digests"}
+      - {to: "configuration", what: "per-family option report the launcher and app read"}
+    owns_state: ["assemblies under models/.resolved and selection links", "derived GGUF metadata keyed by adapter hash"]
+    exists_because: "each target needs its matching trained draft and a tokenizer/chat template, and GGUF files carry those only as metadata"
+    output_effect: none
+    decisions:
+      - "which draft goes with which target family (by config, never by repository name)"
+      - "whether to include the vision tower (--language-only)"
+      - "when to follow the Hub versus use pinned snapshots"
+    when_things_go_wrong: ["a repository of no served family installs nothing", "unreferenced assemblies are collected"]
+    must_never: ["change an assembly once published", "identify a family by repository name"]
+    evidence: ["install/assembly.py (docstring)", "install/upstream.py (docstring)", "install/families.py", "install/gguf.py", "install/local.py"]
+    read: docs
+
+  - id: "model-inspection"
+    engine_name: "ModelDescriptor / inspectModelRoot"
+    does: "At each start, finds the family whose rules the target configuration fits, validates target, draft and vision sources against the assembly record's digests, and fixes the model's capabilities (window, YaRN, stop tokens, sparse KV shape)."
+    runs: [startup]
+    takes:
+      - {from: "model-installer", what: "assembly and model.json"}
+      - {from: "outside: model_files", what: "config.json, GGUF headers, draft config"}
+    gives:
+      - {to: "weight-layout-planner", what: "validated descriptor and family layout"}
+      - {to: "memory-plan", what: "served context window and model capabilities"}
+      - {to: "prefix-block-cache", what: "source identity that enters cache keys"}
+    owns_state: ["the model descriptor: family, sources, rope scaling, capabilities"]
+    exists_because: "kernels are compiled for fixed shapes, so only known families with exact shapes can be served"
+    output_effect: none
+    decisions:
+      - "which family a configuration describes"
+      - "whether to stretch context with YaRN (static factor for all requests)"
+    when_things_go_wrong: ["refuses a model of no family or with mismatched shapes before loading weights (permanent start failure)"]
+    must_never: ["serve a shape the kernels were not built for"]
+    evidence: ["runtime/model/ModelDescriptor.hpp (comments)", "runtime/model/RopeScaling.hpp", "runtime/engine/NativeArguments.hpp", "runtime/model/Qwen4Exp.hpp static_asserts (per notes)"]
+    read: docs
+
+  - id: "device-probe"
+    engine_name: "DeviceCapabilities"
+    does: "Reads the GPU family, core count, macOS version, unified memory and the recommended working set, classifies the GPU as Apple9 or Apple10, and refuses unsupported Macs."
+    runs: [startup]
+    takes: [{from: "outside: os", what: "Metal device properties, IORegistry core count"}]
+    gives:
+      - {to: "kernel-selector", what: "GPU class and planned core count"}
+      - {to: "memory-plan", what: "recommended working set and physical memory"}
+    owns_state: ["device capability record"]
+    exists_because: "kernel choice and the memory budget depend on the GPU class and size"
+    output_effect: none
+    decisions: ["which GPU class a family number maps to", "what core count to assume when none is reported"]
+    when_things_go_wrong: ["refuses family below 9, old macOS, or non-unified memory (permanent start failure)"]
+    must_never: ["branch kernel policy on anything outside this class and core count"]
+    evidence: ["runtime/metal/DeviceCapabilities.hpp", "runtime/metal/DeviceCapabilities.cpp"]
+    read: code
+
+  - id: "weight-layout-planner"
+    engine_name: "gguf::Image planning (GgufImage, SafetensorsImage, DraftCheckpoint, VisionPreparation, ModelSizing)"
+    does: "From file metadata alone, plans each weight image: section offsets, row order (GDN value heads regrouped by key head), which tensors become GPU-repacked planes, which are copied, and which parts (routed experts, PLE table) are left out to stream."
+    not: "It reads no tensor data; the bytes are moved by weight-image-loader."
+    runs: [startup]
+    takes:
+      - {from: "model-inspection", what: "descriptor and layout"}
+      - {from: "outside: model_files", what: "GGUF metadata or safetensors headers (MLX, Model Optimizer, compressed-tensors)"}
+      - {from: "streamed-parts-planner", what: "which parts stream instead of loading"}
+    gives:
+      - {to: "weight-image-loader", what: "image plans naming source rows per section"}
+      - {to: "streamed-parts-planner", what: "sizes of what loads, and of each streamable part whole and at its smallest store"}
+    owns_state: ["image plans (immutable once made)"]
+    exists_because: "kernels read a fixed block layout (MDGG) directly from quantized codes, which differs from every source format"
+    output_effect: none
+    decisions:
+      - "which formats are accepted and kept native versus converted"
+      - "which tensors are widened or recast (norms as F32 1+w, GDN decay, shared-expert gate to F32)"
+      - "which parts are left out of the image to stream"
+    when_things_go_wrong: ["refuses unsupported formats and whole-model BF16/F16"]
+    must_never: ["plan a section whose rows the kernels cannot read"]
+    evidence: ["runtime/model/GgufImage.hpp", "runtime/model/SafetensorsImage.hpp", "runtime/model/ModelSizing.hpp", "runtime/model/DraftCheckpoint.hpp", "runtime/model/VisionPreparation.hpp"]
+    read: docs
+
+  - id: "weight-image-loader"
+    engine_name: "writeGgufImage / WeightImages / WeightSource"
+    does: "Writes every planned image into its own Metal buffer by reading source rows with F_NOCACHE and having the GPU repack them into planes, quantizes the BF16 draft into 4-bit af4g64 planes, and checks afterwards that no source was written meanwhile."
+    not: "It keeps no prepared copy on disk; a restore after idle release reruns the same write."
+    runs: [startup, on_demand]
+    takes:
+      - {from: "weight-layout-planner", what: "image plans"}
+      - {from: "outside: model_files", what: "tensor bytes"}
+      - {from: "memory-governor", what: "admission for each image buffer"}
+    gives:
+      - {to: "target-forward", what: "weight planes and tables in GPU memory"}
+      - {to: "draft-proposer", what: "4-bit draft weights"}
+      - {to: "vision-encoder", what: "BF16 vision tower image"}
+      - {to: "prefix-block-cache", what: "content identity of each image (enters cache keys)"}
+    owns_state: ["the weight images and their open source files"]
+    exists_because: "unified memory holds one copy only; avoiding the page cache keeps the weights from being held twice"
+    output_effect: numeric
+    output_effect_when: "draft projections are quantized from BF16 at load, which changes draft proposals (not greedy target output); some tensors are recast (F32 norms, decay), last bits versus the source"
+    decisions: ["bypass the page cache for reads", "repack on GPU through a fixed staging buffer", "quantize the draft at load rather than ship it quantized"]
+    when_things_go_wrong: ["a source changed since it was opened fails the load", "an allocation refused at start is retried within a bounded window (bootstrap-sequencer)"]
+    must_never: ["mix old and new bytes of a source that was rewritten", "write a converted copy to disk"]
+    evidence: ["runtime/model/GgufPreparation.hpp", "runtime/model/WeightImages.hpp", "runtime/model/WeightSource.hpp", "runtime/model/WeightSource.cpp:47 (F_NOCACHE, per notes)"]
+    read: docs
+
+  - id: "weight-residency"
+    engine_name: "WeightResidency / ReleasableMemory"
+    does: "After an idle period with no request, releases the weight images, the expert store's chunks and staging, and the ANE program; on the next request restores them one part per engine tick before any request runs."
+    runs: [background, on_demand]
+    takes:
+      - {from: "lane-admission", what: "engine idle or a request arriving"}
+      - {from: "memory-governor", what: "admission for each restored part (Floor while a request waits, Start otherwise)"}
+    gives:
+      - {to: "weight-image-loader", what: "restore an image (rewrite from source)"}
+      - {to: "expert-store", what: "release and restore of floor chunks and staging"}
+      - {to: "ane-ffn-split", what: "unload and reload of its ANE program"}
+      - {to: "telemetry", what: "released/restoring flags, restore counts and failures"}
+    owns_state: ["held / released / restoring status and the idle clock"]
+    exists_because: "the engine shares one memory pool with every other application on the Mac and its weights are its largest holding"
+    output_effect: none
+    decisions: ["how long idle before release (--idle-release, or off)", "restore one part per tick so frames and timed checks still run", "abandon a restore when no request waits and memory is refused"]
+    when_things_go_wrong: ["a refused restore makes waiting requests wait; each fails retryably at its wait limit and the weights are released again"]
+    must_never: ["run a request before every part is back", "let a command read a released buffer (the command fails instead)"]
+    evidence: ["runtime/engine/WeightResidency.hpp", "runtime/engine/ReleasableMemory.hpp", "runtime/engine/Engine.hpp:267-311"]
+    read: code
+
+  - id: "streamed-parts-planner"
+    engine_name: "planStreamedMemory"
+    does: "Before the model loads, decides from the engine budget whether MoE routed experts and the PLE table load whole or stream from SSD, sizes their stores and floors, and sizes the floors of KV spill for a sparse-attention target."
+    not: "It does not decide the KV/context budget; memory-plan does that after loading."
+    runs: [startup]
+    takes:
+      - {from: "memory-plan", what: "hard budget and fixed bytes"}
+      - {from: "weight-layout-planner", what: "sizes of each streamable part"}
+      - {from: "configuration", what: "--expert-memory, --ple-memory, --max-context, --sparse-kv-memory"}
+      - {from: "ssd-cache-tier", what: "whether the tier takes writes and its active-KV room"}
+    gives:
+      - {to: "expert-store", what: "cap, floor bytes and floor share"}
+      - {to: "ple-row-store", what: "row cache bytes"}
+      - {to: "kv-spill-controller", what: "spill plan: dense, window and group pages, reader floors"}
+      - {to: "weight-layout-planner", what: "which parts stream"}
+    owns_state: ["the streamed plan"]
+    exists_because: "MoE experts and the PLE table can exceed memory on small Macs while only a few rows are needed per step"
+    output_effect: none
+    decisions:
+      - "KV allowance first (64K tokens or --max-context), then experts whole, then PLE table, then the rest"
+      - "expert floor share: all slots when KV can spill, else a fixed share"
+      - "replan with fewer streamed parts when that streams more"
+    when_things_go_wrong: ["floors beyond the budget or a size below a part's minimum are refused at start"]
+    must_never: ["rest any size on the host's free memory; only the engine limit counts"]
+    evidence: ["runtime/engine/StreamedMemoryPlan.hpp"]
+    read: code
+
+  - id: "memory-plan"
+    engine_name: "EngineMemoryPlan / EngineMemoryPolicy"
+    does: "Computes the engine's hard Metal budget (recommended working set less a margin, optionally lowered by --max-memory), the host reserves, the fixed floors, the KV page and extent geometry, and the longest context one request may take, which is a result of the plan."
+    runs: [startup]
+    takes:
+      - {from: "device-probe", what: "recommended working set, physical memory"}
+      - {from: "model-inspection", what: "served window"}
+      - {from: "weight-image-loader", what: "measured target, draft and vision weight bytes"}
+      - {from: "streamed-parts-planner", what: "store sizes and spill plan"}
+      - {from: "ane-ffn-calibrator", what: "ANE split bytes"}
+    gives:
+      - {to: "memory-governor", what: "hard budget, untracked reserve, host reserves, host-held bytes"}
+      - {to: "kv-page-pool", what: "page and extent geometry, page count"}
+      - {to: "lane-admission", what: "maximum context and spill geometry"}
+      - {to: "telemetry", what: "the plan as /status memory_plan"}
+      - {to: "streamed-parts-planner", what: "hard budget and fixed bytes"}
+    owns_state: ["the budget breakdown and context bounds"]
+    exists_because: "unified memory is one pool shared with other applications; context length is whatever the plan leaves"
+    output_effect: none
+    decisions: ["working-set margin rule", "host available and spare reserves as shares of physical memory", "context bound by model window, resident memory, or spill and disk"]
+    when_things_go_wrong: ["KvPoolDoesNotFit or WorkingSetTooSmall refuses the start with the shortfall"]
+    must_never: ["let --max-memory raise the budget above the automatic ceiling", "preallocate lanes' state or KV (they grow from the dynamic budget)"]
+    evidence: ["runtime/engine/MemoryPlan.hpp:176-305"]
+    read: code
+
+  - id: "memory-governor"
+    engine_name: "MemoryGovernor"
+    does: "Is the sole admission for every Metal allocation: grants a short-lived byte reservation inside a claim's scope if it fits under the engine limit (less what higher-ranked waiting claims hold) and the host rule admits it for the claim's class, else refuses with the cause."
+    not: "It does not choose what to evict; memory-ledger does."
+    runs: [per_step, background]
+    takes:
+      - {from: "memory-plan", what: "limit, reserves"}
+      - {from: "outside: os", what: "Mach VM page counts, kern.memorystatus_vm_pressure_level, task footprint"}
+      - {from: "metal-command-backend", what: "allocated bytes and device current allocation"}
+      - {from: "memory-ledger", what: "held bytes of higher-ranked waiting claims, host-refused bytes, lane demand"}
+    gives:
+      - {to: "kv-page-pool", what: "allocation admission (grant or EngineBudget/HostPressure refusal)"}
+      - {to: "gdn-state-cells", what: "allocation admission"}
+      - {to: "expert-store", what: "allocation admission for chunk growth"}
+      - {to: "weight-residency", what: "allocation admission for restores"}
+      - {to: "memory-ledger", what: "control pass: host claim of the deficit, then pool growth"}
+      - {to: "telemetry", what: "governor snapshot with host telemetry"}
+    owns_state: ["reserved bytes", "host band state with hysteresis and waiver", "unseen-growth correction", "denied count"]
+    exists_because: "the GPU shares physical memory with every other process and macOS only offers estimates and pressure levels"
+    output_effect: none
+    decisions:
+      - "estimate of host available and spare memory, counting a capped compression credit unless pressure is critical"
+      - "per-class host rule: floor work always, in-service work keeps the margin at normal pressure, elective work also needs to be outside the band"
+      - "critical pressure refuses everything and triggers a host claim each settle period"
+      - "pool growth admitted on its net change when cache funds it"
+    when_things_go_wrong: ["refuses with HostPressure or EngineBudget and records what the claim lacks", "a driver refusal after admission is passed back as its own cause", "missing telemetry holds elective work back but forces no release"]
+    must_never: ["allow an allocation outside a claim scope (logic error)", "count a /status read as a sample that moves admission"]
+    evidence: ["runtime/engine/MemoryGovernor.hpp", "runtime/engine/MemoryGovernor.cpp:22-496"]
+    read: code
+
+  - id: "memory-ledger"
+    engine_name: "MemoryLedger (claims, ClaimRank, TakeRights, VictimSource, ElasticPool accounts)"
+    does: "Keeps every open memory claim with its rank and class, decides what each claim may take, and frees what it lacks from heterogeneous holders in one fixed order, and grows elastic pools toward their caps when quiet."
+    not: "It never allocates; and it does not decide admission (memory-governor)."
+    runs: [per_step, background]
+    takes:
+      - {from: "lane-admission", what: "claims with class, rank, reach, timing, lane-needs; lanes' projected growth"}
+      - {from: "prefix-block-cache", what: "victim units (KV blocks, extents) and what transfers will return"}
+      - {from: "composite-state-cache", what: "victim units (states, checkpoints)"}
+      - {from: "expert-store", what: "elastic pool state and release of top chunk"}
+      - {from: "image-embedding-cache", what: "rebuild-only pool units"}
+      - {from: "spilled-kv-reader", what: "hot-block and staging pool units"}
+      - {from: "memory-governor", what: "room, critical flag, host growth admission"}
+    gives:
+      - {to: "prefix-block-cache", what: "take: evict, demote to SSD, or compact"}
+      - {to: "composite-state-cache", what: "take: evict or write a state"}
+      - {to: "expert-store", what: "release or regrow a chunk"}
+      - {to: "lane-admission", what: "free result: met, pending (memory on its way back) or short"}
+      - {to: "write-behind", what: "copy demand (claims recently reached cache that a copy would free at once)"}
+      - {to: "telemetry", what: "accounts, owed bytes, waiting claims, decision log"}
+    owns_state: ["open claims and their waits", "pool accounts and grow/shrink counts", "quiet and copy-demand clocks"]
+    exists_because: "many unrelated holders (prefix KV, recurrent states, expert chunks, staging, embeddings, next lane's buffers) compete for one budget and differ in what losing them costs"
+    output_effect: none
+    decisions:
+      - "reclaim order: free-now cache, rebuild-only pools, cache needing a write, own conversion to spill or the paused command, expert chunks above floor, units in use, next lane's start buffers"
+      - "take rights per claim class, timing and priority (no pool unit below a higher-priority lane in service)"
+      - "claim rank: priority, decoding before prefill, completed tokens, earlier submission"
+      - "wait a quiet period before regrowing pools"
+    when_things_go_wrong: ["a claim short of everything its rights reach is reported Short and its request waits or fails at its limit", "a pending free leaves the claim waiting for landings"]
+    must_never: ["take what a claim's rights exclude", "give a Floor claim anything (logic error)", "grow pools while a request's claim waits"]
+    evidence: ["runtime/engine/MemoryLedger.hpp", "runtime/engine/MemoryLedger.cpp:300-540", "runtime/engine/ReclaimClass.hpp"]
+    read: code
+
+  - id: "bootstrap-sequencer"
+    engine_name: "RuntimeBootstrap / RuntimeResources::create"
+    does: "Runs the start in fixed stages (configuration, backend, capability check, model loading, memory planning, storage allocation, maximum-prefill and decode warmup, composite state restore from a persistent tier, memory audit) and reports Ready or a classified start failure."
+    runs: [startup]
+    takes:
+      - {from: "configuration", what: "native command line"}
+      - {from: "memory-plan", what: "plan"}
+      - {from: "ssd-cache-tier", what: "states and KV blocks a persistent tier holds from an earlier process"}
+    gives:
+      - {to: "native-loop", what: "Ready report or start failure with stage and shortfall"}
+      - {to: "telemetry", what: "warmup report and memory audit"}
+    owns_state: ["start stage and the retry window for temporary allocation failures"]
+    exists_because: "every engine needs it; here warmup must run on a reserved KV runway and failures must be classed for the server's relaunch policy"
+    output_effect: none
+    decisions: ["retry temporary host or driver allocation failures within a window that opens at the first failure", "warm up on the runway pages without allocating KV"]
+    when_things_go_wrong: ["a warmup lane with a non-finite row fails the start", "memory or context shortfall is reported as a memory-class failure that the server retries"]
+    must_never: ["report Ready before warmup and audit pass"]
+    evidence: ["runtime/engine/Bootstrap.hpp", "runtime/engine/RuntimeResources.hpp:40-64", "runtime/model/Runtime.cpp:3421-3445"]
+    read: docs
+
+  - id: "ane-ffn-calibrator"
+    engine_name: "AneFfnStartup / ane_ffn::Calibration"
+    does: "At start, for a dense target only, times the FFN split at two ANE shares and the GPU alone on a few layers, fits T(s) = max(A(s), G(s) + u A(s)), and picks the ANE's channel share and least chunk rows, or none; persists the result keyed by layer shapes, device, macOS version, build and allowed units."
+    runs: [startup]
+    takes:
+      - {from: "ane-ffn-split", what: "measurements of split and GPU-alone layers"}
+      - {from: "memory-plan", what: "most ANE units the plan allows"}
+      - {from: "outside: storage", what: "remembered calibration in the per-user splash-ane cache"}
+    gives:
+      - {to: "ane-ffn-split", what: "ANE unit count and minimum rows"}
+      - {to: "memory-plan", what: "split's Metal bytes"}
+      - {to: "outside: storage", what: "remembered calibration"}
+    owns_state: ["the remembered calibration per key"]
+    exists_because: "the ANE's gain depends on the Mac (M5 Max gives it far fewer channels than M6) and is only knowable by measuring"
+    output_effect: none
+    decisions: ["the minimum predicted gain to enable the split", "the chunk-noise tolerance for the least rows", "remember a no-gain result too"]
+    when_things_go_wrong: ["timings not finite and positive are refused", "no gain: the GPU alone serves"]
+    must_never: ["calibrate a MoE target"]
+    evidence: ["runtime/engine/AneFfnStartup.hpp", "runtime/engine/AneFfnStartup.cpp:146-239", "runtime/engine/RuntimeResources.mm:1520-1540", "runtime/ops/AneFfnCalibration.hpp", "runtime/ops/AneFfnMeasurement.hpp"]
+    read: code
+
+  - id: "ane-ffn-split"
+    engine_name: "ops::AneFfn / ane::Program / ane::Handoff"
+    does: "During a dense target's prefill, runs the leading intermediate channels of each FFN layer on the GPU and the rest as a W8A8 program on the Neural Engine (int8 weights requantized by the GPU one layer ahead into shared IOSurfaces), ordered by a shared event, and adds the ANE's partial down projection to the GPU's."
+    not: "It is not expert offload and not a decode path; MoE targets and decode never use it."
+    runs: [per_layer]
+    takes:
+      - {from: "prefill-runner", what: "chunk rows and FFN inputs"}
+      - {from: "ane-ffn-calibrator", what: "share and minimum rows"}
+      - {from: "weight-image-loader", what: "projection planes to requantize"}
+    gives:
+      - {to: "target-forward", what: "summed FFN output"}
+      - {to: "telemetry", what: "split state and breaker trips"}
+    owns_state: ["the loaded ANE program (memory held by the ANE service process, outside the Metal budget)", "the breaker state, permanent for the process"]
+    exists_because: "the Neural Engine is a third compute unit that sits idle during GPU prefill, and dense FFN channels are independent so the work splits by channel"
+    output_effect: changes_output
+    output_effect_when: "when the split runs (27B prefill with --ane on and a calibrated gain): the ANE part is int8 weights and Hadamard-rotated int8 activations computed in fp16, versus the GPU-alone prefill (docs report logits KL around 1e-4 to 7e-4)"
+    decisions: ["which program function size a chunk uses", "stop the split on any ANE failure, timeout or non-finite value", "stop it when a window of commands shows no gain"]
+    when_things_go_wrong: ["any ANE failure retires the handoff (event raised to its top so GPU waits pass), the command's results are discarded and the chunk reruns on the GPU alone, as every later chunk does"]
+    must_never: ["let a job exceed the GPU's event wait limit", "use a discarded command's results"]
+    evidence: ["runtime/ops/AneFfn.hpp", "runtime/ane/Handoff.hpp", "runtime/ane/Program.hpp", "runtime/ops/AneFfnCalibration.cpp:15-22 (per notes)"]
+    read: docs
+
+  - id: "kernel-selector"
+    engine_name: "KernelCalibration / KernelSelection / ExecutionPlans"
+    does: "When each command is encoded, picks for every projection, MoE block and attention the kernel tile (register, staged, prefill, float tile) and the K-split count and gate/up pass mode, from the GPU class, core count, weight formats, lane count and rows, using a per-class table of measured constants and a wave-law cost model."
+    runs: [per_step]
+    takes:
+      - {from: "device-probe", what: "GPU class and cores"}
+      - {from: "weight-layout-planner", what: "weight formats and bits per weight"}
+      - {from: "request-scheduler", what: "lanes and rows of the command"}
+    gives: [{to: "target-forward", what: "per-operator plans"}, {to: "draft-proposer", what: "draft attention plans"}]
+    owns_state: ["the per-device calibration table (fixed for the process)"]
+    exists_because: "Apple9 runs matrix work on the FP32 pipe and Apple10 on per-core neural accelerators, and a grid's last wave per core dominates time"
+    output_effect: numeric
+    output_effect_when: "the split count and tile change summation order, so outputs differ in the last bits by GPU class and by batch width; greedy output of a request can change with how many lanes share its batch"
+    decisions: ["register tile versus staged tile by a per-class boundary on column tiles times lanes", "split count by tier law (Apple9, register) or wave law minimizing predicted time (Apple10 staged)", "one or two passes for a gate/up pair", "staged tile versus prefill tile by chunk rows"]
+    when_things_go_wrong: ["a missing core count falls back to an assumed count"]
+    must_never: ["branch on the device anywhere but this calibration table"]
+    evidence: ["runtime/ops/KernelSelection.hpp", "runtime/ops/KernelSelection.cpp:40-180", "runtime/ops/KernelCalibration.hpp:1-120", "runtime/ops/ExecutionPlans.hpp"]
+    read: code
+
+  - id: "metal-command-backend"
+    engine_name: "MetalBackend / CommandGraph / Residency / CommandWatchdog"
+    does: "Encodes command graphs into Metal command buffers split at event signals and host steps, declares residency per encoder only for the buffers its address tables reach, keeps a residency set wired by a heartbeat, optionally spins one GPU thread through short host steps, and fails a command that makes no progress."
+    runs: [per_step, background]
+    takes:
+      - {from: "prefill-runner", what: "prefill command graphs"}
+      - {from: "acceptance-commit", what: "decode cycle graphs"}
+      - {from: "memory-governor", what: "admission for every buffer"}
+    gives:
+      - {to: "memory-governor", what: "allocated and device bytes"}
+      - {to: "expert-loader", what: "host-step callbacks inside a command"}
+      - {to: "native-loop", what: "command completion and health"}
+    owns_state: ["every Metal buffer and its reach", "the residency set", "the command in flight and its watchdog deadline"]
+    exists_because: "attaching residency to the queue made every command buffer wait for all memory near the working-set limit; host steps must sit inside commands for streamed weights; Metal fails event waits after a fixed limit"
+    output_effect: none
+    decisions: ["bound versus addressed buffer reach", "per-encoder residency instead of queue residency", "spin the GPU through short host steps or not (checked at start)", "heartbeat and keep-alive of the residency set"]
+    when_things_go_wrong: ["a command with no progress past the command timeout fails the engine", "an allocation the driver refuses is reported as a driver failure", "a command binding released memory fails rather than reading garbage"]
+    must_never: ["keep more than one command in flight on the command queue", "attach the residency set to the queue"]
+    evidence: ["runtime/metal/MetalBackend.hpp:1-340", "runtime/metal/Residency.hpp", "runtime/metal/CommandWatchdog.hpp", "runtime/metal/CommandGraph.hpp", "runtime/Supervision.hpp:30-38"]
+    read: docs
+
+  - id: "target-forward"
+    engine_name: "QwenTarget / Qwen4ExpTarget / Flint / ops (GDN, PagedAttention, MoE, HyperConnection, NgramEmbedding, RoPE, Linear)"
+    does: "Computes the target model for a prefill chunk or a verify block: embedding, hybrid GDN and attention layers (sinks and sliding windows for Flint), dense or MoE FFN with routing, hyper-connected residual streams and PLE n-gram injection for Flash-Next, capture of the draft's chosen layer outputs, final norm and vocabulary projection."
+    runs: [per_layer]
+    takes:
+      - {from: "weight-image-loader", what: "weights"}
+      - {from: "kernel-selector", what: "operator plans"}
+      - {from: "kv-page-pool", what: "page tables of KV"}
+      - {from: "gdn-state-cells", what: "current and next cells, tape, pending rows"}
+      - {from: "expert-loader", what: "routed experts present in slots"}
+      - {from: "ple-row-store", what: "staged PLE rows"}
+      - {from: "block-sparse-indexer", what: "selected KV blocks"}
+      - {from: "spilled-kv-reader", what: "locations of spilled blocks"}
+      - {from: "vision-encoder", what: "image embedding rows"}
+      - {from: "verify-row-budget", what: "rows each lane verifies (MoE routes only those)"}
+    gives:
+      - {to: "token-selector", what: "logits per row"}
+      - {to: "draft-state", what: "captured target layer outputs"}
+      - {to: "kv-page-pool", what: "new K/V rows written past committed length"}
+      - {to: "expert-loader", what: "routing decisions per layer"}
+    owns_state: ["per-command scratch arenas"]
+    exists_because: "every engine needs it"
+    output_effect: numeric
+    output_effect_when: "versus a reference implementation (llama.cpp): quantized kernels, half-precision staging and split order differ in the last bits (docs report 97.8-99.5% top-1 agreement)"
+    decisions: ["router weighting (softmax or sigmoid-normalized)", "verify rows routed for MoE", "GDN value-head order"]
+    when_things_go_wrong: ["a non-finite row fails that lane's request, not the command"]
+    must_never: ["serve a shape other than the compiled one"]
+    evidence: ["runtime/model/QwenTarget.hpp (comments)", "runtime/model/Flint.hpp", "runtime/ops/MoE.hpp", "runtime/ops/HyperConnection.hpp", "runtime/ops/NgramEmbedding.hpp", "runtime/ops/GDN.hpp", "runtime/model/Runtime.cpp:2156-2229"]
+    read: code
+
+  - id: "block-sparse-indexer"
+    engine_name: "BlockIndexer (Flash-Next QSA)"
+    does: "For Flash-Next's attention layers, scores pooled block keys and picks the top blocks each row attends, and pools the keys of blocks the step completes into the page's index plane."
+    runs: [per_layer]
+    takes: [{from: "kv-page-pool", what: "index planes of pages"}, {from: "target-forward", what: "indexer queries and raw keys"}]
+    gives: [{to: "target-forward", what: "block lists per row"}, {to: "spilled-kv-reader", what: "blocks to resolve on Index pages"}]
+    owns_state: ["pending keys of an incomplete block (part of auxiliary state)"]
+    exists_because: "Flash-Next's attention is block-sparse by design, which also lets old K/V leave memory"
+    output_effect: none
+    decisions: ["how many top blocks to attend (model-defined)"]
+    when_things_go_wrong: ["a selected block that cannot be read fails the lanes that listed it"]
+    must_never: ["drop an index plane, whatever the page form"]
+    evidence: ["runtime/ops/BlockIndexer.hpp", "runtime/model/QwenTarget.hpp:342-360"]
+    read: docs
+
+  - id: "vision-encoder"
+    engine_name: "QwenVision / ops::Vision / vision arena"
+    does: "Runs the vision tower on an image's pixels inside the prefill command that first reaches the image, producing embedding rows that replace the image placeholder tokens."
+    runs: [per_request]
+    takes: [{from: "image-preparation", what: "patch-aligned RGB and grid"}, {from: "weight-image-loader", what: "vision tower weights"}]
+    gives: [{to: "image-embedding-cache", what: "encoded rows"}, {to: "target-forward", what: "injected image rows"}]
+    owns_state: ["the vision arena, built on demand and released when idle (rebuild-only pool)"]
+    exists_because: "the Qwen families take images; the tower has its own weights and scratch"
+    output_effect: none
+    decisions: ["build the arena only when an image waits", "the per-image patch cap from --max-image-pixels"]
+    when_things_go_wrong: ["images over the cap are rejected at submit"]
+    must_never: ["encode one image twice while another placement awaits it"]
+    evidence: ["runtime/model/Runtime.cpp:281-316, 507-537", "runtime/ops/Vision.hpp", "runtime/model/QwenVision.hpp"]
+    read: code
+
+  - id: "image-embedding-cache"
+    engine_name: "embeddingCache / EmbeddingsPool"
+    does: "Keeps encoded image rows by content digest and grid, shared by repeated placements and concurrent requests, and gives the least recently used unheld entries back to the ledger."
+    runs: [per_request]
+    takes: [{from: "vision-encoder", what: "encoded rows"}, {from: "memory-ledger", what: "release requests"}]
+    gives: [{to: "target-forward", what: "cached image rows"}, {to: "memory-ledger", what: "rebuild-only pool units"}]
+    owns_state: ["cached embeddings by image key"]
+    exists_because: "agent conversations resend the same images every turn"
+    output_effect: none
+    decisions: ["least recently used first", "entries something holds form the floor"]
+    when_things_go_wrong: ["an evicted entry is re-encoded"]
+    must_never: ["release an entry a placement still holds"]
+    evidence: ["runtime/model/Runtime.cpp:296-310, 539-571"]
+    read: code
+
+  - id: "expert-store"
+    engine_name: "ExpertStore / ElasticPool / ExpertChunkLayout"
+    does: "Holds routed experts in slots grouped by expert size, in a floor chunk plus about 1 GiB elastic chunks, with per-block slot tables the MoE kernels read; gives its last elastic chunk back under pressure (compacting experts below it) and takes chunks back when memory is ample."
+    runs: [startup, background]
+    takes:
+      - {from: "streamed-parts-planner", what: "cap, floor"}
+      - {from: "memory-ledger", what: "release or regrow requests"}
+      - {from: "memory-governor", what: "admission for chunks"}
+      - {from: "weight-residency", what: "release and restore"}
+    gives:
+      - {to: "expert-loader", what: "slot tables and staging"}
+      - {to: "memory-ledger", what: "pool state (floor, current, cap, unit)"}
+      - {to: "telemetry", what: "expert store stats"}
+    owns_state: ["which expert sits in which slot of which chunk", "live chunk count", "failed-load flag"]
+    exists_because: "MoE targets route 8 to 10 of hundreds of experts per row, so most expert bytes are idle at any step, yet the full set may not fit"
+    output_effect: none
+    output_effect_when: "docs claim streamed and resident experts are bit-identical (same kernels via slot tables); not verified here"
+    decisions: ["which size's chunk to release (largest share above floor) or regrow (smallest share)", "release one chunk, or all to floor under critical pressure", "a size used by only one block holds all its experts in its floor"]
+    when_things_go_wrong: ["after a failed load every later load fails", "shrink and growth run only between successful commands"]
+    must_never: ["leave a slot table naming a released chunk", "shrink while routed experts wait to be staged"]
+    evidence: ["runtime/model/ExpertStore.hpp:1-237", "runtime/engine/StreamedMemoryPlan.hpp:65-87"]
+    read: code
+
+  - id: "slot-recycler"
+    engine_name: "SlotRecycler (ARC)"
+    does: "Chooses which slot a missing key takes by adaptive replacement over recently-once and recently-again lists with ghost lists, never a slot the same load uses, treating long prefill chunks as scans."
+    runs: [per_layer]
+    takes: [{from: "expert-loader", what: "keys a load uses and misses"}, {from: "spilled-kv-reader", what: "block keys of the hot cache"}]
+    gives: [{to: "expert-loader", what: "slot to fill and key to evict"}, {to: "spilled-kv-reader", what: "slot to fill"}]
+    owns_state: ["T1/T2 lists, ghost lists, target share"]
+    exists_because: "decode cycles loop over layers, so LRU over the layer loop would keep nothing a decode step routes again"
+    output_effect: none
+    decisions: ["adapt T1's target share on ghost hits", "scans leave no ghosts and move no hits"]
+    when_things_go_wrong: ["throws when every slot holds a key the load uses"]
+    must_never: ["recycle a slot the current load touched"]
+    evidence: ["runtime/model/SlotRecycler.hpp"]
+    read: docs
+
+  - id: "expert-loader"
+    engine_name: "ExpertStore::addLoad / moe_expert_load host step"
+    does: "After routing in a streamed layer, a host step inside the command claims slots for non-resident routed experts, reads their native rows from the source files into staging (directly with F_NOCACHE where stored as-is), and a GPU repack kernel moves them into slots before the expert kernels run."
+    runs: [per_layer]
+    takes:
+      - {from: "target-forward", what: "routing of the layer"}
+      - {from: "slot-recycler", what: "slots to claim"}
+      - {from: "ssd-reader-pool", what: "reads"}
+      - {from: "outside: model_files", what: "expert rows"}
+    gives: [{to: "target-forward", what: "experts present in slots"}, {to: "expert-read-ahead", what: "free staging half"}]
+    owns_state: ["the load in progress and its rounds"]
+    exists_because: "routing is known only inside the command, so the read must happen between GPU dispatches"
+    output_effect: none
+    decisions: ["one round for decode, half the staging per round for prefill", "read straight from file versus build rows"]
+    when_things_go_wrong: ["a read tried twice and failed, or a changed source, fails the command and every later load"]
+    must_never: ["evict an expert the same load routes", "let host step plus GPU work exceed Metal's event wait limit"]
+    evidence: ["runtime/model/ExpertStore.hpp:32-46, 68-73"]
+    read: docs
+
+  - id: "expert-read-ahead"
+    engine_name: "ExpertStore read-ahead"
+    does: "While the GPU runs, reads ahead into the free staging the experts most likely next: the next round's, or after a decode step the next block's experts its router picks from this block's input, ranked by summed routing weight; for a long prefill chunk the whole next block."
+    runs: [background]
+    takes: [{from: "expert-loader", what: "free staging and current rows"}, {from: "ssd-reader-pool", what: "background reads"}]
+    gives: [{to: "expert-loader", what: "experts already staged"}]
+    owns_state: ["the read-ahead batch in flight"]
+    exists_because: "rows change little from block to block, so the next block's router applied to this block's input predicts its routes"
+    output_effect: none
+    decisions: ["which experts to read ahead and in what order", "read-ahead piece size"]
+    when_things_go_wrong: ["a failed read-ahead is no failure; the load reads it again"]
+    must_never: ["delay a step's own reads (background batches yield to foreground)"]
+    evidence: ["runtime/model/ExpertStore.hpp:47-60"]
+    read: docs
+
+  - id: "ssd-reader-pool"
+    engine_name: "SsdReaders"
+    does: "Runs the engine's single pool of reader threads for every SSD read a step needs (experts, PLE rows, spilled KV), with foreground batches ahead of background ones and one retry per task."
+    runs: [per_step, background]
+    takes: [{from: "expert-loader", what: "read batches"}, {from: "ple-row-store", what: "row reads"}, {from: "spilled-kv-reader", what: "block and layer reads"}, {from: "ssd-cache-tier", what: "restores"}]
+    gives: [{to: "outside: storage", what: "pread requests"}]
+    owns_state: ["queued batches and their failures"]
+    exists_because: "an SSD reaches full speed on small pieces only with many reads in flight"
+    output_effect: none
+    decisions: ["foreground before background", "hold drive writes back while a foreground batch runs"]
+    when_things_go_wrong: ["a task failing twice is reported to its store, which decides whether it fails anything"]
+    must_never: ["let a background read delay a step's read"]
+    evidence: ["runtime/model/SsdReaders.hpp"]
+    read: docs
+
+  - id: "ple-row-store"
+    engine_name: "SparseRowStore"
+    does: "Keeps Flash-Next's n-gram embedding table in its GGUF and, before each command, stages every distinct row the command needs from a bounded host row cache (reading misses on the SSD readers) into memory the GPU reads."
+    runs: [per_step]
+    takes: [{from: "target-forward", what: "row ids hashed from the step's n-grams"}, {from: "ssd-reader-pool", what: "reads"}, {from: "outside: model_files", what: "table rows"}]
+    gives: [{to: "target-forward", what: "staged rows and indices"}, {to: "memory-governor", what: "host memory held (charged in full)"}]
+    owns_state: ["host row cache"]
+    exists_because: "the table is about 29 GB but a step reads only a few rows per token"
+    output_effect: none
+    decisions: ["row cache size", "prefetch as a hint"]
+    when_things_go_wrong: ["a failed stage read, short file or rewritten source poisons the store: every later stage throws"]
+    must_never: ["cache a row before checking its source unchanged"]
+    evidence: ["runtime/model/SparseRowStore.hpp"]
+    read: docs
+
+  - id: "kv-page-pool"
+    engine_name: "KvPool / PageStorage / PagedKv"
+    does: "Allocates attention K/V in pages of 32 tokens inside extents of about 128 MiB of one page form (Full, Index-only, or Slim), INT8 with per-token scales by default, reached by kernels through per-request GPU page tables; releases empty extents between commands and compacts pages to empty extents."
+    runs: [per_step]
+    takes:
+      - {from: "memory-plan", what: "geometry"}
+      - {from: "memory-governor", what: "extent admission"}
+      - {from: "prefix-block-cache", what: "page holds and releases"}
+      - {from: "target-forward", what: "K/V written"}
+    gives: [{to: "target-forward", what: "page tables and extents"}, {to: "memory-ledger", what: "empty extents to release"}, {to: "telemetry", what: "pool snapshot"}]
+    owns_state: ["extents, page forms, free pages, move map of compacted pages", "the startup runway"]
+    exists_because: "only one in four layers keeps per-position K/V and requests share prefixes physically"
+    output_effect: changes_output
+    output_effect_when: "default INT8 K/V versus --kv-format bf16 (docs: top-1 agreement with llama.cpp 99.23-99.25% versus 99.30-99.45%)"
+    decisions: ["KV format for the whole run", "extent size target", "release empty extents only between commands", "compact by moving pages"]
+    when_things_go_wrong: ["a refused extent leaves the page admission refused; the ledger decides what frees"]
+    must_never: ["release the extent of a page a request holds", "let a shared cached page change (only committed pages are shared)"]
+    evidence: ["runtime/ops/PagedKv.hpp:43-56, 108-116", "runtime/ops/PageStorage.hpp", "runtime/engine/KvPool.hpp"]
+    read: code
+
+  - id: "gdn-state-cells"
+    engine_name: "QwenStateStorage / QwenGdnCell / GDN tape"
+    does: "Holds each lane's fixed-size GDN convolution and recurrent state in two cells plus a tape of the last decode step's layer inputs, and the target's auxiliary state (indexer pending keys, PLE history); a committed step only records pending rows and swaps cell parity, and the next step folds the taped rows in first."
+    runs: [per_step]
+    takes:
+      - {from: "acceptance-commit", what: "retained count, parity swap, auxiliary out"}
+      - {from: "composite-state-cache", what: "restored state cell"}
+      - {from: "memory-governor", what: "cell admission"}
+    gives: [{to: "target-forward", what: "current and next cells, tape and pending rows"}, {to: "composite-state-cache", what: "captured cells at state boundaries"}]
+    owns_state: ["two cells per lane, active parity, pending rows, logical lengths", "pool of idle cells, rings and windows"]
+    exists_because: "recurrent state cannot be rolled back to an arbitrary position, so verify must not advance it until acceptance is known"
+    output_effect: numeric
+    output_effect_when: "--state-format bf16 rounds state at each chunk end and capture point, so where chunks end and states are captured changes last bits, versus fp32 state"
+    decisions: ["state storage format for the run", "defer the fold to the next step instead of copying"]
+    when_things_go_wrong: ["a lane with a non-finite row returns its draft rings cleared"]
+    must_never: ["advance the cell during verify"]
+    evidence: ["runtime/model/QwenState.hpp:21-127", "runtime/model/Runtime.cpp:2205-2220, 2313-2329, 2461", "runtime/ops/GDN.hpp"]
+    read: code
+
+  - id: "draft-state"
+    engine_name: "DFlashDraftRing / DFlashContextWindow / DraftContextPlan"
+    does: "Keeps per lane the draft's ring K/V of the last sliding-window positions, computed from target layer captures, and a context window of the rows the ring is computed from, which cached states keep instead of the ring and from which a restore recomputes it."
+    runs: [per_step]
+    takes: [{from: "acceptance-commit", what: "context commit of retained rows"}, {from: "target-forward", what: "captured target hidden rows"}, {from: "composite-state-cache", what: "restored window"}]
+    gives: [{to: "draft-proposer", what: "rings"}, {to: "composite-state-cache", what: "window for capture"}]
+    owns_state: ["ring K/V per draft layer", "context window", "pending ring rebuild range"]
+    exists_because: "the draft attends only a fixed recent window, so a compact window is enough to cache and the ring can be recomputed"
+    output_effect: none
+    decisions: ["cache the window, not the ring", "rebuild the ring in the next prefill chunk after a restore"]
+    when_things_go_wrong: ["rings cleared after a non-finite row"]
+    must_never: ["let the window fall behind the ring at a published state (prefill writes both, decode only the ring)"]
+    evidence: ["runtime/model/DFlashDraft.hpp:21-69", "runtime/model/QwenState.hpp:60-127", "runtime/model/Runtime.cpp:363-371, 2252-2280"]
+    read: code
+
+  - id: "prefix-block-cache"
+    engine_name: "KvCache / Cache"
+    does: "Addresses committed 32-token KV blocks by chained hash of parent, tokens and image/salt identity across RAM pages and SSD slots, matches a new prompt from the root, shares physical pages, and offers its blocks to the ledger as victims in its own walk order."
+    runs: [per_request, per_step]
+    takes:
+      - {from: "lane-admission", what: "probes, committed blocks to publish, chains wanted by waiting requests"}
+      - {from: "weight-image-loader", what: "image identity"}
+      - {from: "memory-ledger", what: "takes"}
+      - {from: "ssd-cache-tier", what: "landed demotions and restores"}
+    gives:
+      - {to: "lane-admission", what: "matched chain up to the deepest block with a state"}
+      - {to: "kv-page-pool", what: "page holds"}
+      - {to: "ssd-cache-tier", what: "demotions and restores of pages"}
+      - {to: "memory-ledger", what: "victim units and returning bytes"}
+    owns_state: ["the block graph: resident subtree at the root plus disk-only blocks", "one prefix reference per resident block", "Filling/Draining transfer marks"]
+    exists_because: "agent conversations resend long shared prefixes; only full committed pages are immutable and shareable"
+    output_effect: none
+    decisions: ["block key includes images, cache salt and model identity", "resident blocks form a root subtree", "trim windowed layers' K/V from pages no window reaches (Slim)"]
+    when_things_go_wrong: ["a restore's bytes are invalid until it lands", "a block lost from both tiers ends the reusable chain there"]
+    must_never: ["match across different salts, models, KV formats or RoPE scaling", "free a resident block's page while a RAM state sits on it"]
+    evidence: ["runtime/engine/KvCache.hpp (comments)", "runtime/engine/Cache.hpp:31-338"]
+    read: docs
+
+  - id: "composite-state-cache"
+    engine_name: "StateCache / CompositeState / Capture"
+    does: "Attaches immutable composite states (GDN cells plus draft context window) to complete KV blocks at replay points, rolling prefill checkpoints and shared-prefix junctions, in RAM, on disk or both, so a prefix hit can resume only where a state exists."
+    runs: [per_request, per_step]
+    takes: [{from: "prefill-runner", what: "states captured at boundaries"}, {from: "lane-admission", what: "which boundaries to capture and which state a conversation resumes from"}, {from: "memory-ledger", what: "takes"}]
+    gives: [{to: "gdn-state-cells", what: "restored cells"}, {to: "draft-state", what: "restored window"}, {to: "ssd-cache-tier", what: "state writes through one staging buffer"}, {to: "memory-ledger", what: "victim units"}]
+    owns_state: ["states per block with class (checkpoint, ordinary, in use)", "the one state write in flight"]
+    exists_because: "recurrent state is fixed size but cannot be derived from KV, so KV alone cannot resume a hybrid model"
+    output_effect: numeric
+    output_effect_when: "only with --state-format bf16: a resumed request starts from a state rounded at a different boundary than a cold run; fp32 docs report token-identical 256K replay"
+    decisions: ["checkpoint interval (two draft windows)", "state published only at prefill boundaries, never during decode", "retire rolling checkpoints once a newer one is published", "evict checkpoints first, states in use last"]
+    when_things_go_wrong: ["a state needing a write waits for the staging buffer or is passed over by an immediate claim", "a state from disk keeps its disk copy so its next eviction needs no write"]
+    must_never: ["restore KV without its state or the reverse (pair restored atomically)"]
+    evidence: ["runtime/engine/StateCache.hpp:54-170", "runtime/engine/Capture.hpp", "runtime/engine/Engine.hpp:27-34, 94-105"]
+    read: docs
+
+  - id: "ssd-cache-tier"
+    engine_name: "KvPageTier / SlotFile / DiskBudget / DiskSpace / CacheDirectory"
+    does: "Writes evicted or copied KV pages and composite states into slot files on the SSD, sized from the volume's free space, under an optional daily write budget, read back by the SSD readers; optionally persists across processes in a namespace keyed by models, layouts and RoPE scaling."
+    runs: [background, on_demand]
+    takes: [{from: "prefix-block-cache", what: "page demotions and restores"}, {from: "composite-state-cache", what: "state writes"}, {from: "write-behind", what: "copies ahead"}, {from: "kv-spill-controller", what: "write-through of spill pages"}, {from: "outside: os", what: "volume free space (fstatfs)"}]
+    gives: [{to: "outside: storage", what: "slot files"}, {to: "ssd-reader-pool", what: "restores"}, {to: "bootstrap-sequencer", what: "persisted states and blocks at start"}]
+    owns_state: ["slot allocations and labels", "write budget token bucket", "limits from volume space", "namespace lock and clean/probation marks"]
+    exists_because: "the internal SSD is fast and large while memory is not; unified memory lets the CPU write pages straight from GPU buffers"
+    output_effect: none
+    decisions: ["automatic quota as a quarter of the volume's room above a floor", "share of writes in flight per kind (reclaim, copy ahead, write-through)", "drop states not in use while the write budget is spent", "empty the persistent cache after repeated failed starts"]
+    when_things_go_wrong: ["a full volume or a file that stops taking writes stops new writes; existing copies stay readable", "a failed demotion loses nothing (page stays valid)"]
+    must_never: ["pass a full volume", "reuse a namespace for a different model or layout"]
+    evidence: ["runtime/engine/KvPageTier.hpp", "runtime/engine/KvTier.hpp", "runtime/model/SlotFile.hpp", "runtime/engine/DiskSpace.hpp", "runtime/engine/CacheDirectory.hpp"]
+    read: docs
+
+  - id: "write-behind"
+    engine_name: "WriteBehind"
+    does: "Copies the newest restore point of each conversation to the SSD tier ahead of need, after a delay and only if deep enough and not superseded, so a later reclaim frees its memory at once; on a persistent tier it copies every point."
+    runs: [background]
+    takes: [{from: "memory-ledger", what: "copy demand"}, {from: "composite-state-cache", what: "published restore points"}]
+    gives: [{to: "ssd-cache-tier", what: "copies"}, {to: "telemetry", what: "write-behind snapshot"}]
+    owns_state: ["points waiting, copied, superseded, failed"]
+    exists_because: "a reclaim that must first write waits; tool loops publish many short-lived points not worth writing"
+    output_effect: none
+    decisions: ["minimum depth and delay before copying", "copy on a temporary tier only under demand", "pause while a claim waits for memory"]
+    when_things_go_wrong: ["points the tier cannot keep are dropped"]
+    must_never: ["copy a point while its request may still extend it"]
+    evidence: ["runtime/engine/WriteBehind.hpp"]
+    read: docs
+
+  - id: "kv-spill-controller"
+    engine_name: "KvMode Spill / EngineSpillConfig / Cache spill policy"
+    does: "For Flash-Next only, decides per request whether its K/V stays Resident or Spills (only the index stays in memory, K/V written through to the SSD tier), converts a lane to Spill when memory refuses its growth, and bounds its output by the tier's active-KV quota."
+    runs: [per_request, per_step]
+    takes: [{from: "streamed-parts-planner", what: "spill plan"}, {from: "lane-admission", what: "placement request and growth refusals"}, {from: "ssd-cache-tier", what: "active quota and writability"}]
+    gives: [{to: "ssd-cache-tier", what: "write-through"}, {to: "kv-page-pool", what: "Full-to-Index conversions"}, {to: "telemetry", what: "spill snapshot"}]
+    owns_state: ["each request's KV mode and quota commitment"]
+    exists_because: "block-sparse attention reads only a few blocks per row, so old K/V can live on SSD"
+    output_effect: none
+    decisions: ["which requests spill at admission", "convert on refused growth", "keep dense history, tail window and in-flight prefill groups Full"]
+    when_things_go_wrong: ["refuses a request whose prompt the quota cannot hold or when the write budget is spent; ends a request at the quota bound"]
+    must_never: ["spill a target whose layout cannot (only sparse-attention layouts)"]
+    evidence: ["runtime/engine/MemoryPlan.hpp:113-157, 317-360", "runtime/engine/Engine.hpp:143-164", "runtime/engine/Cache.hpp:243-276"]
+    read: code
+
+  - id: "spilled-kv-reader"
+    engine_name: "KvBlockCache / KvHistoryStream / SpilledKvReads"
+    does: "Brings spilled K/V back for attention: during decode a host step resolves each selected block on Index pages through a shared hot block cache (reading misses from tier copies); during prefill it streams the history one attention layer at a time into staging."
+    runs: [per_layer]
+    takes: [{from: "block-sparse-indexer", what: "block lists"}, {from: "ssd-reader-pool", what: "reads"}, {from: "slot-recycler", what: "hot cache slots"}]
+    gives: [{to: "target-forward", what: "block locations and staged history"}, {to: "memory-ledger", what: "hot-block and staging pool units"}, {to: "slot-recycler", what: "block keys"}]
+    owns_state: ["hot block cache directory", "history staging buffers"]
+    exists_because: "spilled K/V must be in memory the kernels read at the moment its layer runs"
+    output_effect: none
+    decisions: ["per-lane hot cache floor and target", "one or two staging buffers to overlap reads with attention"]
+    when_things_go_wrong: ["an unreadable block leaves zeros and fails the lanes that listed it, not the command; their cycle commits nothing"]
+    must_never: ["recycle a slot the same resolve touched"]
+    evidence: ["runtime/model/KvBlockCache.hpp", "runtime/model/KvHistoryStream.hpp", "runtime/model/SpilledKvReads.hpp", "runtime/model/Runtime.cpp:3349-3357, 2433-2441"]
+    read: docs
+
+  - id: "prefill-runner"
+    engine_name: "Runtime prefill / PassCommand"
+    does: "Encodes a prefill command of one or more lanes' chunks (up to 2048 rows each, grouped up to four chunks run layer by layer when experts stream or K/V spills), split into layer passes, capturing composite states at planned boundaries, then runs the draft's context prefill and selects the first anchor."
+    runs: [per_step]
+    takes: [{from: "request-scheduler", what: "batch plan with rows and passes"}, {from: "lane-admission", what: "items, page tables, captures"}, {from: "prompt-builder", what: "prompt tokens"}]
+    gives: [{to: "target-forward", what: "chunk rows"}, {to: "composite-state-cache", what: "captured states"}, {to: "metal-command-backend", what: "command graphs"}, {to: "ane-ffn-split", what: "dense FFN chunk"}, {to: "token-selector", what: "final prompt row logits"}]
+    owns_state: ["the command between its passes and its captures"]
+    exists_because: "long prompts must be cut so decode can interleave and so streamed experts are read once per layer for many rows"
+    output_effect: none
+    decisions: ["group or single chunk", "number of layer passes", "abandon a paused command for higher-priority work (nothing committed)"]
+    when_things_go_wrong: ["an abandoned command commits no row and its lanes rerun later", "unreadable spilled blocks fail the command at its last pass"]
+    must_never: ["commit any row of a command until its last pass"]
+    evidence: ["runtime/engine/PassCommand.hpp", "runtime/model/RuntimeArenas.hpp (prefill group)", "runtime/model/Runtime.cpp:1540-1830", "runtime/model/CommandCost.hpp"]
+    read: docs
+
+  - id: "draft-proposer"
+    engine_name: "DFlash2 draft / DraftSelector"
+    does: "In one non-causal forward over 8 rows (anchor plus 7 mask rows) per lane, computes draft logits from its rings and the target's vocabulary projection, keeps the top candidates per position, scores each by a codebook edge from the previous choice, walks the 7 positions greedily or by sampling, and records each position's confidence."
+    runs: [per_step]
+    takes: [{from: "draft-state", what: "rings"}, {from: "weight-image-loader", what: "draft weights and target vocabulary projection"}, {from: "token-selector", what: "anchor token"}]
+    gives: [{to: "verify-row-budget", what: "per-position confidence"}, {to: "acceptance-commit", what: "proposed tokens and candidate probabilities"}, {to: "grammar-constraint", what: "proposals to simulate"}]
+    owns_state: []
+    exists_because: "on a bandwidth-bound GPU checking 8 rows costs about one weight read, so cheap proposals multiply tokens per cycle"
+    output_effect: none
+    output_effect_when: "the target decides every kept token; for sampled lanes the draft changes which tokens appear though not their distribution"
+    decisions: ["number of candidates kept per position", "greedy or temperature walk per lane"]
+    when_things_go_wrong: ["a lane without an anchor is a logic error"]
+    must_never: ["propose outside the vocabulary (clamped)"]
+    evidence: ["runtime/model/Runtime.cpp:2083-2144", "runtime/ops/DraftSelector.hpp", "runtime/metal/kernels/decode/sampling.metal (draft_select_*)"]
+    read: code
+
+  - id: "verify-row-budget"
+    engine_name: "VerifyBudget + draft_verify_rows kernel (--verify-rows auto)"
+    does: "For MoE targets, allots verify rows across the batch's lanes on the GPU to maximize expected accepted tokens per predicted cycle cost, using an acceptance model on draft confidence and a cost line per lane count, both refit online on the host from completed cycles."
+    not: "It does not decide whether to draft; the draft always proposes seven."
+    runs: [per_step]
+    takes: [{from: "draft-proposer", what: "confidence per position"}, {from: "acceptance-commit", what: "accepted counts and cycle wall time"}]
+    gives: [{to: "target-forward", what: "verify rows per lane"}, {to: "acceptance-commit", what: "verify rows"}]
+    owns_state: ["acceptance slope and per-position intercepts", "last labels", "decayed cost sums per lane count, constrained or not"]
+    exists_because: "for MoE each extra verified row routes more experts, so a dense model's free extra rows are not free"
+    output_effect: numeric
+    output_effect_when: "MoE greedy or fixed-seed output can differ between runs because the row count follows wall-clock fits and changes which rows share expert tiles; --verify-rows all removes this"
+    decisions: ["refit interval, label window, decay, prior strength", "periodic full verification to explore", "allot rows jointly across lanes"]
+    when_things_go_wrong: ["only cycles where every lane commits teach it", "a cycle's counted cost is capped against stalls"]
+    must_never: ["verify zero rows or more than the lane's maximum"]
+    evidence: ["runtime/model/VerifyBudget.hpp", "runtime/metal/kernels/decode/sampling.metal:1396-1448", "runtime/model/Runtime.cpp:2145-2151, 2409-2426"]
+    read: code
+
+  - id: "token-selector"
+    engine_name: "Sampling (decode_sample_*)"
+    does: "Turns each verified row's logits into a token on the GPU: applies repetition/presence/frequency penalties and the grammar mask, then greedy argmax (lowest id on ties) or min-p, top-k, top-p sampling, and for a sampled row with a draft draws from the residual distribution the acceptance rule needs."
+    runs: [per_step]
+    takes: [{from: "target-forward", what: "logits"}, {from: "grammar-constraint", what: "token masks"}, {from: "thinking-budget", what: "forced end tokens"}, {from: "draft-proposer", what: "draft candidates and probabilities"}]
+    gives: [{to: "acceptance-commit", what: "target tokens and draft-token target probabilities"}, {to: "prefill-runner", what: "first anchor"}]
+    owns_state: ["per-lane RNG counter and penalty table"]
+    exists_because: "every engine needs it"
+    output_effect: changes_output
+    output_effect_when: "it is the choice of token; penalties, masks and sampling parameters change output by design"
+    decisions: ["sampling policy per lane", "residual weights clamp at zero; with nothing left the draw follows the distribution"]
+    when_things_go_wrong: ["a row with no selectable logit keeps a sentinel id, which fails the lane"]
+    must_never: ["select a stop token for a lane that ignores end-of-sequence"]
+    evidence: ["runtime/metal/kernels/decode/sampling.metal:680-780, 1512-1600", "runtime/ops/Sampling.hpp"]
+    read: code
+
+  - id: "acceptance-commit"
+    engine_name: "decode_accept_dflash / finalizeDecode / verify commit"
+    does: "Accepts draft tokens up to the first mismatch (greedy) or by u*q < p (sampled), keeps accepted+1 tokens cut at a stop token and at the output budget, then commits: KV length advances by the kept count, GDN parity swaps with pending rows, the target's auxiliary state is rewritten, and the draft ring takes the kept rows."
+    runs: [per_step]
+    takes: [{from: "token-selector", what: "target tokens and probabilities"}, {from: "draft-proposer", what: "proposals and probabilities"}, {from: "verify-row-budget", what: "verify rows"}]
+    gives: [{to: "gdn-state-cells", what: "parity swap and pending rows"}, {to: "draft-state", what: "context commit"}, {to: "lane-admission", what: "step results and new tokens"}, {to: "verify-row-budget", what: "labels and cycle time"}, {to: "grammar-constraint", what: "committed tokens"}, {to: "metal-command-backend", what: "decode cycle graphs"}]
+    owns_state: []
+    exists_because: "speculative decoding needs a rule that keeps the target's output (greedy) or distribution (sampled)"
+    output_effect: changes_output
+    output_effect_when: "sampled lanes: same distribution as non-speculative sampling but different tokens for the same seed; greedy: same tokens as the target alone, up to kernel numerics"
+    decisions: ["emit a stop or last budgeted token at once without a target cycle"]
+    when_things_go_wrong: ["invalid retained or accepted counts throw", "a non-finite or sentinel token fails the lane and nothing of its cycle is committed"]
+    must_never: ["commit any lane's state when its cycle read unreadable spilled blocks or produced an invalid selection"]
+    evidence: ["runtime/metal/kernels/decode/sampling.metal:1460-1510", "runtime/model/Runtime.cpp:2282-2341, 2364-2496"]
+    read: code
+
+  - id: "thinking-budget"
+    engine_name: "ThinkingBudget / decode_sample_thinking_cutoff / decode_draft_thinking_cutoff"
+    does: "When a request's thinking-token budget runs out, forces the format's end-of-thinking tokens into the selected rows (replacing draft proposals at row 0), unless the model closed thinking first; for a constrained lane, starts the end where the mask admits it."
+    runs: [per_step]
+    takes: [{from: "http-front", what: "reasoning effort or thinking budget"}, {from: "grammar-constraint", what: "masks"}]
+    gives: [{to: "token-selector", what: "forced tokens"}, {to: "draft-proposer", what: "replaced proposals"}]
+    owns_state: ["per-request remaining thinking tokens and end tokens selected"]
+    exists_because: "reasoning models can think without bound; clients set an effort"
+    output_effect: changes_output
+    output_effect_when: "whenever the budget runs out before the model ends thinking"
+    decisions: ["where in the 8 rows the end starts"]
+    when_things_go_wrong: ["a tokenizer that does not encode the think tags as single tokens is refused at start"]
+    must_never: ["count replaced proposals as draft acceptances"]
+    evidence: ["runtime/ops/Sampling.hpp (thinking comments)", "runtime/model/Runtime.cpp:338-346, 2152-2153", "server/backend.py thinking_end_tokens"]
+    read: code
+
+  - id: "grammar-constraint"
+    engine_name: "ConstraintFactory / TokenConstraint (llguidance) / ConstrainedDecodeTicket"
+    does: "Compiles JSON-schema or tool-call grammars into cached llguidance matchers on the server, and for a constrained lane computes a bitmask for the anchor and each of the 7 drafted tokens it simulates, while the engine runs the target verify forward and waits (up to a limit) for the masks before selection."
+    runs: [per_step, per_request]
+    takes: [{from: "http-front", what: "response format and tools"}, {from: "draft-proposer", what: "proposed tokens (simulation)"}, {from: "acceptance-commit", what: "committed tokens"}]
+    gives: [{to: "token-selector", what: "token masks per row"}, {to: "telemetry", what: "mask wait and overlap counters"}]
+    owns_state: ["compiled matcher cache by grammar", "per-request matcher state and committed batches"]
+    exists_because: "tool calls and structured output must parse; masks over speculative rows must follow the grammar after each proposed token"
+    output_effect: changes_output
+    output_effect_when: "for requests with a schema or tool grammar"
+    decisions: ["mask rows past the first invalid simulated token copy the last valid mask", "overlap mask computation with the target forward", "cache compiled matchers by grammar text within a byte budget"]
+    when_things_go_wrong: ["a mask unanswered past the wait limit fails the request", "a grammar with no valid token raises", "an oversized grammar is refused with 400"]
+    must_never: ["block the native stream reader on the grammar"]
+    evidence: ["server/constraints.py", "runtime/model/Runtime.cpp:2498-2700", "runtime/Supervision.hpp:43-45", "server/tool_schema.py (docstring)"]
+    read: code
+
+  - id: "request-scheduler"
+    engine_name: "Scheduler"
+    does: "Plans the next command: a prefill plan of the most urgent priority (overdue requests first, else fewest remaining rows, with joiners), sized while decode waits to a time bound measured from past commands, or a decode batch of up to 4 ready lanes of one priority and stage; owes decode a share of contended prefill time."
+    runs: [per_step]
+    takes: [{from: "lane-admission", what: "submissions, phases, excluded lanes, lane shapes"}, {from: "prefill-runner", what: "command samples (rows, pairs, time)"}]
+    gives: [{to: "lane-admission", what: "next batch plan and admission order"}, {to: "prefill-runner", what: "plan with rows and passes"}, {to: "kernel-selector", what: "lanes and rows"}, {to: "telemetry", what: "scheduler snapshot"}]
+    owns_state: ["request phases and order", "decode debt", "overtake counts", "last measured command"]
+    exists_because: "long prompts would otherwise stall other requests' token streams"
+    output_effect: numeric
+    output_effect_when: "batch composition sets the lane count, which changes kernel splits and so greedy output in the last bits"
+    decisions: ["decode share and decode gap target", "overdue threshold for overtaken requests", "contended prefill cut rows from measured time with a floor", "group commands run in layer passes"]
+    when_things_go_wrong: ["excluded lanes lose nothing; a paused command abandoned by higher priority reruns its rows"]
+    must_never: ["mix priorities or decode stages in one decode batch"]
+    evidence: ["runtime/engine/Scheduler.hpp", "runtime/engine/Engine.hpp:58-67"]
+    read: code
+
+  - id: "lane-admission"
+    engine_name: "Engine (submit, admit, placement, growLane, suspendLane, preemptBelow, syncClaims)"
+    does: "Owns each request's life on the engine: probes the prefix cache, assigns a lane and state, plans state boundaries, grows its KV through its memory claim before each command, waits for memory with a limit, suspends lower-ranked or lower-priority lanes (which later replay from cache), lets requests wait for another's shared prefix, and settles ends, deadlines and cancels."
+    runs: [per_request, per_step]
+    takes:
+      - {from: "native-loop", what: "submit, cancel, stop, mask frames"}
+      - {from: "request-scheduler", what: "plans"}
+      - {from: "prefix-block-cache", what: "lookups"}
+      - {from: "memory-ledger", what: "free results"}
+      - {from: "acceptance-commit", what: "step results"}
+      - {from: "memory-plan", what: "max context and spill geometry"}
+    gives:
+      - {to: "request-scheduler", what: "phases and shapes"}
+      - {to: "memory-ledger", what: "claims, lane demand, wanted chains"}
+      - {to: "prefix-block-cache", what: "published blocks"}
+      - {to: "composite-state-cache", what: "boundaries to capture, state in use"}
+      - {to: "prefill-runner", what: "items and captures"}
+      - {to: "kv-spill-controller", what: "placement and conversion"}
+      - {to: "weight-residency", what: "idle and arrival"}
+      - {to: "native-loop", what: "events: tokens, progress, finish, failure"}
+    owns_state: ["requests and their resource waits", "suspended requests and recovery drain"]
+    exists_because: "memory for KV and state grows during a request and can be refused at any step"
+    output_effect: none
+    decisions: ["rank for memory: priority, decoding before prefill, completed work, submission order", "which lane yields first", "resource wait limit and retry backoff", "projected output tokens for admission", "whether a request waits for another's shared prefix"]
+    when_things_go_wrong: ["a request waits for memory and fails with resource_timeout at its limit", "a suspended lane replays its history on resume", "unreadable spilled blocks end the request retryably"]
+    must_never: ["roll back on an engine-fatal exception (the process exits)", "count memory it returned itself as progress for a waiting request"]
+    evidence: ["runtime/engine/Engine.hpp:35-47, 233-316, 920-1160", "runtime/engine/Engine.cpp (function list)"]
+    read: code
+
+  - id: "native-loop"
+    engine_name: "NativeRuntime / FdTransport / Protocol / MemoryControl"
+    does: "Runs the engine process's single loop: a reader thread takes framed messages from the server's pipe, the loop hands frames to the engine, runs a memory control pass at command-free points and one engine tick, writes events back, and turns any engine exception into an EngineUnhealthy error and exit."
+    runs: [per_step]
+    takes: [{from: "engine-supervisor", what: "SPLH frames: requests with tokens and image pixels, cancel, stop, mask responses, status, release"}, {from: "metal-command-backend", what: "completions"}]
+    gives: [{to: "lane-admission", what: "requests and masks"}, {to: "memory-governor", what: "control pass trigger and pressure"}, {to: "engine-supervisor", what: "events and status"}]
+    owns_state: ["input queue", "longest tick"]
+    exists_because: "the GPU engine runs in its own process so the server can replace it after a crash"
+    output_effect: none
+    decisions: ["bound the input queue to one largest frame", "rerun control at the next command-free point while landings are awaited", "flush newest restore points on clean stop within a budget"]
+    when_things_go_wrong: ["engine exception: report EngineUnhealthy and exit", "protocol-fatal frame: close the stream", "output write failure: close the connection, engine stays healthy"]
+    must_never: ["block the loop longer than the loop-stall budget"]
+    evidence: ["runtime/engine/NativeRuntime.hpp", "runtime/engine/FdTransport.hpp", "runtime/engine/Protocol.hpp", "runtime/engine/MemoryControl.hpp", "runtime/Supervision.hpp"]
+    read: docs
+
+  - id: "engine-supervisor"
+    engine_name: "NativeBackend / MultiplexedRuntime / RestartPolicy / Quarantine / CrashTraceRing"
+    does: "In the Python server, spawns and talks to the engine process, submits and cancels requests, probes liveness, relaunches a failed engine with doubling backoff (never after permanent failures or a crash loop), and refuses requests that were running at two consecutive engine failures they may have caused."
+    runs: [per_request, background]
+    takes: [{from: "http-front", what: "generation requests"}, {from: "native-loop", what: "events, status, exit status"}, {from: "grammar-constraint", what: "masks to send"}]
+    gives: [{to: "native-loop", what: "frames"}, {to: "output-parser", what: "token batches"}, {to: "telemetry", what: "status and crash traces"}]
+    owns_state: ["pending calls", "restart streak", "quarantined request fingerprints", "crash trace ring"]
+    exists_because: "a GPU fault or hang must not take down the server; a poison request must not crash loop the engine"
+    output_effect: none
+    decisions: ["which failures are permanent or memory-caused", "backoff base and cap", "which exits count as request-caused (fault signals, execution failures)"]
+    when_things_go_wrong: ["requests in flight at a failure end with a retryable error; new ones are refused with Retry-After while recovering"]
+    must_never: ["resubmit a quarantined request", "count a kill as a request-caused failure"]
+    evidence: ["server/supervision.py", "server/backend.py (docstring, recovery 356-612)", "server/runtime.py (docstring)", "server/crash_trace.py (docstring)"]
+    read: code
+
+  - id: "http-front"
+    engine_name: "server.py / dialects (openai, anthropic, responses) / connections / http_security"
+    does: "Serves OpenAI Chat and Completions, Anthropic Messages, OpenAI Responses (with a stored-response conversation store) and token counting over HTTP with streaming, bounding connections, threads and body bytes, and validating host, origin and API key."
+    runs: [per_request]
+    takes: [{from: "outside: client", what: "HTTP requests"}]
+    gives: [{to: "prompt-builder", what: "normalized chat messages, tools, options"}, {to: "engine-supervisor", what: "generation jobs with priority, cache salt, deadline"}, {to: "outside: client", what: "responses and SSE streams"}]
+    owns_state: ["stored responses", "connection and body reservations"]
+    exists_because: "every engine needs it"
+    output_effect: none
+    decisions: ["request priority and cache salt fields", "queue size and request timeout", "allowed origins"]
+    when_things_go_wrong: ["refuses connections over bounds", "maps engine errors to 400/503 with Retry-After"]
+    must_never: ["log request bodies"]
+    evidence: ["server/server.py", "server/dialects/*.py", "server/connections.py", "server/http_security.py", "server/request_fields.py"]
+    read: docs
+
+  - id: "prompt-builder"
+    engine_name: "Frontend / ChatTemplates / PromptTokenizer / ThinkingCodec"
+    does: "Renders the conversation through the model's chat template (probed at startup and patched where the template rejects or drops later system messages), decrypts carried reasoning signatures, and tokenizes, reusing cached tokens up to the last literal message-boundary token."
+    runs: [startup, per_request]
+    takes: [{from: "http-front", what: "messages and options"}, {from: "image-preparation", what: "image placeholders and spans"}, {from: "document-renderer", what: "page text and images"}]
+    gives: [{to: "engine-supervisor", what: "token ids, image spans, sampling and thinking options"}]
+    owns_state: ["chosen templates", "tokenized-prefix cache (a few prompts)", "thinking key"]
+    exists_because: "agent clients send long, growing conversations every turn"
+    output_effect: changes_output
+    output_effect_when: "templates patched to keep later system messages render prompts the official template would refuse or drop"
+    decisions: ["native or patched template", "reuse tokens only where the tokenizer provably splits at the marker"]
+    when_things_go_wrong: ["falls back to a full encode where the boundary is not real", "context overflow returns ContextLengthError"]
+    must_never: ["reuse tokens across a boundary the tokenizer does not split at"]
+    evidence: ["server/frontend.py (docstring)", "server/chat_templates.py (docstring)", "server/tokenization.py", "server/thinking.py", "server/chat_messages.py"]
+    read: code
+
+  - id: "output-parser"
+    engine_name: "output.py (ReasoningSplitter, StopSearch, StreamingToolCallProjector, BlockSequencer)"
+    does: "Detokenizes streamed tokens, splits reasoning from answer, applies stop strings with partial-match holding, projects tool calls into streamed argument deltas, and validates the final content."
+    runs: [per_request]
+    takes: [{from: "engine-supervisor", what: "token batches"}]
+    gives: [{to: "http-front", what: "output blocks and deltas"}]
+    owns_state: ["per-request parse state and held partial text"]
+    exists_because: "every engine needs it"
+    output_effect: changes_output
+    output_effect_when: "stop strings cut visible output"
+    decisions: ["hold text that may begin a stop string"]
+    when_things_go_wrong: ["invalid final tool content is reported as an error"]
+    must_never: ["emit text past a matched stop string"]
+    evidence: ["server/output.py (docstring and names)"]
+    read: docs
+
+  - id: "image-preparation"
+    engine_name: "images.py (PreparedImages, ImageCache)"
+    does: "Decodes data-URL images, resizes them to patch-aligned RGB within the pixel budget, computes a content digest and grid that identify image prefixes, and caches prepared images resent in chat history."
+    runs: [per_request]
+    takes: [{from: "http-front", what: "image parts"}]
+    gives: [{to: "prompt-builder", what: "placeholders and spans"}, {to: "vision-encoder", what: "pixels and grid (in the request frame)"}]
+    owns_state: ["byte-budgeted prepared-image cache"]
+    exists_because: "the vision tower needs fixed patch geometry and conversations resend images"
+    output_effect: none
+    decisions: ["pixel budget (--max-image-pixels)"]
+    when_things_go_wrong: ["too large or undecodable images return ImageError"]
+    must_never: []
+    evidence: ["server/images.py (docstring and names)"]
+    read: docs
+
+  - id: "document-renderer"
+    engine_name: "documents.py / document_worker.py (PDFium)"
+    does: "Renders PDF pages to text and images in a disposable sandboxed PDFium process with memory and time budgets, for the existing image prompt path."
+    runs: [per_request]
+    takes: [{from: "http-front", what: "PDF file parts"}]
+    gives: [{to: "prompt-builder", what: "page text and images"}]
+    owns_state: []
+    exists_because: "PDF parsing is untrusted input that must not crash or hang the server"
+    output_effect: none
+    decisions: ["render limits and document budget"]
+    when_things_go_wrong: ["worker killed past its budget; request fails"]
+    must_never: ["parse a PDF in the server process"]
+    evidence: ["server/documents.py (docstring)", "server/document_worker.py (docstring)"]
+    read: docs
+
+  - id: "option-scoring"
+    engine_name: "dialects/scoring.py (/v1/judgments, /v1/systemone) / score-only mode"
+    does: "Answers finite-option questions by rendering a fixed prompt, having the engine compute raw final-position logits at verified single-token answer slots instead of generating, and returning softmax scores."
+    runs: [per_request]
+    takes: [{from: "http-front", what: "questions and options"}]
+    gives: [{to: "engine-supervisor", what: "score-only request with token ids to score"}, {to: "http-front", what: "option probabilities"}]
+    owns_state: []
+    exists_because: "classification-style calls need probabilities, not sampled text"
+    output_effect: none
+    decisions: ["which options have single-token slots"]
+    when_things_go_wrong: ["unsupported question shapes are refused"]
+    must_never: ["let question identifiers enter the prompt"]
+    evidence: ["server/dialects/scoring.py (docstring)", "runtime/model/Runtime.cpp:353-355"]
+    read: docs
+
+  - id: "configuration"
+    engine_name: "serve_options.py / NativeArguments / launcher / serve_record.py"
+    does: "Parses and checks every serve option, passes them to the server and the native command line, reports which options each family can use, and writes the serve record the desktop app follows."
+    runs: [startup]
+    takes: [{from: "outside: operator", what: "flags"}, {from: "model-installer", what: "option report per family"}]
+    gives: [{to: "bootstrap-sequencer", what: "native arguments"}, {to: "streamed-parts-planner", what: "memory options"}, {to: "outside: operator", what: "serve record"}]
+    owns_state: ["serve record file"]
+    exists_because: "every engine needs it"
+    output_effect: none
+    decisions: ["defaults for each flag (decode share, idle release, KV and state formats, verify rows, cache disk quota and writes, ANE on/off)"]
+    when_things_go_wrong: ["an unwritable record fails the start before any model loads"]
+    must_never: ["leave a stale ready record"]
+    evidence: ["server/serve_options.py", "runtime/engine/NativeArguments.hpp", "server/serve_record.py", "install/launcher.py"]
+    read: docs
+
+  - id: "telemetry"
+    engine_name: "Status / RuntimeMetrics / MemoryAudit / ThermalState / metrics.py / latency.py"
+    does: "Reports the engine's state on /status and Prometheus: memory plan, governor and ledger accounts, host memory as macOS counts it, memory audit against the plan, cache, spill, expert store, weights, scheduler and decode-gap causes, latency histograms, and macOS thermal state (reported, never acted on)."
+    runs: [on_demand, background]
+    takes: [{from: "memory-governor", what: "snapshot"}, {from: "memory-ledger", what: "accounts and claims"}, {from: "request-scheduler", what: "snapshot"}, {from: "lane-admission", what: "engine snapshot"}, {from: "expert-store", what: "stats"}, {from: "outside: os", what: "thermal state"}]
+    gives: [{to: "outside: operator", what: "/status JSON, Prometheus text, transition log lines"}]
+    owns_state: ["latency histograms", "last thermal state"]
+    exists_because: "every engine needs it"
+    output_effect: none
+    decisions: ["log only transitions", "a status read never moves admission"]
+    when_things_go_wrong: ["unmeasurable host telemetry is reported absent"]
+    must_never: ["make a status query wait for a load"]
+    evidence: ["runtime/engine/Status.hpp", "runtime/engine/MemoryAudit.hpp", "runtime/engine/ThermalState.hpp", "runtime/engine/MemoryGovernor.hpp:57-77", "server/metrics.py", "server/latency.py"]
+    read: docs
+absent:
+  - {job: "multiple GPUs or machines (tensor, pipeline or expert parallelism)", why: "one Apple-Silicon SoC with unified memory per engine; nothing spans devices except the ANE share within the same SoC"}
+  - {job: "audio input", why: "no served family has an audio tower"}
+  - {job: "offline weight conversion to disk", why: "conversion into kernel layout happens at every load into memory; the 1.1 prepared-weight cache was dropped (LegacyWeightCache.hpp only reports leftovers)"}
+  - {job: "runtime kernel autotuning on the user's machine", why: "kernels are precompiled per shape and selection uses a shipped per-GPU-class table; only the ANE split is calibrated on the machine"}
+  - {job: "draft source choice (n-gram, MTP head, no draft)", why: "always one DFlash2 draft per family proposing seven tokens; only the verified row count adapts"}
+  - {job: "CPU computation of model layers", why: "all model compute is on the GPU, plus the ANE share of dense prefill FFN; the CPU only reads SSD, computes grammar masks and orchestrates"}
+  - {job: "thermal throttling control", why: "thermal state is reported only; heat is not a resource the engine frees"}
+outside_engine:
+  - {name: "desktop app (app/)", what: "Swift macOS app that installs models, launches and follows the server via its serve record, chats"}
+  - {name: "coding-client launcher (install/clients.py)", what: "starts installed agent clients against the local server"}
+  - {name: "tests (dev/tests)", what: "engine, server, install tests and golden files for protocol, command line and cache formats"}
+  - {name: "benchmarks (dev/benchmarks)", what: "decode profile, projection/MoE/attention sweeps, serving benchmark, logit comparison with references"}
+  - {name: "build and release tools (dev/tools, Makefile)", what: "metallib build, packaging, appcast, architecture rule check, kernel identity, weight digests"}
+  - {name: "crash replay tool (server/crash_trace.py main)", what: "replays recorded protocol frames against an engine for debugging"}
+surprises:
+  - "Recurrent state commit is deferred: verify never advances the GDN cell; acceptance only records pending rows and swaps cell parity, and the next step folds the taped rows in. The live state is cell + tape + pending count, and a prefix hit needs a composite state (GDN cells plus the draft's context window) at that exact block, not just KV."
+  - "Memory is governed at run time by one admission over a host estimate built from Mach page counts and macOS pressure, plus a ledger that reclaims across unlike holders (prefix KV, states, expert chunks, image embeddings, staging, the next lane's buffers) in a fixed seven-stage order by claim class and rank; context length and weights' presence (idle release) are both outcomes of this, not inputs."
+  - "Verified row count for MoE is chosen jointly across the batch's lanes by a GPU kernel from an online-learned acceptance model and a wall-clock cost fit, which makes greedy output run-to-run nonreproducible; kernel split choice depends on batch width and GPU class, so greedy output depends on co-batched requests."
+  - "A second compute unit (the Neural Engine) takes a calibrated channel share of dense FFN layers during prefill with its own lower precision (W8A8), through a private framework, with a per-process circuit breaker and a calibration persisted per Mac, model, OS and build."
+  - "Residency is declared per encoder through GPU address tables, not per queue: buffers that only the cache holds cost commands nothing, and a heartbeat keeps a residency set wired outside the queue."
+  - "Grammar masks are computed off-engine in the server for the anchor and each drafted token while the GPU runs the target verify, so the constraint interacts with speculation and has its own timeout."
+  - "Expert slots use ARC, not LRU, because decode loops over layers and a prefill chunk is a scan; the next block's routes are predicted by applying its router to the current block's input."
+  - "The SSD cache can persist across processes, keyed by model, layouts and RoPE scaling, and empties itself after repeated failed starts within probation (a cached state that crashes the engine)."
+not_read: "Function bodies of Cache.cpp, KvCache.cpp, StateCache.cpp, Engine.cpp (beyond names), Scheduler.cpp, MemoryLedger.cpp outside the reclaim order, StreamedMemoryPlan.cpp, MemoryPlan.cpp, ExpertStore.cpp, SparseRowStore.cpp, SlotRecycler.cpp, KvBlockCache.cpp, KvHistoryStream.cpp, SlotFile.cpp, KvPageTier.cpp, WriteBehind.cpp, Bootstrap.mm, RuntimeResources.mm outside the ANE key, MetalBackend.mm, AneFfn*.cpp, ane/*.mm, QwenTarget.cpp, Qwen4ExpTarget.cpp, Flint.cpp, DFlashDraft.cpp, VerifyBudget.cpp, KernelSelection.cpp beyond line 180, the vision and loader .cpp files; all .metal kernels except parts of sampling.metal; server bodies other than constraints.py, tokenization.py, supervision.py and part of backend.py; install/*.py bodies; docs/*.md (used only through the earlier notes); app/; dev/."

@@ -1,0 +1,48 @@
+kind: hardware
+id: hw/pc-12g-64g
+compute_units:
+- id: cpu0
+  kind: cpu
+- id: gpu0
+  kind: gpu
+memory_pools:
+- id: vram
+  kind: device_ram
+  capacity_nominal:
+    value: 12
+    unit: GB
+    status: reported
+- id: ram
+  kind: host_ram
+  capacity_nominal:
+    value: 64
+    unit: GB
+    status: reported
+- id: ssd0
+  kind: nvme
+  capacity_nominal:
+    value: 1
+    unit: TB
+    unit_basis: decimal
+    status: assumed
+access_paths:
+- id: gpu0-vram
+  kind: direct
+  unit: gpu0
+  pool: vram
+- id: cpu0-ram
+  kind: direct
+  unit: cpu0
+  pool: ram
+- id: gpu0-reads-ram
+  kind: direct_read
+  unit: gpu0
+  pool: ram
+- id: ram-to-vram
+  kind: transfer
+  origin: ram
+  destination: vram
+- id: ssd0-to-ram
+  kind: page_in
+  origin: ssd0
+  destination: ram

@@ -1,0 +1,385 @@
+# The node level of Engine for Muse Spark Open on DGX Spark (proposed) under the generic node types. Written by
+# `tools/so_nodetypes.py example muse-on-spark` from validation/ (the parts inventory, the assignment of parts to
+# types, and the match of each recorded decision to a choice). Each node names its type and how this engine
+# settles the choices that type leaves open, in the words of the engine's inventory. `own_decisions` counts
+# the decisions recorded for the part that are not a choice of the type. Call interfaces, source lines and
+# the full list of parameters stay in the full description (`described_in`).
+engine: muse-on-spark
+node_types: ontology/node-types.draft.yaml, draft 0.9
+nodes:
+- component: preparation
+  title: Model preparation
+  described_in: comp/muse/preparation
+  derived_from:
+  - comp/ds4/model-preparation
+  type: model-conversion
+  does: 'Offline, turn the published checkpoint into the files the engine reads: the weights every token uses in load order,
+    and every expert as one contiguous block-aligned range with a table of where each lies.'
+- component: model-file-reader
+  title: Model file reader and geometry check
+  described_in: comp/muse/model-file-reader
+  derived_from:
+  - comp/strata/model-file-reader
+  type: model-loading
+  does: Open the prepared files read-only, expose their metadata and tensor directory unchanged, and refuse files whose
+    declared shape the compiled kernels cannot run.
+  own_decisions: 1
+- component: expert-layout
+  title: Expert layout table
+  described_in: comp/muse/expert-layout
+  derived_from:
+  - comp/strata/expert-layout
+  type: model-loading
+  does: Read the table of expert ranges once and answer, for the whole process, where each expert's bytes lie in the prepared
+    file and how long they are.
+  own_decisions: 1
+- component: weight-loader
+  title: Weight loader
+  described_in: comp/muse/weight-loader
+  derived_from:
+  - comp/strata/weight-loader
+  type: model-loading
+  does: At startup, place the weights every token uses in fast memory and return a table from tensor name to location.
+  settles:
+  - choice: which stored encoding of a tensor is loaded when the files carry more than one, and which kernels accept it
+    how:
+    - Whether the embedding table and output head are kept at 4 or 16 bits. It moves about 25 GB between these weights and
+      the expert cache.
+- component: startup-memory-sizing
+  title: Startup memory sizing
+  described_in: comp/muse/startup-memory-sizing
+  derived_from:
+  - comp/strata/startup-memory-sizing
+  type: memory-planning
+  does: Within the memory budget, price the weights every token uses, the attention state for the configured context, the
+    staging area and a reserve; give the expert cache what remains; and refuse to start when the cache would be below its
+    minimum.
+  settles:
+  - choice: the reserve left free
+    how:
+    - Memory left free for the operating system and for allocations not priced in advance.
+  - choice: the least a cache may be and still work
+    how:
+    - 'The smallest cache the engine will start with: at least the experts one step can route, 8 times 62.'
+  own_decisions: 3
+- component: layer-kernels
+  title: Layer kernels and their order
+  described_in: comp/muse/layer-kernels
+  derived_from:
+  - comp/strata/layer-kernels
+  type: layer-compute
+  does: Compute the part of each layer every token needs, in a fixed order.
+- component: expert-router
+  title: Expert router
+  described_in: comp/muse/expert-router
+  derived_from:
+  - comp/strata/expert-router
+  type: layer-compute
+  does: For each token in each layer, turn the feed-forward input into 512 logits and choose 10 experts with renormalised
+    weights, on the device inside the recorded graph.
+  own_decisions: 3
+- component: output-head
+  title: Output head
+  described_in: comp/muse/output-head
+  derived_from:
+  - comp/strata/output-head
+  type: layer-compute
+  does: 'Turn the residual after the last layer into one row of vocabulary logits per position: a final residual read, then
+    the vocabulary projection.'
+  own_decisions: 2
+- component: decode-loop
+  title: Decode loop
+  described_in: comp/muse/decode-loop
+  derived_from:
+  - comp/strata/window-loop
+  - comp/ds4/decode-loop
+  type: step-execution
+  does: Take one token through the 62 layers and the output head, at each layer handing the routing to the expert subsystem
+    and waiting until every routed expert has been computed.
+  own_decisions: 2
+- component: prompt-path
+  title: Prompt path
+  described_in: comp/muse/prompt-path
+  derived_from:
+  - comp/strata/prompt-path
+  - comp/ds4/prefill-driver
+  type: prompt-reading
+  does: Read the prompt in chunks, one layer at a time, reading each routed expert that is not cached once per chunk, and
+    leave behind the attention state that generation continues from.
+  settles:
+  - choice: chunk size
+    how:
+    - Tokens per chunk. Larger chunks amortise each expert read over more tokens but need more experts in memory at once.
+  own_decisions: 2
+- component: expert-source
+  title: Expert source
+  described_in: comp/muse/expert-source
+  derived_from:
+  - comp/strata/expert-source
+  - comp/ds4/expert-stream-reader
+  type: expert-source
+  does: For any expert, give the range of the prepared file that holds it, and deliver its bytes into a buffer it is handed.
+  own_decisions: 2
+- component: expert-cache
+  title: Expert cache
+  described_in: comp/muse/expert-cache
+  derived_from:
+  - comp/strata/expert-cache
+  - comp/ds4/expert-cache
+  type: expert-cache
+  does: Hold as many experts in fast memory as its budget allows and answer, for any expert, whether it is there and in
+    which slot.
+  own_decisions: 1
+- component: cache-policy
+  title: Cache policy
+  described_in: comp/muse/cache-policy
+  derived_from:
+  - comp/strata/adaptive-tier
+  - comp/ds4/expert-eviction
+  type: residency-policy
+  does: Decide, for an expert that has just been read from storage, whether it enters the cache and which resident expert
+    leaves, so that the cache holds the experts the current work uses most.
+  settles:
+  - choice: how use counts age, so that recent use outweighs old use
+    how:
+    - How fast usage counts fade.
+  own_decisions: 3
+- component: storage-reader
+  title: Storage reader
+  described_in: comp/muse/storage-reader
+  derived_from:
+  - comp/strata/host-to-device-transfer
+  - comp/ds4/expert-stream-reader
+  type: expert-fetch
+  does: Read the bytes of missed experts from storage into the staging area or a cache slot, several at a time, and report
+    each as ready only when it is complete.
+- component: expert-dispatch
+  title: Expert dispatch
+  described_in: comp/muse/expert-dispatch
+  derived_from:
+  - comp/strata/expert-dispatch
+  - comp/ds4/expert-split-dispatch
+  type: expert-dispatch
+  does: For one layer of one step, decide for every routed expert whether it is computed from the cache at once or after
+    a read from storage, and issue the reads before the cached experts start computing.
+  own_decisions: 1
+- component: kv-store
+  title: Key and value store
+  described_in: comp/muse/kv-store
+  derived_from:
+  - comp/strata/kv-store
+  - comp/ds4/kv-state
+  type: positional-state-store
+  does: Hold the attention keys and values of every position up to the configured context length, and truncate them to a
+    given position when asked.
+- component: resume-decision
+  title: Resume decision
+  described_in: comp/muse/resume-decision
+  derived_from:
+  - comp/strata/resume-decision
+  type: prefix-reuse
+  does: For each request, choose the stored state that shares the longest valid prefix with the prompt, make the session
+    hold exactly that state by truncating or restoring, and report the prefix length.
+- component: parked-conversations
+  title: Parked conversation cache
+  described_in: comp/muse/parked-conversations
+  derived_from:
+  - comp/strata/parked-conversations
+  type: prefix-reuse
+  does: Hold images of other conversations' attention state within a budget, find the one with the longest valid prefix
+    for a prompt, and evict.
+- component: session-files
+  title: Session files
+  described_in: comp/muse/session-files
+  derived_from:
+  - comp/strata/session-files
+  type: session-persistence
+  does: On an explicit command, write the session's current conversation to one file or read one back, refusing any file
+    that does not belong to this model, configuration and engine version before any state changes.
+  own_decisions: 7
+- component: sampler
+  title: Sampler
+  described_in: comp/muse/sampler
+  derived_from:
+  - comp/strata/sampler
+  type: sampling
+  does: 'Turn each position''s logits into one token id by a fixed chain: logit bias, penalties, top-k, top-p, min-p, temperature,
+    pick.'
+  settles:
+  - choice: the default values of the settings
+    how:
+    - A request without settings is greedy in the window loop. The parameter defaults are top-k 20, top-p 0.95, min-p 0,
+      temperature 1.0, penalties off.
+  own_decisions: 4
+- component: request-runner
+  title: Request runner
+  described_in: comp/muse/request-runner
+  derived_from:
+  - comp/strata/request-runner
+  type: output-interpretation
+  does: Drive one API request through one or more engine generations and turn the token ids into reasoning, content and
+    tool-call events with a final finish record.
+  own_decisions: 7
+- component: http-front
+  title: HTTP front and admission bound
+  described_in: comp/muse/http-front
+  derived_from:
+  - comp/strata/http-front
+  type: request-front
+  does: Accept OpenAI- and Anthropic-shaped HTTP requests, bound how many inference calls are pending, answer every failure
+    class with a defined status code, and cancel a request whose client has hung up.
+  settles:
+  - choice: limits on connections, body size and queue
+    how:
+    - How many inference calls may wait beyond those the engine can run at once. Unset means no bound.
+  own_decisions: 4
+- component: prompt-builder
+  title: Prompt builder
+  described_in: comp/muse/prompt-builder
+  derived_from:
+  - comp/strata/prompt-builder
+  type: prompt-preparation
+  does: Produce the exact prompt token ids and the token limit for a request from its messages, or refuse the request.
+  settles:
+  - choice: the template used and how it is corrected
+    how:
+    - The template that turns messages into one prompt.
+  own_decisions: 2
+- component: engine-command-loop
+  title: Engine command loop
+  described_in: comp/muse/engine-command-loop
+  derived_from:
+  - comp/strata/engine-command-loop
+  type: step-scheduler
+  does: Inside the engine process, read one command at a time, run one prompt read and one generation at a time, and report
+    each generation's tokens and end figures as text lines.
+- component: engine-client
+  title: Engine process client and supervisor
+  described_in: comp/muse/engine-client
+  derived_from:
+  - comp/strata/engine-client
+  type: engine-supervision
+  does: 'Keep one engine child process resident and in step with the server: send each generation as one text command, deliver
+    its token lines to the caller, and end and restart a process that is dead, silent, frozen or fatally broken.'
+  settles:
+  - choice: the stages of a start and what is retried
+    how:
+    - How often a start that exits before READY for a transient reason is tried again, after 2, 4 and 8 s.
+  - choice: when the engine counts as stalled or failed
+    how:
+    - How long a running request's engine may print nothing before it is killed. A first prompt chunk adds min(prompt, 32768)/50
+      s; after a progress line the allowance is 3 times the last chunk's time.
+    - An engine that prints nothing for this long and also used at most 0.5 CPU seconds and 1 MiB of I/O in that time, while
+      the GPU is not busy, is killed.
+  - choice: after how many failures in what time the engine is not started again, and the wait between restarts
+    how:
+    - How often a dead engine is started again at the next request, 15 s apart.
+    - After this many engine deaths from a fatal GPU error within ten minutes the engine is not started again until the
+      window has passed.
+  - choice: when an idle engine is unloaded
+    how:
+    - Unload the engine after this many idle seconds. Off by default.
+  own_decisions: 5
+- component: run-config-generator
+  title: Run configuration generator and store
+  described_in: comp/muse/run-config-generator
+  derived_from:
+  - comp/strata/run-config-generator
+  type: configuration
+  does: Produce a complete run configuration file for one model on this machine from machine facts and the person's answers,
+    and rewrite it without losing what the person added by hand.
+  settles:
+  - choice: operator values, presets, measured values and defaults
+    how:
+    - Which value wins when the file is written.
+  - choice: rules that derive a setting's default from other settings and machine facts
+    how:
+    - 'The context length: 131072 recommended, capped by a memory rule, or the person''s choice.'
+    - 'The K/V precision: 16-bit float at a context of 8192 or less, else 8-bit integer, or the person''s choice.'
+    - Keep only a 32768-token window of K/V in fast memory when the context is 65536 or more and host memory suffices.
+    - Hold the n-gram table in host memory when memory covers the model plus the table plus 16 GB (4 GB on a rotational
+      disk).
+    - On a CPU with more efficiency cores than performance cores, and only without a calibration, the worker count is P
+      - 1 + E/2, at most 32.
+  own_decisions: 5
+- component: launch-argument-resolver
+  title: Launch and start-time argument resolver
+  described_in: comp/muse/launch-argument-resolver
+  derived_from:
+  - comp/strata/launch-argument-resolver
+  type: configuration
+  does: Turn the stored run configuration into the argument list and environment the engine process actually receives, at
+    every launch and every engine start, so that standing choices kept outside the list cannot be undone by whoever last
+    rewrote it.
+  settles:
+  - choice: operator values, presets, measured values and defaults
+    how:
+    - Which value an engine option takes at a launch.
+  - choice: which of the machine's devices the engine may use, and how they are identified to it
+    how:
+    - The engine's environment names the cards by bus order and restricts it to the configured cards; library folders come
+      first on the search path.
+  own_decisions: 4
+- component: engine-diagnostics
+  title: Engine diagnostics
+  described_in: comp/muse/engine-diagnostics
+  derived_from:
+  - comp/strata/engine-diagnostics
+  type: telemetry
+  does: Inside the engine process, record what the run selected at start, count cache hits and storage reads per layer,
+    and record how often each expert is routed, writing each when asked.
+- component: server-metrics
+  title: Request accounting and metric exporters
+  described_in: comp/muse/server-metrics
+  derived_from:
+  - comp/strata/server-metrics
+  type: telemetry
+  does: In the server process, turn the engine's end-of-request figures and the server's own clocks into per-request records,
+    running totals and a live rate, fill the usage and timings of each response, sample the machine once a second, and render
+    all of it for outside monitors.
+  own_decisions: 7
+types_without_a_part:
+- type: calibration
+- type: graph-capture
+  needed_when: The device benefits from pre-recorded or pre-compiled work, or first-use compilation would stall a request.
+- type: device-backend
+- type: secondary-compute
+  needed_when: A second device can compute something sooner than moving its inputs to the main device, or has spare capacity
+    the main device lacks.
+- type: model-edit
+  needed_when: The engine offers run-time changes to the model's behaviour.
+- type: media-preparation
+  needed_when: The engine serves input other than text.
+- type: modality-encoding
+  needed_when: The model accepts input other than text and the engine serves it.
+- type: row-source
+  needed_when: The model has a table too large to hold whole in fast memory, of which each token reads a few rows.
+- type: storage-reader
+  needed_when: Several kinds of data are read from the same storage while the engine runs.
+- type: recurrent-state-store
+  needed_when: The model has state that cannot be cut back to an earlier position, such as recurrent or convolution state.
+- type: state-pool
+  needed_when: Several sequences are in the engine at once and share one backing memory for state.
+- type: state-tiering
+  needed_when: State in fast memory exceeds what fits, for long contexts or many sequences.
+- type: draft-proposal
+  needed_when: 'A cheap source of proposals exists: a draft head of the model, a separate small model, or repetition in
+    the text.'
+- type: draft-policy
+  needed_when: The amount of drafting is adjusted while running.
+- type: draft-verification
+  needed_when: Tokens are proposed ahead.
+- type: output-constraint
+  needed_when: The service offers constrained output, or a format that must be enforced.
+- type: sequence-lifecycle
+- type: replica-routing
+  needed_when: Several whole copies of the engine run side by side.
+- type: scoring
+  needed_when: The service offers scoring.
+- type: model-partitioning
+  needed_when: The model is spread over more than one device or machine.
+- type: device-communication
+  needed_when: The model is spread over more than one device or machine.
+- type: resource-governing
+  needed_when: 'What the engine may use changes while it runs: the system reclaims memory, sequences come and go, or power
+    is limited.'

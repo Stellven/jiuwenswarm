@@ -1,0 +1,63 @@
+engine: ninfer
+# Every decision of every part was judged against the choices of its assigned type and, where the reference assignment
+# lists them under `also`, of those types. A decision is counted under the type whose choice it was judged against
+# (expert-residency-planner: memory-planning; executor: device-backend; state-commit: draft-verification;
+# context-pool: state-pool). causal-scorer records no decisions.
+decision_coverage:
+  totals: {decisions: 104, covered: 95, loosely: 8, not_covered: 1, engine_specific: 0}
+  per_type:
+    - {type: "model-conversion", decisions: 9, covered: 9, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "calibration", decisions: 5, covered: 5, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "residency-policy", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "configuration", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "model-loading", decisions: 4, covered: 3, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "model-partitioning", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "memory-planning", decisions: 8, covered: 7, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "graph-capture", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-source", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-cache", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-fetch", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-dispatch", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "secondary-compute", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "row-source", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-scheduler", decisions: 7, covered: 7, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "sequence-lifecycle", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "device-backend", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-execution", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "layer-compute", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-reading", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-proposal", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "sampling", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-verification", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-interpretation", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-constraint", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "state-pool", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "state-tiering", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prefix-reuse", decisions: 6, covered: 4, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "scoring", decisions: 0, covered: 0, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-preparation", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "media-preparation", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "modality-encoding", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "request-front", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "engine-supervision", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "device-communication", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "telemetry", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+  loosely:
+    - {part: "configuration", type: "configuration", decision: "defaults per model (prefill chunk by model and path)", nearest_choice: "rules that derive a setting's default from other settings and machine facts (the served model is neither a setting nor a machine fact)"}
+    - {part: "shard-materializer", type: "model-loading", decision: "whether a slice can be expressed value-preservingly, else the format rejects it", nearest_choice: "whether weights are re-encoded at load and how"}
+    - {part: "startup-memory-planner", type: "memory-planning", decision: "bounded correction of automatic capacity after an over-budget preparation; explicit capacity kept", nearest_choice: "whether a failed allocation is retried smaller, and by how much (here nothing failed to allocate; a measured total exceeded the budget)"}
+    - {part: "hybrid-moe-dispatch", type: "expert-dispatch", decision: "large T (stream the whole layer) versus small T (split with the CPU) by a token-count threshold", nearest_choice: "the share of misses fetched now against left to another device (the switch is by the step's token count, not by a share of misses)"}
+    - {part: "model-session", type: "sequence-lifecycle", decision: "full permit before verify that covers the later commit peak", nearest_choice: "a sequence's state allocated up front or grown on demand"}
+    - {part: "rank-program", type: "step-execution", decision: "where host handoffs split device work (grammar mask, CPU experts, final acceptance)", nearest_choice: "cutting a step into parts so that work on two devices overlaps"}
+    - {part: "context-resource-manager", type: "prefix-reuse", decision: "cross-rank copy only when recompute cost was measured and it is cheaper", nearest_choice: "which store is used when several hold a match"}
+    - {part: "media-preparer", type: "media-preparation", decision: "cache capacity and live payload budget", nearest_choice: "caching of prepared media and its key (no choice names a memory budget for prepared payloads held by caches and requests together)"}
+  not_covered:
+    - {part: "context-resource-manager", type: "prefix-reuse", decision: "attention data parallelism: pick the attention-owner rank, balanced when peak load is within a bound of the minimum, then longest local prefix", kind: "placement", missing_choice: "which device owns a sequence's attention and state when that work is divided between devices by sequence, and how load balance is weighed against where reusable state already lies"}
+contradictions: []
+new_causes:
+  - {part: "layer-compute", type: "layer-compute", kind: "own", level: "approximate", cause: "the computation writes the per-position state it appends in a reduced stored precision (8-bit or 4-bit encodings); the type has the matching choice but its approximate condition names only activations and approximated operations", evidence: "inventory does: KV append in the chosen encoding; decision: KV encoding (bf16, int8, fp8, nvfp4, k8v4). The same level is claimed by positional-state-store, but in this engine the write is done by the layer computation."}
+  - {part: "collective-communication", type: "device-communication", kind: "own", level: "rounding", cause: "partial sums are combined at the activation width rather than at a wider accumulator width, so the combined result differs from a single-device sum even where the order is the same", evidence: "inventory output_effect_when: reduction order differs from a single-rank sum; no FP32 forced. The type names only combining in another order."}
+  - {part: "context-resource-manager", type: "prefix-reuse", kind: "own", level: "approximate", cause: "where it places an optional restore point shortens the prompt chunk that ends there, and a shorter chunk runs at another activation precision than the unsplit read; the type names this placement only at rounding. Own or through: the capture decision is this node's, the precision change is done by the layer computation of the shortened chunk, so it may be read as an effect through prompt reading", evidence: "capture_policy.cpp 8-29 chooses a capture position inside the chunk (begin, end] snapped to a semantic boundary; corrections for chunked-prefill and context-resource-manager: activation precision of AllowA4 projections follows the step's token count"}
+relaxations: []
+wrong_assignments: []
+inventory_errors: []

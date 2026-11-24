@@ -1,0 +1,220 @@
+"per_type":
+- "type": "model-preparation"
+  "decisions": 2
+  "covered": 2
+  "loosely": 0
+  "not_covered": 0
+  "engine_specific": 0
+  "examples_not_covered": []
+  "proposed_choices": []
+- "type": "weight-loader"
+  "decisions": 19
+  "covered": 6
+  "loosely": 6
+  "not_covered": 1
+  "engine_specific": 6
+  "examples_not_covered": ["Tensors served by another loader are not read; optionally both forms kept"]
+  "proposed_choices": ["which file or format each tensor group is read from", "which model facts are read from the file and which are compiled in"]
+- "type": "table-reader"
+  "decisions": 11
+  "covered": 2
+  "loosely": 2
+  "not_covered": 6
+  "engine_specific": 1
+  "examples_not_covered": ["Number of outstanding storage reads", "Set-associative cache of rows already read", "Row hash: how keys map to row numbers", "Prefill sorts row numbers and reads them with a\
+      \ thread pool"]
+  "proposed_choices": ["how many reads run concurrently and in what order", "whether recently read rows are cached", "whether reads bypass the page cache"]
+- "type": "expert-source"
+  "decisions": 11
+  "covered": 2
+  "loosely": 1
+  "not_covered": 4
+  "engine_specific": 4
+  "examples_not_covered": ["Large pages first, else ordinary pages", "Register the arena with the device driver, whole or in ranges", "Register only the byte ranges of the hottest experts", "Extra RAM copy\
+      \ of the hottest experts when falling back to files"]
+  "proposed_choices": ["page size and pinning or registration for device access", "which part is pinned or registered when not all can be", "whether a partial fast copy of hot experts is kept"]
+- "type": "expert-cache"
+  "decisions": 2
+  "covered": 1
+  "loosely": 1
+  "not_covered": 0
+  "engine_specific": 0
+  "examples_not_covered": []
+  "proposed_choices": ["what happens when the configured size cannot be obtained"]
+- "type": "cache-policy"
+  "decisions": 10
+  "covered": 8
+  "loosely": 2
+  "not_covered": 0
+  "engine_specific": 0
+  "examples_not_covered": []
+  "proposed_choices": ["what happens when no victim can be evicted"]
+- "type": "expert-dispatch"
+  "decisions": 7
+  "covered": 3
+  "loosely": 1
+  "not_covered": 3
+  "engine_specific": 0
+  "examples_not_covered": ["Splitting enabled only after a number of generated tokens", "Splitting enabled only when the cache holds enough entries", "Missing experts read while the device computes the\
+      \ shared expert"]
+  "proposed_choices": ["warm-up conditions before a dispatch path is enabled", "threshold of misses above which work is split", "overlap of fetching with other computation"]
+- "type": "expert-transfer"
+  "decisions": 3
+  "covered": 1
+  "loosely": 2
+  "not_covered": 0
+  "engine_specific": 0
+  "examples_not_covered": []
+  "proposed_choices": ["whether copies are issued singly or batched", "warm-up reads at startup and their order"]
+- "type": "decode-loop"
+  "decisions": 14
+  "covered": 6
+  "loosely": 2
+  "not_covered": 6
+  "engine_specific": 0
+  "examples_not_covered": ["Split a window into two token groups pipelined between CPU and GPU", "When side-table rows are gathered within a step", "Failure of a drafted round invalidates the session; prefill\
+      \ again", "Graph eviction when instantiating a graph runs out of memory"]
+  "proposed_choices": ["overlap and pipelining within a step", "recovery when a step fails", "how many recorded graphs are kept and what is freed under memory pressure"]
+- "type": "layer-compute"
+  "decisions": 12
+  "covered": 4
+  "loosely": 2
+  "not_covered": 6
+  "engine_specific": 0
+  "examples_not_covered": ["Routing biased toward experts resident in fast memory", "Swap a non-resident tail expert for a resident one within a margin", "Shared expert run to overlap with CPU experts",
+    "Logits read-back and non-finite scan after the head"]
+  "proposed_choices": ["whether routing may be biased by residency (changes output)", "overlap of work across devices inside a layer", "workspace allocation and numeric sanity checks"]
+- "type": "secondary-executor"
+  "decisions": 7
+  "covered": 1
+  "loosely": 1
+  "not_covered": 5
+  "engine_specific": 0
+  "examples_not_covered": ["Row ranges a phase is cut into", "Workers spin then sleep", "No-progress wait stops the process", "Work split per memory node"]
+  "proposed_choices": ["how work is partitioned into jobs", "idle-wait strategy and hang detection", "placement of work by memory locality"]
+- "type": "prompt-reader"
+  "decisions": 8
+  "covered": 2
+  "loosely": 1
+  "not_covered": 5
+  "engine_specific": 0
+  "examples_not_covered": ["Next layer's experts read while the current one computes", "Long prefill yields to decoding sessions every N tokens", "Share of missed experts sent to the CPU from running averages",
+    "Conditions for an expert to go to the CPU"]
+  "proposed_choices": ["overlap of expert reads with computation", "how it yields to concurrent decoding", "split of missed experts between devices while reading the prompt"]
+- "type": "sampler"
+  "decisions": 5
+  "covered": 1
+  "loosely": 0
+  "not_covered": 4
+  "engine_specific": 0
+  "examples_not_covered": ["Default parameter values for a request without settings", "Random draw keyed by seed and absolute position", "Several implementations that pick the same token", "Penalties count\
+      \ only the reply, per-row history in a window"]
+  "proposed_choices": ["default settings", "source of randomness and what it is keyed by", "scope of penalties and history"]
+- "type": "memory-planner"
+  "decisions": 25
+  "covered": 12
+  "loosely": 5
+  "not_covered": 6
+  "engine_specific": 2
+  "examples_not_covered": ["Whether the engine may replace an operator-chosen placement on its own", "Slots a loan to the prompt path leaves in the cache", "After allocating, re-read free memory and shrink\
+      \ while short", "Retry a failed automatic allocation at a smaller size"]
+  "proposed_choices": ["whether operator-given sizes are hard limits or targets", "re-measuring after allocation and retrying smaller", "memory lent between consumers at run time"]
+- "type": "attention-state-store"
+  "decisions": 9
+  "covered": 3
+  "loosely": 1
+  "not_covered": 5
+  "engine_specific": 0
+  "examples_not_covered": ["Per-layer compressed history layout and compression schedule", "Rejected rows left in place and hidden by counters", "Positions per page", "Physical pages mapped as context grows,\
+      \ taken from the expert cache"]
+  "proposed_choices": ["layout and granularity of stored state (pages, compression per layer)", "how state of rejected positions is rolled back", "whether memory is allocated up front or as the context\
+      \ grows"]
+- "type": "conversation-reuse"
+  "decisions": 33
+  "covered": 8
+  "loosely": 4
+  "not_covered": 20
+  "engine_specific": 1
+  "examples_not_covered": ["When a checkpoint is cut (turn tokens, every N tokens, chunk ends)", "What binds a saved state to a configuration and a model", "Move versus copy when restoring from a parked\
+      \ entry", "Restore refused when the device lacks free memory; prompt read again"]
+  "proposed_choices": ["where and when checkpoints are cut", "the compatibility key that decides whether stored state may be reused", "when restoring is refused in favour of re-reading"]
+- "type": "drafter"
+  "decisions": 22
+  "covered": 5
+  "loosely": 3
+  "not_covered": 14
+  "engine_specific": 0
+  "examples_not_covered": ["Shortest and longest match length of a lookup proposal", "Draft chain stops at the first draft below a confidence floor", "Drafter's own state: attended window, placement, which\
+      \ rows are written", "Draft support file must come from the same checkpoint"]
+  "proposed_choices": ["when a draft chain stops (confidence threshold)", "how the drafter's own state is kept, placed and kept in step after verification", "whether drafts are greedy or sampled"]
+- "type": "draft-policy"
+  "decisions": 12
+  "covered": 3
+  "loosely": 1
+  "not_covered": 8
+  "engine_specific": 0
+  "examples_not_covered": ["How much better a lookup window must be than the neural one", "Drafting pauses below a mean acceptance, for a number of rounds", "Judgement made every N rounds", "Drafter used\
+      \ when a request names none"]
+  "proposed_choices": ["rule for choosing among draft sources", "when drafting pauses and resumes", "how often the policy re-decides"]
+- "type": "draft-verifier"
+  "decisions": 12
+  "covered": 5
+  "loosely": 2
+  "not_covered": 5
+  "engine_specific": 0
+  "examples_not_covered": ["Commit graph launched without waiting", "Recurrent layers committed in two launches", "Snapshot of a compressor frontier kept per prefix length", "Logits saved and restored when\
+      \ no draft is accepted"]
+  "proposed_choices": ["how state that cannot be truncated is snapshotted and rolled back", "how and when the commit is executed"]
+- "type": "request-front"
+  "decisions": 20
+  "covered": 3
+  "loosely": 4
+  "not_covered": 13
+  "engine_specific": 0
+  "examples_not_covered": ["Bound on queued requests and refusal (429) above it", "How long a request may wait for the engine before refusal", "Retry a request once when the engine reports non-finite logits",
+    "End a reply when one token repeats too often in a row"]
+  "proposed_choices": ["queueing, backpressure and refusal of excess requests", "guards that end or retry a degenerate or failed reply", "how tokenization and templating are cached or kept prefix-stable"]
+- "type": "engine-control"
+  "decisions": 17
+  "covered": 9
+  "loosely": 0
+  "not_covered": 7
+  "engine_specific": 1
+  "examples_not_covered": ["How many sequences the engine keeps open", "Most rows in one batch window", "Slot groups pipelined across cards on a layer split", "Decode time granted to slots after each prompt\
+      \ chunk"]
+  "proposed_choices": ["how many sequences run in one engine and how they share a step", "how prompt reading interleaves with decoding", "when an idle engine is unloaded"]
+- "type": "multi-request-scheduler"
+  "decisions": 15
+  "covered": 5
+  "loosely": 2
+  "not_covered": 7
+  "engine_specific": 1
+  "examples_not_covered": ["Prefix-block hashes kept to route requests to the replica holding them", "Dead replica restarted in the background at a bounded rate", "Several waiting prompts read in one pass",
+    "Retry another slot after a refusal"]
+  "proposed_choices": ["routing by cached prefix (affinity)", "failure, retry and restart of slots or replicas", "whether prompts of several requests are read together"]
+- "type": "configuration"
+  "decisions": 25
+  "covered": 7
+  "loosely": 5
+  "not_covered": 11
+  "engine_specific": 2
+  "examples_not_covered": ["Which value wins among presets, operator options and automatic fits", "A tuned value is kept only if it beats the default by a margin", "When a stored calibration is invalidated\
+      \ by machine changes", "Only output-preserving settings may be tuned automatically"]
+  "proposed_choices": ["precedence among operator, preset, calibration and automatic values", "acceptance rule and budget for automatically tuned values", "when stored measurements stop being valid"]
+- "type": "telemetry"
+  "decisions": 12
+  "covered": 5
+  "loosely": 0
+  "not_covered": 7
+  "engine_specific": 0
+  "examples_not_covered": ["Definition of tokens per second", "Definition and placement of time to first token", "Inter-token latency recorded as one mean per request", "Sampling interval and retention\
+      \ of series"]
+  "proposed_choices": ["definition of each reported figure", "sampling interval and retention"]
+"totals": {"decisions": 313, "covered": 104, "loosely": 48, "not_covered": 143, "engine_specific": 18}
+"observations": ["The choices name what to size or place but rarely what happens when it cannot be had: fallbacks, retries, degradation order and refusal conditions are mostly missing.", "Nearly every type\
+    \ omits overlap and ordering of work in time (fetch during compute, prefill yielding to decode, side reads during a step), which is where much engine design lives.", "Stopping, pausing and threshold\
+    \ rules (draft confidence floors, drafting pauses, split thresholds, warm-up conditions) are absent from the speculation and dispatch types.", "State upkeep across rollback and reuse is thin: how rejected\
+    \ positions are undone, when checkpoints are cut and what key makes stored state reusable are not choices.", "Precedence between operator values, presets, calibration and automatic fits, and whether\
+    \ an operator value is a hard limit or a target, recurs in several components but has no home.", "Some decisions are model-defined facts (layer compression schedule, n-gram hash, draft token subset)\
+    \ rather than engine choices; the types have no place for model facts the engine must honour, nor for decisions that change output such as residency-biased routing."]
+unmapped_components: []

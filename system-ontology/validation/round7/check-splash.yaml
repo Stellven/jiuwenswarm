@@ -1,0 +1,123 @@
+engine: splash
+# Checked against ontology/node-types.draft.yaml (draft 0.7), validation/inventory/splash.yaml with
+# splash.corrections.yaml, and the splash entries of validation/reference-assignment.yaml (kv-page-pool also
+# positional-state-store). Source at <refs>/splash read only to settle the cache key question.
+decision_coverage:
+  totals: {decisions: 136, covered: 126, loosely: 8, not_covered: 0, engine_specific: 2}
+  per_type:
+    - {type: "model-conversion", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "model-loading", decisions: 8, covered: 7, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "configuration", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "resource-governing", decisions: 11, covered: 11, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "memory-planning", decisions: 6, covered: 6, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "engine-supervision", decisions: 8, covered: 8, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "calibration", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "secondary-compute", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "device-backend", decisions: 8, covered: 8, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "layer-compute", decisions: 4, covered: 2, loosely: 0, not_covered: 0, engine_specific: 2}
+    - {type: "modality-encoding", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "media-preparation", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-cache", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "residency-policy", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "expert-fetch", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "storage-reader", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "row-source", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "state-pool", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "recurrent-state-store", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "positional-state-store", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-proposal", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prefix-reuse", decisions: 7, covered: 7, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "state-tiering", decisions: 12, covered: 11, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-reading", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-policy", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "sampling", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-verification", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-constraint", decisions: 4, covered: 3, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "step-scheduler", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "sequence-lifecycle", decisions: 5, covered: 5, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "request-front", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-preparation", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-interpretation", decisions: 1, covered: 0, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "scoring", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "telemetry", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+  loosely:
+    - {part: "weight-image-loader", type: "model-loading", decision: "quantize the draft at load rather than ship it quantized", nearest_choice: "whether weights are re-encoded at load and how (names re-encoding, not where a precision reduction of proposal-only weights is done: offline or at every load)"}
+    - {part: "expert-store", type: "expert-cache", decision: "release one chunk, or all to floor under critical pressure", nearest_choice: "which part is released or regrown first under memory pressure (names which part, not how much is released at each pressure level)"}
+    - {part: "slot-recycler", type: "residency-policy", decision: "scans leave no ghosts and move no hits", nearest_choice: "the replacement rule (does not name whether a one-pass bulk access is treated as a scan that leaves the use history untouched)"}
+    - {part: "write-behind", type: "state-tiering", decision: "minimum depth and delay before copying", nearest_choice: "copying ahead of need (names that copies are made ahead, not what qualifies a restore point for a copy: its depth, its age, whether it was superseded)"}
+    - {part: "verify-row-budget", type: "draft-policy", decision: "refit interval, label window, decay, prior strength", nearest_choice: "how fresh the signals it decides from must be (covers window and decay; refit interval and the prior's strength are not named)"}
+    - {part: "thinking-budget", type: "output-constraint", decision: "where in the 8 rows the end starts", nearest_choice: "how it applies to proposed tokens that are not yet accepted (forcing replaces proposals at a chosen row rather than masking them)"}
+    - {part: "output-parser", type: "output-interpretation", decision: "hold text that may begin a stop string", nearest_choice: "stop conditions and their order (the holding itself is the must rule, not a listed choice; how much is held and when it is released are not named)"}
+    - {part: "telemetry", type: "telemetry", decision: "log only transitions", nearest_choice: "what is recorded by default and what on request (does not name recording state changes only rather than every sample)"}
+  # engine_specific: target-forward "router weighting" and block-sparse-indexer "how many top blocks" are fixed by
+  # the model's definition, not a builder's choice.
+  not_covered: []
+contradictions:
+  - part: "weight-image-loader"
+    type: "model-loading"
+    claim: "effect_on_output exact when: weights are used as stored, re-encoded without changing their values, or reduced only for proposals under greedy decoding"
+    evidence: "The draft is quantized from BF16 to 4-bit at load (inventory decisions and output_effect_when). Under greedy decoding the proposals decide how many tokens are accepted and so where the next 8-row verify block starts; for MoE they also set the verified row count (verify-row-budget reads draft confidence). Kernel choice and split order follow rows and lanes (kernel-selector, KernelSelection.cpp), and acceptance-commit records greedy output as the target's 'up to kernel numerics'. So a proposal-only reduction reaches rounding under greedy decoding here."
+    fix: "exact when ... or reduced only for proposals under greedy decoding where checked blocks are computed exactly as single-token decoding would; add to rounding: it reduces weights used only for proposals and the proposals move the boundaries or width of checked blocks (as model-conversion already says)"
+  - part: "slot-recycler"
+    type: "residency-policy"
+    claim: "summary: Decide which selectively used weights are kept in fast memory"
+    evidence: "The same recycler also chooses the slot of the shared hot cache of spilled K/V blocks (takes block keys from spilled-kv-reader, gives it slots to fill); its job is not limited to selectively used weights."
+    fix: "Decide which selectively used weights, or other blocks read back from slower storage into a bounded fast cache, are kept in fast memory"
+new_causes:
+  - part: "weight-image-loader"
+    type: "model-loading"
+    kind: own
+    level: rounding
+    cause: "weights used only for proposals are reduced in precision at load, and the proposals decide where checked blocks begin and how many rows they hold"
+    evidence: "draft quantized to af4g64 at load; greedy target output depends on rows per command through kernel tiles and split counts (kernel-selector), and verified rows for MoE follow draft confidence (verify-row-budget)"
+  - part: "streamed-parts-planner"
+    type: "memory-planning"
+    kind: through
+    level: rounding
+    cause: "deciding that a large part streams instead of staying resident switches prompt reading to grouped chunks of several sequences run layer by layer, which changes how the computation is cut (not a size, so the through-list's 'a size it sets, such as the prompt chunk' does not name it)"
+    evidence: "prefill-runner groups up to four chunks run layer by layer when experts stream or K/V spills; the planner decides whether routed experts and the PLE table stream"
+  - part: "streamed-parts-planner"
+    type: "memory-planning"
+    kind: through
+    level: defines
+    cause: "the per-request allowance and spill floors it sizes decide whether a request spills, and a spilled request's output is ended at the slower tier's quota"
+    evidence: "planner sizes the KV allowance first and the floors of KV spill; kv-spill-controller (corrected to changes_output) ends a request at the quota bound"
+  - part: "memory-plan"
+    type: "memory-planning"
+    kind: through
+    level: defines
+    cause: "the longest context one request may take is computed by the plan, and requests are refused or ended at that bound, so the plan decides where output stops; the through-list names cuts, approximations and step width but not the context bound"
+    evidence: "memory-plan gives lane-admission the maximum context; 'context bound by model window, resident memory, or spill and disk'; prompt-builder returns ContextLengthError on overflow"
+  - part: "draft-state"
+    type: "positional-state-store"
+    kind: through
+    level: rounding
+    cause: "keeping only the inputs of derived per-position state and rebuilding it after a restore computes the proposer's state by another path (a prefill chunk instead of decode writes), which changes proposals and so the boundaries of checked blocks; under sampling it changes the draw (resampled). Partly own work (the decision what to keep), partly the proposer's computation: cannot fully separate"
+    evidence: "cached states keep the context window, not the ring; the ring is rebuilt in the next prefill chunk after a restore (DFlashDraft.hpp:21-69, Runtime.cpp:363-371)"
+  - part: "kv-spill-controller"
+    type: "state-tiering"
+    kind: through
+    level: rounding
+    cause: "moving a sequence's state to the slower tier switches how its prompt and history are computed (grouped chunks run layer by layer, history streamed one attention layer at a time), changing how the computation is cut; state-tiering has no affects_output_through"
+    evidence: "prefill-runner groups chunks when K/V spills; spilled-kv-reader streams history per layer during prefill"
+  - part: "request-scheduler"
+    type: "step-scheduler"
+    kind: through
+    level: rounding
+    cause: "the prompt cut is sized from measured wall time of past commands, so the same request can be cut differently from run to run; the through-list names the cut but not that it follows timing (named only for draft-policy)"
+    evidence: "'contended prefill cut rows from measured time with a floor'; 'sized while decode waits to a time bound measured from past commands'"
+relaxations:
+  - part: "prefix-block-cache"
+    type: "prefix-reuse"
+    rule: "Stored state is reused only where the model, the weights' precision, the settings and the prefix match what it was made for."
+    how: "The persistent tier's namespace keys on model manifests, KV and state layouts and formats, and RoPE scaling (RuntimeResources.mm:540-584), and block keys on parent, tokens, images and salt, but neither includes the Neural Engine split (on by default, W8A8 for part of dense prefill FFN, its calibrated share, or a breaker trip). KV computed with the split is reused by a process run with --disable-ane or another share, and within a process across a breaker trip."
+  - part: "composite-state-cache"
+    type: "prefix-reuse"
+    rule: "Stored state is reused only where the model, the weights' precision, the settings and the prefix match what it was made for."
+    how: "Same key as the KV blocks: GDN states and draft windows computed from prefill that ran the reduced-precision Neural Engine split are restored where the split is off or at another share; state format is keyed (bf16 line in the namespace), the split is not."
+wrong_assignments: []
+inventory_errors:
+  - part: "weight-image-loader"
+    field: "output_effect_when"
+    recorded: "draft projections are quantized from BF16 at load, which changes draft proposals (not greedy target output)"
+    source_shows: "Greedy target output depends in the last bits on rows per command (runtime/ops/KernelSelection.cpp:40-180 picks tile and split by rows and lanes) and, for MoE, on verified rows chosen from draft confidence (runtime/model/VerifyBudget.hpp); proposals decide accepted counts and so the next verify block. The draft quantization therefore can change greedy target output at rounding level."

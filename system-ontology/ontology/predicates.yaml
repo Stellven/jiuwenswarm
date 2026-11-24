@@ -1,0 +1,36 @@
+# The predicates a mechanism's preconditions may use. Each is evaluated by tools/so_check.py against the given part
+# and returns one of: holds, fails, depends (on a requirement not yet decided), unknown (information missing).
+# Adding a predicate is an extension of the ontology: register it here and implement it in so_check.py.
+ontology_version: 0.6.1
+
+predicates:
+  sparse_selection:
+    text: "The model has a selection operation that picks at most max_pick_ratio of the instances it chooses among."
+    args: {max_pick_ratio: number}
+    binds: [selection, operation, data]
+
+  selected_data_partitioned:
+    text: "The weights read by the selected operation can be stored and loaded separately per selected object."
+    needs: [data]
+
+  selected_data_exceeds_direct_pool:
+    text: "Those weights are larger than the limit of a memory pool a compute unit uses directly. The limit is the budget if one is set, else the allocatable capacity, else the nominal capacity."
+    needs: [data]
+    binds: [fast_pool]
+
+  slower_pool_can_hold:
+    text: "Another memory pool is large enough to hold all of those weights and has a path to the fast pool or can be read directly by a compute unit."
+    needs: [data, fast_pool]
+    binds: [slow_pool]
+
+  units_with_distinct_direct_pools:
+    text: "At least two compute units directly use different memory pools."
+    binds: [units]
+
+  measured_property:
+    text: "The given part holds a measured statement or workload profile for the property named in args."
+    args: {property: string}
+
+  has_draft_operation:
+    text: "The model has an operation of kind draft."
+    binds: [draft]

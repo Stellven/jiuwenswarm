@@ -1,0 +1,1 @@
+Build a custom inference engine for Meta Muse Spark Open that runs on NVIDIA DGX Spark. The attached System Ontology files describe the model, the machine, the target the engine is judged on, and the engine itself at two levels: the system as a whole and its nodes. Take them as the statement of what is wanted.

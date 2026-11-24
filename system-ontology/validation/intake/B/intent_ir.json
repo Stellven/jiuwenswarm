@@ -1,0 +1,965 @@
+{
+  "schema_version": "1.0.0",
+  "request_ref": {
+    "id": "request",
+    "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"
+  },
+  "interpretation": {
+    "problem": null,
+    "desired_change": {
+      "id": "interp-desired-change",
+      "text": "A custom inference engine for Meta Muse Spark Open exists that runs on NVIDIA DGX Spark.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "request",
+            "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"
+          },
+          "start": 0,
+          "end": 87
+        }
+      ]
+    },
+    "requested_result": {
+      "id": "interp-requested-result",
+      "text": "The engine, judged against the attached target specification, delivered as a reproducible container with a clean rebuild, a benchmark report and replayable run artifacts.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "request",
+            "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"
+          },
+          "start": 88,
+          "end": 194
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 3886,
+          "end": 3940
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 4004,
+          "end": 4058
+        }
+      ]
+    }
+  },
+  "context": [
+    {
+      "id": "ctx-model",
+      "name": "Meta Muse Spark Open (model/muse-spark-open)",
+      "role": "The given model the engine must run: 816B parameters in total, 42B active per token, 62 layers, a router selecting 8 of 256 experts per token per layer, vendor-stated context length of 1,000,000 tokens, text+image+video+audio input and text output, BF16 and NVFP4 weights in safetensors.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 519,
+          "end": 547
+        },
+        {
+          "source_ref": {
+            "id": "model",
+            "sha256": "120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a"
+          },
+          "start": 38,
+          "end": 116
+        },
+        {
+          "source_ref": {
+            "id": "model",
+            "sha256": "120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a"
+          },
+          "start": 776,
+          "end": 854
+        },
+        {
+          "source_ref": {
+            "id": "model",
+            "sha256": "120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a"
+          },
+          "start": 4080,
+          "end": 4135
+        }
+      ]
+    },
+    {
+      "id": "ctx-machine",
+      "name": "NVIDIA DGX Spark, 128 GB configuration (hw/dgx-spark)",
+      "role": "The given hardware the engine must run on: GB10 Grace Blackwell SoC with a 20-core arm64 CPU (cpu0) and a Blackwell GPU (gpu0).",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 550,
+          "end": 572
+        },
+        {
+          "source_ref": {
+            "id": "machine",
+            "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"
+          },
+          "start": 34,
+          "end": 68
+        },
+        {
+          "source_ref": {
+            "id": "machine",
+            "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"
+          },
+          "start": 702,
+          "end": 800
+        }
+      ]
+    },
+    {
+      "id": "ctx-mem0",
+      "name": "Unified memory pool mem0",
+      "role": "The machine's single LPDDR5x unified memory pool, 128 GB nominal and 273 GB/s, shared by CPU and GPU with no separate GPU memory; the pool against which the memory budget and peak memory are accounted.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "machine",
+            "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"
+          },
+          "start": 902,
+          "end": 1011
+        },
+        {
+          "source_ref": {
+            "id": "machine",
+            "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"
+          },
+          "start": 1627,
+          "end": 1658
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 1241,
+          "end": 1251
+        }
+      ]
+    },
+    {
+      "id": "ctx-ssd0",
+      "name": "NVMe storage ssd0",
+      "role": "The machine's NVMe storage (up to 4 TB) with a page-in path into mem0; its read bandwidth is not given.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "machine",
+            "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"
+          },
+          "start": 1700,
+          "end": 1768
+        },
+        {
+          "source_ref": {
+            "id": "machine",
+            "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"
+          },
+          "start": 1663,
+          "end": 1696
+        }
+      ]
+    },
+    {
+      "id": "ctx-target-spec",
+      "name": "Target specification spec/muse-spark-open-on-dgx-spark/target",
+      "role": "The statement of what is wanted and what the engine is judged on. It marks what the scope page states (with source), what it proposes (status: proposed), what only the project can decide (UNSET) and what is left to the factory (open).",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "request",
+            "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"
+          },
+          "start": 195,
+          "end": 240
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 18,
+          "end": 62
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 422,
+          "end": 435
+        }
+      ]
+    },
+    {
+      "id": "ctx-scope-page",
+      "name": "The scope page (scope-slide)",
+      "role": "The upstream source the target specification cites for its stated values; it is referenced but not among the supplied sources.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 746,
+          "end": 781
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 1510,
+          "end": 1574
+        }
+      ]
+    },
+    {
+      "id": "ctx-quality-baseline",
+      "name": "Reference baseline for quality",
+      "role": "The proposed quality baseline: the published reference implementation with the NVFP4 weights, the published tokenizer and greedy sampling.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 2420,
+          "end": 2539
+        }
+      ]
+    },
+    {
+      "id": "ctx-node-types",
+      "name": "System Ontology generic node types, draft 0.9",
+      "role": "Supplied vocabulary of generic inference-engine node types and output-effect levels; its first four effect levels are meant to compare with a target's allowed_transformations. It states no requirement for this engine.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "node-types",
+            "sha256": "a65acca0ad5f54476bb1953fd7d79ac45059779d1a13365b4c068d5f7e6ce4fb"
+          },
+          "start": 0,
+          "end": 107
+        },
+        {
+          "source_ref": {
+            "id": "node-types",
+            "sha256": "a65acca0ad5f54476bb1953fd7d79ac45059779d1a13365b4c068d5f7e6ce4fb"
+          },
+          "start": 1650,
+          "end": 1672
+        }
+      ]
+    }
+  ],
+  "in_scope": [
+    {
+      "id": "scope-engine",
+      "text": "Building a custom inference engine for Meta Muse Spark Open that runs on NVIDIA DGX Spark.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "request",
+            "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"
+          },
+          "start": 0,
+          "end": 87
+        }
+      ]
+    },
+    {
+      "id": "scope-deliverable-container",
+      "text": "Deliverable: a reproducible container (required).",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 3886,
+          "end": 3940
+        }
+      ]
+    },
+    {
+      "id": "scope-deliverable-rebuild",
+      "text": "Deliverable: a clean rebuild (required).",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 3945,
+          "end": 3999
+        }
+      ]
+    },
+    {
+      "id": "scope-deliverable-benchmark",
+      "text": "Deliverable: a benchmark report (required).",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 4004,
+          "end": 4058
+        }
+      ]
+    },
+    {
+      "id": "scope-deliverable-artifacts",
+      "text": "Deliverable: replayable run artifacts (required).",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 4063,
+          "end": 4119
+        }
+      ]
+    },
+    {
+      "id": "scope-factory-open",
+      "text": "Execution, state, composition, policy and binding are left open for the factory to decide.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 470,
+          "end": 508
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 987,
+          "end": 1002
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 1046,
+          "end": 1059
+        }
+      ]
+    }
+  ],
+  "out_of_scope": [],
+  "constraints": [
+    {
+      "id": "con-packaging",
+      "text": "The engine is packaged as a container (required, stated by the scope page).",
+      "category": "format",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 694,
+          "end": 782
+        }
+      ]
+    },
+    {
+      "id": "con-input-text",
+      "text": "The engine's input modality is text (required, stated by the scope page).",
+      "category": "interface",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 797,
+          "end": 880
+        }
+      ]
+    },
+    {
+      "id": "con-output-text",
+      "text": "The engine's output modality is text (required, stated by the scope page).",
+      "category": "interface",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 883,
+          "end": 966
+        }
+      ]
+    },
+    {
+      "id": "con-memory-budget",
+      "text": "Proposed pass/fail memory budget of 80 GB (decimal) in pool mem0, accounted as everything the engine's container holds in the unified pool at any moment (CPU and GPU allocations of the process and attributable page cache), excluding the operating system and other processes. The value, unit basis and accounting boundary are proposals to be confirmed.",
+      "category": "resource",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 1109,
+          "end": 1132
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 1184,
+          "end": 1193
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 1280,
+          "end": 1353
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 1894,
+          "end": 1979
+        }
+      ]
+    },
+    {
+      "id": "con-context-length",
+      "text": "There is a pass/fail requirement on context length in tokens; its value is not given.",
+      "category": "resource",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 2007,
+          "end": 2031
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 2285,
+          "end": 2317
+        }
+      ]
+    },
+    {
+      "id": "con-fixed-workload",
+      "text": "Measurements use a fixed workload (stated by the scope page); the workload is not defined.",
+      "category": "evaluation",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 3603,
+          "end": 3678
+        }
+      ]
+    },
+    {
+      "id": "con-one-checkpoint",
+      "text": "The engine uses one model checkpoint (stated by the scope page); which checkpoint is not set.",
+      "category": "data",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 3739,
+          "end": 3799
+        }
+      ]
+    }
+  ],
+  "preferences": [],
+  "user_targets": [
+    {
+      "id": "tgt-quality",
+      "metric": "quality_score",
+      "target_text": "Pass/fail against the proposed fixed reference baseline: if no change to the computation is allowed, the same output tokens as the baseline; otherwise a task score not below a threshold. Task set and threshold are not given.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 2345,
+          "end": 2368
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 2546,
+          "end": 2692
+        }
+      ]
+    },
+    {
+      "id": "tgt-ttft",
+      "metric": "ttft",
+      "target_text": "Reported (no threshold), proposed timing from the engine admitting the request to the engine producing the first output token, model load excluded; workload not given.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 2930,
+          "end": 2944
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 2993,
+          "end": 3063
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 3070,
+          "end": 3133
+        }
+      ]
+    },
+    {
+      "id": "tgt-decode",
+      "metric": "decode_rate",
+      "target_text": "Reported (no threshold), proposed to exclude the first token; workload not given.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 3181,
+          "end": 3202
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 3251,
+          "end": 3278
+        }
+      ]
+    },
+    {
+      "id": "tgt-peak-memory",
+      "metric": "peak_memory",
+      "target_text": "Reported (no threshold) for pool mem0, proposed with the same accounting boundary as the memory budget; workload not given.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 3324,
+          "end": 3345
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 3411,
+          "end": 3461
+        }
+      ]
+    }
+  ],
+  "context_refs": [
+    {
+      "id": "target",
+      "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+    },
+    {
+      "id": "model",
+      "sha256": "120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a"
+    },
+    {
+      "id": "machine",
+      "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"
+    },
+    {
+      "id": "node-types",
+      "sha256": "a65acca0ad5f54476bb1953fd7d79ac45059779d1a13365b4c068d5f7e6ce4fb"
+    }
+  ],
+  "uncertainties": [
+    {
+      "id": "unc-context-length",
+      "kind": "missing",
+      "description": "The context length the engine must offer (a pass/fail requirement) is not given; the target notes the engine cannot be sized until it is, because attention state shares the 80 GB budget with the expert cache.",
+      "affected_fields": [
+        "constraints"
+      ],
+      "blocking": false,
+      "clarification": "What context length, in tokens, must the engine offer?"
+    },
+    {
+      "id": "unc-workload",
+      "kind": "missing",
+      "description": "The fixed workload used for measurement (prompt lengths and requests) is not defined, for the target as a whole and for TTFT, decode rate and peak memory.",
+      "affected_fields": [
+        "constraints",
+        "user_targets"
+      ],
+      "blocking": false,
+      "clarification": "What fixed workload (prompts and their lengths, output lengths, concurrency) are the measurements taken on?"
+    },
+    {
+      "id": "unc-quality-taskset-threshold",
+      "kind": "missing",
+      "description": "The held-out task set and the pass threshold for the quality requirement are not named.",
+      "affected_fields": [
+        "user_targets"
+      ],
+      "blocking": false,
+      "clarification": "Which held-out task set and which pass threshold apply to the quality score?"
+    },
+    {
+      "id": "unc-allowed-transformations",
+      "kind": "missing",
+      "description": "Whether quantisation below NVFP4 or approximations that change output are allowed is not set; the quality comparison (identical tokens vs a task-score threshold) depends on it.",
+      "affected_fields": [
+        "user_targets",
+        "constraints"
+      ],
+      "blocking": false,
+      "clarification": "Are quantisation below NVFP4 or other output-changing approximations allowed?"
+    },
+    {
+      "id": "unc-checkpoint",
+      "kind": "missing",
+      "description": "Which single checkpoint is used is not set. The model offers BF16 and NVFP4; the target comments that only NVFP4 is within reach and the quality baseline names NVFP4 weights, but this is not set as a decision.",
+      "affected_fields": [
+        "constraints"
+      ],
+      "blocking": false,
+      "clarification": "Is the NVFP4 checkpoint the one the engine must use?"
+    },
+    {
+      "id": "unc-form-environment-streaming",
+      "kind": "missing",
+      "description": "The engine's form (execution library, offline engine or online service), the software environment and whether output is streamed are not set.",
+      "affected_fields": [
+        "interpretation",
+        "in_scope"
+      ],
+      "blocking": false,
+      "clarification": "Should the engine be an execution library, an offline engine or an online service; in which software environment; and must it stream output?"
+    },
+    {
+      "id": "unc-proposed-status",
+      "kind": "ambiguous",
+      "description": "The memory budget, the quality baseline and comparison, and the TTFT, decode-rate and peak-memory definitions are marked as proposals to be confirmed or replaced, while the request says to take the files as the statement of what is wanted. Whether the proposals are binding is not confirmed.",
+      "affected_fields": [
+        "constraints",
+        "user_targets"
+      ],
+      "blocking": false,
+      "clarification": "Are the proposed values (80 GB decimal budget and its accounting boundary, the quality baseline, the timing definitions) confirmed as requirements?"
+    },
+    {
+      "id": "unc-memory-figure",
+      "kind": "ambiguous",
+      "description": "The scope page names three memory figures (128 GB nominal, 12 GB GPU working set, 80 GB); the target chose 80 GB, cited as 'Strata-Spark: 80 GB Unified Memory', as the budget. The choice is the target author's interpretation and the scope page is not supplied to check it.",
+      "affected_fields": [
+        "constraints",
+        "context"
+      ],
+      "blocking": false,
+      "clarification": "Is 80 GB of the unified pool the memory budget the engine is judged on?"
+    },
+    {
+      "id": "unc-vendor-memory",
+      "kind": "conflicting",
+      "description": "The model card states 700 GB of memory required at NVFP4, while the machine has 128 GB nominal unified memory and the proposed budget is 80 GB. This is a tension between a vendor statement and the given budget, not between two stated requirements; the sources do not say how it is to be resolved.",
+      "affected_fields": [
+        "context",
+        "constraints"
+      ],
+      "blocking": false,
+      "clarification": "None needed from the user unless the budget or the machine changes; the engine design must address it."
+    },
+    {
+      "id": "unc-non-text-modalities",
+      "kind": "ambiguous",
+      "description": "The model accepts text, image, video and audio, while the target requires text input. Whether the other input modalities are excluded from the engine or merely not required is not stated.",
+      "affected_fields": [
+        "in_scope",
+        "out_of_scope"
+      ],
+      "blocking": false,
+      "clarification": "Must the engine reject or omit image, video and audio input, or are they simply not required?"
+    },
+    {
+      "id": "unc-model-facts-unverified",
+      "kind": "missing",
+      "description": "Model sizes are derived under an assumption and attention-state size per token is not on the model card; config.json was not read. SSD read bandwidth is not given for the machine.",
+      "affected_fields": [
+        "context"
+      ],
+      "blocking": false,
+      "clarification": "No user decision needed; these facts are to be read from the weight files and config.json and measured on the machine."
+    },
+    {
+      "id": "unc-node-types-role",
+      "kind": "ambiguous",
+      "description": "The request says the attached files describe the model, the machine and the target; the node-types draft is none of these, so its role for this request is not stated.",
+      "affected_fields": [
+        "context"
+      ],
+      "blocking": false,
+      "clarification": "Is the node-types draft supplied as reference vocabulary only, or must the engine be described or structured in its terms?"
+    }
+  ],
+  "readiness": {
+    "status": "ready",
+    "reason": "The requested work is clear: a custom inference engine for Meta Muse Spark Open on NVIDIA DGX Spark, judged on the attached target, delivered as a reproducible container with clean rebuild, benchmark report and replayable run artifacts. The open items are missing or proposed parameters (context length, workload, quality task set and threshold, allowed transformations, checkpoint, form, environment, streaming) and confirmation of proposals; none leaves the purpose unknown and no two stated requirements contradict each other, so none is blocking under the producer rules. Requirements must carry them as unresolved items."
+  },
+  "ext": {
+    "so-trial.tool": "so_intake_trial",
+    "uncertainty_sources": {
+      "unc-context-length": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 2234,
+          "end": 2283
+        }
+      ],
+      "unc-workload": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 3603,
+          "end": 3678
+        }
+      ],
+      "unc-quality-taskset-threshold": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 2699,
+          "end": 2768
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 2775,
+          "end": 2844
+        }
+      ],
+      "unc-allowed-transformations": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 3486,
+          "end": 3600
+        }
+      ],
+      "unc-checkpoint": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 3800,
+          "end": 3865
+        }
+      ],
+      "unc-form-environment-streaming": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 607,
+          "end": 691
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 575,
+          "end": 593
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 969,
+          "end": 985
+        }
+      ],
+      "unc-proposed-status": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 340,
+          "end": 420
+        },
+        {
+          "source_ref": {
+            "id": "request",
+            "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"
+          },
+          "start": 195,
+          "end": 240
+        }
+      ],
+      "unc-memory-figure": [
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 1588,
+          "end": 1623
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 1835,
+          "end": 1893
+        }
+      ],
+      "unc-vendor-memory": [
+        {
+          "source_ref": {
+            "id": "model",
+            "sha256": "120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a"
+          },
+          "start": 4376,
+          "end": 4510
+        },
+        {
+          "source_ref": {
+            "id": "machine",
+            "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"
+          },
+          "start": 902,
+          "end": 1011
+        }
+      ],
+      "unc-non-text-modalities": [
+        {
+          "source_ref": {
+            "id": "model",
+            "sha256": "120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a"
+          },
+          "start": 3775,
+          "end": 3841
+        },
+        {
+          "source_ref": {
+            "id": "target",
+            "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+          },
+          "start": 797,
+          "end": 880
+        }
+      ],
+      "unc-model-facts-unverified": [
+        {
+          "source_ref": {
+            "id": "model",
+            "sha256": "120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a"
+          },
+          "start": 345,
+          "end": 388
+        },
+        {
+          "source_ref": {
+            "id": "model",
+            "sha256": "120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a"
+          },
+          "start": 2817,
+          "end": 2850
+        },
+        {
+          "source_ref": {
+            "id": "machine",
+            "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"
+          },
+          "start": 1663,
+          "end": 1696
+        }
+      ],
+      "unc-node-types-role": [
+        {
+          "source_ref": {
+            "id": "request",
+            "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"
+          },
+          "start": 88,
+          "end": 194
+        }
+      ]
+    }
+  }
+}

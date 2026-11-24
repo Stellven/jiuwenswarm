@@ -1,0 +1,195 @@
+# Written by tools/so_nodetypes_experiments.py classify.
+induction:
+  parts: 240
+  agree: 237
+  agree_main: 236
+  none_ref: 0
+  further_types: 18
+  per:
+    rater-a: 238
+    rater-b: 237
+  per_main:
+    rater-a: 237
+    rater-b: 236
+  answered:
+    rater-a: 240
+    rater-b: 240
+  all_answered: 240
+  same_type: 239
+  fits:
+    rater-a:
+      clean: 219
+      partial: 21
+    rater-b:
+      clean: 223
+      partial: 17
+held_out:
+  parts: 47
+  agree: 43
+  agree_main: 40
+  none_ref: 3
+  further_types: 18
+  per:
+    rater-a: 44
+    rater-b: 43
+  per_main:
+    rater-a: 41
+    rater-b: 40
+  answered:
+    rater-a: 47
+    rater-b: 47
+  all_answered: 47
+  same_type: 46
+  fits:
+    rater-a:
+      clean: 30
+      partial: 17
+    rater-b:
+      clean: 30
+      partial: 17
+raters_same_type: 285
+parts_every_rater_answered: 287
+generalisation_applies_to: every_fold
+marks:
+- check: 'the first five engines: every reader gives a type the key accepts'
+  mark: agreement.same_type_min
+  limit: at least 90%
+  figure: 237 of 240 (98.8%)
+  met: true
+  note: ''
+  scoring: true
+- check: 'the first five engines: every reader gives the main type of the key'
+  mark: agreement.same_type_min
+  limit: at least 90%
+  figure: 236 of 240 (98.3%)
+  met: true
+  note: 18 parts have further accepted types
+  scoring: false
+- check: 'the first five engines: the readers give each other the same type'
+  mark: null
+  limit: no mark was set for this check
+  figure: 239 of the 240 parts every reader answered
+  met: null
+  note: ''
+  scoring: false
+- check: 'llama.cpp: every reader gives a type the key accepts'
+  mark: agreement.same_type_min
+  limit: at least 90%
+  figure: 43 of 47 (91.5%)
+  met: true
+  note: ''
+  scoring: true
+- check: 'llama.cpp: every reader gives the main type of the key'
+  mark: agreement.same_type_min
+  limit: at least 90%
+  figure: 40 of 47 (85.1%)
+  met: false
+  note: 18 parts have further accepted types
+  scoring: false
+- check: 'llama.cpp: the readers give each other the same type'
+  mark: null
+  limit: no mark was set for this check
+  figure: 46 of the 47 parts every reader answered
+  met: null
+  note: ''
+  scoring: false
+- check: 'llama.cpp, rater-a: parts the reader calls plainly an instance of one type'
+  mark: generalisation.clean_fit_min
+  limit: at least 75%
+  figure: 30 of 47 (63.8%)
+  met: false
+  note: the reader's own fit marks; no part is dropped; 0 parts without an answer count as not plainly one type
+  scoring: true
+- check: 'llama.cpp, rater-a: parts the reader gives no type'
+  mark: generalisation.no_type_max
+  limit: at most 5%
+  figure: 0 of 47 (0%)
+  met: true
+  note: ''
+  scoring: true
+- check: 'llama.cpp, rater-b: parts the reader calls plainly an instance of one type'
+  mark: generalisation.clean_fit_min
+  limit: at least 75%
+  figure: 30 of 47 (63.8%)
+  met: false
+  note: the reader's own fit marks; no part is dropped; 0 parts without an answer count as not plainly one type
+  scoring: true
+- check: 'llama.cpp, rater-b: parts the reader gives no type'
+  mark: generalisation.no_type_max
+  limit: at most 5%
+  figure: 0 of 47 (0%)
+  met: true
+  note: ''
+  scoring: true
+problems: []
+disagreements:
+- engine: llama-cpp
+  part: hidden-state-bridge
+  accepted:
+  - none
+  given:
+    rater-a: layer-compute
+    rater-b: layer-compute
+  notes:
+    rater-a: hands hidden features to the drafter's context; a transfer between contexts, not a listed job
+    rater-b: hands hidden features to the draft context; a transfer between computations, nearest is layer-compute's hidden-features
+      output
+- engine: llama-cpp
+  part: speech-output-generator
+  accepted:
+  - none
+  given:
+    rater-a: output-interpretation
+    rater-b: output-interpretation
+  notes:
+    rater-a: turns tokens into audio via extra stage models; no type covers non-text output generation
+    rater-b: turns tokens into audio through extra stage models; no type covers non-text output generation
+- engine: llama-cpp
+  part: memory-composer
+  accepted:
+  - none
+  given:
+    rater-a: positional-state-store
+    rater-b: positional-state-store
+  notes:
+    rater-a: chooses and presents the per-sequence memory type per architecture
+    rater-b: chooses which per-sequence store each layer uses and presents one interface
+- engine: splash
+  part: weight-residency
+  accepted:
+  - resource-governing
+  given:
+    rater-a: engine-supervision
+    rater-b: engine-supervision
+  notes:
+    rater-a: idle unload of weights and restore before next request
+    rater-b: idle unload and restore of weights; resource-governing also close
+- engine: strata
+  part: slot-scheduler
+  accepted:
+  - sequence-lifecycle
+  given:
+    rater-a: step-scheduler
+    rater-b: step-scheduler
+  notes:
+    rater-a: slot assignment and prompt-channel order at the server; keeps slot record consistent
+- engine: llama-cpp
+  part: backend-registry
+  accepted:
+  - configuration
+  given:
+    rater-a: configuration
+    rater-b: device-backend
+  notes:
+    rater-a: discovers devices and loads backend libraries
+    rater-b: device discovery and backend library loading only
+- engine: ds4
+  part: server-generation-loop
+  accepted:
+  - output-interpretation
+  given:
+    rater-a: output-interpretation
+    rater-b: sequence-lifecycle
+  notes:
+    rater-a: 'drives one job: sampling, thinking/stop tracking, streaming, checkpoints'
+    rater-b: drives one job through sampling, stop sequences and streaming

@@ -1,0 +1,148 @@
+# What draft 0.9 changes in the frozen draft 0.8 besides removing detail. Read by `tools/so_nodetypes.py thin`.
+# The types, their summaries, inputs, outputs, state and rules are taken from draft 0.8 unchanged unless patched here.
+draft_version: '0.9'
+
+header: |
+  DRAFT 0.9 (2026-11-17). Generic node types of an inference engine: the node level of the System Ontology.
+
+  A node type describes a kind of engine part, independent of any engine and any machine. It states what the part
+  promises, not how it is built. It holds no parameter values, no call interfaces and no source references.
+  One part of an engine may realise two node types; a node type is a job, not a module boundary.
+
+  Written by `tools/so_nodetypes.py thin` from the frozen draft 0.8 (validation/heldout/node-types.draft-0.8.yaml)
+  and validation/thin/amendments-0.9.yaml. Do not edit by hand: change the amendments and run the tool again.
+  Draft 0.8 keeps what was removed here: the causes behind each effect on output, how engines relax the `should`
+  rules, and every choice seen in a single engine (validation/choices/recurrence.yaml lists them with their engine).
+
+  Fields of a node type
+    group             the group of node types it belongs to (see `groups`)
+    summary           the one job
+    not               what is easily mistaken for its job
+    needed_when       the property of the model, the machine or the service that makes the node necessary; absent
+                      when every engine has it
+    forms             distinct ways engines realise it, when there is more than one
+    takes, gives      what it consumes and produces. Which node it connects to differs between engines and is
+                      stated at system level, not here.
+    owns_state        what it alone keeps consistent
+    effect_on_output  the levels (see `effect_levels`) the node's own work can reach. The first four are the
+                      equivalence levels of the format, so they compare directly with a target's
+                      `allowed_transformations`.
+    indirect_effect   true when the node decides something other nodes' effects depend on (see `output_principles`)
+    rules             what the node guarantees; `must` or `should` (see `rule_strengths` and `rule_scope`)
+    choices           what is left for whoever builds the engine to decide. Names only, no values. Listed only when
+                      at least `choices_kept_when.engines` of the engines examined decide it; `engines` is how many.
+    seen_in           the engines examined that have a part of this type
+
+# `was` is the name the level had in draft 0.8. The first four are the equivalence levels of ontology/dictionary.yaml.
+effect_levels:
+- id: bit_exact
+  was: exact
+  meaning: The same tokens, bit for bit.
+- id: numeric
+  was: rounding
+  meaning: Logits differ in their last bits. A greedy token can occasionally flip and a sampled draw can differ; quality
+    is not expected to change.
+- id: distribution_exact
+  was: resampled
+  meaning: Under sampling, the same distribution but a different draw for the same seed.
+- id: approximate
+  was: approximate
+  meaning: A deliberate change to the computation or to stored precision. Quality can change. It is asked for, or it is
+    a default of the engine that can be turned off.
+- id: defines
+  was: defines
+  meaning: 'The node decides what the input or the returned output is, by design: the template, the sampling settings,
+    a constraint, where output stops.'
+
+rule_strengths:
+- id: must
+  meaning: Kept by every engine examined, within `rule_scope`.
+- id: should
+  meaning: A correctness rule that some engines examined relax. An engine that relaxes it says so.
+
+rule_scope: Rules bind every mode whose output is meant to be used. A mode that is turned on explicitly for measurement
+  or debugging, and whose output the engine declares not valid, is outside them; such a mode is off by default and
+  visible in the run's settings.
+
+output_principles:
+- '`effect_on_output` is what a node''s own work does: its arithmetic, the precision it stores, the content it writes.
+  A node with `indirect_effect` also changes output through other nodes, by deciding something their effects depend on:
+  how wide a step is, where a prompt is cut, which device computes, what is resident, what stored state survives, which
+  setting is on. It then reaches the levels of the nodes it acts through.'
+- Anything that changes how the computation is cut is at least `numeric`. It reaches `approximate` where kernels pick
+  activation precision by the shape of a step, or where a node omits work by default under a condition another node sets.
+- Stored state reused in place of recomputation carries the rounding and precision of the step that produced it, not of
+  the step that would have recomputed it.
+
+
+# Work a general-purpose engine does that no type describes yet. Seen in the sixth engine (llama.cpp), which was read
+# only after the types were frozen. Recorded, not added: a type added now could not be tested on an engine it was not
+# drawn from.
+open_gaps:
+- what: Discovering the machine's compute devices at startup and loading the backend that matches them.
+  nearest: [configuration, device-backend]
+- what: Producing output that is not text, such as speech, by further models run on the generated tokens.
+  nearest: []
+- what: Composing several kinds of per-sequence state store into one store for a model that needs more than one kind.
+  nearest: [positional-state-store, recurrent-state-store]
+- what: Cutting one step into sub-steps by the kind of per-sequence state the sequences in it keep.
+  nearest: [step-execution]
+- what: Handing hidden features of the full model to a separately run proposer on the device.
+  nearest: [draft-proposal]
+- what: Discarding the oldest part of a full context and moving the stored state to earlier positions.
+  nearest: [sequence-lifecycle, positional-state-store]
+- what: Serving several different models behind one endpoint, loaded and unloaded on demand.
+  nearest: [replica-routing]
+
+# Field names of draft 0.8 that already mean something else in ontology/dictionary.yaml, and the name used instead.
+rename_fields:
+  applies_when: needed_when     # dictionary: the predicate results under which a variant of a mechanism is used
+  state: owns_state             # dictionary: an aspect of an engine spec
+  family: group                 # dictionary: the general mechanism a mechanism file stands for
+
+# Names the node types share with ontology/dictionary.yaml in the same meaning. `check` refuses any other shared name.
+shared_terms:
+  id: the identifier of a described thing
+  seen_in: the engines in which something has been observed
+  approximate: an equivalence level
+  bit_exact: an equivalence level
+  numeric: an equivalence level
+  distribution_exact: an equivalence level
+  defines: the fifth level of effect on output
+  must: a rule strength
+  should: a rule strength
+  startup: once, when the engine starts
+  configuration: was a component role with the same job
+  telemetry: was a component role with the same job
+
+# Per-type changes to draft 0.8's text, by the new field names. `set` replaces a field.
+# Both come from the selection check (validation/selection/): its readers called these two types needed for every
+# engine, or met by every model, because the condition was missing or too wide. Not checked again after the change.
+type_patches:
+  model-conversion:
+    set:
+      needed_when: The engine does not read the published files as they are, or it needs pieces derived from them.
+  row-source:
+    set:
+      needed_when: The model has a table too large to hold whole in fast memory, of which each token reads a few rows.
+
+# Choices of draft 0.8 that say nearly the same thing, merged before counting engines. `into` keeps its text unless
+# `what` is given. Filled only from what the mapping readers reported as near-duplicates.
+merge_choices:
+- ids: ['model-conversion#02', 'model-conversion#14']
+  what: precision per kind of weight, and per layer where it differs
+- ids: ['model-conversion#03', 'model-conversion#11']
+  what: which derived pieces are built (draft head, shortlist vocabulary, extra copies), and their size
+- ids: ['calibration#02', 'calibration#14', 'calibration#17']
+  what: 'the rule that accepts or rejects a measured result: the noise tolerated and the least gain it must predict'
+- ids: ['secondary-compute#02', 'secondary-compute#09']
+  what: how work is cut into jobs, and their size
+- ids: ['prefix-reuse#02', 'prefix-reuse#08']
+  what: when state is stored for later reuse, and where restore points exist when state cannot be truncated
+- ids: ['prefix-reuse#04', 'prefix-reuse#03']
+  what: how many stored states are kept, and what is evicted first
+- ids: ['draft-proposal#17', 'draft-proposal#11']
+  what: 'how a lookup source matches earlier text: how far back it searches, the shortest match it extends on, and how
+    many tokens it may append'
+- ids: ['output-interpretation#12', 'output-interpretation#02']
+  what: reasoning and tool formats per model family, and how tool calls are parsed or repaired

@@ -1,0 +1,395 @@
+{
+  "interpretation": {
+    "problem": null,
+    "desired_change": {
+      "id": "interp-desired-change",
+      "text": "A custom inference engine for Meta Muse Spark Open exists that runs on NVIDIA DGX Spark.",
+      "quotes": [
+        {"source": "request", "text": "Build a custom inference engine for Meta Muse Spark Open that runs on NVIDIA DGX Spark."}
+      ]
+    },
+    "requested_result": {
+      "id": "interp-requested-result",
+      "text": "The engine, judged against the attached target specification, delivered as a reproducible container with a clean rebuild, a benchmark report and replayable run artifacts.",
+      "quotes": [
+        {"source": "request", "text": "The attached System Ontology files describe the model, the machine and the target the engine is judged on."},
+        {"source": "target", "text": "- {item: reproducible_container, resolution: required}"},
+        {"source": "target", "text": "- {item: benchmark_report,       resolution: required}"}
+      ]
+    }
+  },
+  "context": [
+    {
+      "id": "ctx-model",
+      "name": "Meta Muse Spark Open (model/muse-spark-open)",
+      "role": "The given model the engine must run: 816B parameters in total, 42B active per token, 62 layers, a router selecting 8 of 256 experts per token per layer, vendor-stated context length of 1,000,000 tokens, text+image+video+audio input and text output, BF16 and NVFP4 weights in safetensors.",
+      "quotes": [
+        {"source": "target", "text": "model: model/muse-spark-open"},
+        {"source": "model", "text": "title: \"Meta Muse Spark Open (816B parameters in total, 42B active per token)\""},
+        {"source": "model", "text": "selects: {operation: expert_ffn, out_of: 256, pick: 8, per: \"token per layer\"}"},
+        {"source": "model", "text": "property: weight_precisions,       value: \"BF16, NVFP4\""}
+      ]
+    },
+    {
+      "id": "ctx-machine",
+      "name": "NVIDIA DGX Spark, 128 GB configuration (hw/dgx-spark)",
+      "role": "The given hardware the engine must run on: GB10 Grace Blackwell SoC with a 20-core arm64 CPU (cpu0) and a Blackwell GPU (gpu0).",
+      "quotes": [
+        {"source": "target", "text": "hardware: hw/dgx-spark"},
+        {"source": "machine", "text": "title: NVIDIA DGX Spark（128 GB 配置）"},
+        {"source": "machine", "text": "soc: {value: GB10 Grace Blackwell, status: vendor_stated, source: nvidia-dgx-spark-specs#overview}"}
+      ]
+    },
+    {
+      "id": "ctx-mem0",
+      "name": "Unified memory pool mem0",
+      "role": "The machine's single LPDDR5x unified memory pool, 128 GB nominal and 273 GB/s, shared by CPU and GPU with no separate GPU memory; the pool against which the memory budget and peak memory are accounted.",
+      "quotes": [
+        {"source": "machine", "text": "capacity_nominal: {value: 128, unit: GB, status: vendor_stated, source: nvidia-dgx-spark-specs#system-memory}"},
+        {"source": "machine", "text": "note: CPU 与 GPU 共用同一个内存池，没有独立显存"},
+        {"source": "target", "text": "pool: mem0"}
+      ]
+    },
+    {
+      "id": "ctx-ssd0",
+      "name": "NVMe storage ssd0",
+      "role": "The machine's NVMe storage (up to 4 TB) with a page-in path into mem0; its read bandwidth is not given.",
+      "quotes": [
+        {"source": "machine", "text": "- {id: ssd0-to-mem0, kind: page_in, origin: ssd0, destination: mem0}"},
+        {"source": "machine", "text": "# SSD 的读取带宽官网没有给出，需要在机器上实测后写进环境描述"}
+      ]
+    },
+    {
+      "id": "ctx-target-spec",
+      "name": "Target specification spec/muse-spark-open-on-dgx-spark/target",
+      "role": "The statement of what is wanted and what the engine is judged on. It marks what the scope page states (with source), what it proposes (status: proposed), what only the project can decide (UNSET) and what is left to the factory (open).",
+      "quotes": [
+        {"source": "request", "text": "Take them as the statement of what is wanted."},
+        {"source": "target", "text": "id: spec/muse-spark-open-on-dgx-spark/target"},
+        {"source": "target", "text": "What only the"}
+      ]
+    },
+    {
+      "id": "ctx-scope-page",
+      "name": "The scope page (scope-slide)",
+      "role": "The upstream source the target specification cites for its stated values; it is referenced but not among the supplied sources.",
+      "quotes": [
+        {"source": "target", "text": "source: \"scope-slide#initial-scope\""},
+        {"source": "target", "text": "source: \"scope-slide#memory: Strata-Spark: 80 GB Unified Memory\""}
+      ]
+    },
+    {
+      "id": "ctx-quality-baseline",
+      "name": "Reference baseline for quality",
+      "role": "The proposed quality baseline: the published reference implementation with the NVFP4 weights, the published tokenizer and greedy sampling.",
+      "quotes": [
+        {"source": "target", "text": "baseline: \"The published reference implementation with the NVFP4 weights, the published tokenizer and greedy sampling.\""}
+      ]
+    },
+    {
+      "id": "ctx-node-types",
+      "name": "System Ontology generic node types, draft 0.9",
+      "role": "Supplied vocabulary of generic inference-engine node types and output-effect levels; its first four effect levels are meant to compare with a target's allowed_transformations. It states no requirement for this engine.",
+      "quotes": [
+        {"source": "node-types", "text": "# DRAFT 0.9 (2026-11-17). Generic node types of an inference engine: the node level of the System Ontology."},
+        {"source": "node-types", "text": "The first four are the"}
+      ]
+    }
+  ],
+  "in_scope": [
+    {
+      "id": "scope-engine",
+      "text": "Building a custom inference engine for Meta Muse Spark Open that runs on NVIDIA DGX Spark.",
+      "quotes": [
+        {"source": "request", "text": "Build a custom inference engine for Meta Muse Spark Open that runs on NVIDIA DGX Spark."}
+      ]
+    },
+    {
+      "id": "scope-deliverable-container",
+      "text": "Deliverable: a reproducible container (required).",
+      "quotes": [
+        {"source": "target", "text": "- {item: reproducible_container, resolution: required}"}
+      ]
+    },
+    {
+      "id": "scope-deliverable-rebuild",
+      "text": "Deliverable: a clean rebuild (required).",
+      "quotes": [
+        {"source": "target", "text": "- {item: clean_rebuild,          resolution: required}"}
+      ]
+    },
+    {
+      "id": "scope-deliverable-benchmark",
+      "text": "Deliverable: a benchmark report (required).",
+      "quotes": [
+        {"source": "target", "text": "- {item: benchmark_report,       resolution: required}"}
+      ]
+    },
+    {
+      "id": "scope-deliverable-artifacts",
+      "text": "Deliverable: replayable run artifacts (required).",
+      "quotes": [
+        {"source": "target", "text": "- {item: replayable_run_artifacts, resolution: required}"}
+      ]
+    },
+    {
+      "id": "scope-factory-open",
+      "text": "Execution, state, composition, policy and binding are left open for the factory to decide.",
+      "quotes": [
+        {"source": "target", "text": "Fields left to the factory are `open`."},
+        {"source": "target", "text": "execution: open"},
+        {"source": "target", "text": "binding: open"}
+      ]
+    }
+  ],
+  "out_of_scope": [],
+  "constraints": [
+    {
+      "id": "con-packaging",
+      "text": "The engine is packaged as a container (required, stated by the scope page).",
+      "category": "format",
+      "quotes": [
+        {"source": "target", "text": "packaging: {value: container, resolution: required, source: \"scope-slide#initial-scope\"}"}
+      ]
+    },
+    {
+      "id": "con-input-text",
+      "text": "The engine's input modality is text (required, stated by the scope page).",
+      "category": "interface",
+      "quotes": [
+        {"source": "target", "text": "input:  {modality: text, resolution: required, source: \"scope-slide#initial-scope\"}"}
+      ]
+    },
+    {
+      "id": "con-output-text",
+      "text": "The engine's output modality is text (required, stated by the scope page).",
+      "category": "interface",
+      "quotes": [
+        {"source": "target", "text": "output: {modality: text, resolution: required, source: \"scope-slide#initial-scope\"}"}
+      ]
+    },
+    {
+      "id": "con-memory-budget",
+      "text": "Proposed pass/fail memory budget of 80 GB (decimal) in pool mem0, accounted as everything the engine's container holds in the unified pool at any moment (CPU and GPU allocations of the process and attributable page cache), excluding the operating system and other processes. The value, unit basis and accounting boundary are proposals to be confirmed.",
+      "category": "resource",
+      "quotes": [
+        {"source": "target", "text": "quantity: memory_budget"},
+        {"source": "target", "text": "value: 80"},
+        {"source": "target", "text": "Everything the engine's container holds in the unified pool at any moment"},
+        {"source": "target", "text": "The choice, the unit basis and the accounting boundary are proposals to be confirmed."}
+      ]
+    },
+    {
+      "id": "con-context-length",
+      "text": "There is a pass/fail requirement on context length in tokens; its value is not given.",
+      "category": "resource",
+      "quotes": [
+        {"source": "target", "text": "quantity: context_length"},
+        {"source": "target", "text": "The scope page does not give it."}
+      ]
+    },
+    {
+      "id": "con-fixed-workload",
+      "text": "Measurements use a fixed workload (stated by the scope page); the workload is not defined.",
+      "category": "evaluation",
+      "quotes": [
+        {"source": "target", "text": "workload: UNSET                # scope page: a fixed workload, not defined."}
+      ]
+    },
+    {
+      "id": "con-one-checkpoint",
+      "text": "The engine uses one model checkpoint (stated by the scope page); which checkpoint is not set.",
+      "category": "data",
+      "quotes": [
+        {"source": "target", "text": "model_checkpoint: UNSET        # scope page: one checkpoint."}
+      ]
+    }
+  ],
+  "preferences": [],
+  "user_targets": [
+    {
+      "id": "tgt-quality",
+      "metric": "quality_score",
+      "target_text": "Pass/fail against the proposed fixed reference baseline: if no change to the computation is allowed, the same output tokens as the baseline; otherwise a task score not below a threshold. Task set and threshold are not given.",
+      "quotes": [
+        {"source": "target", "text": "quantity: quality_score"},
+        {"source": "target", "text": "comparison: \"If no change to the computation is allowed: the same output tokens as the baseline. Otherwise: a task score not below the threshold.\""}
+      ]
+    },
+    {
+      "id": "tgt-ttft",
+      "metric": "ttft",
+      "target_text": "Reported (no threshold), proposed timing from the engine admitting the request to the engine producing the first output token, model load excluded; workload not given.",
+      "quotes": [
+        {"source": "target", "text": "quantity: ttft"},
+        {"source": "target", "text": "timing_start: \"The engine admits the request. Model load is excluded.\""},
+        {"source": "target", "text": "timing_end: \"The first output token is produced by the engine.\""}
+      ]
+    },
+    {
+      "id": "tgt-decode",
+      "metric": "decode_rate",
+      "target_text": "Reported (no threshold), proposed to exclude the first token; workload not given.",
+      "quotes": [
+        {"source": "target", "text": "quantity: decode_rate"},
+        {"source": "target", "text": "includes_first_token: false"}
+      ]
+    },
+    {
+      "id": "tgt-peak-memory",
+      "metric": "peak_memory",
+      "target_text": "Reported (no threshold) for pool mem0, proposed with the same accounting boundary as the memory budget; workload not given.",
+      "quotes": [
+        {"source": "target", "text": "quantity: peak_memory"},
+        {"source": "target", "text": "accounting_boundary: \"The same boundary as c-mem.\""}
+      ]
+    }
+  ],
+  "uncertainties": [
+    {
+      "id": "unc-context-length",
+      "kind": "missing",
+      "description": "The context length the engine must offer (a pass/fail requirement) is not given; the target notes the engine cannot be sized until it is, because attention state shares the 80 GB budget with the expert cache.",
+      "affected_fields": ["constraints"],
+      "blocking": false,
+      "clarification": "What context length, in tokens, must the engine offer?",
+      "quotes": [
+        {"source": "target", "text": "so the engine cannot be sized until this is given"}
+      ]
+    },
+    {
+      "id": "unc-workload",
+      "kind": "missing",
+      "description": "The fixed workload used for measurement (prompt lengths and requests) is not defined, for the target as a whole and for TTFT, decode rate and peak memory.",
+      "affected_fields": ["constraints", "user_targets"],
+      "blocking": false,
+      "clarification": "What fixed workload (prompts and their lengths, output lengths, concurrency) are the measurements taken on?",
+      "quotes": [
+        {"source": "target", "text": "workload: UNSET                # scope page: a fixed workload, not defined."}
+      ]
+    },
+    {
+      "id": "unc-quality-taskset-threshold",
+      "kind": "missing",
+      "description": "The held-out task set and the pass threshold for the quality requirement are not named.",
+      "affected_fields": ["user_targets"],
+      "blocking": false,
+      "clarification": "Which held-out task set and which pass threshold apply to the quality score?",
+      "quotes": [
+        {"source": "target", "text": "taskset: UNSET             # scope page: held-out task set, not named"},
+        {"source": "target", "text": "threshold: UNSET           # scope page: pass threshold to be decided"}
+      ]
+    },
+    {
+      "id": "unc-allowed-transformations",
+      "kind": "missing",
+      "description": "Whether quantisation below NVFP4 or approximations that change output are allowed is not set; the quality comparison (identical tokens vs a task-score threshold) depends on it.",
+      "affected_fields": ["user_targets", "constraints"],
+      "blocking": false,
+      "clarification": "Are quantisation below NVFP4 or other output-changing approximations allowed?",
+      "quotes": [
+        {"source": "target", "text": "allowed_transformations: UNSET # whether quantisation below NVFP4 or approximations that change output are allowed"}
+      ]
+    },
+    {
+      "id": "unc-checkpoint",
+      "kind": "missing",
+      "description": "Which single checkpoint is used is not set. The model offers BF16 and NVFP4; the target comments that only NVFP4 is within reach and the quality baseline names NVFP4 weights, but this is not set as a decision.",
+      "affected_fields": ["constraints"],
+      "blocking": false,
+      "clarification": "Is the NVFP4 checkpoint the one the engine must use?",
+      "quotes": [
+        {"source": "target", "text": "The model card offers BF16 and NVFP4; only NVFP4 is within reach."}
+      ]
+    },
+    {
+      "id": "unc-form-environment-streaming",
+      "kind": "missing",
+      "description": "The engine's form (execution library, offline engine or online service), the software environment and whether output is streamed are not set.",
+      "affected_fields": ["interpretation", "in_scope"],
+      "blocking": false,
+      "clarification": "Should the engine be an execution library, an offline engine or an online service; in which software environment; and must it stream output?",
+      "quotes": [
+        {"source": "target", "text": "form: UNSET                    # execution library, offline engine or online service"},
+        {"source": "target", "text": "environment: UNSET"},
+        {"source": "target", "text": "streaming: UNSET"}
+      ]
+    },
+    {
+      "id": "unc-proposed-status",
+      "kind": "ambiguous",
+      "description": "The memory budget, the quality baseline and comparison, and the TTFT, decode-rate and peak-memory definitions are marked as proposals to be confirmed or replaced, while the request says to take the files as the statement of what is wanted. Whether the proposals are binding is not confirmed.",
+      "affected_fields": ["constraints", "user_targets"],
+      "blocking": false,
+      "clarification": "Are the proposed values (80 GB decimal budget and its accounting boundary, the quality baseline, the timing definitions) confirmed as requirements?",
+      "quotes": [
+        {"source": "target", "text": "written as a proposal (status: proposed) so that it can be confirmed or replaced"},
+        {"source": "request", "text": "Take them as the statement of what is wanted."}
+      ]
+    },
+    {
+      "id": "unc-memory-figure",
+      "kind": "ambiguous",
+      "description": "The scope page names three memory figures (128 GB nominal, 12 GB GPU working set, 80 GB); the target chose 80 GB, cited as 'Strata-Spark: 80 GB Unified Memory', as the budget. The choice is the target author's interpretation and the scope page is not supplied to check it.",
+      "affected_fields": ["constraints", "context"],
+      "blocking": false,
+      "clarification": "Is 80 GB of the unified pool the memory budget the engine is judged on?",
+      "quotes": [
+        {"source": "target", "text": "The scope page names three figures."},
+        {"source": "target", "text": "80 GB is the one figure that is a budget for this machine."}
+      ]
+    },
+    {
+      "id": "unc-vendor-memory",
+      "kind": "conflicting",
+      "description": "The model card states 700 GB of memory required at NVFP4, while the machine has 128 GB nominal unified memory and the proposed budget is 80 GB. This is a tension between a vendor statement and the given budget, not between two stated requirements; the sources do not say how it is to be resolved.",
+      "affected_fields": ["context", "constraints"],
+      "blocking": false,
+      "clarification": "None needed from the user unless the budget or the machine changes; the engine design must address it.",
+      "quotes": [
+        {"source": "model", "text": "property: vram_required, value: 700,  unit: GB, status: vendor_stated, source: \"hf-model-card#weights\", conditions: {precision: NVFP4}"},
+        {"source": "machine", "text": "capacity_nominal: {value: 128, unit: GB, status: vendor_stated, source: nvidia-dgx-spark-specs#system-memory}"}
+      ]
+    },
+    {
+      "id": "unc-non-text-modalities",
+      "kind": "ambiguous",
+      "description": "The model accepts text, image, video and audio, while the target requires text input. Whether the other input modalities are excluded from the engine or merely not required is not stated.",
+      "affected_fields": ["in_scope", "out_of_scope"],
+      "blocking": false,
+      "clarification": "Must the engine reject or omit image, video and audio input, or are they simply not required?",
+      "quotes": [
+        {"source": "model", "text": "property: modality_in,             value: \"text+image+video+audio\""},
+        {"source": "target", "text": "input:  {modality: text, resolution: required, source: \"scope-slide#initial-scope\"}"}
+      ]
+    },
+    {
+      "id": "unc-model-facts-unverified",
+      "kind": "missing",
+      "description": "Model sizes are derived under an assumption and attention-state size per token is not on the model card; config.json was not read. SSD read bandwidth is not given for the machine.",
+      "affected_fields": ["context"],
+      "blocking": false,
+      "clarification": "No user decision needed; these facts are to be read from the weight files and config.json and measured on the machine.",
+      "quotes": [
+        {"source": "model", "text": "config.json needs a login and was not read."},
+        {"source": "model", "text": "It must be read from config.json."},
+        {"source": "machine", "text": "# SSD 的读取带宽官网没有给出，需要在机器上实测后写进环境描述"}
+      ]
+    },
+    {
+      "id": "unc-node-types-role",
+      "kind": "ambiguous",
+      "description": "The request says the attached files describe the model, the machine and the target; the node-types draft is none of these, so its role for this request is not stated.",
+      "affected_fields": ["context"],
+      "blocking": false,
+      "clarification": "Is the node-types draft supplied as reference vocabulary only, or must the engine be described or structured in its terms?",
+      "quotes": [
+        {"source": "request", "text": "The attached System Ontology files describe the model, the machine and the target the engine is judged on."}
+      ]
+    }
+  ],
+  "readiness": {
+    "status": "ready",
+    "reason": "The requested work is clear: a custom inference engine for Meta Muse Spark Open on NVIDIA DGX Spark, judged on the attached target, delivered as a reproducible container with clean rebuild, benchmark report and replayable run artifacts. The open items are missing or proposed parameters (context length, workload, quality task set and threshold, allowed transformations, checkpoint, form, environment, streaming) and confirmation of proposals; none leaves the purpose unknown and no two stated requirements contradict each other, so none is blocking under the producer rules. Requirements must carry them as unresolved items."
+  }
+}

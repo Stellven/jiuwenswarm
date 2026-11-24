@@ -1,0 +1,210 @@
+kind: model
+id: model/deepseek-v4.1-flash
+title: "DeepSeek V4.1 Flash, as described in the ds4 notes"
+default_status: reported
+note: "Written only from engines/ds4.md (notes on antirez/ds4 at revision b3f5018). Shape figures come from the shape table in ds4.c lines 602 to 839 as read by the author of those notes. Sizes are the project's own documentation figures for its own GGUF conversions; nothing here was measured."
+
+operations:
+  - id: engram_lookup
+    kind: compute
+    reads:
+      - engram_tables
+      - engram_history
+    writes:
+      - engram_history
+  - id: attention
+    kind: compute
+    reads:
+      - dense_weights
+      - raw_kv
+      - compressed_kv
+      - indexer_rows
+    writes:
+      - raw_kv
+  - id: kv_compress
+    kind: compute
+    reads:
+      - raw_kv
+      - compressor_pending
+    writes:
+      - compressed_kv
+      - indexer_rows
+      - compressor_pending
+  - id: expert_router
+    kind: selection
+    reads:
+      - dense_weights
+    selects:
+      operation: expert_ffn
+      out_of: 384
+      pick: 6
+      per: "token per layer"
+  - id: expert_ffn
+    kind: compute
+    reads:
+      - expert_weights
+  - id: shared_expert_ffn
+    kind: compute
+    reads:
+      - dense_weights
+  - id: output_head
+    kind: compute
+    reads:
+      - dense_weights
+  - id: dspark_draft
+    kind: draft
+    reads:
+      - dspark_weights
+      - dspark_window
+    writes:
+      - dspark_window
+    drafts:
+      up_to: 5
+      proposes: tokens
+
+data:
+  - id: dense_weights
+    kind: weight
+  - id: expert_weights
+    kind: weight
+    partitioned_by:
+      - layer
+      - expert
+  - id: engram_tables
+    kind: weight
+    partitioned_by:
+      - table
+      - row
+    size:
+      value: 189
+      unit: GiB
+      unit_basis: binary
+      status: reported
+      source: "ds4 docs/MODELS.md lines 54 to 64, quoted in engines/ds4.md section 3"
+  - id: dspark_weights
+    kind: weight
+    size:
+      value: 8.04
+      unit: GiB
+      unit_basis: binary
+      status: reported
+      source: "ds4 docs/SPECULATIVE_DECODING.md lines 56 to 75, quoted in engines/ds4.md section 9.1"
+  - id: raw_kv
+    kind: model_state
+  - id: compressed_kv
+    kind: model_state
+  - id: indexer_rows
+    kind: model_state
+  - id: compressor_pending
+    kind: model_state
+  - id: engram_history
+    kind: model_state
+  - id: dspark_window
+    kind: model_state
+
+statements:
+  - subject: model/deepseek-v4.1-flash
+    property: layer_count
+    value: 40
+    status: reported
+    source: "ds4.c lines 602 to 839 (shape table), per engines/ds4.md section 3"
+  - subject: model/deepseek-v4.1-flash
+    property: experts_per_layer
+    value: 384
+    status: reported
+    source: "ds4.c lines 602 to 839 (shape table), per engines/ds4.md section 3"
+  - subject: model/deepseek-v4.1-flash
+    property: shared_experts_per_layer
+    value: 1
+    status: reported
+    source: "ds4.c lines 602 to 839 (shape table), per engines/ds4.md section 3"
+  - subject: expert_ffn
+    property: intermediate_width
+    value: 2304
+    status: reported
+    source: "ds4.c lines 602 to 839 (shape table), per engines/ds4.md section 3"
+  - subject: model/deepseek-v4.1-flash
+    property: routed_expert_count
+    value: 15360
+    status: reported
+    source: "Computed in engines/ds4.md section 3 as 40 layers times 384. The ds4 source does not state it."
+  - subject: model/deepseek-v4.1-flash
+    property: expert_count_including_drafter_block
+    value: 15744
+    status: reported
+    source: "Strata docs/DGX_SPARK_LINUX.md:84 gives 15,744; Strata src/dsv41/ds4_experts_rule.hpp:53 says the profile holds the drafter's blocks after the 40 layers, so this is 41 times 384"
+  - subject: model/deepseek-v4.1-flash
+    property: resident_weight_size
+    value: 152
+    unit: GiB
+    unit_basis: binary
+    status: reported
+    source: "ds4 docs/MODELS.md lines 54 to 64"
+    conditions:
+      quantization: Q2
+      excludes: engram_tables
+  - subject: model/deepseek-v4.1-flash
+    property: resident_weight_size
+    value: 294
+    unit: GiB
+    unit_basis: binary
+    status: reported
+    source: "ds4 docs/MODELS.md lines 54 to 64"
+    conditions:
+      quantization: Q4
+      excludes: engram_tables
+  - subject: model/deepseek-v4.1-flash
+    property: resident_weight_size
+    value: 278
+    unit: GiB
+    unit_basis: binary
+    status: reported
+    source: "ds4 docs/MODELS.md lines 54 to 64"
+    conditions:
+      quantization: MXFP4
+      excludes: engram_tables
+  - subject: model/deepseek-v4.1-flash
+    property: model_file_size
+    value: 341
+    unit: GiB
+    unit_basis: binary
+    status: reported
+    source: "ds4 docs/MODELS.md lines 54 to 64"
+    conditions:
+      quantization: Q2
+  - subject: engram_tables
+    property: table_count
+    value: 2
+    status: reported
+    source: "ds4.c lines 41265 to 41266"
+  - subject: engram_tables
+    property: used_in_layers
+    value: "1 and 14"
+    status: reported
+    source: "ds4.c lines 41265 to 41266"
+  - subject: engram_tables
+    property: row_size
+    value: 264
+    unit: bytes
+    status: reported
+    source: "ds4_engram.h and ds4_engram.c lines 49 to 135. 256 bytes of E4M3 codes plus 8 bytes of scale."
+  - subject: engram_lookup
+    property: rows_read_per_token
+    value: 48
+    status: reported
+    source: "ds4_engram.c lines 49 to 135. 24 rows per table (3 n-gram lengths times 8 heads) in 2 tables."
+  - subject: engram_history
+    property: length_in_tokens
+    value: 3
+    status: reported
+    source: "ds4_engram.h lines 26 to 29"
+  - subject: raw_kv
+    property: positions_kept_per_layer
+    value: 128
+    status: reported
+    source: "ds4.c lines 1461 to 1475 and MODEL_CARD.md lines 25 to 59. Stated for DeepSeek V4. The notes do not restate it for V4.1."
+  - subject: dspark_draft
+    property: max_drafted_tokens
+    value: 5
+    status: reported
+    source: "ds4_deepseek41_dspark.h lines 6 to 7"

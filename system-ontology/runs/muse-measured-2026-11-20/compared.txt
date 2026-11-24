@@ -1,0 +1,55 @@
+Muse Spark Open, the model files the bench runs, on DGX Spark
+computed beforehand by tools/so_assess.py, beside measured on 2026-11-20
+
+Computed, from the descriptions alone:
+  upper bound on decode (memory bandwidth)      10.9 tok/s
+  estimates within  80 GB: decode 0.84 to 2.83 tok/s; first token 20 to 31 s
+  estimates within 128 GB: decode 1.15 to 5.24 tok/s; first token 12 to 21 s
+
+Measured, run `control`: llama.cpp with the bench's configuration
+  4 requests, prompts of 2,042 to 2,398 tokens, 128 tokens out; 2 warm-up requests not counted; the engine's own timings
+  the process held 91.94 GiB of mapped model files and 21.4 GiB on the GPU when ready (122 GB together); ready 121 s after start
+  decode                1.05 to 1.12 tok/s (median 1.08)
+    against the bound   holds: the fastest request is 9.7 times below 10.9
+    against  80 GB      inside the range (0.84 to 2.83)
+    against 128 GB      below the range, 1.06 times under its low end (1.15 to 5.24)
+  first token           234 to 366 s after the request (median 318 s), of which reading the prompt 227 to 358 s
+    against  80 GB      10 times longer than the high end (20 to 31 s)
+    against 128 GB      15 times longer than the high end (12 to 21 s)
+  attention state       4,096 bytes per token per layer in the server's buffers; the model description gives 4,096: equal
+
+Measured, run `cache-16g`: llama.cpp with the bench's configuration and --moe-cache-mib 16384
+  4 requests, prompts of 2,042 to 2,398 tokens, 128 tokens out; 2 warm-up requests not counted; the engine's own timings
+  the process held 76.30 GiB of mapped model files and 37.4 GiB on the GPU when ready (122 GB together); ready 130 s after start
+  decode                0.41 to 0.48 tok/s (median 0.42)
+    against the bound   holds: the fastest request is 22.7 times below 10.9
+    against  80 GB      below the range, 2.01 times under its low end (0.84 to 2.83)
+    against 128 GB      below the range, 2.74 times under its low end (1.15 to 5.24)
+  first token           265 to 404 s after the request (median 361 s), of which reading the prompt 250 to 388 s
+    against  80 GB      12 times longer than the high end (20 to 31 s)
+    against 128 GB      17 times longer than the high end (12 to 21 s)
+  attention state       4,096 bytes per token per layer in the server's buffers; the model description gives 4,096: equal
+  expert cache on GPU   16 GiB, 8.3% of the experts; over the decode steps it held 52.8% of the experts asked for
+    against the model   the arithmetic allows 8.3% (even use) to 52.3% (the most uneven use possible) when each token chooses its experts independently: at its upper end
+
+Measured, run `cache-48g`: llama.cpp with the bench's configuration and --moe-cache-mib 49152
+  4 requests, prompts of 2,042 to 2,398 tokens, 128 tokens out; 2 warm-up requests not counted; the engine's own timings
+  the process held 44.39 GiB of mapped model files and 69.4 GiB on the GPU when ready (122 GB together); ready 159 s after start
+  decode                0.68 to 0.72 tok/s (median 0.70)
+    against the bound   holds: the fastest request is 15.1 times below 10.9
+    against  80 GB      below the range, 1.20 times under its low end (0.84 to 2.83)
+    against 128 GB      below the range, 1.63 times under its low end (1.15 to 5.24)
+  first token           164 to 233 s after the request (median 228 s), of which reading the prompt 155 to 224 s
+    against  80 GB      7 times longer than the high end (20 to 31 s)
+    against 128 GB      11 times longer than the high end (12 to 21 s)
+  attention state       4,096 bytes per token per layer in the server's buffers; the model description gives 4,096: equal
+  expert cache on GPU   48 GiB, 25.0% of the experts; over the decode steps it held 79.0% of the experts asked for
+    against the model   the arithmetic allows 25.0% (even use) to 71.9% (the most uneven use possible) when each token chooses its experts independently: above that
+
+Storage read rate, scattered ranges, three probes on the idle machine today:
+  ranges of 12.98 MB      4.28 to 5.04 GB/s over 1 to 32 reads in flight; the figures use 4.77: inside what was measured
+  ranges of 25.2 MB      4.44 to 4.81 GB/s over 1 to 32 reads in flight; the figures use 4.77: inside what was measured
+
+What the measured engine is and is not: the bench's baseline, which keeps what fits of the model files in the
+page cache and computes the experts on the CPU. The estimates are for an engine that reads missing experts
+while it computes and whose computing takes no time beyond reading memory.

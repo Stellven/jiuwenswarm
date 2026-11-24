@@ -1,0 +1,67 @@
+engine: ds4
+# Independent check of node-types draft 0.7 against validation/inventory/ds4.yaml (read with ds4.corrections.yaml)
+# and validation/reference-assignment.yaml (ds4, with its `also` entries). Source spot-checks under <refs>/ds4.
+decision_coverage:
+  totals: {decisions: 124, covered: 106, loosely: 8, not_covered: 1, engine_specific: 9}
+  per_type:
+    - {type: "model-conversion", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "calibration", decisions: 3, covered: 2, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "configuration", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "model-loading", decisions: 5, covered: 4, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "memory-planning", decisions: 6, covered: 5, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "model-partitioning", decisions: 10, covered: 10, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-cache", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "residency-policy", decisions: 6, covered: 4, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "expert-fetch", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-dispatch", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "row-source", decisions: 6, covered: 4, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-preparation", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "modality-encoding", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "sequence-lifecycle", decisions: 6, covered: 6, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "positional-state-store", decisions: 4, covered: 3, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "recurrent-state-store", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-reading", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-execution", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "device-backend", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "layer-compute", decisions: 7, covered: 3, loosely: 0, not_covered: 0, engine_specific: 4}
+    - {type: "model-edit", decisions: 3, covered: 2, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "resource-governing", decisions: 2, covered: 1, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "sampling", decisions: 5, covered: 4, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "draft-proposal", decisions: 5, covered: 5, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-policy", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-verification", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "session-persistence", decisions: 3, covered: 2, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "prefix-reuse", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "request-front", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-interpretation", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-scheduler", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "device-communication", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "telemetry", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+  # per_type is keyed by the assigned type; decisions of parts with an `also` type were judged against both types' choices.
+  # engine_specific: expert-locality-profiler 'Metal only' (backend availability); model-loader 'shared vs private mapping
+  # to avoid a macOS VM failure' (workaround for a defect); compressed-attention-state compression ratio, hyper-connection
+  # streams and Sinkhorn iterations, attention top-k and raw window, hash-routed layer count, V4.1 visual router bias (model
+  # constants); directional-steering 'not implemented for GLM 5.2' and power-throttle 'not for Qwen, GLM requires 100'
+  # (per-family support gaps).
+  loosely:
+    - {part: "memory-admission-guard", type: "memory-planning", decision: "whether an explicitly raised OS wired-memory limit overrides the budget heuristics", nearest_choice: "an operator's explicit size against the computed one (precedence)"}
+    - {part: "routed-expert-cache", type: "expert-cache", decision: "cache buffers locked in memory; a lock failure lowers the effective limit", nearest_choice: "what is done when the cache cannot be allocated at its planned size (locking itself is named only in expert-source and model-loading)"}
+    - {part: "expert-eviction-policy", type: "residency-policy", decision: "use count incremented on every selection, misses included, not only on hits", nearest_choice: "the replacement rule"}
+    - {part: "expert-cache-preloader", type: "residency-policy", decision: "cap on how many blocks are preloaded in automatic mode", nearest_choice: "what the cache holds before any request"}
+    - {part: "engram-prewarm", type: "row-source", decision: "warm only when model, runtime, table and a reserve fit physical memory", nearest_choice: "warming the table in the background and when to stop (names stopping, not the condition to start)"}
+    - {part: "ngram-row-reader", type: "row-source", decision: "prefetch only for chunks above a size and within a buffer cap", nearest_choice: "prefetching rows for coming or drafted tokens"}
+    - {part: "gpu-backend", type: "device-backend", decision: "prefill workspace shared between sessions in server batch mode", nearest_choice: "scratch and command buffers"}
+    - {part: "tool-call-sampling-mode", type: "sampling", decision: "which tag sets count as structure", nearest_choice: "whether settings change per position, for example greedy on structure and sampled on content"}
+  not_covered:
+    - {part: "session-payload-serializer", type: "session-persistence", decision: "under tensor parallelism, load only the tokens and recompute the state", kind: "policy", missing_choice: "whether a restore loads the saved state or only the tokens and recomputes the state from them, per configuration"}
+contradictions:
+  - {part: "pipeline-parallel", type: "device-communication", claim: "effect_on_output: exact when it only moves data, or combines in the same order as one device would; rounding when it combines partial sums in another order", evidence: "Correction (round4), ds4_distributed.c 790-793, 949-955: activations crossing stages can be sent as FP8 E4M3, a lossy reduction (changes_output); f16 is a width change. The moving part's own work reaches approximate, which device-communication does not list (model-partitioning, the part's main type, does).", fix: "Add 'approximate: it sends activations in a lossy reduced format' and widen rounding to 'it combines partial sums in another order, or sends activations at another floating-point width'."}
+new_causes:
+  - {part: "pipeline-parallel", type: "device-communication", kind: "own", level: "rounding", cause: "activations are sent between devices at a narrower floating-point width than they were computed in", evidence: "inventory decision 'Activation bits on the wire'; correction: f16 on the wire is numeric. device-communication names rounding only for a changed combining order."}
+  - {part: "weight-binder", type: "model-loading", kind: "own", level: "rounding", cause: "whether a quantised weight is re-encoded into a wider floating-point copy at load depends on the memory budget left on the device, so which tensors are computed from the re-encoded copy varies with memory", evidence: "ds4.c 3601-3646 and ds4_cuda.cu 5330-5378, 1562-1673: on CUDA, Q8_0 matrices are preloaded as dequantized F16 (or F32) copies while a VRAM budget allows; the rest are read in Q8_0. The type names re-encoding that changes width, not that it is conditional on remaining memory."}
+relaxations:
+  - {part: "disk-kv-checkpoint-store", type: "prefix-reuse", rule: "Stored state is reused only where the model, the weights' precision, the settings and the prefix match what it was made for.", how: "Checkpoints are keyed by a hash of the rendered text prefix, not the token prefix; the token sequence of the restored state is not checked against how the new request's whole text would tokenize (the suffix is retokenized alone). The relaxed note names cross-precision reuse and missing settings, not a text key."}
+wrong_assignments:
+  - {part: "gpu-backend", assigned: "device-backend", better: "device-backend, also graph-capture", why: "Per the round6 correction, CUDA decode steps are captured as graphs per layer and island key with a warm pass, replayed later, and fall back to eager encoding on failure (ds4_cuda.cu 1118-1216); that code lives in the backend this part covers, so its graph-capture job has no type in the assignment."}
+inventory_errors:
+  - {part: "weight-binder", field: "output_effect", recorded: "none (and no decision about re-encoding)", source_shows: "ds4.c 3601-3646 (accelerator_cache_q8_tensors) and ds4_cuda.cu 5330-5378: on CUDA (not ROCm, not with DS4_CUDA_DIRECT_MODEL) 2-D Q8_0 tensors are cached as dequantized F16 or F32 device copies at load within a budget (ds4_cuda.cu 1562-1673); kernels then read the wider copy, so the effect is numeric and depends on available VRAM."}

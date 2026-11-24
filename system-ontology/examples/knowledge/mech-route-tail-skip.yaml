@@ -1,0 +1,33 @@
+kind: mechanism
+id: mech/route-tail-skip
+family: skip-low-rank-selected
+summary: "A selected object that is not in the fast memory pool is not computed when its selection rank is low across the whole window; its contribution is counted as zero"
+equivalence: approximate        # a comment in the source of Strata says plainly that it changes the output; the weights of the other objects are not renormalized
+because:
+  - id: sparse
+    predicate: sparse_selection
+    args: {max_pick_ratio: 0.5}
+    text: "The model selects some of the objects each time, and the selected objects are ranked"
+  - id: exceeds
+    predicate: selected_data_exceeds_direct_pool
+    text: "Some selected objects are not in the fast memory pool; computing one needs a transfer or the slow compute unit"
+  - id: quality
+    predicate: measured_property
+    args: {property: quality_under_tail_skip}
+    text: "There is a measured result under the quality standard of this task"
+do:
+  - {aspect: binding, item: assignment, text: "Add one assignment: an object that is not kept in the fast memory pool and whose rank is at or beyond the threshold across the whole window is skipped"}
+needs:
+  observation_points: [tail_skipped_count]
+expect:
+  - {quantity: decode_rate, direction: increase}
+cost:
+  - "Changes what the model computes; it is approximate"
+  - "Which objects are actually skipped depends on routing, residency and the shape of the window; the same switch has different effects at different moments"
+validate_by: "On the quality baseline and task set of the task, compare on with off, and measure the decode rate"
+claims:
+  - text: "On CUDA serve the default threshold is rank 7; reduces transfers and CPU work"
+    status: reported
+    source: "strata src/core/expert_source.cpp:4964-4966"
+    conditions: {model: qwen3.8-flash-next, hardware: cuda}
+    baseline: "the author of this file has not read the quality report of Strata; figures for the gain and for the effect on quality are not included"

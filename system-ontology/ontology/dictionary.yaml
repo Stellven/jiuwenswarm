@@ -1,0 +1,1695 @@
+# System Ontology dictionary: one meaning per term.
+#
+# Every file kind, enumerated value and registered quantity must be defined here. What each individual field holds is
+# described in schema.yaml at the place it appears. tools/so_docs.py checks both and generates dictionary.md.
+#
+# part:       meta | given | engine | component | knowledge | inference
+# definition: what the term means here, in one or two sentences
+# not:        what it is easily confused with, and the difference
+# example:    a concrete instance
+# factory_vocabulary: how each term of the factory's own vocabulary that shares a word with ours is handled
+ontology_version: 0.6.1
+terms:
+- term: system_ontology
+  zh: 系统本体
+  part: meta
+  definition: The agreed way of describing an inference engine and the facts that determine what that engine should be. It defines formats and meanings, not content.
+  not: It is not a knowledge base of chips and models, and it does not make an engine fast. It fixes how such things are written so that people and agents read them the same way.
+- term: given
+  zh: 给定
+  part: meta
+  definition: 'The part of a description that the factory cannot change: what the model computes, what the hardware can do, and what the environment actually offers.'
+  not: Not requirements. A requirement says what is wanted; a given says what is the case.
+  example: DGX Spark has one memory pool shared by CPU and GPU.
+- term: engine
+  zh: 引擎
+  part: meta
+  definition: 'The product the factory makes: a program that runs one model on one kind of machine. Described by the nine aspects of an engine spec, from `boundary` to `delivery`.'
+  see_also:
+  - engine_spec
+  - system
+  - component
+- term: knowledge
+  zh: 知识
+  part: meta
+  definition: What is known about how to make engines efficient, written so that a program can check whether each piece applies to a given model and machine. Consists of mechanisms, workload profiles and evidence.
+- term: system
+  zh: 系统层
+  part: meta
+  definition: 'The upper of the two description layers. One system file describes one engine as a whole: what it is for, which models and hardware it targets, which components it consists of and which mechanisms it uses.'
+  not: Not the operating system or the machine. Here 'system' always means the engine seen as a whole.
+  example: sys/strata
+  see_also:
+  - component
+- term: component
+  zh: 组件（节点）
+  part: meta
+  example: comp/strata/expert-dispatch
+  definition: 'A part of an engine with a single responsibility, described in its own file independently of the target machine: what it guarantees, when it runs, which state it owns, which policies it runs, which invariants it upholds, how it can be checked alone. Components form a tree. This is the lower of the two description layers.'
+  not: Not a CC of the factory. What a component occupies on a particular machine is not in its file; it is in the composition aspect of the engine spec for that target.
+- term: subsystem
+  zh: 子系统
+  part: component
+  definition: Role of a component whose only job is to group other components. It has parts and usually owns nothing itself.
+  example: comp/strata/expert-subsystem groups the expert source, cache, dispatch, CPU pool, adaptive tier and transfer.
+- term: kind
+  zh: 种类
+  part: meta
+  definition: Which variety of a thing an item is, from a fixed set. At the top of a file it says which of the nine file kinds the file is.
+- term: id
+  zh: 标识
+  part: meta
+  definition: A stable lower-case name by which other files refer to this object. Never reused for a different object.
+- term: UNSET
+  zh: 未给出
+  part: meta
+  definition: Written where a value is needed but no source has provided it. The checker turns every UNSET into a gap with an owner.
+  not: Not the same as open. UNSET means someone outside the factory must supply it; open means the factory may choose.
+  example: The first use case's quality threshold is UNSET.
+- term: open
+  zh: 待定
+  part: meta
+  definition: 'Resolution of a field: the factory is free to choose. All open items of a target spec together are the factory''s search space.'
+  not: Not missing information. An open item is a deliberate freedom.
+  example: Where expert weights are placed is open in the first use case.
+- term: status
+  zh: 身份或可信度
+  part: meta
+  definition: 'How a fact is known: assumed, simulated, proposed, reported, vendor_stated or measured.'
+  not: Not who fixes a field of a spec; that is resolution.
+- term: assumed
+  zh: 假设
+  part: meta
+  definition: A value taken for the sake of proceeding, with no source behind it. Conclusions that rest on it are not facts.
+- term: simulated
+  zh: 模拟
+  part: meta
+  definition: A value computed by a model of the system, not observed on it.
+  not: Not measured, even if the simulation is detailed.
+- term: proposed
+  zh: 提议
+  part: meta
+  definition: A requirement someone has put forward but that has not been decided.
+  example: The 80 GB memory budget on the scope slide.
+- term: reported
+  zh: 第三方报告
+  part: meta
+  definition: 'Status: stated by a paper, a project''s documents or its code. True for the conditions they describe, unverified by us. How far the source was read is recorded separately as `basis`.'
+- term: vendor_stated
+  zh: 厂商声明
+  part: meta
+  definition: Stated officially by the maker of the hardware or the publisher of the model.
+- term: measured
+  zh: 实测
+  part: meta
+  definition: Observed by us in an experiment whose conditions were recorded.
+- term: required
+  zh: 要求
+  part: meta
+  definition: 'Resolution of a field: fixed by the requester. The factory must satisfy it and may not change it.'
+  not: Not the flag on a mechanism precondition; that is essential.
+- term: resolved
+  zh: 已定
+  part: meta
+  definition: Chosen by the factory. As a resolution it applies to one field; as a spec level it applies to the whole spec in which the factory's choices are written.
+- term: target
+  zh: 目标
+  part: meta
+  definition: The spec level of a spec that states what is wanted and what is left to the factory.
+- term: statement
+  zh: 陈述
+  part: meta
+  definition: One assertion about one property of one object, with its status and source. Several statements about the same property may coexist; the checker reports when they disagree.
+- term: source
+  zh: 来源
+  part: meta
+  definition: 'Where a value or claim comes from, precise enough to find it again: a document and a location in it.'
+- term: sources
+  zh: 依据
+  part: component
+  definition: On a component node, the list of places in the engine's code or documents the node was written from, each marked with its basis.
+- term: basis
+  zh: 依据的深度
+  part: component
+  definition: 'How far a source was checked by whoever read it first: `code`, `header_comment` or `docs`. When a description is written from someone else''s notes, it keeps the basis the notes give.'
+- term: value
+  zh: 值
+  part: meta
+  definition: The content of a field. May be written bare, or as an object carrying unit, status and source.
+- term: unit_basis
+  zh: 字节单位的进制
+  part: meta
+  definition: Whether a byte unit is decimal (10^9) or binary (2^30). The two differ by about 7 percent, so memory quantities must say which. With unit_basis binary, a unit written GB means GiB.
+- term: model
+  zh: 模型描述
+  part: given
+  definition: 'The description of the computation to be run: its operations and the data they read and write.'
+  not: Not the weight files themselves and not the engine. It says what must be computed, not how.
+- term: operation
+  zh: 操作
+  part: given
+  definition: A unit of computation in the model, with the data it reads and writes.
+  example: 'expert_ffn: the feed-forward computation of one expert in one layer.'
+- term: compute
+  zh: 普通计算
+  part: given
+  definition: 'The ordinary kind of operation: it transforms inputs to outputs.'
+- term: selection
+  zh: 选择
+  part: given
+  definition: An operation whose result decides which other operations must run this time. This is how sparsity is expressed.
+  example: The router selects 10 of 512 experts per token per layer in Qwen3.8-Flash-Next.
+- term: selects
+  zh: 选择范围
+  part: given
+  definition: 'On a selection operation: what it chooses among (`operation`, or `data` when the choice is of rows or blocks to read), how many exist (`out_of`), how many are chosen (`pick`), how often a choice is made (`per`), and optionally when the choice is known (`known`).'
+- term: draft
+  zh: 草稿操作
+  part: given
+  definition: A kind of operation that cheaply proposes later outputs. Its results are tentative until the full model has verified them.
+  example: The MTP layer that ships with Qwen3.8-Flash-Next.
+- term: data
+  zh: 数据
+  part: given
+  definition: Something operations read or write. Either weight or model_state.
+- term: weight
+  zh: 权重
+  part: given
+  definition: 'Data that does not change while the model runs: parameters and lookup tables.'
+- term: model_state
+  zh: 模型状态
+  part: given
+  definition: Data that changes as tokens are generated and must be carried from one step to the next.
+  not: Not the engine's own bookkeeping such as cache heat; that is engine state and is declared in the engine spec.
+  example: Attention keys and values; recurrent state.
+- term: reads
+  zh: 读取
+  part: given
+  definition: 'X reads Y: X needs the content of Y and does not change it. Used for an operation and its data, and for a component and a state it does not own.'
+- term: writes
+  zh: 写入
+  part: given
+  definition: 'X writes Y: X produces or changes the content of Y. Used for an operation and its data, and for a component and a state it does not own. Every written state must have an owner.'
+- term: partitioned_by
+  zh: 可拆分维度
+  part: given
+  definition: The dimensions along which a piece of data can be stored and loaded in separate pieces.
+  example: Expert weights are partitioned by layer and expert, so one expert can be loaded without the others.
+- term: encoded_bits
+  zh: 每参数位数
+  part: given
+  definition: The number of bits per parameter that the stated size of a weight corresponds to.
+- term: serves_modality
+  zh: 服务的模态
+  part: given
+  definition: The input modalities an operation exists for. An operation that serves only image input is not loaded for a text-only task.
+- term: work
+  zh: 工作量
+  part: given
+  definition: 'How much an operation actually has to process in a given step: how many tokens, rows or objects.'
+  not: Not the size of the data. The same expert may process 2 tokens in one chunk and 400 in the next.
+- term: hardware
+  zh: 硬件描述
+  part: given
+  definition: 'The physical capabilities of one machine: its compute units, memory pools and the paths between them.'
+- term: compute_unit
+  zh: 计算单元
+  part: given
+  definition: 'A part of the machine that can execute operations: a CPU, a GPU or an NPU.'
+- term: memory_pool
+  zh: 内存池
+  part: given
+  definition: A storage space with one capacity limit. Two things share a pool if using more of one leaves less for the other.
+  not: Not a device. A unified-memory machine has one pool for CPU and GPU; a discrete-GPU machine has two.
+  example: 'DGX Spark: mem0 (unified) and ssd0. A PC: vram, ram and ssd0.'
+- term: device_ram
+  zh: 设备内存
+  part: given
+  definition: A memory pool that belongs to one accelerator and is not shared with the operating system.
+- term: host_ram
+  zh: 主存
+  part: given
+  definition: The main memory of a machine whose accelerator has its own separate memory.
+- term: unified_ram
+  zh: 统一内存
+  part: given
+  definition: A single memory pool used directly by both CPU and GPU.
+- term: nvme
+  zh: 固态硬盘
+  part: given
+  definition: Solid-state storage, described as a memory pool because data can live there and be read when needed.
+- term: access_path
+  zh: 访问路径
+  part: given
+  definition: A way for data in a memory pool to reach a compute unit, with its cost. Either a unit using a pool, or data moving from one pool to another.
+- term: direct
+  zh: 直接使用
+  part: given
+  definition: 'Kind of access path: a compute unit reads and writes this memory pool as its own working memory.'
+- term: direct_read
+  zh: 直接读
+  part: given
+  definition: 'Kind of access path: a compute unit can read a memory pool without copying, but more slowly than its own working memory.'
+  not: Not an allocation kind. Data that is never kept in a pool and is read at each use has allocation read_through.
+- term: transfer
+  zh: 搬运
+  part: given
+  definition: 'Kind of access path: data is copied from one memory pool to another.'
+  not: Not a component role. A component that carries out such copies has role data_mover.
+- term: page_in
+  zh: 换入
+  part: given
+  definition: Data moves from storage into memory when it is touched, managed by the operating system or by explicit reads.
+- term: capacity_nominal
+  zh: 标称容量
+  part: given
+  definition: The capacity of a memory pool as the maker states it.
+  not: Not what an engine can use. See allocatable.
+- term: allocatable
+  zh: 可分配容量
+  part: given
+  definition: How much of a memory pool an engine can actually obtain on a given machine at a given time, after the operating system and other software.
+  example: Strata's documentation reports 121.6 GB usable on a DGX Spark whose nominal memory is 128 GB.
+- term: environment
+  zh: 环境描述
+  part: given
+  definition: 'What one particular machine actually offers at the time of a run: software versions and allocatable resources.'
+  not: Not hardware. Two machines of the same hardware can have different environments.
+- term: workload_profile
+  zh: 负载画像
+  part: knowledge
+  definition: Data about a model or engine gathered from a workload, with its source and status. It can satisfy a mechanism's precondition or seed a policy.
+  example: How unevenly a model's experts are used on coding prompts.
+- term: engine_spec
+  zh: 引擎规格
+  part: engine
+  definition: A description of one engine for one model on one hardware, in nine aspects. A target spec states what is wanted; a resolved spec states what the factory chose.
+- term: level
+  zh: 规格的层级
+  part: engine
+  definition: 'Inside an equivalence: which of the four equivalence levels applies.'
+  not: Not the level of a spec; that is spec_level.
+- term: target_spec
+  zh: 所解析的目标规格
+  part: engine
+  definition: On a resolved spec, the target spec it answers.
+- term: boundary
+  zh: 产物边界
+  part: engine
+  definition: The aspect of an engine spec that says what form the product takes (library, offline engine, service) and which responsibilities lie outside it.
+  not: Not the accounting boundary of a memory measurement; that is accounting_boundary.
+- term: interface
+  zh: 接口
+  part: engine
+  definition: 'How a caller uses the engine: input and output modalities, streaming, cancellation and errors.'
+- term: execution
+  zh: 执行结构
+  part: engine
+  definition: The stages a request passes through and which activities overlap.
+- term: stage
+  zh: 阶段
+  part: engine
+  definition: A request-level step of execution. What happens inside a stage is described by the model's operations, not repeated in the spec.
+  example: load, prefill, draft, verify, commit.
+- term: overlaps
+  zh: 重叠进行
+  part: engine
+  definition: Two activities that run at the same time so that one hides the waiting time of the other.
+  example: Strata reads the n-gram rows for a token while the embedding and layer 0 run.
+- term: state
+  zh: 运行状态
+  part: engine
+  definition: 'What must be remembered while the engine runs: the model''s own state plus the engine''s bookkeeping, together with the rules for keeping it correct.'
+- term: states
+  zh: 状态列表
+  part: engine
+  definition: The individual pieces of state an engine spec declares.
+- term: scope
+  zh: 作用范围
+  part: engine
+  definition: 'How widely one instance of a state, or one decision of a policy, applies: one request, one batch, or the whole engine.'
+- term: on_accept
+  zh: 接受时的处理
+  part: engine
+  definition: What happens to a piece of state for the draft tokens the full model agreed with.
+- term: on_reject
+  zh: 拒绝时的处理
+  part: engine
+  definition: What happens to a piece of state for the draft tokens the full model did not agree with.
+- term: keep
+  zh: 保留
+  part: engine
+  definition: 'Commit rule: what was written during the check stays as it is.'
+- term: advance
+  zh: 推进
+  part: engine
+  definition: 'Commit rule: the state is moved forward by the accepted steps.'
+- term: advance_by_replay
+  zh: 重放推进
+  part: engine
+  definition: 'Commit rule: the state was not touched during the check; it is now moved forward by re-running the accepted inputs.'
+  example: Strata's recurrent state.
+- term: replay_records
+  zh: 按记录重放
+  part: engine
+  definition: 'Commit rule: compact transition records made during the check are replayed for the accepted steps.'
+  example: NInfer.
+- term: restore
+  zh: 恢复
+  part: engine
+  definition: 'Commit rule: the state is put back to what it was before the check.'
+- term: restore_then_append
+  zh: 恢复后追加
+  part: engine
+  definition: 'Commit rule: the state is put back, then the accepted part is added again.'
+  example: Strata's indexer keys.
+- term: set_to_snapshot
+  zh: 设为快照
+  part: engine
+  definition: 'Commit rule: the state is set to the snapshot taken at the last accepted position.'
+- term: recompute
+  zh: 重算
+  part: engine
+  definition: 'Commit rule: the state is computed again from earlier state.'
+- term: invalidate
+  zh: 失效
+  part: engine
+  definition: 'Commit rule: the state for those positions may no longer be read. Its storage may stay until overwritten.'
+- term: unchanged
+  zh: 不动
+  part: engine
+  definition: 'Commit rule: nothing needs to be done because the check never modified this state.'
+- term: checkpoint
+  zh: 状态检查点
+  part: engine
+  definition: A saved copy of a state kept so that a later request can continue from it. Declares how often it is taken and what must match for it to be reused.
+  not: Not the model's weight file. That is model_checkpoint.
+- term: identity
+  zh: 复用标识
+  part: engine
+  definition: The things that must be identical for a checkpoint to be reused, such as model version, token sequence and state format version.
+- term: invariant
+  zh: 不变条件
+  part: engine
+  definition: A condition that must hold at every moment whatever the engine chooses to do.
+  not: Not a requirement on results. An invariant constrains how the engine may behave internally.
+  example: A cache slot is not overwritten while a launched computation may still read it.
+- term: policy
+  zh: 策略
+  part: engine
+  definition: The aspect of an engine spec that holds the rules by which the engine changes its own binding or work amount while it runs.
+  not: Not binding. Binding is the arrangement; a policy is a rule that changes the arrangement over time.
+- term: policies
+  zh: 策略列表
+  part: engine
+  definition: The individual policies. In an engine spec, all the policies the engine runs; on a component, the ones that component is responsible for running.
+- term: controls
+  zh: 控制对象
+  part: engine
+  definition: 'What a policy is allowed to change: which item of which aspect, or which amount of work.'
+- term: signals
+  zh: 信号
+  part: engine
+  definition: The observed values a policy reads to make its decision.
+  example: A usage count per expert, increased each time the expert is routed to.
+- term: actions
+  zh: 动作
+  part: engine
+  definition: What a policy may do, with the order of steps that keeps the invariants.
+  example: Mark the leaving expert absent, wait for launched work to finish, copy the entering expert into the slot, then mark it resident.
+- term: trigger
+  zh: 触发条件
+  part: engine
+  definition: When a policy runs or acts.
+- term: budget
+  zh: 预算
+  part: engine
+  definition: The upper limit of a resource a policy may occupy. Given as a value, or as a formula evaluated at startup.
+- term: derive
+  zh: 推导
+  part: engine
+  definition: 'A formula for a budget: a base amount times a fraction, minus what is pinned and minus a reserve.'
+- term: resolved_at
+  zh: 确定的时刻
+  part: engine
+  definition: 'When a value becomes fixed: design (by the factory), startup (by the engine from the machine it finds) or runtime (by a policy while running).'
+- term: design
+  zh: 设计时
+  part: engine
+  definition: Before the engine is built. As resolved_at it says a value is fixed by the factory.
+- term: startup
+  zh: 启动时
+  part: engine
+  definition: Once, when the engine starts. As a timing it says when something is done; as resolved_at it says a value is computed then, from the memory and devices actually present.
+- term: runtime
+  zh: 运行时
+  part: engine
+  definition: While the engine runs. As resolved_at it says a value is changed by a policy during operation.
+- term: prior
+  zh: 初始输入
+  part: engine
+  definition: The profile a policy starts from before it has observations of its own.
+- term: parameters
+  zh: 可调参数
+  part: engine
+  definition: The tunable numbers of a policy. Each is a value or is left open.
+- term: binding
+  zh: 绑定
+  part: engine
+  definition: 'The mapping from what the model needs to what the machine has: which implementation runs each operation, where each piece of data is kept, and at what precision.'
+  not: Not policy. Binding is the arrangement; a policy is a rule that changes the arrangement over time.
+  example: Expert weights are all in host RAM and partly in VRAM; a cached expert is computed by the GPU, the others by the CPU.
+- term: implementations
+  zh: 实现
+  part: engine
+  definition: 'The available ways to run an operation: on which compute unit, reading from which memory pools.'
+- term: residency
+  zh: 驻留
+  part: engine
+  definition: Where copies of a piece of data are kept, and what kind of occupancy each is.
+  not: Not where the data is computed. That is assignment.
+- term: allocation
+  zh: 占用的性质
+  part: engine
+  definition: 'How a piece of data occupies a memory pool: `pinned`, `reclaimable_mapping`, `transient`, `read_through` or `elastic`.'
+- term: pinned
+  zh: 固定占用
+  part: engine
+  definition: The data stays in the pool and counts fully against its limit.
+- term: reclaimable_mapping
+  zh: 可回收的文件映射
+  part: engine
+  definition: The data is a mapping of a file. The operating system may drop its pages at any time and read them again from storage.
+  example: On DGX Spark, Strata uses the model file's pages as the expert cache.
+- term: transient
+  zh: 临时暂存
+  part: engine
+  definition: Space that holds data only for the duration of one computation.
+- term: elastic
+  zh: 弹性占用
+  part: engine
+  definition: An occupancy with a guaranteed floor and a cap it may grow to when memory allows.
+- term: backed_by
+  zh: 数据来源池
+  part: engine
+  definition: The memory pool the data really lives in, for a `reclaimable_mapping` or a `read_through` allocation.
+- term: by_policy
+  zh: 由策略决定
+  part: engine
+  definition: Marks a residency whose content is chosen by a policy while the engine runs.
+- term: assignment
+  zh: 分派
+  part: engine
+  definition: Which implementation computes an operation, under which condition. Entries for one operation are tried in order; the first whose condition holds is used; one must be the default.
+  not: Not residency. Assignment says who computes; residency says where the data is.
+- term: when
+  zh: 生效条件
+  part: engine
+  definition: 'The condition under which an assignment applies, from a fixed set: a ready copy in a pool, a transient fetch, held by another unit, or ranked low everywhere in the window.'
+- term: copy_ready_in
+  zh: 池里有可读副本
+  part: engine
+  definition: 'Condition: the data the operation needs is present and readable in the named pool.'
+- term: transient_fetch
+  zh: 临时取用
+  part: engine
+  definition: 'Condition: the data is brought into a staging area for this computation only and not kept.'
+- term: held_by
+  zh: 另一单元持有
+  part: engine
+  definition: 'Condition: another compute unit already holds the data and computes the operation.'
+- term: all_ranks_at_least
+  zh: 排名都靠后
+  part: engine
+  definition: 'Condition: every token in the window selected this object only at this rank or lower.'
+- term: otherwise
+  zh: 默认分派
+  part: engine
+  definition: Marks the assignment used when no earlier condition holds. Every operation must have one.
+- term: omit
+  zh: 省去不算
+  part: engine
+  definition: The operation is not executed and contributes zero. This changes the output and needs an approximate-level mechanism and permission.
+- term: precision
+  zh: 精度
+  part: engine
+  definition: The number of bits per parameter a piece of data is stored at in this engine, when it differs from the model description.
+- term: contract
+  zh: 契约
+  part: engine
+  definition: 'What counts as meeting the request: the requirements, the allowed transformations and the workload they are judged on.'
+- term: requirements
+  zh: 要求列表
+  part: engine
+  definition: The individual conditions the engine is judged against.
+- term: quantity
+  zh: 量
+  part: engine
+  definition: 'A measurable thing with a registered definition: its dimension and the fields that must accompany any requirement on it.'
+  example: ttft must state where timing starts, where it ends and the workload.
+- term: pass_fail
+  zh: 必须满足
+  part: engine
+  definition: A requirement that must be met for the engine to be accepted.
+- term: objective
+  zh: 优化目标
+  part: engine
+  definition: A requirement to make a quantity as good as possible, with no pass mark.
+- term: report
+  zh: 只测量上报
+  part: engine
+  definition: A requirement only to measure and report a quantity.
+- term: behavior
+  zh: 行为约定
+  part: engine
+  definition: A requirement stated in words about how the engine must behave.
+- term: candidates
+  zh: 候选值
+  part: engine
+  definition: Several values put forward for one requirement that has not been decided. Each feasible candidate is solved as its own scenario.
+  example: 128, 80 and 12 GB for the first use case's memory budget.
+- term: allowed_transformations
+  zh: 允许的变换
+  part: engine
+  definition: The kinds of change to the computation the requester permits, such as placement, caching, numeric reordering or approximation.
+- term: equivalence
+  zh: 等价
+  part: engine
+  definition: How the output of an engine, a mechanism or a component relates to the output of a reference. One of four levels; where the level differs by condition, such as sampling mode, several cases are listed, each with its condition.
+- term: equivalence_floor
+  zh: 等价下限
+  part: engine
+  definition: The loosest equivalence level the contract accepts. A mechanism looser than this may not be adopted.
+- term: bit_exact
+  zh: 逐位相同
+  part: engine
+  definition: 'Equivalence level: the output is identical in every bit.'
+- term: distribution_exact
+  zh: 采样分布相同
+  part: engine
+  definition: 'Equivalence level: individual outputs may differ but they are drawn from the same probability distribution.'
+- term: numeric
+  zh: 数值有微小差异
+  part: engine
+  definition: 'Equivalence level: the same computation in a different order, so results differ in their last bits.'
+- term: approximate
+  zh: 近似
+  part: engine
+  definition: 'Equivalence level: a different computation that is intended to be close.'
+  example: Quantizing expert weights to 2 bits; skipping low-ranked experts.
+- term: workload
+  zh: 负载
+  part: engine
+  definition: 'The fixed pattern of use on which requirements are judged: what is asked, how long, how many at once.'
+- term: delivery
+  zh: 交付
+  part: engine
+  definition: 'What is handed over for one engine: the engine image, the model checkpoint it uses and anything prepared offline.'
+- term: model_checkpoint
+  zh: 模型 checkpoint
+  part: engine
+  definition: Which published set of model weights the engine uses.
+  not: Not a state checkpoint. See checkpoint.
+- term: image_digest
+  zh: 镜像摘要
+  part: engine
+  definition: The content hash of the built engine image. Evidence must point to it.
+- term: deliverables
+  zh: 交付物
+  part: engine
+  definition: The things that must be handed over.
+- term: offline_prepared
+  zh: 离线准备的制品
+  part: engine
+  definition: Model files that must be produced before the engine runs, such as re-quantized weights.
+- term: mechanism
+  zh: 机制族
+  part: knowledge
+  definition: 'A way of making an engine more efficient, written as a checkable optimization hypothesis: under these preconditions, doing this is expected to improve that, at this cost, and must uphold these rules. One file per mechanism family.'
+  not: Not a fact and not an instruction. It becomes a candidate only when its preconditions hold for the given model and hardware. Not the factory's research hypothesis; see the factory vocabulary table.
+- term: family
+  zh: 机制族名
+  part: knowledge
+  definition: The short name of the general mechanism a mechanism file stands for, of which different engines implement different variants.
+  example: 'Partial residency of selected weights: Strata, ds4, Splash and NInfer each do it differently.'
+- term: because
+  zh: 前提
+  part: knowledge
+  definition: The preconditions of a mechanism. Each names a registered predicate that a program evaluates against the given part.
+- term: predicate
+  zh: 判断条件
+  part: knowledge
+  definition: 'A named test over the model and hardware descriptions with four possible results: holds, fails, depends on an undecided requirement, or unknown.'
+- term: holds
+  zh: 成立
+  part: knowledge
+  definition: The predicate is true for this model and hardware.
+- term: fails
+  zh: 不成立
+  part: knowledge
+  definition: The predicate is false for this model and hardware.
+- term: do
+  zh: 做法
+  part: knowledge
+  definition: Which open items of the engine the mechanism fills in.
+- term: needs
+  zh: 必须落实
+  part: knowledge
+  definition: 'What adopting the mechanism obliges the engine to have: invariants written into the spec, observation points provided by some component, and rules declared for every model state.'
+  not: Not preconditions. `because` is checked before adopting; `needs` must be satisfied after adopting.
+  example: Adopting draft-then-verify needs every model state to declare what happens on accept and on reject.
+- term: state_rules
+  zh: 状态规则
+  part: knowledge
+  definition: The rule fields every model state must declare once a mechanism is adopted, such as on_accept and on_reject.
+- term: expect
+  zh: 预期
+  part: knowledge
+  definition: Which quantities the mechanism is expected to move and in which direction.
+- term: cost
+  zh: 代价
+  part: knowledge
+  definition: What adopting the mechanism consumes or risks.
+- term: claims
+  zh: 声称
+  part: knowledge
+  definition: Results others have stated, each with its source, the conditions it was observed under and what it was compared with. Outside those conditions a claim is only something to be tested.
+- term: baseline
+  zh: 比较基线
+  part: knowledge
+  definition: What a result is compared with. A gain without a baseline cannot be used.
+- term: conditions
+  zh: 成立条件
+  part: knowledge
+  definition: The model, hardware and workload under which a statement or claim was observed.
+- term: variants
+  zh: 做法（变体）
+  part: knowledge
+  definition: The different ways engines implement one mechanism family. Each has the condition under which it is chosen and a spec fragment to merge.
+- term: applies_when
+  zh: 适用条件
+  part: knowledge
+  definition: The predicate results under which a variant is the one to use.
+- term: template
+  zh: 做法模板
+  part: knowledge
+  definition: The fragment of an engine spec a variant contributes. Names such as $data and $fast_pool are filled in by the solver.
+- term: seen_in
+  zh: 见于
+  part: knowledge
+  definition: The engines in which a variant has been observed, with where.
+- term: conflicts_with
+  zh: 互斥
+  part: knowledge
+  definition: Mechanisms that may not be adopted together with this one.
+- term: requires
+  zh: 依赖
+  part: knowledge
+  definition: Mechanisms that must be adopted together with this one.
+  not: Not capabilities. What a component needs from its surroundings is requires_capabilities.
+- term: effect_if_fails
+  zh: 不成立时的形态
+  part: knowledge
+  definition: How the mechanism changes shape when a non-required precondition fails.
+- term: measure
+  zh: 测量方法
+  part: knowledge
+  definition: How to obtain the measurement a precondition is waiting for.
+- term: evidence
+  zh: 证据
+  part: knowledge
+  definition: A result from a measurement or simulation, tied to the artifact it was obtained on and the conditions of the run.
+  not: Not a claim. Evidence is ours and points to an artifact; a claim is someone else's statement.
+- term: verifies
+  zh: 支持的要求
+  part: knowledge
+  definition: The contract requirements a piece of evidence speaks to.
+- term: engine_build_digest
+  zh: 引擎构建标识
+  part: knowledge
+  definition: Which built engine a piece of evidence was obtained on.
+- term: measured_under
+  zh: 测量条件
+  part: knowledge
+  definition: The model, hardware, environment and measurement definitions in force when evidence was taken.
+- term: quality
+  zh: 测量质量
+  part: knowledge
+  definition: 'How much a piece of evidence can be trusted: single_run, median_of_n or simulated.'
+- term: single_run
+  zh: 单次测量
+  part: knowledge
+  definition: The result of one run.
+- term: median_of_n
+  zh: 多次中位数
+  part: knowledge
+  definition: The median of several runs.
+- term: known_bad_combination
+  zh: 已知出错的组合
+  part: knowledge
+  definition: Mechanisms that are known to give wrong results when adopted together.
+- term: role
+  zh: 角色
+  part: component
+  definition: What kind of job a component does, from a fixed set. Two components with the same role in different engines can be compared directly.
+- term: responsibility
+  zh: 职责
+  part: component
+  definition: The one thing the component guarantees, in one sentence.
+- term: not_responsible_for
+  zh: 不归它管
+  part: component
+  definition: Things easily mistaken for this component's job that belong to another component.
+- term: parent
+  zh: 上一级
+  part: component
+  definition: The component this one is a part of.
+- term: parts
+  zh: 下一级
+  part: component
+  definition: The components this one consists of.
+- term: implements_stages
+  zh: 实现的阶段
+  part: component
+  definition: The stages of the engine spec this component carries out.
+- term: performs
+  zh: 执行的操作
+  part: component
+  definition: The model operations this component computes.
+- term: owns
+  zh: 持有
+  part: component
+  definition: The states this component is responsible for keeping consistent. A state has exactly one owner.
+- term: resource_expectations
+  zh: 系统级资源预期
+  part: component
+  definition: The system-wide summary of what must be held where.
+- term: decisions
+  zh: 可调项
+  part: component
+  definition: The choices that shape a component's behavior, whether tunable or fixed by design, each with its value in the engine described and when it is fixed.
+- term: requires_capabilities
+  zh: 需要的能力
+  part: component
+  definition: What the component needs its surroundings to provide, such as an instruction set or a device feature.
+- term: provides_capabilities
+  zh: 提供的能力
+  part: component
+  definition: What the component offers to others.
+- term: observation_points
+  zh: 观测点
+  part: component
+  definition: The events, counters and timers a component exposes. Measurement of a requirement, and the signals of a policy, rely on them.
+- term: costs
+  zh: 已知代价
+  part: component
+  definition: 'Stated costs of a component''s work: time, memory or data moved. Other stated results, such as gains, are claims.'
+- term: mechanisms
+  zh: 用到的机制族
+  part: component
+  definition: The mechanisms a system or component implements, or that a resolved engine spec adopted. Each entry is the id of an existing mechanism file (mech/...); a mechanism with no file yet goes under `uncatalogued_mechanisms`.
+- term: not_read
+  zh: 未读部分
+  part: component
+  definition: What the author of a node did not read. Statements about those parts rest only on the listed sources.
+- term: component_ref
+  zh: 组件描述引用
+  part: engine
+  definition: On a component entry of an engine spec, the component file that describes it in detail.
+- term: file_reader
+  zh: 模型文件读取
+  part: component
+  definition: 'Role: reads model files and exposes their contents without interpreting them.'
+- term: weight_loader
+  zh: 权重装载
+  part: component
+  definition: 'Role: turns stored tensors into the engine''s in-memory form. Where one component also reads the files and serves the data, choose the role that matches its responsibility sentence.'
+- term: memory_planner
+  zh: 内存规划
+  part: component
+  definition: 'Role: decides when the engine starts how much of each memory pool each consumer gets, for the machine actually present. It typically owns nothing and is recognised by the plan flows it sends.'
+- term: data_source
+  zh: 数据源
+  part: component
+  definition: 'Role: holds data and hands out stable access to it.'
+- term: cache
+  zh: 缓存
+  part: component
+  definition: 'Role: keeps a bounded subset of data in a faster place and answers whether an item is there.'
+- term: assigner
+  zh: 分派器
+  part: component
+  definition: 'Role: applies assignment at run time; decides per step which path computes or fetches each piece of work, and in what order.'
+- term: executor
+  zh: 执行器
+  part: component
+  definition: 'Role: computes operations it is handed.'
+- term: policy_runner
+  zh: 策略执行
+  part: component
+  definition: 'Role: runs a policy, that is a rule that changes binding or work amount while the engine runs.'
+- term: host_loop
+  zh: 主循环
+  part: component
+  definition: 'Role: owns the order of work across the layers for one step or one window.'
+- term: kernel_set
+  zh: 内核集
+  part: component
+  definition: 'Role: a group of device kernels that compute operations.'
+- term: graph_runner
+  zh: 执行图回放
+  part: component
+  definition: 'Role: records a fixed sequence of device work once and replays it.'
+- term: state_manager
+  zh: 状态管理
+  part: component
+  definition: 'Role: stores a kind of state compactly and makes the needed part available when it is read.'
+- term: table_reader
+  zh: 查表读取
+  part: component
+  definition: 'Role: reads rows of a large table on demand.'
+- term: sampler
+  zh: 采样器
+  part: component
+  definition: 'Role: turns logits into a token id.'
+- term: drafter
+  zh: 草稿器
+  part: component
+  definition: 'Role: proposes tokens that are not final until verified.'
+- term: speculation_controller
+  zh: 推测控制
+  part: component
+  definition: 'Role: decides how much to draft and with which drafter.'
+- term: draft_verifier
+  zh: 草稿验证器
+  part: component
+  definition: 'Role: checks drafted tokens with the full model and commits the accepted prefix.'
+- term: prompt_reader
+  zh: 提示读取
+  part: component
+  definition: 'Role: processes the prompt in bulk and leaves the model state ready for generation.'
+- term: conversation_store
+  zh: 会话存储
+  part: component
+  definition: 'Role: keeps state of earlier conversations for reuse.'
+- term: api_server
+  zh: 接口服务
+  part: component
+  definition: 'Role: accepts requests and returns responses in an external protocol.'
+- term: configuration
+  zh: 配置
+  part: component
+  definition: 'Role: chooses and applies a run configuration.'
+- term: telemetry
+  zh: 遥测
+  part: component
+  definition: 'Role: records what a run did.'
+- term: token
+  zh: token
+  part: inference
+  definition: The unit of text a model reads and writes, roughly a piece of a word.
+- term: expert
+  zh: expert
+  part: inference
+  definition: One of many alternative feed-forward blocks in a layer of a mixture-of-experts model. Only a few are used for each token.
+- term: expert_router
+  zh: expert 路由
+  part: inference
+  definition: The part of a mixture-of-experts layer that picks which experts a token uses. A selection operation.
+- term: prefill
+  zh: 读提示
+  part: inference
+  definition: The stage that processes the whole prompt before any output is produced.
+- term: decode
+  zh: 解码
+  part: inference
+  definition: The stage that produces output tokens one step at a time.
+- term: kv_cache
+  zh: KV 缓存
+  part: inference
+  definition: The attention keys and values of all earlier positions, kept so they are not recomputed. A model state.
+- term: memory_budget
+  zh: 内存预算
+  part: inference
+  definition: The upper limit of memory the engine may use in a named pool, under a named accounting boundary. A requirement.
+  not: Not capacity (what the machine has) and not peak memory (what the engine used).
+- term: peak_memory
+  zh: 峰值内存
+  part: inference
+  definition: The largest amount of memory the engine actually used during a run, in a named pool under a named accounting boundary. A measurement.
+- term: ttft
+  zh: 首 token 延迟
+  part: inference
+  definition: Time from a stated start point to a stated first-output point. Both points must be given.
+- term: decode_rate
+  zh: 解码速度
+  part: inference
+  definition: Output tokens per second after the first token, on a stated workload.
+- term: quality_score
+  zh: 质量
+  part: inference
+  definition: How good the output is against a stated baseline, on a stated task set, by a stated comparison.
+- term: gap
+  zh: 缺失
+  part: meta
+  definition: 'Checker result: something needed has not been provided.'
+- term: unbound_term
+  zh: 术语对不上
+  part: meta
+  definition: 'Checker result: a name refers to something that does not exist in the description it points into.'
+  example: A 12 GB 'GPU memory' budget on a machine whose GPU has no memory pool of its own.
+- term: value_conflict
+  zh: 数值冲突
+  part: meta
+  definition: 'Checker result: two statements of the same standing disagree, or one requirement has several undecided values.'
+- term: infeasible
+  zh: 不可行
+  part: meta
+  definition: 'Checker result: the requirement cannot be met given the facts.'
+- term: incompatible
+  zh: 接不上
+  part: meta
+  definition: 'Checker result: two parts of a description do not fit each other.'
+- term: risk
+  zh: 风险
+  part: meta
+  definition: 'Checker result: the description is valid but is likely to behave badly.'
+  example: Pinned data plus file mappings exceed the pool, so pages will be evicted.
+- term: resolution
+  zh: 谁来定
+  part: meta
+  definition: 'Who fixes a field of an engine spec: required (the requester), open (the factory may choose), resolved (the factory has chosen).'
+  not: Not status. Status says how a fact is known; resolution says who decides a value.
+- term: spec_level
+  zh: 规格层级
+  part: engine
+  definition: Whether an engine spec is the request (target) or the factory's answer (resolved).
+- term: accounting_boundary
+  zh: 统计边界
+  part: inference
+  definition: 'What is counted when memory is measured or limited: the process, the container or the device allocator, and whether page cache and runtime overhead are included.'
+- term: essential
+  zh: 是否必需
+  part: knowledge
+  definition: 'On a precondition of a mechanism: false means the mechanism still applies, in a different form, when the precondition fails.'
+- term: validate_by
+  zh: 验证方法
+  part: knowledge
+  definition: How to find out whether a mechanism delivered what was expected of it.
+- term: composition
+  zh: 组成
+  part: engine
+  definition: 'The aspect of an engine spec that lists the components as they appear on this target: which stages each carries out, which residency entries each manages, what else each occupies here, and which are idle on this target.'
+  not: Not the component files themselves. A component file says what is true on every target; composition says what is true on this one.
+  example: On DGX Spark, Strata's adaptive tier is listed as not active, because every expert is resident.
+- term: flows
+  zh: 流
+  part: component
+  definition: 'What passes between components, declared once at system level: who sends, who receives, what is carried and when. A component''s inputs and outputs are the flows that name it.'
+- term: runs
+  zh: 何时运行
+  part: component
+  definition: When a component does its work, as a list of timings.
+- term: timing
+  zh: 时机
+  part: component
+  definition: 'When something happens: startup, per_request, per_window, per_step, background or on_demand.'
+- term: needs_resources
+  zh: 需要的资源种类
+  part: component
+  definition: The kinds of resource a component needs on any target, named abstractly (fast memory, slow memory, storage, accelerator, cpu) without naming a machine.
+  not: Not amounts on a particular machine; those are under uses and manages in the composition aspect of the engine spec.
+- term: calls
+  zh: 可调用面
+  part: component
+  definition: 'What other components can ask of a component: the name of each call, what it takes, what it returns and what it guarantees.'
+- term: verification
+  zh: 单独验证
+  part: component
+  definition: 'How a component can be checked on its own: by what method, against what reference, and which invariants the check covers.'
+- term: manages
+  zh: 负责的驻留项
+  part: engine
+  definition: 'In composition: the residency entries of the binding a component is responsible for on this target.'
+- term: uses
+  zh: 占用
+  part: engine
+  definition: 'In composition: what a component occupies on this target besides the residency entries it manages, such as working buffers and processor time.'
+- term: active
+  zh: 是否启用
+  part: engine
+  definition: 'In composition: false when a component has nothing to do on this target.'
+- term: per_request
+  zh: 每个请求
+  part: component
+  definition: 'Timing: once for each request.'
+- term: per_window
+  zh: 每个验证窗口
+  part: component
+  definition: 'Timing: once for each verify window, that is each pass in which the full model checks one accepted token plus drafted tokens. Engines call this a window or a round.'
+- term: per_step
+  zh: 每一步
+  part: component
+  definition: 'Timing: once for each decode step.'
+- term: background
+  zh: 后台
+  part: component
+  definition: 'Timing: alongside the main work, not on its critical path.'
+- term: on_demand
+  zh: 按需
+  part: component
+  definition: 'Timing: when another component asks.'
+- term: fast_memory
+  zh: 快内存
+  part: component
+  definition: 'Resource kind: memory the main compute unit computes from directly. On a unified-memory machine this is the part of memory the engine keeps resident.'
+- term: slow_memory
+  zh: 慢内存
+  part: component
+  definition: 'Resource kind: memory that holds more than fast memory but costs more to use from the main compute unit, including memory whose content can be dropped and read again.'
+- term: storage
+  zh: 存储
+  part: component
+  definition: 'Resource kind: persistent storage.'
+- term: accelerator
+  zh: 加速器
+  part: component
+  definition: 'Resource kind: the main compute unit that runs the model''s heavy operations.'
+- term: cpu
+  zh: CPU
+  part: given
+  definition: A general-purpose processor. As a compute unit kind it names one in the hardware; as a resource kind it means processor time.
+- term: gpu
+  zh: GPU
+  part: given
+  definition: 'Kind of compute unit: a graphics processor.'
+- term: npu
+  zh: NPU
+  part: given
+  definition: 'Kind of compute unit: a neural processing unit.'
+- term: weights
+  zh: 权重
+  part: component
+  definition: 'Content of a flow: model weights or table rows.'
+- term: engine_state
+  zh: 引擎状态
+  part: component
+  definition: 'Content of a flow: the engine''s own bookkeeping, as opposed to state defined by the model.'
+- term: activations
+  zh: 中间结果
+  part: component
+  definition: 'Content of a flow: intermediate results of the forward pass.'
+- term: tokens
+  zh: token 序列
+  part: component
+  definition: 'Content of a flow: token ids.'
+- term: request
+  zh: 请求
+  part: component
+  definition: One call to the engine from outside. As a flow content, what crosses the outer boundary inwards; as a scope, one such call.
+- term: response
+  zh: 响应
+  part: component
+  definition: 'Content of a flow: what crosses the engine''s outer boundary outwards.'
+- term: plan
+  zh: 规划结果
+  part: component
+  definition: 'Content of a flow: budgets and sizes decided for another component.'
+- term: signal
+  zh: 信号
+  part: component
+  definition: 'Content of a flow: an observation a policy reads.'
+- term: metrics
+  zh: 度量
+  part: component
+  definition: 'Content of a flow: measurements made available outside the engine.'
+- term: control
+  zh: 控制
+  part: component
+  definition: 'Content of a flow: an instruction to another component to do something.'
+- term: batch
+  zh: 批
+  part: engine
+  definition: 'Scope: several requests processed together.'
+- term: decimal
+  zh: 十进制
+  part: meta
+  definition: 'Unit basis: a byte unit counted in powers of ten, so 1 GB is 10^9 bytes.'
+- term: binary
+  zh: 二进制
+  part: meta
+  definition: 'Unit basis: a byte unit counted in powers of two, so 1 GB means 2^30 bytes.'
+- term: increase
+  zh: 升高
+  part: knowledge
+  definition: 'Direction: the quantity is expected to go up.'
+- term: decrease
+  zh: 降低
+  part: knowledge
+  definition: 'Direction: the quantity is expected to go down.'
+- term: uncertain
+  zh: 不确定
+  part: knowledge
+  definition: 'Direction: the quantity may go either way and must be measured.'
+- term: offline
+  zh: 离线
+  part: knowledge
+  definition: In a separate run before the engine serves. As a timing it says a component does its work then; as the method of a workload profile it says the profile was gathered then.
+- term: online
+  zh: 在线
+  part: knowledge
+  definition: 'Method of a workload profile: gathered while serving.'
+- term: code
+  zh: 读了实现
+  part: component
+  definition: 'Basis of a source: the implementation was read.'
+- term: header_comment
+  zh: 只读了文件头说明
+  part: component
+  definition: 'Basis of a source: only a comment in the file was read, not the code it describes. Comments can describe intentions the code does not carry out.'
+- term: docs
+  zh: 只读了文档
+  part: component
+  definition: 'Basis of a source: documents only.'
+- term: parity_with_reference
+  zh: 与参考实现对比
+  part: component
+  definition: 'Verification method: the component gives the same result as a reference implementation.'
+- term: invariant_test
+  zh: 不变条件测试
+  part: component
+  definition: 'Verification method: a test that tries to break an invariant.'
+- term: unit_test
+  zh: 单元测试
+  part: component
+  definition: 'Verification method: a test of the component''s calls.'
+- term: measurement
+  zh: 测量
+  part: component
+  definition: 'Verification method: a timing or memory measurement of the component.'
+- term: end_to_end_only
+  zh: 只能整体验证
+  part: component
+  definition: 'Verification method: the component cannot be checked alone, only as part of the whole engine.'
+- term: read_through
+  zh: 用时直接读
+  part: engine
+  definition: 'Allocation kind: the data is not kept in the pool at all; each use reads it from the pool named by backed_by.'
+- term: model_preparer
+  zh: 离线模型准备
+  part: component
+  definition: 'Role: produces model files before the engine runs, such as re-quantized or re-laid-out weights.'
+- term: memory_governor
+  zh: 运行时内存管理
+  part: component
+  definition: 'Role: adjusts memory use while the engine runs, for example by releasing or reclaiming.'
+- term: data_mover
+  zh: 数据搬运
+  part: component
+  definition: 'Role: copies data from one memory pool to another in an order the following work can rely on.'
+- term: tokenizer
+  zh: 分词
+  part: component
+  definition: 'Role: converts between text and token ids.'
+- term: scheduler
+  zh: 调度
+  part: component
+  definition: 'Role: decides which request runs when, and which run together.'
+- term: distributed_coordinator
+  zh: 多机协调
+  part: component
+  definition: 'Role: splits work across machines or devices and keeps their results consistent.'
+- term: derived
+  zh: 推导
+  part: meta
+  definition: 'Status: computed by the author from other stated facts, such as a size worked out from a parameter count. As reliable as its inputs and its arithmetic.'
+  not: Not assumed. A derived value follows from stated facts; an assumed one has nothing behind it.
+- term: per_layer
+  zh: 每一层
+  part: component
+  definition: 'Timing: once for each layer within a step.'
+- term: none_found
+  zh: 未找到验证
+  part: component
+  definition: 'Verification method: the source names no check for the component. Written so that the absence is stated, not left blank.'
+- term: supervisor
+  zh: 进程监管
+  part: component
+  definition: 'Role: watches the engine process and restarts, drains or quarantines it when it stalls or fails.'
+- term: external
+  zh: 引擎之外
+  part: component
+  definition: 'End of a flow: anything outside the engine, such as a client, another machine or the operating system.'
+- term: model_files
+  zh: 模型文件
+  part: component
+  definition: 'End of a flow: the model''s files on storage, including files prepared offline.'
+- term: declares
+  zh: 名称声明
+  part: component
+  definition: 'On a system: the stage, state and policy names its components refer to, listed when no target has a resolved engine spec to take them from.'
+- term: uncatalogued_mechanisms
+  zh: 未建档的机制
+  part: component
+  definition: 'On a system: mechanisms the engine uses for which no mechanism file exists yet, each with a family name and a summary.'
+- term: derived_from
+  zh: 由何而来
+  part: meta
+  definition: 'For an engine that is being designed, where its description was taken from. On a component: the components of existing engines it was reused or adapted from. On a system: the existing engines
+    used, and which of their components were not carried over.'
+  not: Not the status `derived`, which is about how a number is known.
+- term: carried_as
+  zh: 沿用方式
+  part: component
+  definition: 'How a component of an existing engine was taken into a new design: reused or adapted.'
+- term: reused
+  zh: 沿用
+  part: component
+  definition: Carried over with the same responsibility and behavior. Its fixed numbers become open choices again, because they were tuned for another model.
+- term: adapted
+  zh: 改编
+  part: component
+  definition: Carried over for the same job but changed for this model or hardware. The change is stated in `adaptation`.
+- term: adaptation
+  zh: 改动说明
+  part: component
+  definition: What was changed in an adapted component, and the property of the model or hardware that forces the change.
+- term: not_carried
+  zh: 未带入的组件
+  part: meta
+  definition: The components of an existing engine that have no counterpart in the new design, each with the reason.
+- term: why
+  zh: 未带入的原因类别
+  part: meta
+  definition: 'Why a component was not carried over: does_not_apply or postponed.'
+- term: does_not_apply
+  zh: 不适用
+  part: meta
+  definition: The model or the hardware gives the component nothing to do.
+  example: A reader for a lookup table, when the model has no such table.
+- term: postponed
+  zh: 暂缓
+  part: meta
+  definition: The component could apply but is left out of the first version, usually because its gain depends on something not yet measured.
+- term: main_source
+  zh: 主要来源
+  part: meta
+  definition: 'Marks an existing engine as the main source of a derivation: every one of its leaf components must be either carried over or listed as not carried.'
+- term: consulted_for
+  zh: 用途
+  part: meta
+  definition: What an existing engine was consulted for in a derivation.
+- term: proposal
+  zh: 提议
+  part: component
+  definition: 'Basis of a source: there is no implementation yet. The component is proposed, and the source names what it was derived from.'
+- term: input_modalities
+  zh: 接收的输入种类
+  part: meta
+  definition: 'On a target of a system: the kinds of input the engine serves there, such as text. A model operation that serves only other kinds needs no component on that target.'
+  example: Muse accepts text, image, video and audio; the first engine serves text, so the perception encoder is not loaded.
+- term: context_length
+  zh: 上下文长度
+  part: engine
+  definition: 'A registered quantity: the longest sequence of prompt and output tokens the engine offers. The engine holds attention state for that many tokens, so it is priced against the memory budget.'
+- term: node_type
+  zh: 节点类型
+  part: component
+  definition: 'A kind of engine part, described independently of any engine and any machine: its one job, what it takes and gives, the state it owns, the rules it guarantees and how far its work can change the output. A component of an engine is an instance of a node type. The node types are listed in `node-types.draft.yaml`.'
+  not: Not a CC of the factory. A CC reads node types; a node type never becomes one. Not a component either, which is one part of one engine.
+  example: '`expert-cache`: hold as many selectively used weights in fast memory as the budget allows, and answer for any of them whether it is there.'
+- term: defines
+  zh: 决定输出
+  part: component
+  definition: 'Level of a node type''s effect on output, beside the four equivalence levels: the node decides by design what the input or the returned output is, such as the template, the sampling settings, a constraint or where output stops.'
+  not: Not `approximate`. An approximation changes how the same output is computed; a node that defines decides which output is asked for.
+- term: must
+  zh: 必须
+  part: component
+  definition: 'Strength of a rule of a node type: kept by every engine examined, in every mode whose output is meant to be used.'
+- term: should
+  zh: 应当
+  part: component
+  definition: 'Strength of a rule of a node type: a correctness rule that some engines examined relax. An engine that relaxes it says so.'
+factory_vocabulary:
+- factory_term: verifier CC
+  factory_meaning: The general CC that assesses one output against its CC's declaration.
+  ours:
+  - draft_verifier
+  handling: renamed
+  note: The engine component that checks drafted tokens was `verifier`; it is now `draft_verifier`. The stage name `verify` and the field `verifies` remain.
+- factory_term: verifier subnode
+  factory_meaning: One verifier CC call on one output.
+  ours:
+  - draft_verifier
+  - component_ref
+  handling: renamed
+  note: We no longer use the word node for an engine component. The component layer is the `component` file kind; the reference field is `component_ref`.
+- factory_term: work subnode
+  factory_meaning: One work CC call plus its check bundle.
+  ours:
+  - work
+  - component_ref
+  handling: unrelated
+  note: Our `work` is the amount an operation has to process in a step.
+- factory_term: checking profile
+  factory_meaning: The pinned record of which checks and verifier criteria are mandatory for one CC version.
+  ours:
+  - workload_profile
+  handling: renamed
+  note: Our file kind `profile` is now `workload_profile`.
+- factory_term: node finalization profile
+  factory_meaning: A record read by the node gate.
+  ours:
+  - workload_profile
+  handling: renamed
+  note: Same rename as above.
+- factory_term: gate decision
+  factory_meaning: The protected record that advances or halts one output or a whole node.
+  ours:
+  - pass_fail
+  - decisions
+  handling: renamed
+  note: The requirement kind `gate` is now `pass_fail`. Our `decisions` on a component are its tunable choices, never a gate decision.
+- factory_term: PRD core M1 gate
+  factory_meaning: Phase 1, Stages 0 to 7 and their required run, verification, benchmark evidence and report.
+  ours:
+  - pass_fail
+  - stage
+  handling: qualified
+  note: Our `stage` is an execution stage of one request (load, prefill, ...) and appears only under `execution.stages` and `implements_stages`. It is never a delivery Stage.
+- factory_term: Hypothesis registration
+  factory_meaning: Fixes experimental criteria before build or measurement; the research hypothesis of a run.
+  ours:
+  - mechanism
+  handling: renamed
+  note: Our file kind `hypothesis` is now `mechanism`, ids `mech/...`. A mechanism is a reusable optimization hypothesis about engines, not the hypothesis of one research run.
+- factory_term: Artifact type / port / reference
+  factory_meaning: The typed inputs and outputs that pass between CCs.
+  ours:
+  - delivery
+  - engine_build_digest
+  - file_reader
+  handling: renamed
+  note: The engine spec aspect `artifact` is now `delivery`; `artifact_digest` is now `engine_build_digest`; the role `artifact_reader` is now `file_reader`.
+- factory_term: Codex fallback
+  factory_meaning: The fixed Codex route chosen when the router fails. The only meaning of fallback.
+  ours:
+  - otherwise
+  handling: renamed
+  note: We do not use the word fallback. The assignment used when no condition holds is the default assignment, marked `otherwise`.
+- factory_term: router alternate model
+  factory_meaning: The API router's own spare model.
+  ours:
+  - expert_router
+  - model
+  handling: renamed
+  note: The mixture-of-experts router is `expert_router`. Our `model` is always the model being served by the engine, never a model that runs a CC.
+- factory_term: cc.router.enabled
+  factory_meaning: The switch for the API router.
+  ours:
+  - expert_router
+  handling: renamed
+  note: Same rename as above.
+- factory_term: skipped
+  factory_meaning: The state of a run-plan node that did not run because a dependency failed.
+  ours:
+  - omit
+  handling: renamed
+  note: The assignment field `skip` is now `omit`.
+- factory_term: selector
+  factory_meaning: A rule in a static template that stands for every Brief item of one kind.
+  ours:
+  - selection
+  - selects
+  handling: unrelated
+  note: Our `selection` is a kind of model operation.
+- factory_term: static template
+  factory_meaning: The hand-written plan used when plan_source is static.
+  ours:
+  - template
+  handling: qualified
+  note: Our `template` appears only inside a mechanism variant and is always the spec fragment of that variant.
+- factory_term: plan source
+  factory_meaning: The run setting that chooses the static template or the Planner node.
+  ours:
+  - source
+  - sources
+  handling: unrelated
+  note: Our `source` is where a fact comes from.
+- factory_term: Freeze / protocol registration
+  factory_meaning: Graph freeze fixes topology and bindings before research execution.
+  ours:
+  - binding
+  handling: qualified
+  note: 'Our `binding` is an aspect of an engine spec: how operations and data map onto hardware. It is not the bindings of a run-plan graph. Our tools no longer say a spec is frozen; they say it can or cannot be finalized.'
+- factory_term: partial
+  factory_meaning: The run outcome when some node failed and independent branches still finished.
+  ours:
+  - family
+  handling: unrelated
+  note: The word appears only inside the family name partial-residency-of-selected-weights.
+- factory_term: hot path
+  factory_meaning: Code a research run cannot work without.
+  ours:
+  - access_path
+  handling: unrelated
+  note: We speak of hot and cold experts, never of a hot path.
+- factory_term: NOT_RUN / unavailable / stale
+  factory_meaning: No observation, unavailable telemetry, or invalidated evidence.
+  ours:
+  - evidence
+  - telemetry
+  handling: same_sense
+  note: Evidence and telemetry mean the same in both vocabularies. An untested requirement is reported as having no evidence, never as passed.
+- factory_term: server host
+  factory_meaning: 'The one machine that runs M1: the GB10 GPU host.'
+  ours:
+  - host_ram
+  - host_loop
+  handling: unrelated
+  note: In our terms host means the CPU side of a machine with a separate accelerator.
+- factory_term: check bundle
+  factory_meaning: The pinned deterministic checks of one CC version.
+  ours:
+  - gap
+  - unbound_term
+  handling: unrelated
+  note: Our checker results are outputs of the ontology's own validation program.
+- factory_term: Declaration name / version / hash
+  factory_meaning: The stable capability name, display version and immutable identity of a CC.
+  ours:
+  - requires_capabilities
+  - provides_capabilities
+  handling: qualified
+  note: Our capabilities are features of hardware or software that a component needs or offers, never a CC's capability name.
+- factory_term: routing contract and other named contracts
+  factory_meaning: Agreements between modules of the factory.
+  ours:
+  - contract
+  handling: qualified
+  note: 'Our `contract` is an aspect of an engine spec: what counts as meeting the request for one engine.'
+- factory_term: private network access
+  factory_meaning: Users reach the app from the LAN or VPN at the server's private address.
+  ours:
+  - access_path
+  handling: unrelated
+  note: Our `access_path` is how data in a memory pool reaches a compute unit.
+- factory_term: off the hot path
+  factory_meaning: Built in M1, but a run works when it is absent, off or broken.
+  ours:
+  - access_path
+  handling: unrelated
+  note: See hot path.
+- factory_term: later work
+  factory_meaning: Not in M1.
+  ours:
+  - work
+  handling: unrelated
+  note: Our `work` is the amount an operation has to process in a step.
+- factory_term: host launcher
+  factory_meaning: Compose up and down on the server host.
+  ours:
+  - host_ram
+  - host_loop
+  handling: unrelated
+  note: See server host.
+- factory_term: platform benchmark runner
+  factory_meaning: Scores whole product runs from outside, inside the sidecar container.
+  ours:
+  - graph_runner
+  - policy_runner
+  handling: unrelated
+  note: Our two roles end in runner only because they run a captured graph or a policy inside the engine.
+# Names our dictionary shares with the factory's metadata: the CC declaration schema, the other IR schemas and the
+# shared field contracts under docs/architecture/design-package/reference/. tools/so_docs.py fails when a shared
+# name is missing here. verdict: same | minor | decide.
+metadata_vocabulary:
+- name: status
+  verdict: decide
+  factory_use: 'A state or outcome of a record: ready, failed, pass, unavailable, incomplete (about 20 records)'
+  difference: Ours says how a fact is known (assumed, reported, measured). The factory's says what state something is in. Both are on almost every record of their side.
+  candidate: how_known
+- name: model
+  verdict: decide
+  factory_use: '`needs.model` in a CC declaration: what the model that runs the CC must support; also a resource kind'
+  difference: Ours is the model being served by the engine. The factory's is the model a CC runs on.
+  candidate: served_model
+- name: objective
+  verdict: minor
+  factory_use: One sentence on what a plan node does for the run
+  difference: 'Ours is a kind of requirement: make a quantity as good as possible.'
+  candidate: optimize
+- name: quality
+  verdict: minor
+  factory_use: '`guarantees.quality`: a measured quality rate of a CC''s outputs; a routing preference'
+  difference: Ours is how far one piece of evidence can be trusted (single_run, median_of_n, simulated).
+  candidate: evidence_quality
+- name: stage
+  verdict: minor
+  factory_use: '`client-status.stage`: the id of the plan node running now, for display'
+  difference: Ours is a request-level execution step of the engine (load, prefill, ...).
+  candidate: execution_stage
+- name: mechanism
+  verdict: minor
+  factory_use: '`hypothesis-blueprint.mechanism`: free text giving the causal reason an intervention should work'
+  difference: 'Ours is a file kind: a reusable, checkable way of making an engine efficient. Related idea, different object.'
+- name: required
+  verdict: minor
+  factory_use: 'A true/false field: the port or subnode must be present'
+  difference: 'Ours is a value of `resolution`: the requester fixed this field.'
+  candidate: fixed_by_requester
+- name: target
+  verdict: minor
+  factory_use: What a check reads; what a provisioning step changed
+  difference: 'Ours is a spec level: the spec that states what is wanted.'
+- name: quantity
+  verdict: minor
+  factory_use: '`ResourceItem.quantity`: a count, such as 1 GPU'
+  difference: Ours is a measurable thing with a registered definition (memory budget, decode rate).
+- name: runs
+  verdict: minor
+  factory_use: A list of run records in a receipt or result
+  difference: Ours is a list of timings saying when a component works.
+  candidate: runs_at
+- name: timing
+  verdict: minor
+  factory_use: A calibrated timing comparison in qualification statistics
+  difference: Ours says when something happens (startup, per_request, ...).
+- name: identity
+  verdict: minor
+  factory_use: '`identity` of a CC: name, version, kind, lineage; requested and observed model identity'
+  difference: Ours is the list of things that must be identical for a checkpoint to be reused.
+  candidate: reuse_identity
+- name: tokens
+  verdict: minor
+  factory_use: 'A per-call budget dimension: how many model tokens a CC call may use'
+  difference: 'Ours is the content of a flow: token ids of the served model.'
+- name: open
+  verdict: minor
+  factory_use: A network mode value
+  difference: 'Ours is a value of `resolution`: the factory may choose.'
+- name: advance
+  verdict: minor
+  factory_use: 'A gate action value: let the output or node proceed'
+  difference: 'Ours is a commit rule value: the state moves forward by the accepted steps.'
+- name: report
+  verdict: minor
+  factory_use: A delivery file role value
+  difference: 'Ours is a kind of requirement: only measure and report.'
+- name: risk
+  verdict: minor
+  factory_use: A field of a declared effect
+  difference: Ours is a kind of checker result.
+- name: runtime
+  verdict: minor
+  factory_use: Protected runtime identities attached to a model route
+  difference: 'Ours is a time: while the engine runs.'
+- name: code
+  verdict: minor
+  factory_use: A reason code; a modality value
+  difference: 'Ours is a basis value: the implementation was read.'
+- name: id
+  verdict: same
+  factory_use: Stable identifier of a record
+- name: kind
+  verdict: same
+  factory_use: Which variety a thing is, from a fixed set
+- name: value
+  verdict: same
+  factory_use: The content of a field
+- name: source
+  verdict: same
+  factory_use: Where something comes from
+- name: parent
+  verdict: same
+  factory_use: The thing this one descends from or belongs to
+  difference: 'Factory: the parent version of a CC. Ours: the component this one is a part of. Same relation word, different trees.'
+- name: role
+  verdict: same
+  factory_use: What job something has, from a fixed set
+- name: scope
+  verdict: same
+  factory_use: How widely something applies
+- name: needs
+  verdict: same
+  factory_use: What must be available for the thing to work
+  difference: 'Factory: what a CC needs. Ours: what a mechanism obliges the engine to have.'
+- name: when
+  verdict: same
+  factory_use: A condition under which something applies
+- name: budget
+  verdict: same
+  factory_use: An upper limit on a resource
+  difference: 'Factory: tokens, cost and time of a CC call. Ours: memory a policy may occupy.'
+- name: cost
+  verdict: same
+  factory_use: What something consumes
+- name: external
+  verdict: same
+  factory_use: Outside the thing being described
+- name: statement
+  verdict: same
+  factory_use: An assertion written as text
+- name: derived
+  verdict: same
+  factory_use: Worked out from other stated things, not stated directly
+- name: basis
+  verdict: same
+  factory_use: How a stated fact was established
+- name: baseline
+  verdict: same
+  factory_use: What a result is compared with
+- name: metrics
+  verdict: same
+  factory_use: Measured values
+- name: measurement
+  verdict: same
+  factory_use: Taking a measured value
+- name: requirements
+  verdict: same
+  factory_use: Conditions that must hold
+- name: deliverables
+  verdict: same
+  factory_use: What must be handed over
+- name: environment
+  verdict: same
+  factory_use: The surroundings a run happens in
+- name: trigger
+  verdict: same
+  factory_use: What makes something happen
+- name: reads
+  verdict: same
+  factory_use: Takes the content of something without changing it
+- name: active
+  verdict: same
+  factory_use: Currently in use
+- name: uncertain
+  verdict: same
+  factory_use: Not established either way
+- name: gpu
+  verdict: same
+  factory_use: A graphics processor
+- name: docs
+  verdict: same
+  factory_use: Documents

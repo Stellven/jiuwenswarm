@@ -1,0 +1,2194 @@
+# Derived from the full description; see tools/so_inventory.py.
+engine: Strata
+revision: 504b143342a9fe1aa8320a7b31e11f5c0ac265c3
+basis: 'Derived by tools/so_inventory.py from the full two-level description of this engine. Written from the source at
+  the revision above and from the project''s own documents; nothing was built or run. Each component states what was read
+  in code, what only in a header comment or a document, and what was not read. Covered: the CUDA path for Qwen3.8-Flash-Next
+  and the Python serving layer. Not covered: the HIP, SYCL and Metal backends, the other model engines in the same repository,
+  kernel numerics, and vision input. Facts with file and line are in engines/strata-notes/.'
+concurrency: see parts
+models: model/qwen3.8-flash-125b-a6b; model/qwen3.8-flash-125b-a6b
+derived_from_description: true
+parts:
+- id: expert-cache
+  engine_name: Expert cache
+  does: Hold a fixed number of experts in fast memory and answer, for any expert, whether it is there and in which slot.
+  runs:
+  - startup
+  - on_demand
+  takes:
+  - from: startup-memory-sizing
+    what: Number of slots, and for a native pack the byte size of each slot in profile order.
+  - from: adaptive-tier
+    what: A leaving expert is marked absent before its slot is overwritten; an entering expert is marked resident after
+      its copy lands
+  - from: host-to-device-transfer
+    what: Expert bytes copied from slow memory into a cache slot or the staging area
+  gives:
+  - to: expert-dispatch
+    what: For each routed expert, the fast-memory slot holding it or that it is absent
+  owns_state:
+  - residency_table
+  exists_because: not recorded in the full description
+  output_effect: none
+  decisions:
+  - How many slots the cache has. The automatic value is the free fast memory minus a reserve, divided by the largest expert;
+    after opening, free memory is read again and the cache is shrunk if the reserve was not really left.
+  when_things_go_wrong: []
+  must_never:
+  - A slot is reported as holding an expert only after that expert's bytes have fully arrived.
+  - A slot is not written while any launched computation may still read it.
+  evidence:
+  - src/program/generate.cpp:13204-13263
+  - include/strata/core/expert_cache.hpp
+  read: code
+  not: Choosing which experts to hold; the adaptive tier does that; Evicting on its own; its basic admit operation never
+    evicts; Deciding its own size; startup memory sizing does that
+  output_effect_when: bit_exact when the GPU and CPU expert kernels round identically
+- id: expert-dispatch
+  engine_name: Expert dispatch
+  does: For one layer of one window, decide for every routed expert which path computes it, and publish the accelerator's
+    share before the CPU's share starts.
+  runs:
+  - per_layer
+  takes:
+  - from: expert-source
+    what: For an expert or a layer, whether its bytes are registered with the GPU driver and at which address the GPU reads
+      them in place.
+  - from: expert-cache
+    what: For each routed expert, the fast-memory slot holding it or that it is absent
+  - from: window-loop
+    what: 'When a layer signals: the feed-forward input of each row and its routed ids from mapped memory, with the buffer
+      the unweighted expert rows are to be written into. Only in the doorbell graph; in the zero-doorbell graph the device
+      plans from the residency table and the host is not asked.'
+  - from: session-loop
+    what: 'Canonical pack only: one token''s feed-forward input, routed ids and weights from the doorbell, with the page-locked
+      buffer for the expert rows.'
+  gives:
+  - to: layer-kernels
+    what: Which routed experts the accelerator computes this layer, from cache slots or from the staging area; published
+      before CPU work starts
+  - to: cpu-expert-pool
+    what: The routed experts left to the CPU for this layer of this window
+  - to: host-to-device-transfer
+    what: Missed experts to copy into the staging area for this window only
+  - to: adaptive-tier
+    what: How many tokens of the window routed each expert
+  owns_state: []
+  exists_because: not recorded in the full description
+  output_effect: changes_output
+  decisions:
+  - 'The order in which paths are tried for a routed expert: cached in fast memory; omitted because it ranks low for every
+    token of the window; held by a second accelerator; fetched for this window only; computed by the CPU.'
+  - A missed expert that every token of the window routes only at this rank or lower is neither fetched nor computed.
+  - How many of a layer's missed experts are fetched for this window instead of being left to the CPU. A fixed share, or
+    a count from measured CPU and accelerator costs when that option is on.
+  when_things_go_wrong: []
+  must_never:
+  - Every routed expert that is not omitted is computed by exactly one path.
+  - The accelerator's share is decided and published before the CPU's share starts, so the two overlap.
+  evidence:
+  - src/core/expert_source.cpp:4925-5079
+  read: code
+  not: Changing what the cache holds; the adaptive tier does that; Summing the experts' outputs; a combine kernel on the
+    accelerator does that
+  output_effect_when: approximate when the tail skip is on, which is the default on the CUDA serving path; bit_exact when
+    the tail skip is off
+- id: adaptive-tier
+  engine_name: Adaptive tier
+  does: Keep the expert cache filled with the experts the current conversation uses most, by swapping a bounded number of
+    them at fixed intervals.
+  runs:
+  - background
+  takes:
+  - from: expert-dispatch
+    what: How many tokens of the window routed each expert
+  gives:
+  - to: host-to-device-transfer
+    what: Experts to copy into the slots of experts that are leaving the cache
+  - to: expert-cache
+    what: A leaving expert is marked absent before its slot is overwritten; an entering expert is marked resident after
+      its copy lands
+  owns_state:
+  - expert_heat
+  - pending_swaps
+  exists_because: not recorded in the full description
+  output_effect: none
+  decisions:
+  - Run once every this many verify windows.
+  - At most this many swaps per run, taken in order of gain across all layers.
+  - After each run every usage count is multiplied by this.
+  - A swap is made only if the entering expert's count exceeds the leaving expert's by at least this.
+  - An expert is a candidate to enter only if its count is at least this.
+  when_things_go_wrong: []
+  must_never:
+  - An entering expert is marked resident only after its copy has landed.
+  - A leaving expert is marked absent first; the copy into its slot waits until all work launched before that has completed.
+  - A run does nothing while the previous run's copies are still in flight.
+  - An expert is only swapped with another expert of the same layer.
+  evidence:
+  - src/program/generate.cpp:13142-13314
+  - src/program/generate.cpp:885-923
+  read: code
+  not: The size of the cache; Where a missed expert is computed in the current window
+  output_effect_when: bit_exact when the GPU and CPU expert kernels round identically
+- id: host-to-device-transfer
+  engine_name: Host-to-device transfer
+  does: Copy expert bytes from slow memory to fast memory in an order the accelerator work that follows can rely on.
+  runs:
+  - on_demand
+  takes:
+  - from: expert-source
+    what: Pointers to blobs to be copied into device memory (cache fill, swaps, the prompt path's staging).
+  - from: expert-dispatch
+    what: Missed experts to copy into the staging area for this window only
+  - from: adaptive-tier
+    what: Experts to copy into the slots of experts that are leaving the cache
+  gives:
+  - to: expert-cache
+    what: Expert bytes copied from slow memory into a cache slot or the staging area
+  owns_state:
+  - staged_experts
+  exists_because: not recorded in the full description
+  output_effect: none
+  decisions:
+  - Whether the adaptive tier's copies are issued one by one or as one batched copy.
+  - The most experts that can be fetched for one window, bounded by the staging area and by 64.
+  when_things_go_wrong: []
+  must_never:
+  - An upload is ordered before the accelerator work that reads its destination.
+  - Only an expert whose source bytes are page-locked is fetched for a window; otherwise it stays with the CPU.
+  evidence:
+  - src/program/generate.cpp:13219-13287
+  - src/core/expert_source.cpp:5052-5066
+  - include/strata/core/pinned_ring.hpp
+  read: code
+- id: prompt-path
+  engine_name: Prompt path
+  does: Read the prompt in large chunks, layer by layer, and leave behind the model state that generation continues from.
+  runs:
+  - per_request
+  takes:
+  - from: startup-memory-sizing
+    what: Whether the prompt path borrows cache slots or keeps its own buffers, its chunk size, and how many slots a loan
+      leaves in the cache.
+  - from: engine-command-loop
+    what: The prompt token ids of one GEN or BGEN, to be read from the resume point
+  - from: resume-decision
+    what: How many prompt tokens the session already holds, so reading starts there
+  gives:
+  - to: kv-store
+    what: The model state left by reading the prompt, from which generation continues
+  - to: cpu-expert-pool
+    what: Experts of a prompt chunk that few tokens route to, handed to the CPU when sharing is armed
+  owns_state: []
+  exists_because: not recorded in the full description
+  output_effect: changes_output
+  decisions:
+  - Tokens per prompt chunk.
+  - The CPU's share of the experts not in fast memory is the accelerator's time per expert over the sum of both times, as
+    running averages, kept between these bounds.
+  - Sharing is switched off for following layers when the measured time with sharing is not lower than without.
+  - An expert may go to the CPU only if it is routed in this chunk, is not in fast memory, is not taken by a second accelerator,
+    is routed by no more tokens than the CPU kernel's batch limit, and its weights can be read from slow memory without
+    assembling a short-lived buffer. Candidates are taken in order of fewest tokens first.
+  when_things_go_wrong: []
+  must_never:
+  - An expert handed to the CPU must have weights in slow memory that stay readable for the duration of its computation;
+    the pointers are taken before the CPU thread starts.
+  evidence:
+  - src/prefill/prefill.cpp:4946-5041
+  - include/strata/prefill/share_rules.hpp
+  - include/strata/prefill/routed_stream.hpp
+  - include/strata/program/prefill_plan.hpp
+  read: code
+  not: Producing output tokens; Reusing an earlier conversation; conversation reuse decides where reading starts
+  output_effect_when: numeric when the CPU share is armed; approximate when the optional approximate late-layer read is
+    on; it is off by default; bit_exact when neither is on
+- id: model-file-reader
+  engine_name: Model file reader and architecture guard
+  does: Map a GGUF v3 shard read-only, expose its metadata, tensor directory and tensor bytes unchanged, and refuse a file
+    whose declared shape the compiled kernels cannot run.
+  runs:
+  - startup
+  - on_demand
+  takes:
+  - from: model_files
+    what: 'The GGUF shards, mapped read-only: header, metadata, tensor directory and tensor bytes.'
+  gives:
+  - to: startup-memory-sizing
+    what: Layer count, widths, expert count and experts per token read from the metadata shard and checked against the compiled
+      shapes; every later size is computed from it. The same record is passed to the session, the expert source and the
+      expert cache.
+  - to: native-weight-loader
+    what: Pointers into the mapping for the projections, the output head and the token embedding, uploaded unchanged.
+  owns_state: []
+  exists_because: not recorded in the full description
+  output_effect: none
+  decisions:
+  - Only GGUF version 3 is read.
+  - 'Tensor data alignment: general.alignment when non-zero, else the default.'
+  - Only the first items of a metadata array are kept; the count is kept in full.
+  - Six metadata keys are required (block_count, embedding_length, expert_count, expert_used_count, attention.head_count,
+    attention.head_count_kv); any other key the file lacks keeps the compiled value.
+  - Only the expert count, the experts per token and the vocabulary size may differ from the compiled geometry; every other
+    shape must match.
+  - Upper limit on experts used per token.
+  when_things_go_wrong: []
+  must_never:
+  - Every read of the header is bounds-checked, so a truncated or corrupt file is an error message and never an out-of-range
+    read.
+  - 'A tensor name resolves to exactly one tensor: a duplicate name in one file, or the same name in two shards, is refused
+    at open.'
+  - A split model is opened only when every shard is present, declares the same split count and tensor total, and the shards'
+    directories add up to that total.
+  - The engine runs a file only if its architecture is qwen4exp and every pinned shape equals the shape the kernels were
+    compiled for.
+  evidence:
+  - include/strata/artifact/gguf_reader.hpp:279-866
+  - include/strata/artifact/gguf_split.hpp:18-50
+  - include/strata/artifact/model_family.hpp:15-63
+  - src/artifact/gguf_reader.cpp:1-67
+  - src/program/generate.cpp:4380-4405, 4868-4914
+  - include/strata/core/family_layout.hpp:1-60
+  read: code
+  not: Reading the pack directory (weight loader, expert layout); Converting or copying tensor bytes; Filling the expert
+    arena (the expert source opens the shards with its own file handles); Checksums of tensor contents
+  output_effect_when: bit_exact when always; the class has no transformation (inferred from the code)
+- id: expert-layout
+  engine_name: Expert layout table
+  does: Read the pack's native_experts.txt once and answer, for the whole process, how many bytes each layer's expert blob
+    has, where it starts, and where each layer's gate, up and down tensors lie in the GGUF shards.
+  runs:
+  - startup
+  - on_demand
+  takes:
+  - from: model_files
+    what: 'The pack''s native_experts.txt: per-layer blob size and formats, and the file and offset of each layer''s gate,
+      up and down tensors.'
+  gives:
+  - to: expert-source
+    what: Blob size and offset per layer, total bytes, and the GGUF spans the arena is filled from.
+  - to: startup-memory-sizing
+    what: The largest blob and each layer's blob size, the unit the expert cache's slots are counted in.
+  - to: host-memory-admission
+    what: Total bytes of all routed experts, the arena size the n-gram table is priced against.
+  owns_state: []
+  exists_because: not recorded in the full description
+  output_effect: none
+  decisions:
+  - Bytes of one expert blob in the canonical (non-native) layout.
+  - Native layout (per-layer blob sizes and formats, GGUF spans) when native_experts.txt exists, else the canonical layout
+    with one blob size.
+  - A native_experts.txt newer than the engine reads is refused.
+  when_things_go_wrong: []
+  must_never:
+  - Blob (layer, expert) starts at the layer's offset plus the expert index times that layer's blob size; every consumer
+    derives addresses from this one table.
+  evidence:
+  - include/strata/kernels/cpu/expert_layout.hpp:1-110
+  - src/program/generate.cpp:4627-4636
+  read: code
+  not: Holding expert bytes (expert source); Checking the recorded GGUF offsets against the shards (done by the expert source
+    before it reads)
+  output_effect_when: bit_exact when the table matches the shards; the expert source verifies that before reading
+- id: weight-loader
+  engine_name: Pack weight loader
+  does: Copy every tensor the pack index lists, except those in a skip set, into one device memory range at its recorded
+    offset, applying the byte transform the index names for each plane, and return a table from tensor name to location.
+  runs:
+  - startup
+  takes:
+  - from: model_files
+    what: The pack's index.txt and data files (dense.bin, embd.bin, extra.bin), read in 8 MiB chunks.
+  - from: native-weight-loader
+    what: The names of the tensors the native loaders will serve, so the pack loader skips them and its device range is
+      sized without them.
+  gives:
+  - to: native-weight-loader
+    what: The name-to-location table; the native loader checks each projection against its row and attaches the GGUF-form
+      pointer to it.
+  - to: layer-kernels
+    what: Device locations of the dense tensors in engine form, by name.
+  owns_state: []
+  exists_because: not recorded in the full description
+  output_effect: changes_output
+  decisions:
+  - Source bytes read and uploaded per round.
+  - 'One of four transforms per plane, named by the index row: copy; keep the high 16 bits of a BF16 value stored as 32
+    bits; convert an F16 value stored as 32 bits back to 16; widen an fp16 scale plane to 32 bits.'
+  - Tensors another loader serves are not read; their rows keep metadata and no bytes. --keep-canonical loads both forms.
+  - 'STRATA_HC_REQ8=1 on one GPU: the hyper-connection projections are requantized to int8 with one scale per 32 values
+    instead of being loaded as BF16. Off by default.'
+  when_things_go_wrong: []
+  must_never:
+  - A row of the index that does not parse to exactly 19 fields refuses the whole load; no partially parsed index is used.
+  - Nothing is written unless the supplied device range is at least as large as the index requires.
+  - The plane layout the loader builds for a tensor must sum to the source and destination byte counts the index records,
+    or the load is refused.
+  - 'A widened or narrowed plane is never cut inside an element: odd fp16 byte counts are refused and a chunk never ends
+    on half an element.'
+  - Converted bytes are written to a host buffer and cross to the device once; host code never writes through a device address.
+  evidence:
+  - include/strata/core/weights.hpp:1-158
+  - src/core/weights.cpp:1-602
+  - src/program/generate.cpp:5013-5033, 5180-5254
+  read: code
+  not: Reading the GGUF shards (native weight loader); Allocating the device range (the caller sizes it with pool_bytes
+    and allocates it); Knowing what a tensor means, or deciding its transform (decided offline by the tool that writes the
+    index); The routed experts held in host memory (expert source)
+  output_effect_when: bit_exact when copy, BF16 high half and fp16 widening; and the F16 conversion when the pack's 32-bit
+    word really holds an F16 value (not checked by the code); approximate when STRATA_HC_REQ8=1
+- id: native-weight-loader
+  engine_name: Native-form weight loaders
+  does: Upload selected tensors in their unchanged GGUF block form (per-layer projections, output head, token embedding)
+    and attach them to the matching entries of the weight table, so that the pack copy of each can be skipped.
+  runs:
+  - startup
+  - on_demand
+  takes:
+  - from: model-file-reader
+    what: Pointers into the mapping for the projections, the output head and the token embedding, uploaded unchanged.
+  - from: weight-loader
+    what: The name-to-location table; the native loader checks each projection against its row and attaches the GGUF-form
+      pointer to it.
+  - from: startup-memory-sizing
+    what: 'Last resort when the cache has no slot: move the output head from the card to page-locked host memory.'
+  gives:
+  - to: weight-loader
+    what: The names of the tensors the native loaders will serve, so the pack loader skips them and its device range is
+      sized without them.
+  - to: layer-kernels
+    what: Device locations of the per-layer projections in GGUF block form, and the token embedding where the GPU reads
+      one row per token.
+  - to: output-head
+    what: The output projection in GGUF block form, on the card or in page-locked host memory.
+  owns_state: []
+  exists_because: not recorded in the full description
+  output_effect: changes_output
+  decisions:
+  - --native turns on native projections, native head and native embedding together; --native-head-gguf and --native-dense-gguf
+    choose other files.
+  - 'Which per-layer tensors are served natively: attn_qkv, attn_gate, ssm_out, attn_q, attn_k, attn_v, attn_output, and
+    the three shared-expert matrices; plus the PLE key in four types.'
+  - STRATA_HC_Q8 is turned on by default on CUDA when the shards carry the hyper-connection projections as Q8_0; a value
+    the user set is kept.
+  - The token embedding stays in page-locked host memory by default; STRATA_EMBED_VRAM=1 puts it on the card.
+  - The output head is on the card unless the startup sizing moves it to page-locked host memory as its last resort.
+  when_things_go_wrong: []
+  must_never:
+  - A projection is uploaded natively only if the weight table's row for it is quantized and has the same two dimensions;
+    otherwise the load is refused.
+  evidence:
+  - include/strata/core/native_dense.hpp:1-70
+  - src/core/native_dense.cpp:140-171, 296-312, 395-412
+  - include/strata/core/native_head.hpp:1-80
+  - src/program/generate.cpp:4411-4442, 4988-5033, 5256-5264, 7313-7321
+  read: code
+  not: Tensors the native kernels have no type for; those keep the pack path; Computing with the weights (layer kernels,
+    output head)
+  output_effect_when: bit_exact when a tensor uploaded unchanged; numeric when native head or native projections in use;
+    the header keeps the canonical head for numerical comparison (inferred that the two are not bit-identical); approximate
+    when a BF16 projection is converted to Q8_0 at load (inferred from the conversion routine)
+- id: startup-memory-sizing
+  engine_name: Startup memory sizing
+  does: Give the expert cache the device memory that remains after weights, session, drafter and output head, minus a reserve
+    and minus later allocations priced in advance; and when that is too little, step down through fixed last resort before
+    ending the start.
+  runs:
+  - startup
+  takes:
+  - from: model-file-reader
+    what: Layer count, widths, expert count and experts per token read from the metadata shard and checked against the compiled
+      shapes; every later size is computed from it. The same record is passed to the session, the expert source and the
+      expert cache.
+  - from: expert-layout
+    what: The largest blob and each layer's blob size, the unit the expert cache's slots are counted in.
+  - from: external
+    what: 'Command-line flags and environment: context length, expert cache size or auto, reserve, prompt chunk, pipeline
+      windows.'
+  - from: external
+    what: Free device memory as the driver reports it, read before the cache is sized and again after its slots are written.
+  - from: launch-argument-resolver
+    what: Context length, KV format and resident window, VRAM reserve, resident budget, expert cache request and batch slot
+      count, as engine arguments
+  gives:
+  - to: expert-cache
+    what: Number of slots, and for a native pack the byte size of each slot in profile order.
+  - to: prompt-path
+    what: Whether the prompt path borrows cache slots or keeps its own buffers, its chunk size, and how many slots a loan
+      leaves in the cache.
+  - to: native-weight-loader
+    what: 'Last resort when the cache has no slot: move the output head from the card to page-locked host memory.'
+  owns_state: []
+  exists_because: not recorded in the full description
+  output_effect: numeric
+  decisions:
+  - Device memory left free once everything is loaded.
+  - Device memory the load allocates after the cache that no setting prices; left out of the cache unless that would take
+    it below the minimum slot count. Zero under STRATA_DEFAULTS=026.
+  - slots = (free - reserve - late) / largest slot when that is at least the minimum and positive, else (free - reserve)
+    / largest slot; reserve = vram-reserve + prompt buffers + draft head bind size + pipeline windows; capped by the number
+    of ranked pairs in the expert profile.
+  - 'Price of the prompt path''s own buffers when it does not borrow cache slots: 160 + chunk * 680 / 1024 MiB; STRATA_OWNED_PRICE=exact
+    prices the real allocation plus 64 MiB.'
+  - 'Least working cache: slots for a 256-token prompt chunk''s buffers plus the slots a loan leaves behind, or 1 without
+    a borrowing prompt path.'
+  - Slots a loan to the prompt path leaves in the cache.
+  - Lowest value the reserve is lowered to so that the minimum cache fits.
+  - Extra kept free when the prompt path is given its own small buffers.
+  - For a native pack with a profile the uniform slot count becomes a byte budget, and slots of each layer's own blob size
+    are taken in profile order until it is used, so the final count can exceed the uniform one.
+  - After the cache is opened its slots are zeroed and free memory is read again; while more than 64 MiB short of the reserve
+    the cache is reopened smaller.
+  - When an automatic cache cannot be allocated it is retried at three quarters of its size.
+  - 'When the automatic cache is below the minimum on one discrete GPU and the reserve was not given by hand: keep 16 slots
+    behind a loan; lower the reserve to the floor; give the prompt path its own buffers at 1024, 512 or 256 tokens; move
+    the output head to host memory; then report what is short. STRATA_SPILL_OFF=1 and STRATA_HEAD_HOST_OFF=1 disable steps.'
+  - --expert-cache N is kept as asked; 0 and auto both mean the automatic rule.
+  when_things_go_wrong: []
+  must_never:
+  - The dense weight range is allocated before the K/V state and the expert cache, and the expert cache is sized only after
+    weights, session, drafter and output head are in place.
+  - With an automatic cache, the reserve is checked against free memory read after the cache's slots have been written,
+    not before.
+  - The start ends with a message when the weight range, the session state, or an explicitly sized expert cache cannot be
+    allocated; it is never continued with a smaller explicit size silently.
+  evidence:
+  - src/program/generate.cpp:5189-5232, 6764-6771, 7890-8192, 8199-8251, 8320-8440
+  - include/strata/core/auto_cache.hpp:1-47
+  - include/strata/core/uma_cache.hpp:1-45
+  read: code
+  not: 'A plan record: there is none; each number goes straight into an allocator call or an option; The standalone calculator
+    in plan.hpp (not called by the engine); The session size (allocated from the context length by the session code); Host
+    memory decisions (host memory admission); The integrated-GPU rule of uma_cache.hpp (compiled only for HIP builds)'
+  output_effect_when: bit_exact when the sizing only moves where bytes are read from (output head on host, smaller prompt
+    chunks); inferred; numeric when the slot count changes which experts the GPU computes
+- id: host-memory-admission
+  engine_name: Host memory admission and page-locked headroom
+  does: Decide at startup, from host memory readings taken before the allocations, whether the n-gram table is locked in
+    RAM and whether the expert arena is loaded or replaced by the file source, and hold back page-locked memory while the
+    arena registers so that later small page-locked buffers succeed.
+  runs:
+  - startup
+  - on_demand
+  takes:
+  - from: expert-layout
+    what: Total bytes of all routed experts, the arena size the n-gram table is priced against.
+  - from: external
+    what: Available RAM, the tightest cgroup limit, and the operator's --ram-keep-gib and --ple-io settings.
+  - from: expert-source
+    what: Whether RAM was short, and how many bytes of the arena the GPU driver registered (used for the page-locked reserve's
+      release and its hint).
+  gives:
+  - to: ngram-reader
+    what: Whether the n-gram table is mapped and locked in RAM or read directly from storage; and later, an instruction
+      to give the lock back when the arena or the conversation cache needs the RAM.
+  - to: expert-source
+    what: Whether reading from the file source instead is allowed, the RAM to keep free, the headroom under a hard limit,
+      and the budget of the reduced RAM copy.
+  owns_state: []
+  exists_because: not recorded in the full description
+  output_effect: none
+  decisions:
+  - The n-gram table is locked in RAM only if available RAM holds the table, the whole expert arena still to be filled,
+    and a headroom; unknown availability, table size or expert size admits nothing. Considered only when --ple-io was not
+    given and STRATA_PLE_AUTO_RAM is not 0.
+  - Load when the arena's need fits; when a hard memory limit or the available RAM is below the need, fall back to the file
+    source if allowed, else refuse (hard limit) or warn and load (available RAM).
+  - The engine may swap the arena for the file source on its own unless --ple-io ram was given by hand, a shared arena file
+    is named, or STRATA_ARENA_RAM_FALLBACK=0.
+  - '--ram-keep-gib W (or STRATA_RAM_KEEP_GIB): RAM that must stay available after the arena; added to the arena''s need.'
+  - 'RAM the reduced copy of the hottest experts leaves free: the larger of ram-keep and the safety headroom; STRATA_RESIDENT_HEADROOM_GIB
+    overrides.'
+  - 'Budget of the reduced RAM copy: available minus headroom, or none when that leaves under 1 GiB.'
+  - Page-locked memory held while the arena registers and released right after it.
+  - 'Page-locked memory held until READY or until a guarded allocation is refused: a quarter of the soft reserve, at least
+    64 MiB.'
+  - A reserve that cannot be had is halved down to 16 MiB, then skipped.
+  when_things_go_wrong: []
+  must_never:
+  - The n-gram table's lock is decided before the arena is filled and against the arena's full size, so the table never
+    takes lockable memory the arena needs.
+  - Taking or missing a page-locked reserve never ends a start; a short host memory reading leads to the file source or
+    a warning, except a hard memory limit below the arena with the last resort disallowed.
+  - A page-locked buffer the engine cannot run without is retried exactly once after both reserves are released.
+  evidence:
+  - include/strata/core/ple_residency.hpp:1-195
+  - include/strata/core/pin_budget.hpp:1-221
+  - src/program/generate.cpp:5446-5492, 7496-7519, 7727-7786, 14085
+  read: code
+  not: 'Allocating, filling or locking the arena (expert source); Device memory (startup memory sizing); Reading system
+    memory itself: readings are passed in by the callers'
+  output_effect_when: bit_exact when n-gram table in RAM or read directly, per the source's report of identical answer checksums;
+    arena or file source, per the startup message. Not verified by us.
+- id: expert-source
+  engine_name: Expert source
+  does: Make the bytes of every routed expert of every layer addressable in host memory for the whole run, either as one
+    arena filled at startup or as mappings of the files that hold them, and say for each expert whether the GPU can read
+    it in place.
+  runs:
+  - startup
+  - on_demand
+  takes:
+  - from: expert-layout
+    what: Blob size and offset per layer, total bytes, and the GGUF spans the arena is filled from.
+  - from: host-memory-admission
+    what: Whether reading from the file source instead is allowed, the RAM to keep free, the headroom under a hard limit,
+      and the budget of the reduced RAM copy.
+  - from: model_files
+    what: Every routed expert, read into the arena from the GGUF shards or experts.bin. In file-source mode the files are
+      mapped instead and read on demand.
+  gives:
+  - to: host-memory-admission
+    what: Whether RAM was short, and how many bytes of the arena the GPU driver registered (used for the page-locked reserve's
+      release and its hint).
+  - to: cpu-expert-pool
+    what: Pointers to the blobs of the experts the CPU computes.
+  - to: host-to-device-transfer
+    what: Pointers to blobs to be copied into device memory (cache fill, swaps, the prompt path's staging).
+  - to: expert-dispatch
+    what: For an expert or a layer, whether its bytes are registered with the GPU driver and at which address the GPU reads
+      them in place.
+  owns_state: []
+  exists_because: not recorded in the full description
+  output_effect: numeric
+  decisions:
+  - Arena by default. File source with --mmap-experts, --resident-experts or --resident-budget-gib, and automatically for
+    this run when RAM is still short after the wait and the give-back.
+  - The arena is filled from the GGUF shards when the pack is native, has no experts.bin, records GGUF offsets and --native
+    is set; else from experts.bin.
+  - Threads that fill the arena.
+  - Seconds to wait for RAM an exiting program still holds, polled every 0.25 s; STRATA_ARENA_RAM_WAIT_S.
+  - Large pages first (all or nothing), else ordinary pages; STRATA_NO_LARGEPAGES skips the attempt.
+  - Register the whole arena with the GPU driver; if refused or capped, register layer by layer from the start until refusal
+    or cap; keep the unregistered rest resident with an operating-system lock; large pages take no lock. STRATA_ARENA_PIN_GIB
+    sets a cap, none, or auto; STRATA_ARENA_LOCK=0 disables the lock.
+  - Under WDDM with several GPUs or remote experts at most this much of the arena is registered.
+  - 'STRATA_PIN_BY_NEED=1: register chosen byte ranges (the hottest experts the GPU cache will not hold first) instead of
+    a prefix. Off by default.'
+  - On bare Linux a short arena still loads when a 2 MiB huge-page pool holds the whole mapping or free plus droppable file
+    pages cover the need; STRATA_ARENA_FILE_CACHE=0 disables.
+  - On Windows the fill bypasses the file cache when a timed probe says the files are not cached and RAM could not keep
+    them cached beside the arena; STRATA_UNBUFFERED_LOAD forces either way. Always buffered elsewhere.
+  - When the file source is taken automatically and an expert profile exists, a RAM copy of the hottest experts is also
+    built within the reduced budget; STRATA_ARENA_FALLBACK_RESIDENT=0 keeps the plain file source.
+  when_things_go_wrong: []
+  must_never:
+  - A pointer handed out for an expert in the arena stays readable for as long as the source is open.
+  - 'The source''s size is checked before anything is allocated: experts.bin must have exactly the layout''s size, or every
+    GGUF span must be the named tensor with the pack''s type, shape, bytes per expert and offset, inside its file.'
+  - Host memory is registered with the GPU driver before any of its pages is written.
+  - An expert is reported as GPU-readable only if its whole blob lies inside one registered range; if a device address cannot
+    be obtained for any range, no expert is reported GPU-readable.
+  - The arena is used only if the fill reports success and exactly the layout's byte count; otherwise it is freed and the
+    start fails.
+  - When told to fall back, nothing is allocated or registered if RAM is short of the arena's need under a hard limit or
+    after the wait and the give-back.
+  evidence:
+  - include/strata/core/expert_source.hpp:184-305, 718-825, 1262-1407
+  - src/core/expert_source.cpp:1410-1580, 1708-1792, 4664-4716, 5634-6491
+  - include/strata/core/pinned.hpp:1-196
+  - src/core/pinned.cu:62-150, 236-300, 425-470, 566-625, 730-1014, 1096-1166
+  - include/strata/platform/memory.hpp:1-97
+  - src/platform/memory.cpp:1-215
+  - src/program/generate.cpp:7496-7831
+  read: code
+  not: Computing experts (CPU expert pool, expert dispatch); Deciding which experts are in device memory (expert cache,
+    adaptive tier); Deciding whether RAM allows the arena (host memory admission supplies the rule and the settings)
+  output_effect_when: bit_exact when always; the fill rearranges bytes per expert and converts nothing (inferred from the
+    fill code); numeric when registration status changes the share of uncached experts the GPU computes instead of the CPU
+    (inferred from the engine's own message about GPU and CPU rounding)
+- id: http-front
+  engine_name: HTTP front and admission bound
+  does: Accept OpenAI- and Anthropic-shaped HTTP requests, bound how many inference calls are pending, answer every failure
+    class with a defined status code, and cancel a request whose client has hung up.
+  runs:
+  - per_request
+  - background
+  takes:
+  - from: external
+    what: 'An HTTP request in OpenAI or Anthropic form: messages, tools, sampling fields and an output limit'
+  - from: request-runner
+    what: Reasoning, content and tool-call events, pings and one finish record
+  - from: server-metrics
+    what: Usage with cached tokens and the timings object placed in the response
+  gives:
+  - to: external
+    what: A server-sent event stream or one JSON body, with usage and timings at the end
+  - to: prompt-builder
+    what: Messages, tools and template arguments in one internal form
+  owns_state:
+  - admission_counters
+  exists_because: not recorded in the full description
+  output_effect: none
+  decisions:
+  - How many inference calls may wait beyond those the engine can run at once. Unset means no bound.
+  - The number of reserved inference calls above which a new one is refused with 429.
+  - How long a request may wait for the engine before it is answered 429.
+  - How long a streaming write may make no progress before the request ends as a disconnect.
+  - How often the watcher checks whether the client closed its socket.
+  when_things_go_wrong: []
+  must_never:
+  - An inference call is counted against the admission limit before any response header is written.
+  - While the server is draining, every new inference request is answered 503 and none is admitted.
+  - A prompt that does not fit the context is refused with 400 and is never shortened.
+  evidence:
+  - serve/server.py lines 4866 to 4959 (admission, drain, disconnect)
+  - serve/server.py lines 7646 to 7672 (client watcher)
+  - serve/server.py lines 8132 to 8310 (POST routing, admission block and error mapping)
+  - serve/server.py lines 7750 to 8130 (GET routes; route list only)
+  - serve/server.py lines 8887 (server class)
+  read: code
+  not: Rendering or tokenizing the prompt (prompt builder); Ordering requests onto the engine; it only counts and refuses
+    (slot scheduler and the request runner's turn lock); The content of metrics endpoints (server metrics)
+- id: prompt-builder
+  engine_name: Prompt builder
+  does: Produce the exact prompt token ids and the token limit for a request from its messages, or refuse the request.
+  runs:
+  - startup
+  - per_request
+  takes:
+  - from: http-front
+    what: Messages, tools and template arguments in one internal form
+  gives:
+  - to: request-runner
+    what: The prompt token ids, the thinking flag and the output limit fitted to the context
+  owns_state:
+  - prompt_encode_cache
+  exists_because: not recorded in the full description
+  output_effect: none
+  decisions:
+  - Which tokenizer runs. It is the project's own byte-level BPE in Python, built from the pack's tokenizer directory (vocab.json,
+    merges.txt, token_type.json, tokenizer.json).
+  - Which chat template renders the messages. The pack's own Jinja template is used if present, else the shipped one. It
+    runs in a sandboxed immutable Jinja2 environment.
+  - Tokens kept free between prompt plus output and the context length. The engine applies the same margin.
+  - When prompt plus requested output exceeds the context, shorten the output limit to the room left instead of refusing.
+  - An absent, zero or negative output limit means the rest of the context.
+  - How many recent prompts are kept so that a new prompt re-encodes only what follows the last special token it shares
+    with one of them.
+  - Whether a non-default reasoning effort is written in a short system turn before the answer, so the cached prompt start
+    stays the same. Off by default.
+  when_things_go_wrong: []
+  must_never:
+  - A prompt that does not fit the context is refused with 400 and is never shortened.
+  - Reusing ids up to a shared special-token boundary gives the same ids as encoding the whole prompt.
+  - Control-token text written inside a message is encoded as plain text; only the template's own control tokens become
+    control tokens.
+  evidence:
+  - serve/server.py lines 5745 to 5778 (render and encode)
+  - 'serve/server.py lines 5833 to 5973 (prepare: context fit)'
+  - serve/server.py lines 10041 to 10063 and 10184 to 10191 (tokenizer and template loaded at start)
+  - tools/strata_tokenizer.py lines 115 to 380 (Tokenizer; outline) and 416 to 486 (PromptEncoder)
+  - serve/frontend.py lines 28 to 66 (ChatTemplate)
+  - serve/server.py lines 4548 to 4570 (Detokenizer)
+  read: code
+  not: Tokenizing inside the engine. The engine process receives and returns integers only.; Deciding how much of the prompt
+    the engine re-reads (resume decision)
+- id: request-runner
+  engine_name: Request runner
+  does: Drive one API request through one or more engine generations and turn the token ids into reasoning, content and
+    tool-call events with a final finish record.
+  runs:
+  - per_request
+  - per_window
+  takes:
+  - from: prompt-builder
+    what: The prompt token ids, the thinking flag and the output limit fitted to the context
+  - from: engine-client
+    what: Token ids as they arrive, with a heartbeat every 10 s of quiet
+  gives:
+  - to: engine-client
+    what: Prompt token ids, output limit, sampling settings and a cancel event for one engine generation; a request may
+      make several
+  - to: http-front
+    what: Reasoning, content and tool-call events, pings and one finish record
+  owns_state: []
+  exists_because: not recorded in the full description
+  output_effect: changes_output
+  decisions:
+  - Which sampling value wins when several sources give one.
+  - Without batch slots, one request at a time holds the engine. The turn is a plain lock polled with a timeout; arrival
+    order is not enforced.
+  - With thinking on and no budget given, close the thinking early enough that the answer keeps a share of the output limit.
+  - End the reply as length when one token repeats this many times in a row.
+  - When the engine reports non-finite logits before any token was sent, send the same request once more.
+  - 'Opt-in: when the thinking repeats whole passages, either end the reply or continue from a rewritten prompt with temperature
+    at least 1.0 and presence penalty at least 1.5.'
+  - A ping is sent when nothing has gone out for this long.
+  when_things_go_wrong: []
+  must_never:
+  - A generation is stopped and read to its end line while the request still holds the engine, so the next request cannot
+    read its leftovers.
+  - Only end-of-generation records that belong to this request are counted as its figures.
+  - A continuation's prompt is the previous prompt plus the tokens generated plus the injected text, so the engine continues
+    from the prefix it already holds.
+  evidence:
+  - serve/server.py lines 6143 to 6715 (Service.run and _run)
+  - serve/server.py lines 288 to 293 (keep-alive constants)
+  - serve/server.py lines 4528 to 4545 (end token ids)
+  read: code
+  not: Choosing a batch slot or the order of admissions (slot scheduler); HTTP framing (HTTP front); Sampling. It forwards
+    sampling settings; the engine's sampler applies them.
+  output_effect_when: bit_exact when No thinking budget, forced call, recovery pass, stop string or repeat stop fires; approximate
+    when A thinking budget or forced tool call injects tokens, a recovery pass raises temperature and presence penalty,
+    or the reply is cut at a stop string
+- id: engine-client
+  engine_name: Engine process client and supervisor
+  does: 'Keep one engine child process resident and in step with the server: send each generation as one text command, deliver
+    its token lines to the caller, and end and restart a process that is dead, silent, frozen or fatally broken.'
+  runs:
+  - startup
+  - per_request
+  - per_window
+  - background
+  - on_demand
+  takes:
+  - from: request-runner
+    what: Prompt token ids, output limit, sampling settings and a cancel event for one engine generation; a request may
+      make several
+  - from: replica-router
+    what: 'With replicas on: the generation handed to the chosen engine process'
+  - from: engine-command-loop
+    what: T <id> lines on the solo path, several per verify window when drafts are accepted
+  - from: speed-calibration
+    what: Engine starts and generations made by the calibration to time candidates
+  - from: launch-argument-resolver
+    what: The engine process's argument list and environment
+  - from: server-metrics
+    what: Whether the GPU is working (utilisation of 10% or more), read by the frozen-engine check
+  gives:
+  - to: slot-scheduler
+    what: 'With batch slots on: the generation handed to the scheduler, which decides solo or slot'
+  - to: engine-command-loop
+    what: 'Text lines on the engine''s standard input: GEN with keys and prompt ids, STOP, VRAM, SAVE and RESTORE'
+  - to: request-runner
+    what: Token ids as they arrive, with a heartbeat every 10 s of quiet
+  owns_state:
+  - engine_process_state
+  exists_because: not recorded in the full description
+  output_effect: none
+  decisions:
+  - 'How the server talks to the engine: a child process started with --serve, text lines on its standard input and output,
+    standard error to a log file.'
+  - How long the engine may take to report READY.
+  - How often a start that exits before READY for a transient reason is tried again, after 2, 4 and 8 s.
+  - One more start with no drafter when a card ran out of memory; one more start with the MTP drafter when an automatically
+    chosen DFlash2 drafter did not start.
+  - How long a running request's engine may print nothing before it is killed. A first prompt chunk adds min(prompt, 32768)/50
+    s; after a progress line the allowance is 3 times the last chunk's time.
+  - An engine that prints nothing for this long and also used at most 0.5 CPU seconds and 1 MiB of I/O in that time, while
+    the GPU is not busy, is killed.
+  - Inside the engine, a thread aborts the process when a busy request records no progress beat for this long.
+  - How often a dead engine is started again at the next request, 15 s apart.
+  - After this many engine deaths from a fatal GPU error within ten minutes the engine is not started again until the window
+    has passed.
+  - Unload the engine after this many idle seconds. Off by default.
+  - A top_k outside 1 to 64 is sent as 64, the most candidates the engine's sampled path keeps.
+  when_things_go_wrong: []
+  must_never:
+  - 'Exactly one thread reads the engine''s output at a time: a helper up to READY, then the reader thread.'
+  - A request notes the engine process it was sent to and never sends to or reads from the process that replaced it.
+  - An engine counts as alive only between its READY line and its end; a restarting engine is not alive.
+  - After a verifier-timeout line or a fatal GPU error line the process takes no further request, and its trailing end line
+    is never delivered.
+  - A caller that leaves early causes STOP to be sent and the lines read to the end line within a time allowance; if the
+    allowance passes the engine is killed.
+  evidence:
+  - serve/server.py lines 1101 to 1563 (start, READY read, reader thread, restart)
+  - serve/server.py lines 1565 to 1768 (end-line parser, sampling keys, send)
+  - serve/server.py lines 2742 to 2981 (generate, stall check, silent end)
+  - serve/server.py lines 298 to 388 (timeouts) and 970 to 976 (fatal prefixes)
+  - serve/server.py lines 5215 to 5328 (fatal GPU limit and ensure_loaded)
+  - serve/server.py lines 5441 to 5478 (unload and idle unload)
+  - src/program/generate.cpp lines 14022 to 14082 (in-engine progress watchdog)
+  - include/strata/core/progress.hpp lines 17 to 68
+  read: code
+  not: Interpreting tokens (request runner); Serialising requests when batch slots are off. The request runner's turn lock
+    does that.; Building the engine's argument list (launch argument resolver)
+- id: engine-command-loop
+  engine_name: Engine command loop and batch slots
+  does: Inside the engine process, read one command at a time, run one prompt read at a time, advance every active batch
+    slot one window at a time between commands, and report each generation's tokens and end figures as text lines.
+  runs:
+  - startup
+  - per_request
+  - per_window
+  takes:
+  - from: engine-client
+    what: 'Text lines on the engine''s standard input: GEN with keys and prompt ids, STOP, VRAM, SAVE and RESTORE'
+  - from: slot-scheduler
+    what: 'Text lines naming a slot: BGEN with the prompt ids, BSTOP, BYIELD and the opt-in BCO'
+  gives:
+  - to: engine-client
+    what: T <id> lines on the solo path, several per verify window when drafts are accepted
+  - to: slot-scheduler
+    what: BT <slot> <id> lines, routed to the slot's own queue, then BDONE; BADM and YIELDED on the control lines
+  - to: server-metrics
+    what: INFO at start; per request PP progress, RESUME and a DONE line with counts, prompt and decode milliseconds, drafts,
+      reused tokens and expert cache hits
+  - to: prompt-path
+    what: The prompt token ids of one GEN or BGEN, to be read from the resume point
+  owns_state:
+  - live_conversation_record
+  - batch_slot_table
+  exists_because: not recorded in the full description
+  output_effect: changes_output
+  decisions:
+  - How many sequences the engine keeps open. Zero means one request at a time.
+  - The engine runs as many slot sessions as it can allocate on every stage; fewer than two turns batching off. It reports
+    the number it runs.
+  - The most rows one batch window holds.
+  - With the opt-in slot drafts a slot takes two rows, so at most four slots are in one window and more take turns.
+  - On a layer split, the slots are divided into groups that flow through the cards as a pipeline. The count must divide
+    the slot count, else one group.
+  - While a prompt is read beside decoding slots, after each prompt chunk the slots decode for this fraction of the time
+    the chunk took.
+  when_things_go_wrong: []
+  must_never:
+  - The engine reads one prompt at a time; admissions are taken one after another.
+  - A window has between 1 and the window capacity rows; each row's slot is in range; a slot's rows are contiguous and its
+    proposed rows have consecutive positions.
+  - A STOP line is acted on during a generation, because a separate thread reads standard input and sets a flag.
+  - New fields of the end line are appended, so an older server can read a newer engine.
+  evidence:
+  - src/program/generate.cpp lines 13780 to 13830 (stdin thread; STOP is seen during a generation)
+  - src/program/generate.cpp lines 13964 to 13990 and 14087 (INFO and READY lines)
+  - src/program/generate.cpp lines 14270 to 14302 (BSlot)
+  - src/program/generate.cpp lines 14577 to 14664 (batch_step row selection)
+  - src/program/generate.cpp lines 15417 to 15566 (loop top and command dispatch)
+  - src/program/generate.cpp lines 6821 to 7030 (slot sessions allocated at start)
+  - src/program/generate.cpp lines 17192 to 17198 (decode share during a prompt read)
+  - src/program/generate.cpp lines 19659 to 19682 and 19804 (DONE and BADM lines)
+  - include/strata/core/batch_rows.hpp lines 1 to 30
+  - include/strata/program/batch_groups.hpp lines 1 to 80
+  - include/strata/kernels/window_limits.hpp lines 14 to 23
+  - docs/BATCHING.md lines 1 to 200
+  read: code
+  not: Choosing which slot a request goes to or the order of admissions. The Python server decides and names the slot (slot
+    scheduler).; The forward pass, verification and sampling inside a window (token path, speculation); Deciding from which
+    stored state a prompt read starts (resume decision)
+  output_effect_when: bit_exact when Batch slots off; numeric when Batch slots on, greedy decoding; approximate when Batch
+    slots on, sampled decoding, with a move between the solo path and a slot
+- id: slot-scheduler
+  engine_name: Server-side slot scheduler
+  does: With batch slots on, decide for each request whether it runs alone or in a slot, which slot, and in what order requests
+    get the single prompt-reading channel, and keep the server's record of slots consistent with the engine's.
+  runs:
+  - per_request
+  - per_window
+  - background
+  takes:
+  - from: engine-client
+    what: 'With batch slots on: the generation handed to the scheduler, which decides solo or slot'
+  - from: engine-command-loop
+    what: BT <slot> <id> lines, routed to the slot's own queue, then BDONE; BADM and YIELDED on the control lines
+  gives:
+  - to: engine-command-loop
+    what: 'Text lines naming a slot: BGEN with the prompt ids, BSTOP, BYIELD and the opt-in BCO'
+  owns_state:
+  - slot_ledger
+  exists_because: not recorded in the full description
+  output_effect: changes_output
+  decisions:
+  - The most slots asked of the engine without a layer split.
+  - How often one request's prompt read gives way to a waiting request whose prompt is at most half as long.
+  - How often a request left alone in a slot returns to the solo path, and the fewest tokens it must still be allowed.
+  - 'Opt-in: new requests with at most N prompt tokens take the prompt-reading channel before longer ones; a longer one
+    that waited 30 s counts as short.'
+  - 'Opt-in: the request holding the channel also sends up to N-1 waiting prompts so the engine reads them in one pass.'
+  - How often a request tries another slot after the engine refused one, and how long a refused slot is kept out of the
+    picks.
+  - How long the control lines or a slot stay held for an engine that owes an end line and says nothing, before the engine
+    is ended.
+  - The turn token id, the 8192-token branch boundary and the 512-token minimum prefix used by the slot choice repeat engine
+    defaults by hand; no code links them.
+  when_things_go_wrong: []
+  must_never:
+  - A slot is given to another request only after the engine's end line for it; if that line does not come within the quarantine
+    the engine is ended.
+  - The control lines carry one exchange at a time; a request, a VRAM command or a session-file command takes them before
+    sending or reading.
+  - A request waiting for a free slot does not hold the control lines, because a read that gave way needs them to continue.
+  - A slot line for a slot no request has claimed is dropped and never read by the next request on that slot.
+  - A slot marked busy with no owner for 3 s is freed.
+  evidence:
+  - serve/server.py lines 1326 to 1386 (slot and admission state)
+  - serve/server.py lines 1770 to 2070 (control reader, quarantine, slot release, orphan reaping)
+  - serve/server.py lines 2072 to 2227 (taking the control lines, coalescing, short-first order)
+  - serve/server.py lines 2229 to 2641 (generate_batched)
+  - serve/server.py lines 2643 to 2725 (pick_slot)
+  - serve/server.py lines 351 to 374 (opt-in admission switches)
+  read: code
+  not: Composing a batch window from the active slots (engine command loop); Copying state into or out of a slot (engine);
+    Deciding reuse. The engine checks the real prefix; the scheduler only steers a conversation back to the slot it believes
+    holds it.
+  output_effect_when: bit_exact when Greedy decoding; approximate when Sampled decoding with a move between the solo path
+    and a slot
+- id: replica-router
+  engine_name: Replica router
+  does: Present several independent engine processes, each on its own group of cards, as one engine, and choose a process
+    for each generation.
+  runs:
+  - startup
+  - per_request
+  - background
+  takes: []
+  gives:
+  - to: engine-client
+    what: 'With replicas on: the generation handed to the chosen engine process'
+  owns_state:
+  - replica_index
+  exists_because: not recorded in the full description
+  output_effect: none
+  decisions:
+  - Whether several engines run. Off unless configured.
+  - The cost of one request already running on a replica, in prompt tokens.
+  - Hashes of 64-token blocks kept to track what each replica holds.
+  - A dead replica is started again in the background at most this often.
+  - 'Opt-in: back every replica''s expert arena with one shared memory object so the experts are in RAM once.'
+  when_things_go_wrong: []
+  must_never:
+  - A replica's pipe belongs to one request until its exchange is over; a replica whose pipe could not be drained is killed
+    and left out of routing until restarted.
+  - A replica that restarted or reported non-finite logits is forgotten by the routing index.
+  evidence:
+  - serve/replicas.py lines 1 to 60 (module description and constants)
+  - serve/replicas.py lines 513 to 632 (route, heal, generate, quarantine)
+  - serve/server.py lines 9466 to 9528 (start_replicas; outline)
+  read: code
+  not: Splitting one sequence's layers across cards. That is the layer split inside one engine.; Checking the real prefix.
+    Each engine does that itself.
+- id: resume-decision
+  engine_name: Resume decision
+  does: For each request, choose the stored state that shares the longest valid prefix with the prompt, make the session
+    hold exactly that state, and report the prefix length.
+  runs:
+  - per_request
+  takes: []
+  gives:
+  - to: prompt-path
+    what: How many prompt tokens the session already holds, so reading starts there
+  - to: checkpoint-chain
+    what: Restore the chosen checkpoint and drop the ones past it
+  - to: parked-conversations
+    what: Park the outgoing conversation; take or borrow from the chosen parked entry
+  owns_state: []
+  exists_because: not recorded in the full description
+  output_effect: numeric
+  decisions:
+  - Reuse of any kind needs a checkpoint capacity above zero.
+  - 'Which stored state wins: the live session and its checkpoints, longest first; then an idle batch slot or its checkpoints
+    if strictly longer (text-only requests); then the best parked conversation if strictly longer than both.'
+  - A match on a parked conversation's live state or deepest checkpoint moves the whole entry into the session; a match
+    on a shallower checkpoint copies only the K/V up to that point and leaves the entry parked. No borrow with a layer split
+    or past a pinned checkpoint.
+  - A card that would have to create its copy stream and has less than this much VRAM free gets no restore; the prompt is
+    read again.
+  when_things_go_wrong: []
+  must_never:
+  - A reused prefix is at least 1 and at most n-1 tokens of an n-token prompt; the last prompt token always starts the first
+    verify window.
+  - A stored prefix is reused only when every token id equals the prompt's, the image keys below it are equal, and the steering
+    flag matches.
+  - 'Reading resumes only at a stored point: the live end or a checkpoint, never at an arbitrary common prefix.'
+  - Before any restore or rewind, the outgoing conversation is parked.
+  - A parked image is validated before the outgoing state is touched; a restore that fails after validation ends the engine
+    rather than decoding from partial state.
+  - After the decision, every checkpoint longer than the resume point or not on this prompt's path is dropped, because the
+    request rewrites every K/V cell from the resume point on.
+  - After a window with non-finite logits the next request drops the live session, all checkpoints, all parked conversations
+    and all idle slots, and reads from token 0.
+  evidence:
+  - src/program/generate.cpp lines 16072 to 16794
+  - src/program/generate.cpp lines 15822 to 15861 (request keys)
+  - include/strata/core/conversation_cache.hpp lines 226 to 238 and 306 to 359
+  - docs/MESSAGE_BOUNDARY_CACHE.md lines 64 to 65
+  read: code
+  not: Reading prompt tokens (prompt path); Creating checkpoints (checkpoint chain); Copying state between device and host
+    (parked conversations, checkpoint chain)
+  output_effect_when: bit_exact when The resume point leaves the prompt's chunk boundaries and the expert placement the
+    same as a cold read; numeric when The resume point changes where the prompt is cut into chunks, or the expert placement
+    differs
+- id: checkpoint-chain
+  engine_name: Checkpoint chain
+  does: Keep a bounded set of snapshots of the running state at chosen token positions of the conversation the session currently
+    holds, so a later request on the same history can rewind to one.
+  runs:
+  - per_request
+  - on_demand
+  takes:
+  - from: resume-decision
+    what: Restore the chosen checkpoint and drop the ones past it
+  gives:
+  - to: session-loop
+    what: Running state copied back to the device at a rewind
+  owns_state:
+  - conversation_checkpoints
+  exists_because: not recorded in the full description
+  output_effect: numeric
+  decisions:
+  - How many checkpoints the chain keeps.
+  - A checkpoint is cut at the last turn token after the resume point, unless the request says ckpt=0.
+  - When reading from token 0, a checkpoint is cut at the first turn token if it is at or beyond this position. Taken even
+    with ckpt=0.
+  - A checkpoint is cut every this many freshly read tokens, at a chunk end.
+  - A request may pin one checkpoint at a given position; needs a capacity of at least 3; at most one pinned checkpoint
+    at a time.
+  - 'Opt-in, one GPU: an extra cut at the previous turn token if it is at or beyond 8192 tokens and within 1024 tokens of
+    the turn cut.'
+  - 'Opt-in, one GPU: one extra checkpoint at the last chunk boundary before the prompt''s end.'
+  - 'Opt-in: drop the checkpoint whose removal leaves the smallest relative gap instead of the least recently used.'
+  when_things_go_wrong: []
+  must_never:
+  - Every checkpoint's token ids are a prefix of the live conversation.
+  - There is at most one checkpoint per prefix length.
+  - With a capacity of two or more, the shortest checkpoint is never dropped, and a pinned one is dropped only when every
+    other is pinned.
+  - A restore is refused unless the payload sizes equal the session's computed sizes.
+  - A save that fails only for lack of memory skips the checkpoint and the request continues.
+  evidence:
+  - src/program/generate.cpp lines 12442 to 12608 (save and retention)
+  - src/program/generate.cpp lines 12662 to 12696 and 17927 to 18090 (placement)
+  - include/strata/program/conv_cache.hpp lines 18 to 119
+  - include/strata/program/message_boundary.hpp lines 9 to 18
+  - src/core/conversation_state.cpp lines 284 to 429
+  read: code
+  not: Attention K/V. A checkpoint holds none; the K/V is positional and stays where it is.; Other conversations (parked
+    conversations)
+  output_effect_when: numeric when A cut ends a prompt part and so changes the chunking of the prompt read
+- id: parked-conversations
+  engine_name: Parked conversation cache
+  does: Hold whole images of other conversations, including their attention K/V, within a host memory budget, find the one
+    with the longest valid prefix for a prompt, and evict.
+  runs:
+  - startup
+  - per_request
+  - on_demand
+  takes:
+  - from: resume-decision
+    what: Park the outgoing conversation; take or borrow from the chosen parked entry
+  gives:
+  - to: kv-store
+    what: A parked conversation's K/V, indexer rows and running state copied back to the device
+  owns_state:
+  - parked_conversations
+  exists_because: not recorded in the full description
+  output_effect: none
+  decisions:
+  - 'The host memory the cache may take. Given by flag, else computed once at start: 40% of available memory above the floor,
+    capped at 8192 MiB, rounded down to 256 MiB, zero below 1024 MiB or when memory cannot be read.'
+  - The most conversations parked at once.
+  - Host memory that must stay available after a park, a session save or a restore.
+  - A conversation is parked only on a switch or a rewind, not on each continuing request, and before a batch slot is overwritten.
+  - An allocation is admitted when available memory is at least the floor and the allocation fits above it. Available is
+    the least of the system's figure, the room under each control-group limit and an operator cap. An unreadable figure
+    refuses.
+  - When the same conversation is parked again, only K/V pages after the first rewritten token are copied again.
+  when_things_go_wrong: []
+  must_never:
+  - A stored prefix is reused only when every token id equals the prompt's, the image keys below it are equal, and the steering
+    flag matches.
+  - Retained K/V is reused only for the prefix shared with the conversation it was captured from and only up to the earliest
+    rewrite since it was restored; equal token ids alone are not enough.
+  - An entry holding a pinned checkpoint, and the entry a borrow is copying from, are never evicted.
+  - A park that does not fit the budget, the host memory floor or an allocation is skipped; it never fails the request.
+  - An image is accepted only if its geometry key, layer range, checkpoint prefixes and every K/V layer's format and sizes
+    equal the running engine's, checked before any device write.
+  evidence:
+  - include/strata/core/conversation_cache.hpp lines 174 to 542
+  - include/strata/core/conversation_snapshot.hpp lines 15 to 185
+  - src/core/conversation_state.cpp lines 87 to 158 and 532 to 731
+  - src/core/conversation_snapshot.cpp lines 298 to 403
+  - include/strata/core/conversation_memory.hpp lines 12 to 85
+  - include/strata/core/conversation_buffer.hpp lines 21 and 147 to 148
+  - src/program/generate.cpp lines 12020 to 12050, 12269 to 12364 and 16379 to 16438 (budget, park path)
+  read: code
+  not: The current conversation's rewind points (checkpoint chain); Persisting anything. The parked cache is never written
+    to disk.; Reserving memory. The host memory check is a measurement, not a reservation.
+- id: session-files
+  engine_name: Session files
+  does: On an explicit command, write the session's current conversation to one file or read one back, refusing any file
+    that does not belong to this model, configuration and engine version before any state changes.
+  runs:
+  - on_demand
+  takes:
+  - from: external
+    what: A session file read back and validated before any device write
+  gives:
+  - to: external
+    what: 'One session file on storage: live running state, one checkpoint, every attention layer''s K/V and the draft layer''s
+      K/V'
+  owns_state: []
+  exists_because: not recorded in the full description
+  output_effect: none
+  decisions:
+  - 'Exactly one checkpoint is written: the deepest, or the deepest pinned one.'
+  - Disk space that must remain after a save.
+  - 'Opt-in: a save short of memory first drops retained K/V, then evicts parked conversations oldest first, then erases
+    checkpoints other than the one to be written and pinned ones.'
+  - Session files are refused with a layer split, a peer device, batch slots, a checkpoint capacity of zero, or no complete
+    live session.
+  - 'What binds a file to a configuration: engine version, backend, KV format, context length, resident K/V, draft window,
+    K/V rotation, position-encoding parameters, the control-vector digest and 23 arithmetic switches. Sampling, seeds, draft
+    tuning, expert tier and prompt chunk are excluded.'
+  - 'What binds a file to a model: for each loaded model input, its size and its first and last MiB. An edit in the middle
+    of a file is not detected.'
+  - With the reclaim option, the server retries a save refused for memory up to 3 times, waiting up to 30 s for memory.
+  when_things_go_wrong: []
+  must_never:
+  - A file is checked in order (regular single-link file, size bounds, header hash, magic, version, model and configuration
+    identity, memory, bounded parse, payload hash, full snapshot validation) and only then is device state written.
+  - A save writes a temporary file beside the target and renames it; a failure before the rename leaves the old file.
+  - A transfer failure after device writes began ends the engine.
+  - Any reply line outside the allowed set during a save or restore means the two sides lost step, and the server kills
+    the engine.
+  evidence:
+  - include/strata/core/conversation_file.hpp lines 1 to 243
+  - src/core/conversation_file.cpp lines 46 to 49, 359 to 369, 686 to 708 and 1120 to 1233
+  - include/strata/core/session_save_reclaim.hpp lines 17 to 53
+  - src/program/generate.cpp lines 12055 to 12124 and 15556 to 15792
+  - serve/server.py lines 4685 to 4706 and 4961 to 5027 (file name rule and slot_action)
+  - serve/session_save_retry.py lines 12 to 84
+  read: code
+  not: Saving automatically. Nothing is written unless a SAVE command arrives.; Persisting parked conversations; Authenticating
+    a file. The hashes detect corruption only.
+- id: run-config-generator
+  engine_name: Run configuration generator and store
+  does: Produce a complete run configuration file for one model on this machine from machine facts and the person's answers,
+    and rewrite it without losing what the person added by hand.
+  runs:
+  - offline
+  takes:
+  - from: external
+    what: 'The person''s setup answers and options: model, context length, KV format, cards, reserve'
+  - from: speed-calibration
+    what: Settings a calibration kept for this hardware key, written into the argument list
+  gives:
+  - to: launch-argument-resolver
+    what: 'The run configuration file: engine path, argument list, environment, the person''s own options and server keys'
+  owns_state:
+  - run_config
+  exists_because: not recorded in the full description
+  output_effect: changes_output
+  decisions:
+  - Which value wins when the file is written.
+  - The expert cache size is left to the engine.
+  - The speculative window and the confidence floor written by default.
+  - 'The context length: 131072 recommended, capped by a memory rule, or the person''s choice.'
+  - 'The K/V precision: 16-bit float at a context of 8192 or less, else 8-bit integer, or the person''s choice.'
+  - Keep only a 32768-token window of K/V in fast memory when the context is 65536 or more and host memory suffices.
+  - Host memory given to resident experts.
+  - Hold the n-gram table in host memory when memory covers the model plus the table plus 16 GB (4 GB on a rotational disk).
+  - 'On the GB10 machine type only: map experts from the file, a 32768-token prompt chunk, and 4-bit draft-layer options.'
+  - On a CPU with more efficiency cores than performance cores, and only without a calibration, the worker count is P -
+    1 + E/2, at most 32.
+  - An option in the file's argument list that differs from what setup last wrote counts as the person's and is kept, except
+    the options setup re-decides from its answers.
+  when_things_go_wrong: []
+  must_never:
+  - The file is written whole or not at all, by writing a temporary file and renaming it; the earlier file is kept as a
+    backup.
+  - A writer that changes the argument list records what it wrote, so its change is not later read as a hand edit.
+  - A saved calibration is used only for the exact hardware key it was measured on.
+  evidence:
+  - strata_control/setup_config.py lines 214 to 582
+  - setup.py lines 6942 to 7138 (write, carry-over, hand-edit capture)
+  - setup.py lines 1241 to 1257, 1464 to 1490, 1608 to 1617 and 1755 to 1758 (machine probes)
+  - strata_control/user_args.py lines 15 to 117
+  - serve/runconfig.py lines 21 to 183
+  - docs/DGX_SPARK_LINUX.md lines 37 to 48
+  read: code
+  not: Measuring anything (speed calibration); Starting the engine or the server; The argument list the engine finally receives
+    (launch argument resolver)
+- id: launch-argument-resolver
+  engine_name: Launch and start-time argument resolver
+  does: Turn the stored run configuration into the argument list and environment the engine process actually receives, at
+    every launch and every engine start, so that standing choices kept outside the list cannot be undone by whoever last
+    rewrote it.
+  runs:
+  - startup
+  takes:
+  - from: run-config-generator
+    what: 'The run configuration file: engine path, argument list, environment, the person''s own options and server keys'
+  - from: speed-calibration
+    what: The active tuning preset's arguments, environment and per-request values, applied over the configuration if still
+      valid
+  gives:
+  - to: engine-client
+    what: The engine process's argument list and environment
+  - to: startup-memory-sizing
+    what: Context length, KV format and resident window, VRAM reserve, resident budget, expert cache request and batch slot
+      count, as engine arguments
+  - to: draft-policy
+    what: The drafter chosen for the run, the speculative window and the confidence floor, as engine arguments
+  owns_state: []
+  exists_because: not recorded in the full description
+  output_effect: changes_output
+  decisions:
+  - Which value an engine option takes at a launch.
+  - A calibration record is applied at launch only if its model name, context length and image setting equal the current
+    configuration's.
+  - 'The order of changes at every engine start: the active tuning preset, then the person''s options again, then the drafter
+    choice, then the fast-memory fit, then draft-layer, vision, layer-split, elastic and parallel additions.'
+  - On this backend the only option the start-time fit changes is the size of the K/V window kept in fast memory; it never
+    changes the context length or the request count, and keeps a value the person set. Nothing is fitted on a layer split
+    or with several cards.
+  - One drafter is chosen per run and the drafter options are rewritten to match.
+  - The engine's environment names the cards by bus order and restricts it to the configured cards; library folders come
+    first on the search path.
+  when_things_go_wrong: []
+  must_never:
+  - A calibrated value never overrides a persisted or explicit one.
+  - An option given once on a launch command line is not remembered as a standing choice.
+  - The engine process never reads the configuration file; it receives arguments and environment only.
+  - A fit estimate that fails changes nothing.
+  evidence:
+  - strata_control/arg_layers.py lines 27 to 127
+  - strata_cli/launch/runner.py lines 536 to 614 and 1728 to 1757
+  - serve/server.py lines 3781 to 3858 (engine_args)
+  - serve/server.py lines 4287 to 4320 (child_env)
+  - serve/server.py lines 9322 to 9345 (apply_saved_tuning)
+  - strata_control/vram_fit.py lines 280 to 327
+  - strata_control/presets.py lines 432 to 488
+  read: code
+  not: Writing the installed configuration file; Measuring (speed calibration); Sizing the expert cache; that is left to
+    the engine
+- id: speed-calibration
+  engine_name: Speed calibration and tuning presets
+  does: Measure on this machine, with the real engine and on demand, which of a bounded set of settings is faster, keep
+    a non-default value only when it beats the default by more than measurement noise, and store the result for later starts.
+  runs:
+  - offline
+  takes: []
+  gives:
+  - to: run-config-generator
+    what: Settings a calibration kept for this hardware key, written into the argument list
+  - to: launch-argument-resolver
+    what: The active tuning preset's arguments, environment and per-request values, applied over the configuration if still
+      valid
+  - to: engine-client
+    what: Engine starts and generations made by the calibration to time candidates
+  owns_state:
+  - calibration_record
+  - tuning_presets
+  exists_because: not recorded in the full description
+  output_effect: numeric
+  decisions:
+  - 'What the calibration measures: decode tokens per second from the engine''s own decode time, over 3 fixed prompts of
+    128 new tokens at temperature 0. On a layer split it also measures prompt read speed for the chunk-pipelining option.'
+  - 'What the calibration sweeps: the share of routed experts read over the link, the speculation confidence floor (both
+    per request, without a restart), then the CPU worker count and adaptive-tier settings (one engine restart each).'
+  - A non-default value is kept only if it beats the default by more than this in an interleaved confirmation.
+  - 'When the calibration runs: only on request (setup --calibrate, an offer at the end of a first install on NVIDIA, or
+    the engine calibrate command).'
+  - The auto-tuner changes one setting at a time and accepts a change when the median per-round ratio exceeds 1 + max(0.03,
+    twice the measured noise, twice the drift), every round is faster, and prompt speed loses at most 2%.
+  - The auto-tuner's time budget.
+  - Only settings the project labels as leaving answers identical are chosen automatically; settings labelled as changing
+    placement or as not repeatable need an explicit opt-in.
+  - A preset is not applied when the GPU, CPU, RAM (by more than 10%), link, model digest or backend changed; it is applied
+    with a re-check offered when the engine's tuning epoch, the driver or its age changed.
+  when_things_go_wrong: []
+  must_never:
+  - A setting the calibration did not choose is reset to the product default when a calibration is applied, so an old calibration
+    does not linger.
+  - A saved calibration is used only for the exact hardware key it was measured on.
+  - A preset that contains a setting on the never list is not applied.
+  - An unreadable preset store means no preset; it never stops a start.
+  evidence:
+  - tools/calibrate.py lines 31 to 62, 160 to 256, 303 to 511
+  - setup.py lines 7432 to 7503 (hardware key, saved calibration)
+  - strata_control/calibration.py lines 37 to 38, 162 to 243 and 275 to 276
+  - strata_control/autotune.py lines 57 to 75, 161 to 176 and 244 to 268
+  - strata_control/tune_knobs.py lines 85 to 190 and 344 to 346
+  - strata_control/tune_session.py lines 49 to 56 and 345 to 426
+  - strata_control/presets.py lines 128 to 204 and 432 to 512
+  - strata_control/tuning.py lines 92 to 123 (third tuning path, dimension table only)
+  read: code
+  not: Measuring answer quality. It measures speed only.; Running during serving. It needs the machine to itself.; Changing
+    the run configuration in the preset path; presets are applied over it at start.
+  output_effect_when: bit_exact when Only settings the project labels exact are chosen (speculation confidence floor, worker
+    count); numeric when A setting the project labels placement is chosen (share read over the link, adaptive-tier settings),
+    which the calibration does sweep
+- id: engine-diagnostics
+  engine_name: Engine diagnostics
+  does: Inside the engine process, count which kernel variants and window graphs were chosen, record what the run selected
+    at start, and sample batch windows, writing each only when asked by an environment variable.
+  runs:
+  - startup
+  - per_window
+  - on_demand
+  takes: []
+  gives:
+  - to: external
+    what: The dispatch count report at exit and the run manifest, each only when an environment variable names a file
+  - to: server-metrics
+    what: BSTAT and PSTAT lines, at most one a second, when batch telemetry is on
+  owns_state:
+  - dispatch_counts
+  - run_manifest_record
+  exists_because: not recorded in the full description
+  output_effect: none
+  decisions:
+  - Whether choices are counted. On by default.
+  - Whether the counts are written as a file at process exit. Off unless a path is given.
+  - Whether a record of the engine choice, budgets, fast paths taken or declined and tensor formats is written. Off unless
+    a file is named. Written before READY and again after a request that changed something.
+  - Whether batch windows and per-stage in-flight time are sampled, at most once a second, as BSTAT and PSTAT lines. Off
+    by default.
+  - Whether research counters of the batch loop are printed to the log when it goes idle. Off by default.
+  when_things_go_wrong: []
+  must_never:
+  - Counting touches host maps only. This holds by construction (the header uses no device types); no check asserts it.
+  - The manifest has sorted keys and no timestamps, process ids or addresses, and is written by write-then-rename.
+  - A batch window sample with fewer than one processed row, fewer than one active row, more active than processed rows
+    or a negative span is rejected.
+  evidence:
+  - include/strata/core/dispatch_stats.hpp lines 1 to 154
+  - include/strata/core/run_manifest.hpp lines 1 to 195
+  - include/strata/core/batch_telemetry.hpp lines 29 to 107
+  - include/strata/program/par_counters.hpp lines 29 to 74
+  - src/program/generate.cpp lines 13991 to 14021, 14086, 14326 to 14346, 15373 to 15381 and 15419
+  - src/core/verify.cpp lines 1396 to 1399 and 3220 (call sites)
+  read: code
+  not: Anything a client sees by default. All of its outputs are off unless an environment variable is set.; Timing requests
+    (server metrics, from the engine's end lines)
+- id: server-metrics
+  engine_name: Request accounting and metric exporters
+  does: In the server process, turn the engine's end-of-request figures and the server's own clocks into per-request records,
+    running totals and a live rate, fill the usage and timings of each response, sample the machine once a second, and render
+    all of it for outside monitors.
+  runs:
+  - per_request
+  - per_window
+  - background
+  - on_demand
+  takes:
+  - from: engine-command-loop
+    what: INFO at start; per request PP progress, RESUME and a DONE line with counts, prompt and decode milliseconds, drafts,
+      reused tokens and expert cache hits
+  - from: external
+    what: GPU utilisation, memory, temperature and power from the vendor library, and CPU, RAM and disk readings from the
+      operating system, once a second
+  - from: engine-diagnostics
+    what: BSTAT and PSTAT lines, at most one a second, when batch telemetry is on
+  gives:
+  - to: http-front
+    what: Usage with cached tokens and the timings object placed in the response
+  - to: external
+    what: JSON and Prometheus text on the metrics and status endpoints
+  - to: engine-client
+    what: Whether the GPU is working (utilisation of 10% or more), read by the frozen-engine check
+  owns_state:
+  - request_history
+  exists_because: not recorded in the full description
+  output_effect: none
+  decisions:
+  - Tokens per second of a finished request is the engine's generated count divided by the engine's decode time, which runs
+    from the end of the prompt read to the last token and so includes the first window. Not reported for fewer than 2 tokens.
+  - Prompt tokens per second is tokens read divided by the engine's prompt time, which starts after the request line is
+    parsed and includes restoring stored conversation state.
+  - The live rate is the token count gained over the last 2 s of samples; before 0.25 s of span it is the mean so far.
+  - Time to first token is not in any API response. It is a histogram (from passing the queue and loading to the first engine
+    token, server wall clock) and a history field (from entering the queue to the first engine token).
+  - The inter-token latency histogram records each finished request's mean gap, once per gap; it has no spread within a
+    request.
+  - How often GPU, CPU, RAM and disk readings are taken, and how many are kept per series.
+  - How many finished requests and transition events are kept.
+  when_things_go_wrong: []
+  must_never:
+  - A request's history row, totals and latency observations are settled before the engine is released to the next request.
+  - Only end-of-generation records that belong to this request are counted as its figures.
+  - A request the batch engine refused to admit gets an error row but no part in totals or latency histograms.
+  - A reading that cannot be taken is recorded as absent; a failing sample does not end the sampler or the server.
+  - Request transition events hold only an id, a time and a state; no prompt or answer text.
+  evidence:
+  - serve/server.py lines 1565 to 1585 (end-line parser) and 1927 to 1933
+  - serve/server.py lines 4761 to 4795 (state) and 5521 to 5740 (rates, metrics, prometheus, status)
+  - serve/server.py lines 6577 to 6628 (settle block) and 6718 to 6815 (figures)
+  - serve/prometheus.py lines 10 to 90
+  - serve/telemetry.py lines 1 to 108 and 543 to 677
+  - src/program/generate.cpp lines 16073, 18101, 18202 and 19446 (where the two engine durations start and end)
+  read: code
+  not: Measuring inside the engine. Both request durations come from the engine's own clock.; Per-token timestamps. A token
+    line carries none.
+- id: mtp-drafter
+  engine_name: MTP drafter
+  does: From the verify window's final hidden rows and the tokens that followed them, produce draft tokens with a probability
+    each, and keep the draft layer's own attention K/V complete for every accepted position.
+  runs:
+  - startup
+  - per_request
+  - per_window
+  takes:
+  - from: draft-policy
+    what: After each draft step, whether to compute another draft. Only with the cost-aware window; otherwise the drafter
+      runs to its cap or to the probability floor
+  - from: draft-policy
+    what: The most drafts per round for this request (narrower for MTP requests under automatic drafter selection; lowered
+      near the context end in gated mode)
+  - from: draft-verifier
+    what: The window's target tokens, its position and the last accepted row, from which the drafter catches up its own
+      K/V and drafts again
+  gives:
+  - to: draft-policy
+    what: Draft tokens for the next window with one probability each, and how many were drafted
+  - to: draft-verifier
+    what: For each MTP draft, the distribution it was sampled from (up to 64 token and probability pairs), or the gated
+      measure built from it. Only with STRATA_SPEC_PROB=1 on a sampled request
+  - to: ngram-reader
+    what: Prefetch the n-gram table rows of the drafted tokens so the next verify window finds them warm
+  owns_state:
+  - mtp_kv
+  exists_because: not recorded in the full description
+  output_effect: numeric
+  decisions:
+  - Rows the drafter's graphs hold.
+  - 'Most drafts in one round: the smallest of rows minus 1, the configured cap, and the cells left in the context.'
+  - Configured cap on drafts per round.
+  - 'When the draft chain stops before the cap: at the first draft whose probability is below --spec-min-p, or when the
+    draft policy''s cost rule says so.'
+  - How many of the latest cells the draft layer attends to.
+  - 'Which rows of the verified window get their draft K/V written: accepted rows only, or all rows (STRATA_MTP_CATCHUP_ALL=1).'
+  - The token subset the draft head covers. Drafts can only be tokens in the subset.
+  - Whether the draft K/V is a ring of window + 4 x rows + 64 cells over a pinned host copy, or fully resident when pinned
+    memory is short.
+  - Whether drafts are sampled with the request's sampler chain instead of taken as the argmax.
+  when_things_go_wrong: []
+  must_never:
+  - Before a draft is made at a cell, the draft K/V of every accepted cell before it has been written from real hidden rows
+    and real tokens.
+  - A draft K/V cell written by a draft step or for a rejected row is never rolled back; it is rewritten before any later
+    read reaches it.
+  - No draft or catch-up pass runs while the draft layer's experts are lent to the prompt path.
+  evidence:
+  - src/core/mtp.cpp:267-475,629-863,1023-1144,1432-1494,1702-1914
+  - include/strata/core/mtp.hpp:1-377
+  - src/program/generate.cpp:7184-7185,14097-14118,19367-19369
+  read: code
+  not: Deciding any emitted token; The main session's K/V, indexer keys, recurrent state or n-gram history; Choosing the
+    verify window width (draft policy)
+  output_effect_when: 'bit_exact when the verifier''s result for a token does not depend on which window it was verified
+    in, and STRATA_ROUTE_RESIDENT_MTP is off; numeric when the verifier''s arithmetic depends on window width (see comp/strata/draft-verifier),
+    since the number of drafts sets the width; distribution_exact when STRATA_SPEC_PROB=1 on a sampled request: the draft
+    is one of the random draws that fix the token'
+- id: dflash2-drafter
+  engine_name: DFlash2 block drafter
+  does: Produce 7 draft tokens in one forward pass of a separate 5-layer drafter model that reads the target model's hidden
+    states at five layers, and keep its context ring to committed rows only.
+  runs:
+  - startup
+  - per_window
+  takes:
+  - from: draft-verifier
+    what: The committed rows and their position, so the drafter's context ring holds committed rows only
+  gives:
+  - to: draft-policy
+    what: Seven draft tokens with the selector's probabilities. Only when this drafter is loaded and is the request's drafter
+  owns_state:
+  - dflash2_context
+  exists_because: not recorded in the full description
+  output_effect: numeric
+  decisions:
+  - Whether this drafter is loaded.
+  - 'Widest verify window for this drafter by card class: 8 for unified-memory cards, 8 for compute capability 12.0 with
+    at least 48 GB, 6 for other capability 12, no cap otherwise.'
+  - The window ends where the product of the selector's probabilities falls below --draft-conf.
+  - Skip the draft round when the lookup match is at least this many tokens.
+  when_things_go_wrong: []
+  must_never:
+  - The context ring holds only committed rows, so a rejected draft leaves nothing to roll back.
+  evidence:
+  - include/strata/core/dflash2.hpp:1-80
+  - src/program/generate.cpp:7188-7197,18945-18960,19316-19330,19357-19364
+  - cmake/strata_gpu_engine.cmake:12-13
+  read: code
+  not: Deciding any emitted token; Choosing whether a request uses it or the MTP drafter (draft policy)
+  output_effect_when: bit_exact when the verifier's result for a token does not depend on which window it was verified in;
+    numeric when the verifier's arithmetic depends on window width
+- id: lookup-drafter
+  engine_name: Lookup (suffix) drafter
+  does: Propose the tokens that followed the longest earlier occurrence of the text's current ending, with the match length,
+    using no model weights.
+  runs:
+  - per_request
+  - per_window
+  takes:
+  - from: draft-verifier
+    what: Emitted tokens appended to the lookup history. In the code the host loop makes the call, not the verifier class
+  gives:
+  - to: draft-policy
+    what: The tokens that followed an earlier occurrence of the current ending, and the match length; also the chained proposal
+      after the neural drafts when the lookup chain is on
+  owns_state:
+  - lookup_history
+  exists_because: not recorded in the full description
+  output_effect: numeric
+  decisions:
+  - Shortest match that produces a proposal.
+  - Longest match length counted.
+  - Most recent end positions kept per trigram.
+  - History tokens the index is sized for.
+  - Tokens a lookup may append after the neural drafts in the same window, and the shortest match it extends on.
+  when_things_go_wrong: []
+  must_never:
+  - A candidate's match length is computed by comparing actual tokens, so a hash collision cannot produce a false match.
+  - The indexed history holds only the prompt and emitted tokens; unverified drafts used for a chained proposal are removed
+    after the proposal.
+  evidence:
+  - src/spec/suffix_drafter.cpp:1-98
+  - src/spec/draft_source.cpp:1-36
+  - include/strata/spec/suffix_drafter.hpp:1-59
+  - include/strata/spec/draft_source.hpp:1-62
+  - src/program/generate.cpp:18122-18125,18985-18999,19021-19037,19344
+  read: code
+  not: Judging whether the proposal is worth verifying (draft policy); Deciding any emitted token
+  output_effect_when: bit_exact when the verifier's result for a token does not depend on which window it was verified in;
+    numeric when the verifier's arithmetic depends on window width; lookup windows are the widest (up to 12 rows)
+- id: draft-policy
+  engine_name: Draft policy
+  does: Choose, for each round, where the verify window's drafts come from and how wide the window is, so that committed
+    tokens per measured millisecond is highest; and under automatic drafter selection, which neural drafter a request uses.
+  runs:
+  - startup
+  - per_request
+  - per_window
+  takes:
+  - from: mtp-drafter
+    what: Draft tokens for the next window with one probability each, and how many were drafted
+  - from: dflash2-drafter
+    what: Seven draft tokens with the selector's probabilities. Only when this drafter is loaded and is the request's drafter
+  - from: lookup-drafter
+    what: The tokens that followed an earlier occurrence of the current ending, and the match length; also the chained proposal
+      after the neural drafts when the lookup chain is on
+  - from: draft-verifier
+    what: How many drafts were accepted in the window; the policy pairs it with the round's wall time
+  - from: launch-argument-resolver
+    what: The drafter chosen for the run, the speculative window and the confidence floor, as engine arguments
+  gives:
+  - to: mtp-drafter
+    what: After each draft step, whether to compute another draft. Only with the cost-aware window; otherwise the drafter
+      runs to its cap or to the probability floor
+  - to: mtp-drafter
+    what: The most drafts per round for this request (narrower for MTP requests under automatic drafter selection; lowered
+      near the context end in gated mode)
+  - to: window-loop
+    what: 'The window to verify: the last accepted token followed by the chosen drafts, at the chosen width'
+  owns_state:
+  - draft_estimates
+  - drafter_choice_stats
+  exists_because: not recorded in the full description
+  output_effect: numeric
+  decisions:
+  - How much better a lookup or chained window must be than the neural drafter's window to be taken. The cost-aware window
+    uses a third of it.
+  - Whether the MTP window width is chosen step by step from each draft's probability and the measured cost of each width.
+  - Which window sizes a lookup or chained window may use. A size whose window graph finds no GPU memory is dropped for
+    the rest of the process.
+  - When a neural drafter is loaded, a lookup window is considered only if its first token equals the neural drafter's first
+    draft. Not required in probabilistic mode.
+  - Without the cost-aware window, the MTP window ends before the first draft whose probability is below --spec-min-p.
+  - 'Under --draft auto, the drafter of a request that names none: df2, mtp or learn.'
+  when_things_go_wrong: []
+  must_never:
+  - A chosen window size is never outside the allowed set or above the widest window; size 1 is always allowed.
+  - In gated probabilistic mode, a request's source choice uses only committed outcomes and round times whose random draws
+    are all committed; it never looks at the current draw or its width.
+  evidence:
+  - src/spec/draft_policy.cpp:1-332
+  - include/strata/spec/draft_policy.hpp:1-135
+  - include/strata/spec/window_rule.hpp:1-75
+  - include/strata/core/draft_cap.hpp:1-30
+  - src/program/generate.cpp:14091-14139,15904-15945,18962-19040,19414-19453
+  read: code
+  not: 'Accepting or rejecting tokens; Comparing against decoding without drafts: its baseline is the neural drafter''s
+    window; Producing drafts'
+  output_effect_when: 'bit_exact when the verifier''s result for a token does not depend on which window it was verified
+    in; numeric when the verifier''s arithmetic depends on window width; the policy''s choices use wall-clock times and
+    are not reproducible run to run; distribution_exact when STRATA_SPEC_PROB=1 with the gated rule usable: timing and current
+    draws are kept out of the request''s choices'
+- id: draft-verifier
+  engine_name: Draft verifier
+  does: Given the full model's target token for every row of a window, accept the longest prefix of drafts that agree, and
+    make exactly that prefix permanent in indexer keys, recurrent state, convolution history and n-gram history.
+  runs:
+  - per_window
+  takes:
+  - from: sampler
+    what: One token id per window row, read by the host from mapped memory after the window has finished.
+  - from: mtp-drafter
+    what: For each MTP draft, the distribution it was sampled from (up to 64 token and probability pairs), or the gated
+      measure built from it. Only with STRATA_SPEC_PROB=1 on a sampled request
+  gives:
+  - to: draft-policy
+    what: How many drafts were accepted in the window; the policy pairs it with the round's wall time
+  - to: mtp-drafter
+    what: The window's target tokens, its position and the last accepted row, from which the drafter catches up its own
+      K/V and drafts again
+  - to: dflash2-drafter
+    what: The committed rows and their position, so the drafter's context ring holds committed rows only
+  - to: lookup-drafter
+    what: Emitted tokens appended to the lookup history. In the code the host loop makes the call, not the verifier class
+  - to: session-loop
+    what: The accepted prefix plus the one target token after it; the last one becomes the next window's first row
+  - to: window-graphs
+    what: Launch the commit graph with the number of rows to keep and their positions (rejected rows carry position -1).
+      Not sent after a one-row window, which commits itself
+  owns_state:
+  - commit_stores
+  exists_because: not recorded in the full description
+  output_effect: changes_output
+  decisions:
+  - 'How a draft is judged. Greedy: equal to the row''s argmax. Sampled, default: equal to the row''s sample drawn from
+    a random stream keyed by seed and position. Sampled with STRATA_SPEC_PROB=1: accepted with probability min(1, p/q),
+    else replaced by a sample from the positive part of p minus q.'
+  - 'Under STRATA_SPEC_PROB=1, which confidence gate: pick (masked, not renormalised draft measure with a no-candidate tail)
+    or top (gate on the largest probability before the draw).'
+  - The pick gate's exact rule is used only with serial decode on one device, no lookup chain, no adaptive swaps, no PCIe
+    share, no cost-aware window, no DFlash2, a window of at most 8 rows. Otherwise the older rule runs and the engine warns
+    that its distribution is off when the gate fails.
+  - A one-row window advances the state inside the window graph and no commit graph is launched.
+  - The commit graph is launched without waiting; anything that reads the session from elsewhere waits for it first.
+  - All recurrent layers commit in two launches and all attention layers' indexer restore and re-append in one.
+  when_things_go_wrong: []
+  must_never:
+  - Every kind of main-session state is committed to the same accepted prefix.
+  - Attention K/V written for a rejected position is never read as history; it is overwritten when that position is processed
+    again.
+  - In exact-match mode a draft is accepted exactly when it equals the target token the full model produced for the row
+    before it, given the accepted tokens before it.
+  - The number of rows kept is at least 1 and at most the rows of the last window.
+  - No reader on another stream or the host sees the session before the last commit graph has finished.
+  - An invalid gated proposal or an empty residual fails the window; it never falls back to an ordinary sample.
+  evidence:
+  - src/core/verify.cpp:2918-3054,3876-3948
+  - src/core/verify.cpp:1540-1590,1660-1790,1869-1898,3594-3650
+  - src/kernels/cuda/native_qsa_indexer.cu:49-147
+  - src/kernels/cuda/verify_kernels.cu:81-96,638-644
+  - include/strata/core/spec_prob.hpp:1-160
+  - include/strata/core/gated_proposal.hpp:1-128
+  - src/program/generate.cpp:3152-3233,19225-19335
+  - include/strata/core/verify.hpp:1-21,147-230
+  read: code
+  not: 'Running the window through the layers and producing logits (token path); The attention K/V: the commit does nothing
+    to it; The MTP drafter''s own K/V: the drafter catches itself up; Choosing the window (draft policy)'
+  output_effect_when: bit_exact when greedy request; all of a row's arithmetic is independent of window width and of where
+    each expert was computed; numeric when default mode with a native IQ pack and experts computed on the CPU (grouped kernels
+    round differently by window width), or adaptive-tier swaps changing where an expert runs; bit_exact when sampled request
+    in the default exact-match mode or with coupled drafting, under the same arithmetic conditions as the greedy case; distribution_exact
+    when STRATA_SPEC_PROB=1, sampled request, and either the gated rule is usable or STRATA_SPEC_PROB_GATE=top; approximate
+    when STRATA_SPEC_PROB=1 with the pick gate where the gated rule is not usable
+- id: window-loop
+  engine_name: Window loop
+  does: Run one window of 1 to max_t tokens through the layers and the output head as a single replayed graph, and serve
+    each layer's host-side expert work when the GPU signals that the layer's routing is known.
+  runs:
+  - per_window
+  - per_layer
+  takes:
+  - from: draft-policy
+    what: 'The window to verify: the last accepted token followed by the chosen drafts, at the chosen width'
+  gives:
+  - to: ngram-reader
+    what: The window's token ids and the two tokens before it, hashed to 16 row numbers per token; rows are prefetched before
+      the launch and gathered while layer 0 runs.
+  - to: layer-kernels
+    what: Token ids, per-row step counts and positions, written to fixed mapped buffers the graph copies from.
+  - to: window-graphs
+    what: Record the graph for this window size and variant if it does not exist, then hand back its handle for one launch.
+  - to: expert-dispatch
+    what: 'When a layer signals: the feed-forward input of each row and its routed ids from mapped memory, with the buffer
+      the unweighted expert rows are to be written into. Only in the doorbell graph; in the zero-doorbell graph the device
+      plans from the residency table and the host is not asked.'
+  owns_state: []
+  exists_because: not recorded in the full description
+  output_effect: changes_output
+  decisions:
+  - 'Per window: the zero-doorbell graph when the host residency table shows every expert of the stage in fast memory, otherwise
+    the doorbell graph. Checked before each window.'
+  - Whether the window's rows go through multi-row kernels (STRATA_DEC_BATCH).
+  - Whether the window is split into two token groups whose CPU and GPU work are pipelined (--spec-split).
+  - How long the host waits for a layer signal before it enters the driver once to flush and check for a fault.
+  - How long a layer may stay silent before the window is abandoned and the GPU's waits are force-released.
+  - 'When the window''s n-gram rows are gathered. Doorbell graph: after layer 0''s CPU experts are served and before the
+    layer-0 flag is raised. Zero-doorbell graph: right after the launch, or before it when STRATA_VERIFY_EARLY_PLE_FLAG
+    says so (0 on CUDA).'
+  when_things_go_wrong: []
+  must_never:
+  - A window's last position is inside the context the session was sized for.
+  - The layer signal is the last write in stream order, so a host that sees it may read the published activations and routed
+    ids.
+  - The host raises a layer's flag only after the CPU's expert rows for that layer are in the mapped buffer.
+  - The window's n-gram rows are in mapped memory before the flag that layer 1 waits on is raised.
+  - After the GPU's waits were force-released, no further window is run on that verifier.
+  evidence:
+  - src/core/verify.cpp:3229-3702
+  - src/core/verify.cpp:1420-1604, 2190-2645
+  - src/core/verify.cpp:1020-1118
+  - include/strata/core/verify.hpp:1-21
+  read: code
+  not: Drafting tokens or choosing the window size (speculation); Deciding which accepted prefix to keep and making it permanent
+    (draft verifier); Deciding which device computes an expert (expert dispatch, called through the pool callback); Recording
+    the graph (window graphs)
+  output_effect_when: bit_exact when default configuration; stated by the header comment, not checked here; approximate
+    when STRATA_ROUTE_PRIOR or STRATA_ROUTE_RESIDENT is set, or a route tail skip rank is set
+- id: session-loop
+  engine_name: Session loop
+  does: For one token on a canonical Q2_0 pack, launch the layers in order and place the CPU's expert rows between each
+    layer's routing and its combine, so that a layer's experts meet that layer's router weights.
+  runs:
+  - per_step
+  - per_layer
+  takes:
+  - from: draft-verifier
+    what: The accepted prefix plus the one target token after it; the last one becomes the next window's first row
+  - from: checkpoint-chain
+    what: Running state copied back to the device at a rewind
+  gives:
+  - to: expert-dispatch
+    what: 'Canonical pack only: one token''s feed-forward input, routed ids and weights from the doorbell, with the page-locked
+      buffer for the expert rows.'
+  owns_state: []
+  exists_because: not recorded in the full description
+  output_effect: none
+  decisions:
+  - 'Three forms: one graph per token with a device-side wait per layer (default when it can be captured); two graphs per
+    layer with a host poll per layer (--no-token-graph, dumps, or a hit path the token graph cannot hold); direct kernel
+    launches (--no-capture).'
+  - 'Token graph: how long a late layer signal waits before one driver call (STRATA_TG_FLUSH_US).'
+  - 'Token graph: time after which a silent layer is an error.'
+  when_things_go_wrong: []
+  must_never:
+  - The per-token position and step counts are written to their fixed pinned buffers before every replay, because the graphs
+    captured the source address and not the value.
+  - The layer loop makes no blocking synchronization; it waits by querying.
+  - A layer's combine half is launched before the next layer's first half, because the next layer's residual read overwrites
+    the buffers the combine reads.
+  - The expert rows combined in a layer are the ones that layer's own router selected.
+  - The layer signal is the last write in stream order, so a host that sees it may read the published activation, ids and
+    weights.
+  evidence:
+  - src/core/session.cpp:191-198, 533-585, 587-843, 923-984
+  - src/program/generate.cpp:20218-20438
+  - include/strata/core/session.hpp:309-434
+  read: code
+  not: Any token of a native pack (window loop); The n-gram read, the embedding, the output head and the sampler, which
+    the generate driver calls around it; Deciding which device computes an expert (inside the pool and hit callbacks)
+  output_effect_when: bit_exact when stated by comments (same kernels in the same order per layer); not tested in the checkout
+- id: layer-kernels
+  engine_name: Layer kernels and their order
+  does: Compute the part of each layer every token needs, in a fixed order, and keep the per-sequence state those kernels
+    read and write at fixed device addresses.
+  runs:
+  - startup
+  - per_request
+  - per_layer
+  takes:
+  - from: weight-loader
+    what: Device locations of the dense tensors in engine form, by name.
+  - from: native-weight-loader
+    what: Device locations of the per-layer projections in GGUF block form, and the token embedding where the GPU reads
+      one row per token.
+  - from: expert-dispatch
+    what: Which routed experts the accelerator computes this layer, from cache slots or from the staging area; published
+      before CPU work starts
+  - from: ngram-reader
+    what: 2560 floats per token, written to mapped host staging and copied to the device before the layer-1 block reads
+      them. On the session loop the same once per step.
+  - from: window-loop
+    what: Token ids, per-row step counts and positions, written to fixed mapped buffers the graph copies from.
+  - from: expert-router
+    what: 10 expert ids and weights per token, in device memory; read by the publish kernel, the device-side resident plan
+      and the combine.
+  - from: cpu-expert-pool
+    what: Unweighted expert outputs, one row of n_embd floats per token and rank, in page-locked mapped host memory; rows
+      that belong to the GPU are zero. The device copies them, adds its own rows and the combine kernel applies the router
+      weights.
+  - from: kv-store
+    what: The pools and page table an attention step reads, with the selected blocks made resident first when streaming
+      is on.
+  gives:
+  - to: kv-store
+    what: The new position's keys and values of each attention layer; written to the host copy always and to the fast-memory
+      slot only if its block is resident.
+  - to: output-head
+    what: The residual stack after the last layer, one per window row.
+  owns_state:
+  - gdn_state
+  - indexer_keys
+  - ple_history
+  exists_because: not recorded in the full description
+  output_effect: numeric
+  decisions:
+  - Residual read (attention half), mixer (attention on 12 layers, recurrent on 36), residual write, residual read (feed-forward
+    half), router and publish, shared expert, then after the host or the GPU has supplied the expert rows the combine and
+    the residual write. On layer 1 the n-gram block updates the residual first.
+  - Norm, key and value projections, append to the key and value store, append to the indexer, query projection, block scores,
+    block top-k, make the selected blocks resident, attention, gate, output projection.
+  - The shared expert runs right after the layer signal so that the GPU computes it while the host runs the CPU experts.
+  - The residual read folds in the previous half's pending write. On only with the native projection contract and no dump
+    or stage timing.
+  - The session arena is sized once from the context length, the layer range and the key and value storage plan; nothing
+    is allocated on the token path.
+  when_things_go_wrong: []
+  must_never:
+  - Every buffer a recorded graph touches keeps its address from session set-up until the graphs are freed.
+  - The mixed activation and the injection a layer's first half leaves are untouched until its combine half has read them.
+  - The expert rows combined in a layer are the ones that layer's own router selected.
+  - Host operations (the n-gram hash and the table gather) are never inside a recorded function, or they would run once
+    at recording time and replay the same rows for every token.
+  - The router reads the activation in the format its weight was stored for; another format moves the logits enough to change
+    a selection.
+  evidence:
+  - src/core/layer.cpp:405-561, 1473-1650
+  - src/core/layer.cpp:251-384, 1144-1320
+  - src/core/session.cpp:51-198
+  - src/core/verify.cpp:1420-1604, 2280-2332, 2341-2509
+  - include/strata/core/verify.hpp:13-18
+  read: code
+  not: Choosing the routed experts (expert router) or computing them (expert dispatch, CPU expert pool); Hashing a token
+    to n-gram rows or reading the table (n-gram reader); both are host work and must stay outside any recorded graph; The
+    vocabulary projection (output head)
+  output_effect_when: bit_exact when multi-row window kernels, default configuration; stated by comments; numeric when not
+    established here; several selectable kernel sets exist and kernel numerics were not read
+- id: expert-router
+  engine_name: Expert router
+  does: For each token in each layer, turn the feed-forward input into 512 logits and choose 10 experts with renormalised
+    weights, on the device inside the recorded graph.
+  runs:
+  - per_layer
+  takes: []
+  gives:
+  - to: layer-kernels
+    what: 10 expert ids and weights per token, in device memory; read by the publish kernel, the device-side resident plan
+      and the combine.
+  owns_state: []
+  exists_because: not recorded in the full description
+  output_effect: changes_output
+  decisions:
+  - 'Which top-10 kernel runs. Without the --native preset: the generic kernel (router_top10.cu). With it, for 512 experts
+    and 10 picks: the fused native kernel (native_router.cu), in its multi-row form for a window of more than one row. The
+    window loop requires the preset, so native packs use the native kernel.'
+  - 'STRATA_ROUTE_PRIOR=lambda: pick the 10 again with a logit bonus for experts resident in fast memory; the weights stay
+    the router''s own.'
+  - 'STRATA_ROUTE_RESIDENT: swap a non-resident expert at a tail rank for a resident one within a logit margin.'
+  when_things_go_wrong: []
+  must_never:
+  - Equal probabilities select the lower expert index.
+  - A token's routing does not depend on how many tokens share its window.
+  evidence:
+  - src/core/layer.cpp:405-467
+  - src/core/verify.cpp:2195-2271
+  - src/kernels/cuda/router_top10.cu:395-497
+  - src/kernels/cuda/native_router.cu:205-222
+  - include/strata/kernels/router_top10.hpp; include/strata/kernels/native_router.hpp; include/strata/kernels/route_prior.hpp
+  read: code
+  not: Deciding which device computes a chosen expert (expert dispatch); Publishing the choice to the host (the loops' doorbell)
+  output_effect_when: bit_exact when default; intended by the contract comments and covered only by the parity tests named
+    above; approximate when STRATA_ROUTE_PRIOR or STRATA_ROUTE_RESIDENT is set
+- id: window-graphs
+  engine_name: Recorded graphs
+  does: Record the fixed sequence of device work once and keep the recorded graphs available for replay, freeing and re-recording
+    them when fast memory for a new one runs out.
+  runs:
+  - startup
+  - on_demand
+  takes:
+  - from: window-loop
+    what: Record the graph for this window size and variant if it does not exist, then hand back its handle for one launch.
+  - from: draft-verifier
+    what: Launch the commit graph with the number of rows to keep and their positions (rejected rows carry position -1).
+      Not sent after a one-row window, which commits itself
+  gives: []
+  owns_state:
+  - captured_graphs
+  exists_because: not recorded in the full description
+  output_effect: none
+  decisions:
+  - 'Window loop: one graph per window size, holding all layers and the head, in two variants (zero-doorbell and doorbell),
+    recorded on first use or ahead of it, plus one commit graph. Session loop: one graph per token, or a first-half and
+    a combine-half graph per layer.'
+  - 'When instantiating a graph reports out of memory: first free the least recently used batch-layout graphs; then, for
+    a single-request window, free the graph of the largest other window size that is neither the one being recorded nor
+    one already launched ahead. A freed size is recorded again when next used.'
+  - Upper bound on recorded batch layouts (0 means unbounded).
+  when_things_go_wrong: []
+  must_never:
+  - A recorded graph reads and writes buffers at the addresses it was recorded with.
+  - Anything that changes per token (position, step counts, token id) reaches a graph through a fixed-address buffer, never
+    as a kernel argument.
+  - Every kernel-set switch is set before the first recording.
+  - No graph is recorded or freed while a window is in flight on the same stream; the stream is synchronised first.
+  evidence:
+  - src/core/verify.cpp:2752-2916, 4405-4427, 4525-4589
+  - src/core/session.cpp:200-285, 496-531, 849-921
+  - include/strata/core/window_evict.hpp
+  read: code
+  not: Owning or checking the buffers a graph touches; fixed addresses are the caller's obligation; Launching a graph and
+    serving it (the two loops)
+  output_effect_when: bit_exact when stated by comments; the documented failure is a stale recorded value replayed for every
+    token
+- id: kv-store
+  engine_name: Key and value store
+  does: Hold the attention keys and values of every position of each attention layer in the configured format, reachable
+    through a page table, and when streaming is on make every block a selection names resident in fast memory before the
+    attention reads it.
+  runs:
+  - startup
+  - per_request
+  - per_layer
+  takes:
+  - from: prompt-path
+    what: The model state left by reading the prompt, from which generation continues
+  - from: layer-kernels
+    what: The new position's keys and values of each attention layer; written to the host copy always and to the fast-memory
+      slot only if its block is resident.
+  - from: parked-conversations
+    what: A parked conversation's K/V, indexer rows and running state copied back to the device
+  gives:
+  - to: layer-kernels
+    what: The pools and page table an attention step reads, with the selected blocks made resident first when streaming
+      is on.
+  owns_state:
+  - attention_kv
+  - kv_residency_map
+  exists_because: not recorded in the full description
+  output_effect: changes_output
+  decisions:
+  - 'Storage format, with bytes per position per attention layer: fp16 2048, int8 with one scale per 64 values 1056, rotated
+    4-bit 576, 8-bit keys with rotated 4-bit values 816.'
+  - Positions per attention layer kept in fast memory (--kv-resident). 0 keeps every position there and makes the resolve
+    step a no-op. Streaming applies only when the window is smaller than the context.
+  - The smallest resident window a streamed layer may have (STRATA_KV_RESIDENT_MIN, at least 1024).
+  - Positions per page; one page is one indexer block.
+  - With --kv-grow (fully resident, single GPU only) the pages get addresses for the whole context but physical memory only
+    for the first 16384 positions; more is mapped as the context grows, from chunks the expert cache gives up.
+  - The draft layer's state keeps only its window of pages in fast memory at block modulo slots, with a host copy for resume.
+  when_things_go_wrong: []
+  must_never:
+  - Every block a selection names is resident in fast memory before the attention kernel reads it; this is kept by stream
+    order and by a slot count large enough for one call.
+  - A writer writes the host copy always and the fast-memory slot only if the block is resident, so a slot never goes stale.
+  - A slot used by the current resolve call is never taken as a victim in that call.
+  - Pool addresses do not change after set-up, including when the elastic store grows.
+  - A streamed layer has at least 1024 slots; fewer stops the process.
+  evidence:
+  - src/core/layer.cpp:572-1027
+  - src/kernels/cuda/kv_stream.cu:1-286
+  - include/strata/kernels/kv_stream.hpp; include/strata/kernels/kv_q8.hpp; include/strata/kernels/kv_q4.hpp
+  - strata_control/setup_config.py:290-312
+  read: code
+  not: Choosing which positions are attended (the indexer and block top-k in the layer kernels); Choosing the format or
+    the resident window (start-up flags written by setup)
+  output_effect_when: bit_exact when fp16 format, with or without streaming (streaming is tested bitwise equal to resident);
+    approximate when int8, 4-bit or mixed format
+- id: ngram-reader
+  engine_name: N-gram hash and table reader
+  does: For each token, compute its 16 row numbers from the token and its two predecessors and deliver those 16 rows of
+    the n-gram table as 2560 floats before layer 1 needs them.
+  runs:
+  - startup
+  - per_window
+  - per_step
+  - background
+  - on_demand
+  takes:
+  - from: host-memory-admission
+    what: Whether the n-gram table is mapped and locked in RAM or read directly from storage; and later, an instruction
+      to give the lock back when the arena or the conversation cache needs the RAM.
+  - from: window-loop
+    what: The window's token ids and the two tokens before it, hashed to 16 row numbers per token; rows are prefetched before
+      the launch and gathered while layer 0 runs.
+  - from: model_files
+    what: '16 table rows per token: direct page reads from storage, or reads of the table held in memory when the start-up
+      rule admitted it.'
+  - from: mtp-drafter
+    what: Prefetch the n-gram table rows of the drafted tokens so the next verify window finds them warm
+  gives:
+  - to: layer-kernels
+    what: 2560 floats per token, written to mapped host staging and copied to the device before the layer-1 block reads
+      them. On the session loop the same once per step.
+  owns_state: []
+  exists_because: not recorded in the full description
+  output_effect: none
+  decisions:
+  - 'How rows are read. Unless --ple-io is given: the table is held locked in memory when available memory is at least the
+    table plus the expert arena still to be filled plus 8 GiB, measured before either is allocated; otherwise unbuffered
+    direct reads. Unknown figures admit nothing. STRATA_PLE_AUTO_RAM=0 keeps direct reads. A third mode maps the table without
+    locking.'
+  - Outstanding storage reads (--ple-inflight, 1 to 1024).
+  - Rows kept after being read, 8-way set-associative with round-robin replacement (--ple-row-cache, 0 disables).
+  - 'Direct mode with the worker: after this long without a read, read one random page of the table, until 60 s after the
+    last request for rows (STRATA_SSD_KEEPALIVE, 0 off).'
+  - Direct reads are probed at start; below 15000 rows per second the engine warns and switches to mapped reads only when
+    STRATA_PLE_AUTO_MMAP=1.
+  - Row number = (XOR over the n-gram of token id times a per-position multiplier) modulo the head's vocabulary size plus
+    the head's offset; 8 bigram heads and 8 trigram heads; a missing or end-of-sequence predecessor cuts all older context.
+  when_things_go_wrong: []
+  must_never:
+  - 'A token''s rows are collected before layer 1 reads them. Session loop: before the layer loop starts. Window loop: before
+    the flag layer 1 waits on is raised.'
+  - At most one single-token request is in flight per table; a batch gather is refused while one is.
+  - The table's rows times row bytes fit the file at the offset a validated header parse gives, and fill it exactly when
+    the table is alone in its file.
+  - The table file is not kept mapped while it is read direct; a live mapping serialises the unbuffered reads.
+  - After a failed read every later request returns the error at once until the table is reopened.
+  evidence:
+  - src/ngram/ple_reader.cpp:1-625
+  - src/kernels/ngram.cpp:96-145, 248-747
+  - src/program/generate.cpp:5405-5550, 20236-20255
+  - src/core/verify.cpp:3291-3318, 3419-3431, 3521-3531
+  - include/strata/kernels/ngram.hpp; include/strata/ngram/ple_reader.hpp; include/strata/core/ple_residency.hpp:1-47
+  read: code
+  not: The layer-1 block that consumes the rows and its convolution history (layer kernels); Advancing the two-token window,
+    which the driver and the window commit do
+  output_effect_when: bit_exact when any of the three read modes; the table's own encoding (for example IQ4_NL against FP8)
+    is a property of the model file, not of the reader
+- id: output-head
+  engine_name: Output head
+  does: 'Turn the residual after the last layer into one row of vocabulary logits per position: a final residual read, then
+    the vocabulary projection.'
+  runs:
+  - per_window
+  - per_step
+  takes:
+  - from: native-weight-loader
+    what: The output projection in GGUF block form, on the card or in page-locked host memory.
+  - from: layer-kernels
+    what: The residual stack after the last layer, one per window row.
+  gives:
+  - to: sampler
+    what: One row of vocabulary logits per window row, in device memory.
+  owns_state: []
+  exists_because: not recorded in the full description
+  output_effect: numeric
+  decisions:
+  - The projection reads the head in the model file's own format when the --native preset loaded it, otherwise in the pack's
+    format with an 8-bit activation image.
+  - 'Window loop: inside the window graph, in column chunks for long windows. Session loop: called by the driver after the
+    layer loop, followed by a device synchronisation and by default a full logits read-back and a scan for non-finite values.'
+  when_things_go_wrong: []
+  must_never:
+  - A row of logits holding a NaN or an infinity is reported for the window, not silently picked from.
+  evidence:
+  - src/core/layer.cpp:1391-1425
+  - src/core/verify.cpp:2531-2641
+  - src/program/generate.cpp:9241-9246, 20320-20377
+  read: code
+  not: Choosing a token from the logits (sampler)
+  output_effect_when: numeric when not established here; kernel numerics were not read
+- id: sampler
+  engine_name: Sampler
+  does: 'Turn each position''s logits into one token id by a fixed chain: logit bias, penalties, top-k, top-p, min-p, temperature,
+    pick.'
+  runs:
+  - per_window
+  - per_step
+  takes:
+  - from: output-head
+    what: One row of vocabulary logits per window row, in device memory.
+  gives:
+  - to: draft-verifier
+    what: One token id per window row, read by the host from mapped memory after the window has finished.
+  owns_state: []
+  exists_because: not recorded in the full description
+  output_effect: numeric
+  decisions:
+  - 'Greedy: inside the window graph, at no extra launch or synchronisation. A sampled, penalised or biased request: again
+    outside the graph after the window has finished, with the request''s own settings, followed by a synchronisation. Session
+    loop: once per token after the head.'
+  - A request without settings is greedy in the window loop. The parameter defaults are top-k 20, top-p 0.95, min-p 0, temperature
+    1.0, penalties off.
+  - The random draw of a row is a counter-based generator keyed by the seed and the row's absolute position.
+  - 'Three implementations of the sampled chain that pick the same token: split top-k (default), one block per row (STRATA_SAMPLER_ONE_BLOCK,
+    and where the split cannot run), the older kernel (STRATA_OLD_SAMPLER).'
+  - Penalties count only the current reply unless STRATA_PENALTY_PROMPT=1; each window row gets its own history ending with
+    the drafts before it.
+  when_things_go_wrong: []
+  must_never:
+  - The chain order is logit bias, penalties, top-k, top-p, min-p, temperature, pick.
+  - A seed gives the same text however the output was cut into windows, because a row's draw depends only on the seed and
+    the position.
+  - Request-specific sampling is never part of a recorded graph, which would replay the same settings and draws.
+  evidence:
+  - src/kernels/cuda/sampler.cu:1-60, 1255-1320
+  - src/core/verify.cpp:2628-2641, 3594-3650
+  - include/strata/kernels/sampler.hpp
+  read: code
+  not: Computing the logits (output head); Deciding whether a drafted token is accepted (draft verifier)
+  output_effect_when: bit_exact when greedy, or sampled with exact-match draft acceptance; distribution_exact when STRATA_SPEC_PROB=1
+    (drafts judged by rejection sampling); intended, not checked here
+- id: cpu-expert-pool
+  engine_name: CPU expert pool
+  does: Compute a batch of expert evaluations on CPU cores, reading each expert's bytes in place, and return only when every
+    job is done and every worker is parked again.
+  runs:
+  - startup
+  - per_layer
+  - background
+  takes:
+  - from: expert-source
+    what: Pointers to the blobs of the experts the CPU computes.
+  - from: expert-dispatch
+    what: The routed experts left to the CPU for this layer of this window
+  - from: prompt-path
+    what: Experts of a prompt chunk that few tokens route to, handed to the CPU when sharing is armed
+  gives:
+  - to: layer-kernels
+    what: Unweighted expert outputs, one row of n_embd floats per token and rank, in page-locked mapped host memory; rows
+      that belong to the GPU are zero. The device copies them, adds its own rows and the combine kernel applies the router
+      weights.
+  owns_state: []
+  exists_because: not recorded in the full description
+  output_effect: numeric
+  decisions:
+  - 'Default: physical cores on the host thread''s socket minus one for the host; one more kept free when that is 16 or
+    more; on a hybrid CPU with more efficiency than performance cores at most performance cores minus one plus half the
+    efficiency cores; at most a container''s CPU quota minus one; never above 32. A configured count runs as given with
+    a warning.'
+  - The host thread claims jobs itself during a batch.
+  - Row ranges a phase is cut into (--pool-tasks, 0 to 4096).
+  - A parked worker spins this long, then sleeps on a condition variable (STRATA_POOL_SPIN_US).
+  - A wait that sees no progress this long stops the process after releasing the GPU's waits.
+  - 'Single-token path: one job per missed expert, whole or split by rows across threads. Window path: one job per distinct
+    missed expert carrying every token routed to it, in two row phases (gate and up rows, then down rows) with a quantisation
+    between.'
+  - With two or more memory nodes the row phases are split one slice per node when that can run (STRATA_NUMA_POOL=0 turns
+    it off).
+  when_things_go_wrong: []
+  must_never:
+  - A claim succeeds only for the batch the thread woke for, so a late worker can never take or count a job of the next
+    batch.
+  - A batch is published only when every worker is parked, and the call returns only when every job is done and every worker
+    is parked again.
+  - Each output row is written by exactly one thread.
+  - A row that belongs to the GPU is written as zeros by the host or the device, never left with the previous layer's content.
+  - Nothing is allocated while a batch runs.
+  evidence:
+  - src/kernels/cpu/pool.cpp:743-1454
+  - include/strata/kernels/cpu/pool_plan.hpp:1-146
+  - src/core/expert_source.cpp:4770-4861, 5240-5409
+  - include/strata/kernels/cpu/pool.hpp
+  read: code
+  not: Choosing which experts it is given (expert dispatch); Applying the router weights or summing; it returns unweighted
+    rows and a GPU kernel does the weighted sum; Holding the expert bytes (expert source)
+  output_effect_when: bit_exact when always; scheduling and row splitting do not change a row; numeric when not established
+    here; a window-invariant arithmetic option and a multi-token kernel switch exist
+absent: []
+outside_engine: []
+surprises: []
+not_read: 'All kernel bodies. For the two mixers only the order of calls was extracted. The commit rules in the states file
+  come from a header comment.; Batch, pipelined and deferred commit paths; the window graph beyond the cited lines, including
+  the order of indexer append and block selection; the CPU pool functions; the GPU acceptance kernels beyond their header
+  comments; STRATA_SPEC_GUMBEL.; Batch-slot internals where they supply a source; the async paths.; CPU topology detection
+  and affinity (pool.cpp:1-742), the vector kernels, and the instruction set each pack requires.; Engine and model download,
+  pack preparation, the low-memory decision functions and most hardware probes in setup.py.; Most of src/prefill/ (about
+  28,000 lines). Read in code: the per-expert token count, the CPU candidate selection, the share formula and the gate.;
+  Most route handler bodies, the event-stream framing (openai_chunks, anthropic_events), serve/responses.py and serve/structured.py.;
+  Test bodies.; The BPE merge loop and the pre-tokenizer pattern in detail; message conversion and the output parser in
+  serve/frontend.py; the image path of prepare.; The GEN and BGEN request path between lines 15800 and 19800 except the
+  print sites; batch_step after row selection; the pipelined group loop; option parsing; batch_groups.hpp after line 80.;
+  The Router class body, the shared arena plan and CPU core assignment.; The append and gather kernels of each format. What
+  the attention kernel does with a page-table entry l'

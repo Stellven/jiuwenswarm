@@ -1,0 +1,232 @@
+engine: ninfer
+basis: "notes (engines/ninfer.md) plus source layout of <refs>/ninfer (src/, apps/, tools/ listings) and docs/maintainer/engine-architecture.md, observability.md, frontend.md (first sections). Kernel code, tools/convert code and scheduler implementation not read."
+parts:
+  - name: "weight conversion"
+    what_it_does: "Offline converts the published checkpoint into NInfer artifact files, choosing a storage format per logical weight role (NVFP4, FP8, 8-bit, NF4, BF16) and generating an extra 4-bit draft head."
+    evidence: "notes section 8; tools/convert/ (recipe.py, quantization/, qwen4_exp.py, glm5next.py); docs/weight-conversion.md"
+    node_type: "model-preparation"
+    fit: partial
+    note: "Quantization is its main job, so it changes weight values and creates a new tensor (the 4-bit draft head). The type's not-clause and its invariant (every tensor equals the checkpoint) both forbid this; only the choice 'whether precision is changed here' allows it. Also records per-use activation permits, which no port carries."
+  - name: "artifact reader, binder and shard materializer"
+    what_it_does: "At startup builds a device-free model definition from the artifact, binds tensors to model roles, and materializes only this rank's slice of each tensor into device or host backing."
+    evidence: "src/artifact/ (reader, binder, encoded_slice, materializer, placement); docs/maintainer/weights-and-loading.md; notes section 9"
+    node_type: "weight-loader"
+    fit: partial
+    note: "It also loads expert weights (all experts on Spark, all Main experts into pinned host RAM on RTX 5090), which the not-clause gives to the expert store. It slices tensors per rank for TP/EP, a job no type names. Re-splitting FP8 scale blocks is value-preserving, which the type handles."
+  - name: "PLE disk row reader"
+    what_it_does: "Reads the per-layer embedding (PLE) rows each token needs from the model file on disk with io_uring, O_DIRECT and a row cache, merging requests for the same page."
+    evidence: "notes section 10; src/core/io/read_queue.cpp; src/models/qwen4_exp/ple/disk/row_reader.h"
+    node_type: "table-reader"
+    fit: clean
+    note: "On two Sparks the table is sharded into device memory instead; same type, different choice."
+  - name: "host expert store"
+    what_it_does: "Holds all Main routed experts (about 63.3 GiB) in host memory registered with CUDA, so they can be both uploaded asynchronously and read in place by the CPU."
+    evidence: "notes sections 3 and 4; docs/maintainer/expert-weight-cache.md line 19"
+    node_type: "expert-source"
+    fit: clean
+    note: ""
+  - name: "expert priority calibration table"
+    what_it_does: "Ships an offline-calibrated per-layer ranking of experts (128 tasks, 9 domains) with an applicability check on model geometry, used both to choose resident experts and to split experts across ranks under EP2."
+    evidence: "src/models/qwen4_exp/parallel/expert_priority.cpp; notes sections 4 and 9"
+    node_type: "none"
+    fit: none
+    note: "Static data derived from workload evidence, consumed as policy input at startup. It is neither model-preparation (not from the checkpoint) nor cache-policy (which learns usage at run time). The context cost-coefficient presets are the same kind of thing."
+  - name: "expert residency planner"
+    what_it_does: "At startup solves jointly the fixed expert region per layer, the reusable region, the number of streaming windows (2, else 1) and the CPU thread count from the remaining device budget, refusing to run if no solution exists."
+    evidence: "src/models/common/moe/offload/plan.cpp lines 124-215, 254-279; notes section 4"
+    node_type: "cache-policy"
+    fit: partial
+    note: "Contents are chosen once at startup from the static priority table, not from run-time usage, and are never changed by heat. It also does cache sizing, which the types give to memory-planner, so it straddles cache-policy and memory-planner."
+  - name: "expert weight cache"
+    what_it_does: "Device-side expert index with fixed and reusable regions; experts are published only after all bytes are submitted, consumers acquire and release with generation numbers, and windows are rewritten only after the last device-side user retires."
+    evidence: "src/core/expert_cache.h lines 24-31, 100-125; src/core/expert_cache.cpp (not read)"
+    node_type: "expert-cache"
+    fit: partial
+    note: "The reusable region changes role with batch size: extra cache when T is small, two per-layer streaming windows when T is large. The type assumes a slot is a cache slot; here part of the cache is sometimes transfer staging. Borrow/retire state is richer than the residency_table the type lists, but the two invariants match exactly."
+  - name: "offload mode switch and refill"
+    what_it_does: "Per execution decides whether any layer needs full-layer streaming; switches the reusable region between extra-cache and window layouts, and after returning to small T refills the extra cache in 8 MiB batches."
+    evidence: "src/models/common/moe/offload/resources.cpp lines 334-337, 385-396; notes section 4"
+    node_type: "cache-policy"
+    fit: partial
+    note: "It changes cache contents at run time, but driven by tokens per execution, not by expert usage; its input is the work size, not a usage signal. The type has no port or choice for a workload-driven change of what the region is."
+  - name: "expert upload engine"
+    what_it_does: "Batches host-to-device expert copies (up to 96 MiB / 4096 copies per batch, at least 3 upload slots) and in streaming mode prefetches the next layer's missing experts into the other window while the current layer computes."
+    evidence: "src/core/expert_cache.h; src/models/common/moe/offload/resources.cpp lines 302-332; plan.cpp lines 176-183, 270-274"
+    node_type: "expert-transfer"
+    fit: clean
+    note: ""
+  - name: "MoE offload dispatch"
+    what_it_does: "Per layer compares T with a thread-dependent threshold; for small T builds a GPU/CPU mask from a snapshot of ready experts, skips the CPU side when no (token, expert) pair falls on it, and combines the FP32 partial sums before rounding to BF16."
+    evidence: "src/models/common/moe/offload/plan.cpp lines 10-16; execution.cpp lines 113-120, 194-269; include/ninfer/ops/moe.h lines 197-247"
+    node_type: "expert-dispatch"
+    fit: clean
+    note: "Never omits an expert. Its usage output has no consumer because the cache policy is static. The type says effect none unless omitting, but the hybrid path differs numerically from the all-GPU path and depends on cache readiness, an effect the type does not foresee."
+  - name: "CPU expert team"
+    what_it_does: "Up to 16 pinned threads compute non-resident experts in place from encoded host weights with AVX2/FMA/F16C, kept awake or put to sleep by a 1/4 and 1/8 usage hysteresis."
+    evidence: "include/ninfer/ops/moe.h lines 225-234; resources.cpp lines 366-374; src/core/cpu"
+    node_type: "secondary-executor"
+    fit: clean
+    note: ""
+  - name: "native model programs and ops"
+    what_it_does: "Per-model rank programs (Qwen3.5 dense/MoE, Qwen4Exp, GLM5Next) call ops in a fixed native layer order: GDN and QSA attention, gated residuals, router, routed and shared experts, PLE, output head."
+    evidence: "src/models/*/program; src/ops/; docs/maintainer/qwen4_exp-model.md"
+    node_type: "layer-compute"
+    fit: clean
+    note: "Also produces GDN transition records during verification, an output (neither model_state nor activations) the type has no port for."
+  - name: "decode step driver"
+    what_it_does: "Drives one decode or draft-plus-verify round for a batch through all layers, the output head and the readback of results."
+    evidence: "src/models/qwen4_exp/program/device_graphs.cpp; src/runtime/engine/engine_execution.inl"
+    node_type: "decode-loop"
+    fit: partial
+    note: "It drives a batch of up to 8 sequences, not a single token stream. On the all-resident path there is no per-layer handoff to the expert store at all; the whole step is one graph replay."
+  - name: "CUDA graph manager"
+    what_it_does: "At startup captures one outer graph per batch size and round type, plus attention child graphs per context-length bucket; at run time swaps the child node when the bucket changes and toggles node groups, and refuses cache borrows during capture."
+    evidence: "src/core/decode_graph.cpp; src/models/common/graph_preparation.cpp; src/models/qwen4_exp/program/graphs.cpp lines 13-22; device_graphs.cpp lines 105-216; notes section 6"
+    node_type: "decode-loop"
+    fit: partial
+    note: "The type lists 'one recorded graph per step' only as a choice, but here it is a separate part with its own state (graph set), invariants (buffer addresses fixed for the graph lifetime, host actions must split the graph), startup memory cost and an input to the memory planner (measured capture growth)."
+  - name: "chunked prefill"
+    what_it_does: "Reads prompts in chunks (4096 for Qwen4Exp, GLM and offload paths, else 1024) without graphs, and captures full-state checkpoints at semantic boundaries roughly every 8192 tokens."
+    evidence: "src/models/qwen4_exp/program/planning.cpp line 72; capture_policy.cpp lines 8-29; notes sections 7 and 10"
+    node_type: "prompt-reader"
+    fit: partial
+    note: "The invariant compares against token-by-token reading; NInfer accepts chunked state by its own math precision, so the reference is different chunking, not single tokens. Writing checkpoints for later reuse is an output (to conversation-reuse) the type lacks."
+  - name: "sampler"
+    what_it_does: "Turns logits into tokens with per-request settings and penalties, using random keys of (request seed, logical position, purpose) independent of batch row."
+    evidence: "include/ninfer/ops/sampling.h lines 79-81; src/runtime/contract/sampling.cpp"
+    node_type: "sampler"
+    fit: partial
+    note: "Penalty token counts are per-request state updated only on commit, but the type lists no state. The batch-row independence of randomness is an invariant the type should state. Its checked port carries tokens, while stochastic acceptance needs the full target distribution p."
+  - name: "grammar and structured-output constraint"
+    what_it_does: "Host-side per-request grammar / JSON-schema state that masks allowed tokens and advances on committed output, forcing the decode graph to be split around it."
+    evidence: "src/text/grammar.cpp, json_schema.cpp, schema_composition.cpp; notes section 6"
+    node_type: "sampler"
+    fit: partial
+    note: "A stateful logit constraint with its own CPU resource and graph-splitting requirement; the sampler type is stateless and accelerator-only. Could be a sub-type."
+  - name: "MTP drafter"
+    what_it_does: "Runs the model's built-in MTP layer K times (1 to 5) with argmax per step, and after acceptance rebuilds the draft-layer history from the backbone's real features."
+    evidence: "src/models/qwen4_exp/program/mtp.cpp lines 90-118; commit.cpp lines 90-98"
+    node_type: "drafter"
+    fit: clean
+    note: "Its own history rebuild on commit is a state obligation the type does not mention but does not forbid."
+  - name: "DFlash / DFlash2 block drafter"
+    what_it_does: "An external block draft model that proposes up to 15 tokens in one non-causal masked block attention pass."
+    evidence: "src/models/common/dflash; notes section 10 (docs only)"
+    node_type: "drafter"
+    fit: partial
+    note: "DFlash2 must pass its draft distribution q to acceptance (min(1, p/q)); the drafts port carries only tokens, and the drafter has no port to the verifier."
+  - name: "speculative acceptance"
+    what_it_does: "Accepts the longest matching prefix plus a correction or bonus token under greedy, and under sampling accepts with p(draft) or min(1, p/q) and resamples from the residual."
+    evidence: "include/ninfer/ops/speculative_accept.h lines 22-67"
+    node_type: "draft-verifier"
+    fit: partial
+    note: "The final commit count can be lower than the accepted count because the frontend trims at stop words, EOS, budget and cancel; the verifier does not alone decide the committed prefix."
+  - name: "speculative state commit (ReplaySSM)"
+    what_it_does: "Commits each state kind to the committed prefix: replays GDN transition records from S0, extracts QSA index tails, PLE conv history and conditioning features, rebuilds draft history, updates penalty counts; does nothing when nothing is accepted."
+    evidence: "src/models/qwen4_exp/program/commit.cpp lines 9-127; src/core/gdn_replay_records.h; include/ninfer/ops/gdn_replay.h lines 26-30"
+    node_type: "draft-verifier"
+    fit: partial
+    note: "This is a state transaction separate from acceptance and spread across several state owners; it consumes transition records, a data kind the types do not have. Its exactness reference is the same verify block, not plain decoding."
+  - name: "unified context pool and directory"
+    what_it_does: "One startup-sized byte pool holds paged KV and fixed-size recurrent states of all requests and both backbone and draft layer, with logical references, copy-on-write tail pages, execution borrows, compaction via device offset tables, and five KV encodings."
+    evidence: "src/core/context_pool.h, paged_kv_cache.h, linear_attention_state.h; src/models/common/context/; include/ninfer/kv_cache_format.h lines 41-87; docs/maintainer/context-management.md"
+    node_type: "attention-state-store"
+    fit: partial
+    note: "The type assumes per-position state that can be cut back to any position; recurrent GDN state exists only at the frontier or at saved checkpoints, so truncation means restoring a checkpoint. It is shared across many sequences with reference counts and copy-on-write, which the per-sequence summary does not cover."
+  - name: "context resource manager (prefix reuse)"
+    what_it_does: "Indexes prefixes and checkpoints, picks the restore source (device, pinned host, other rank, or recompute) by modelled transfer plus recompute time, demotes to host memory and evicts by loss per freed byte under pressure."
+    evidence: "src/runtime/engine/context_cache/resource_manager.h lines 186-241, 1474-1506; context_cost.cpp; context_cost_defaults.cpp; storage.cpp lines 57-71"
+    node_type: "conversation-reuse"
+    fit: partial
+    note: "Fits the purpose, but the invariant (output equals reading the whole prompt) is not claimed by NInfer, since chunk boundaries differ. It restores from checkpoints rather than issuing a truncate; it carries a calibrated cost model and cross-rank sources; and it also manages capacity of live requests, overlapping scheduler preemption."
+  - name: "startup memory budget and context capacity solver"
+    what_it_does: "Prices fixed weights, workspace, records, vision window and communication per rank, measures graph capture growth, and sizes the context pool, distinguishing planning headroom, reserved host capacity and the final whole-instance check."
+    evidence: "src/runtime/engine/startup_memory.cpp, context_capacity.cpp; engine-architecture.md section on startup"
+    node_type: "memory-planner"
+    fit: partial
+    note: "The expert cache is sized by a separate solver after this one (plan.cpp), not by the memory planner; capacity comes partly from measurement of graph capture; budgets are per rank and on Spark host and device share one budget. One budget number with one invariant does not describe the three headroom notions."
+  - name: "engine scheduler"
+    what_it_does: "Owns request lifecycle (wait, bind, execute, pause, resume, finish) for up to 8 concurrent requests, batch membership, output budgets, fairness under pressure, admission permits covering commit space, and GLM attention-rank placement (ADP)."
+    evidence: "src/runtime/engine/scheduler.h, engine_schedule.inl, engine_requests.inl, generation_budget.h; placement_policy.cpp lines 20-71"
+    node_type: "multi-request-scheduler"
+    fit: partial
+    note: "It also pauses and resumes requests by replay or snapshot and enforces permits before compute, which the type does not describe. It merges with engine-control, because the engine runs prefill and decode of many requests in one loop."
+  - name: "engine control worker and model session"
+    what_it_does: "The single control thread that mutates scheduling state and model sessions (token ledger, frontiers, generation transactions), receiving requests and handing outputs through queues."
+    evidence: "src/runtime/engine/engine.cpp, worker.cpp, engine_core.h; engine-architecture.md section on requests"
+    node_type: "engine-control"
+    fit: partial
+    note: "The type says one request at a time and at most one prompt read at a time; NInfer drives a batch of requests, and the control and scheduling roles are one component."
+  - name: "executor"
+    what_it_does: "Submits executions and tracks their completion with frame quotas, tickets, command order, decision handoff and retirement across participating ranks (LocalExecutor or DistributedExecutor)."
+    evidence: "src/runtime/executor/ (executor.h, local_executor.h, distributed_executor.h, protocol.cpp); engine-architecture.md ownership table"
+    node_type: "none"
+    fit: none
+    note: "No type owns submission, completion and device-side retirement of an execution, although several invariants (window rewrite, context compaction) depend on retirement."
+  - name: "distributed partitioning and communication"
+    what_it_does: "Builds a TP2 plus EP1/EP2 partition plan (heads halved, experts split by priority parity or by intermediate dimension, router replicated, head split by vocabulary), hashes it as topology identity, and runs NCCL collectives that must match order on both ranks."
+    evidence: "src/models/qwen4_exp/parallel/plan.cpp lines 8-182; src/distributed/; src/models/common/parallel*.cpp; docs/maintainer/distributed-execution.md"
+    node_type: "none"
+    fit: none
+    note: "multi-request-scheduler mentions spanning machines, but this is not request sharing; it splits one model across ranks and requires identical discrete decisions on replicas. No type describes partitioning or collective communication."
+  - name: "frontend (tokenizer, template, output interpretation)"
+    what_it_does: "Turns protocol input into PreparedPrompt (tokens, positions, media, input identity and candidate restore points) and interprets committed output (tool calls, thinking, stop strings)."
+    evidence: "src/text/tokenizer.cpp, jinja.cpp; src/models/common/frontend/; docs/maintainer/frontend.md"
+    node_type: "request-front"
+    fit: partial
+    note: "It also produces input identity used for cache reuse and trims the committed token count at stop conditions, which feeds back into speculative commit; request-front has no port to conversation-reuse or draft-verifier."
+  - name: "HTTP serving layer"
+    what_it_does: "Offers OpenAI chat, OpenAI responses (with a stored-response state) and Anthropic messages over HTTP with streaming, request validation and translation."
+    evidence: "src/serve/ (http_server.cpp, openai_*.cpp, anthropic_messages*.cpp, openai_responses_store.cpp, generation_service.cpp)"
+    node_type: "request-front"
+    fit: clean
+    note: "The responses store keeps conversation records server-side, a small state the type does not list."
+  - name: "vision and media encoder"
+    what_it_does: "Fetches and decodes images, preprocesses them, runs the vision encoder in a dedicated workspace window and caches media by content identity."
+    evidence: "src/media/decode; src/models/common/vision/; src/models/common/frontend/media_cache.cpp, image_transform.cpp"
+    node_type: "none"
+    fit: none
+    note: "No type for a modality encoder that turns non-text input into embeddings with its own memory window and cache."
+  - name: "configuration"
+    what_it_does: "Parses TOML config, CLI options and environment variables (NINFER_VRAM_BUDGET_MIB, NINFER_CUDA_SYNC, kv_dtype, proposal head, draft count, cost presets) into startup settings."
+    evidence: "src/product/config/; ninfer.example.toml; docs/startup-configuration.md, docs/cli.md"
+    node_type: "configuration"
+    fit: clean
+    note: ""
+  - name: "observability"
+    what_it_does: "Records request lifecycle, execution samples, GPU stream time, resource allocations and transfers, exposes metrics and logs (JSONL, operational and request logs) and a dashboard."
+    evidence: "src/runtime/observability/; include/ninfer/observability/; src/serve/metrics.cpp, request_log.cpp, operational_log.cpp; dashboard/; docs/maintainer/observability.md"
+    node_type: "telemetry"
+    fit: clean
+    note: ""
+  - name: "benchmark, perplexity and eval harness"
+    what_it_does: "Separate apps that drive the same engine to measure throughput, perplexity and task accuracy."
+    evidence: "apps/perplexity, bench/, eval/, tools/bench"
+    node_type: "none"
+    fit: none
+    note: "Outside the engine's serving path; arguably outside the scope of engine node types, listed for completeness. Closest is telemetry, but it generates load and judges output rather than recording a run."
+unclear_types:
+  - {type: "engine-control", problem: "Summary and invariant assume one request at a time and one prompt read at a time; in a batched engine control and multi-request scheduling are one component, so engine-control and multi-request-scheduler cannot be told apart."}
+  - {type: "multi-request-scheduler", problem: "Lumps sharing among requests with spanning machines; model partitioning across ranks is a different job. Pause, resume and admission permits are not mentioned."}
+  - {type: "model-preparation", problem: "The not-clause (changes no weight value) and invariant contradict the choice 'whether precision is changed here'; in NInfer quantization is the main job of preparation."}
+  - {type: "weight-loader", problem: "The not-clause gives expert loading to the expert store, but when all experts are resident, or held in host RAM, the loader loads them. Per-rank slicing has no place."}
+  - {type: "cache-policy", problem: "Summary assumes contents follow run-time usage. NInfer chooses contents at startup from an offline table, and changes the region at run time by workload size; neither is described."}
+  - {type: "attention-state-store", problem: "Assumes per-position state that can be cut back to any position. Recurrent (GDN) state exists only at the frontier or checkpoints, and the store is shared across sequences with references and copy-on-write."}
+  - {type: "decode-loop", problem: "Summary assumes a per-layer handoff to the expert store; dense models and graph-replayed all-resident steps have none. Batched decode of several sequences is not mentioned."}
+  - {type: "prompt-reader", problem: "Invariant takes token-by-token reading as the reference; NInfer's reference for chunked state is its own math precision, and different chunkings may differ."}
+  - {type: "draft-verifier", problem: "Merges acceptance (a sampling rule) and state commit (a multi-store transaction). The checked port carries tokens, but stochastic acceptance needs distributions p and q."}
+  - {type: "conversation-reuse", problem: "Invariant of exact equality is stronger than any engine with chunked prefill can claim; it should name its reference. The truncate port does not fit restore-from-checkpoint."}
+  - {type: "expert-dispatch", problem: "effect_on_output says none unless omitting, but splitting a layer between CPU and GPU changes rounding and depends on which experts are ready at that moment."}
+missing_or_wrong:
+  - {kind: missing, proposal: "execution-graph", summary: "Capture, variant selection and in-place update of recorded execution graphs; owns address-stability invariants, the rule that host actions split the graph, and the capture memory cost.", parts: ["CUDA graph manager"]}
+  - {kind: missing, proposal: "model-partitioner", summary: "Split one model across ranks (tensor, expert, vocabulary slicing, replication), run the matching collectives, and keep replicated discrete decisions identical.", parts: ["distributed partitioning and communication", "artifact reader, binder and shard materializer"]}
+  - {kind: missing, proposal: "executor", summary: "Submit executions, track completion and device-side retirement, and gate reuse of memory on retirement.", parts: ["executor"]}
+  - {kind: missing, proposal: "modality-encoder", summary: "Turn images or other media into model inputs with its own workspace and content-keyed cache.", parts: ["vision and media encoder"]}
+  - {kind: missing, proposal: "calibrated-policy-data", summary: "Offline-measured tables (expert priority, cost coefficients) shipped with the engine, with applicability conditions, used as inputs to placement and reuse policies.", parts: ["expert priority calibration table", "context resource manager (prefix reuse)"]}
+  - {kind: missing, proposal: "output-constraint", summary: "Stateful per-request grammar or schema mask on logits, advanced on commit, running on the host.", parts: ["grammar and structured-output constraint"]}
+  - {kind: split, type: "draft-verifier", why: "Acceptance rule and state commit are separate parts in NInfer; the commit replays transition records and touches every state owner, and the frontend can lower the committed count."}
+  - {kind: split, type: "cache-policy", why: "A startup residency planner (static, from offline rank, solved jointly with window count under a budget) differs from a run-time usage-driven policy; NInfer has the first and a workload-driven mode switch, not the second."}
+  - {kind: merge, types: ["engine-control", "multi-request-scheduler"], why: "In a continuously batched engine one component owns request lifecycle and batch membership; the one-request-at-a-time engine-control is a special case."}
+  - {kind: missing, proposal: "transition-records data kind", summary: "Not a node type but a carries value: logs from which state at an accepted position is replayed; produced by layer-compute, consumed by the state commit.", parts: ["speculative state commit (ReplaySSM)", "native model programs and ops"]}
+unused_types:
+  - {type: "draft-policy", explained_by_applies_when: false, note: "NInfer fixes draft count at startup and never adapts it at run time; the type has no applies_when, so its absence is not predicted. It should carry one, such as when the draft window is adjusted at run time."}

@@ -1,0 +1,158 @@
+# The match of each decision of muse-on-spark to a choice of its part's node type, judged by a reader against
+# validation/choices/packet-muse-on-spark.yaml. Each row names the decision by the component's own decision id and
+# holds the SHA-256 of the text that was judged and the node types whose choices it was judged against
+# (tools/so_nodetypes_experiments.py pin-map), so that a row cannot come to stand for another decision when
+# decisions are added, removed or reworded, or keep a match when the part's types change.
+# A row with `judged_by` was judged again by the reader it names, after the part's types changed.
+engine: muse-on-spark
+map:
+- decision: model-file-reader/required-geometry
+  text_sha256: b6e0ca64a7e45844de03930515cfe9f3d8532f1f2fbd198788b97f1411a686bd
+  types:
+  - model-loading
+  choice: null
+  fit: engine_specific
+- decision: expert-layout/layout-version
+  text_sha256: 6efeba744e71401cda50877e1c536d0c202bc386d9cfc958d0b25e860f25399f
+  types:
+  - model-loading
+  choice: null
+  fit: engine_specific
+  judged_by: 'a Claude subagent, 2026-11-18, against the choices of model-loading after the node''s type was changed from
+    expert-source on the second reading of node-assignment.yaml; same verdict as the first reader: the accepted version
+    is the value of one constant (validation/choices/BRIEF.md); the nearest choice, model-loading#05, is about what is
+    done when a file is the wrong version, not which version is accepted'
+- decision: weight-loader/head-precision
+  text_sha256: 6dfeb802057747b3503acf4e639c6705e301d4b5d6fc91c8bfae2d4d7b4532fe
+  types:
+  - model-loading
+  choice: model-loading#07
+  fit: loosely
+- decision: startup-memory-sizing/memory-budget
+  text_sha256: 9984480d0028c07144fa045157167ebfde5ce7f0dfb9b505bc7396d34e1a794e
+  types:
+  - memory-planning
+  choice: null
+  fit: engine_specific
+- decision: startup-memory-sizing/reserve
+  text_sha256: b1692a49951678ec7b6a5a562f0a2fcf2e66fce121614bd718c1760bb54c3b4f
+  types:
+  - memory-planning
+  choice: memory-planning#01
+  fit: covered
+- decision: startup-memory-sizing/context-length
+  text_sha256: b2bfac65280c00a2ea8844b0fa1221cd2512ce9e18ca8180e364c76d7536ad4f
+  types:
+  - memory-planning
+  choice: memory-planning#19
+  fit: loosely
+- decision: startup-memory-sizing/min-cache
+  text_sha256: 227ef38f4f19170ab6d52e43f7b1c84929673ddde15b3cfda5561a3e12080410
+  types:
+  - memory-planning
+  choice: memory-planning#16
+  fit: covered
+- decision: startup-memory-sizing/reserve-recheck
+  text_sha256: 033068b567b5d5b074a52232c1ab7506d28131b4b4a3a5128de08c87e18764ae
+  types:
+  - memory-planning
+  choice: memory-planning#05
+  fit: covered
+- decision: expert-source/read-mode
+  text_sha256: 9f4a741024f2378ef5e420bf3ccd48abd7cde88cbe09d3eaac59d8eb8282ec20
+  types:
+  - expert-source
+  choice: expert-source#02
+  fit: covered
+- decision: expert-source/read-concurrency
+  text_sha256: 61b8ed93d2de1a8c5b20716a47a66ae176ab25ed035e074248b96b096a852683
+  types:
+  - expert-source
+  choice: null
+  fit: none
+- decision: expert-cache/slot-count
+  text_sha256: 4a51480fae56af2f4e0fb7c92dd246ff96ff8733a5fb7e66f6bbe0d29d46b4eb
+  types:
+  - expert-cache
+  choice: expert-cache#01
+  fit: covered
+- decision: expert-dispatch/wait-or-stage
+  text_sha256: 29c2d8f1d25197cbb675ff166bde2b1c0b81abceaf1db05575352bdae3c8bd99
+  types:
+  - expert-dispatch
+  - layer-compute
+  choice: null
+  fit: none
+  judged_by: a Claude subagent, 2026-11-18, against the choices of the part's new types; same verdict as the first reader
+- decision: cache-policy/admit-rule
+  text_sha256: dd67f3b45426f12dfb1bd12ea5741d5e0e5bdd3f243206ba08a484d31c7f4d42
+  types:
+  - residency-policy
+  choice: residency-policy#10
+  fit: loosely
+- decision: cache-policy/decay
+  text_sha256: 6fac3e75e1ea8c5109984e089c4a035badccae7da809e247d18a333487c1dfb7
+  types:
+  - residency-policy
+  choice: residency-policy#09
+  fit: covered
+- decision: cache-policy/per-layer-share
+  text_sha256: e436fc8109c8988e345130202fae9cfc6d935600e586924027d8a20c8dd7c165
+  types:
+  - residency-policy
+  choice: null
+  fit: none
+- decision: cache-policy/starting-contents
+  text_sha256: ad523f48fbbd031a282b3c92c649b42492bf57e729adaa5a0c493b0ede8ea685
+  types:
+  - residency-policy
+  choice: residency-policy#05
+  fit: covered
+- decision: prompt-path/chunk-size
+  text_sha256: d675a72c703b42e3358ba457acb42de70acfaa9291909d8fd7f4a050353a44ba
+  types:
+  - prompt-reading
+  choice: prompt-reading#01
+  fit: covered
+- decision: prompt-path/borrow-cache
+  text_sha256: 11ab6682e29b7bd560d59b56152b0fe4de9d53bb9c4b6eacaef2e1f29a7cd697
+  types:
+  - prompt-reading
+  choice: prompt-reading#03
+  fit: covered
+- decision: prompt-path/feeds-usage
+  text_sha256: 02b994f6e084f3dd7e99e753158e35fa0c6fcf8fad99448baa579c74be6a446c
+  types:
+  - prompt-reading
+  choice: prompt-reading#04
+  fit: covered
+- decision: decode-loop/tokens-per-step
+  text_sha256: 1b531c2d4b99bbadbf3b8d0a6109498f836b2e7ec2fc5f54f71f334dc1d5880f
+  types:
+  - step-execution
+  choice: step-execution#02
+  fit: loosely
+- decision: decode-loop/layer-timeout
+  text_sha256: ad9b3a40716364008ca90b0cafdfdce4832d53db68a9ca9e5e16f65d5afdf437
+  types:
+  - step-execution
+  choice: step-execution#03
+  fit: covered
+- decision: prompt-builder/tokenizer-implementation
+  text_sha256: b5b9a9b92e263782e005d7689f3cab9292494c7b07f2eb20f386c72455bb60ff
+  types:
+  - prompt-preparation
+  choice: prompt-preparation#06
+  fit: covered
+- decision: prompt-builder/chat-template
+  text_sha256: 1c3524b710e2696cc37a42db7b4e8be0166345f1048d19678e3015cc145f3fbe
+  types:
+  - prompt-preparation
+  choice: prompt-preparation#01
+  fit: covered
+- decision: prompt-builder/fit-max-tokens
+  text_sha256: 3b07d9c70e4eee07e723d75aee5975cd096e1bddfba43bcc189a3f7357f1f17d
+  types:
+  - prompt-preparation
+  choice: prompt-preparation#02
+  fit: covered

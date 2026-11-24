@@ -1,0 +1,34 @@
+kind: hardware
+id: hw/dgx-spark
+title: "NVIDIA DGX Spark (128 GB configuration)"
+# Values checked on 2026-11-10 against the specification table on the DGX Spark product page of the NVIDIA website (the URL contains a word the factory glossary forbids, so it is not written here).
+# The website also lists a 64 GB configuration (through some OEM channels only); this file describes the 128 GB configuration.
+compute_units:
+  - id: cpu0
+    kind: cpu
+    properties:
+      core_count: {value: 20, status: vendor_stated, source: nvidia-dgx-spark-specs#cpu}
+      cores: {value: "10 Cortex-X925 + 10 Cortex-A725", status: vendor_stated, source: nvidia-dgx-spark-specs#cpu}
+      isa_family: {value: arm64, status: vendor_stated, source: nvidia-dgx-spark-specs#cpu}
+  - id: gpu0
+    kind: gpu
+    properties:
+      architecture: {value: Blackwell, status: vendor_stated, source: nvidia-dgx-spark-specs#gpu}
+      soc: {value: GB10 Grace Blackwell, status: vendor_stated, source: nvidia-dgx-spark-specs#overview}
+memory_pools:
+  - id: mem0
+    kind: unified_ram
+    # The website writes only GB and does not say whether decimal or binary, so unit_basis is left out
+    capacity_nominal: {value: 128, unit: GB, status: vendor_stated, source: nvidia-dgx-spark-specs#system-memory}
+    properties:
+      type: {value: LPDDR5x coherent unified system memory, status: vendor_stated, source: nvidia-dgx-spark-specs#system-memory}
+      bandwidth: {value: 273, unit: GB/s, status: vendor_stated, source: nvidia-dgx-spark-specs#memory-bandwidth}
+  - id: ssd0
+    kind: nvme
+    capacity_nominal: {value: 4, unit: TB, unit_basis: decimal, status: vendor_stated, source: nvidia-dgx-spark-specs#storage,
+                       note: "the website says 'up to 4 TB'; the actual capacity depends on the configuration"}
+access_paths:
+  - {id: cpu0-mem0,    kind: direct,  unit: cpu0, pool: mem0}
+  - {id: gpu0-mem0,    kind: direct,  unit: gpu0, pool: mem0, note: "the CPU and the GPU share one memory pool; there is no separate GPU memory"}
+  # The website gives no read bandwidth for the SSD; it has to be measured on the machine and written into the environment description
+  - {id: ssd0-to-mem0, kind: page_in, origin: ssd0, destination: mem0}

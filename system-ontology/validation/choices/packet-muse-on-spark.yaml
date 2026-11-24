@@ -1,0 +1,556 @@
+# Written by tools/so_nodetypes_experiments.py packets. Read validation/choices/BRIEF.md first.
+engine: muse-on-spark
+decisions: 24
+parts:
+- part: model-file-reader
+  does: Open the prepared files read-only, expose their metadata and tensor directory unchanged, and refuse files whose
+    declared shape the compiled kernels cannot run.
+  types:
+  - model-loading
+  decisions:
+  - d: D001
+    decision: model-file-reader/required-geometry
+    text_sha256: b6e0ca64a7e45844de03930515cfe9f3d8532f1f2fbd198788b97f1411a686bd
+    text: The layer count, experts per layer, experts per token and hidden size the kernels are compiled for.
+- part: expert-layout
+  does: Read the table of expert ranges once and answer, for the whole process, where each expert's bytes lie in the prepared
+    file and how long they are.
+  types:
+  - model-loading
+  decisions:
+  - d: D002
+    decision: expert-layout/layout-version
+    text_sha256: 6efeba744e71401cda50877e1c536d0c202bc386d9cfc958d0b25e860f25399f
+    text: The version of the range table this engine accepts.
+- part: weight-loader
+  does: At startup, place the weights every token uses in fast memory and return a table from tensor name to location.
+  types:
+  - model-loading
+  decisions:
+  - d: D003
+    decision: weight-loader/head-precision
+    text_sha256: 6dfeb802057747b3503acf4e639c6705e301d4b5d6fc91c8bfae2d4d7b4532fe
+    text: 'Whether the embedding table and output head are kept at 4 or 16 bits. For each of the two tables this moves about
+      2.5 GB between these weights and the expert cache: 202,048 rows of 8,192 values, 12 bits more per value.'
+- part: startup-memory-sizing
+  does: Within the memory budget, price the weights every token uses, the attention state for the configured context, the
+    staging area and a reserve; give the expert cache what remains; and refuse to start when the cache would be below its
+    minimum.
+  types:
+  - memory-planning
+  decisions:
+  - d: D004
+    decision: startup-memory-sizing/memory-budget
+    text_sha256: 9984480d0028c07144fa045157167ebfde5ce7f0dfb9b505bc7396d34e1a794e
+    text: The total the engine may hold in the unified pool. Fixed by the request.
+  - d: D005
+    decision: startup-memory-sizing/reserve
+    text_sha256: b1692a49951678ec7b6a5a562f0a2fcf2e66fce121614bd718c1760bb54c3b4f
+    text: Memory left free for the operating system and for allocations not priced in advance.
+  - d: D006
+    decision: startup-memory-sizing/context-length
+    text_sha256: b2bfac65280c00a2ea8844b0fa1221cd2512ce9e18ca8180e364c76d7536ad4f
+    text: The longest context the engine offers. With the attention state's size per token it sets how much memory the cache
+      loses.
+  - d: D007
+    decision: startup-memory-sizing/min-cache
+    text_sha256: 227ef38f4f19170ab6d52e43f7b1c84929673ddde15b3cfda5561a3e12080410
+    text: 'The smallest cache the engine will start with: at least the experts one step can route, 8 times 62.'
+  - d: D008
+    decision: startup-memory-sizing/reserve-recheck
+    text_sha256: 033068b567b5d5b074a52232c1ab7506d28131b4b4a3a5128de08c87e18764ae
+    text: After allocating, read free memory again and shrink the cache if the reserve was not really left.
+- part: expert-source
+  does: For any expert, give the range of the prepared file that holds it, and deliver its bytes into a buffer it is handed.
+  types:
+  - expert-source
+  decisions:
+  - d: D009
+    decision: expert-source/read-mode
+    text_sha256: 9f4a741024f2378ef5e420bf3ccd48abd7cde88cbe09d3eaac59d8eb8282ec20
+    text: Whether reads bypass the operating system's page cache. Bypassing keeps the page cache from taking memory the
+      budget does not count.
+  - d: D010
+    decision: expert-source/read-concurrency
+    text_sha256: 61b8ed93d2de1a8c5b20716a47a66ae176ab25ed035e074248b96b096a852683
+    text: How many expert reads may be in flight at once.
+- part: expert-cache
+  does: Hold as many experts in fast memory as its budget allows and answer, for any expert, whether it is there and in
+    which slot.
+  types:
+  - expert-cache
+  decisions:
+  - d: D011
+    decision: expert-cache/slot-count
+    text_sha256: 4a51480fae56af2f4e0fb7c92dd246ff96ff8733a5fb7e66f6bbe0d29d46b4eb
+    text: How many slots the cache has. Decided at startup from the memory budget; see startup memory sizing.
+- part: expert-dispatch
+  does: For one layer of one step, decide for every routed expert whether it is computed from the cache at once or after
+    a read from storage, and issue the reads before the cached experts start computing.
+  types:
+  - expert-dispatch
+  - layer-compute
+  decisions:
+  - d: D012
+    decision: expert-dispatch/wait-or-stage
+    text_sha256: 29c2d8f1d25197cbb675ff166bde2b1c0b81abceaf1db05575352bdae3c8bd99
+    text: Whether a missed expert is computed from the staging area and then dropped, or is computed after the cache policy
+      has admitted it to the cache.
+- part: cache-policy
+  does: Decide, for an expert that has just been read from storage, whether it enters the cache and which resident expert
+    leaves, so that the cache holds the experts the current work uses most.
+  types:
+  - residency-policy
+  decisions:
+  - d: D013
+    decision: cache-policy/admit-rule
+    text_sha256: dd67f3b45426f12dfb1bd12ea5741d5e0e5bdd3f243206ba08a484d31c7f4d42
+    text: 'The condition under which a missed expert enters the cache: always, or only when its usage count exceeds that
+      of the least used resident expert of the layer.'
+  - d: D014
+    decision: cache-policy/decay
+    text_sha256: 6fac3e75e1ea8c5109984e089c4a035badccae7da809e247d18a333487c1dfb7
+    text: How fast usage counts fade.
+  - d: D015
+    decision: cache-policy/per-layer-share
+    text_sha256: e436fc8109c8988e345130202fae9cfc6d935600e586924027d8a20c8dd7c165
+    text: Whether every layer has the same number of slots or slots move to the layers with the most misses.
+  - d: D016
+    decision: cache-policy/starting-contents
+    text_sha256: ad523f48fbbd031a282b3c92c649b42492bf57e729adaa5a0c493b0ede8ea685
+    text: 'What the cache holds before any request: nothing, or the experts a recorded usage profile ranks highest.'
+- part: prompt-path
+  does: Read the prompt in chunks, one layer at a time, reading each routed expert that is not cached once per chunk, and
+    leave behind the attention state that generation continues from.
+  types:
+  - prompt-reading
+  decisions:
+  - d: D017
+    decision: prompt-path/chunk-size
+    text_sha256: d675a72c703b42e3358ba457acb42de70acfaa9291909d8fd7f4a050353a44ba
+    text: Tokens per chunk. Larger chunks amortise each expert read over more tokens but need more experts in memory at
+      once.
+  - d: D018
+    decision: prompt-path/borrow-cache
+    text_sha256: 11ab6682e29b7bd560d59b56152b0fe4de9d53bb9c4b6eacaef2e1f29a7cd697
+    text: Whether the prompt path may use cache slots for a layer's experts while it reads, and whether it restores the
+      cache afterwards.
+  - d: D019
+    decision: prompt-path/feeds-usage
+    text_sha256: 02b994f6e084f3dd7e99e753158e35fa0c6fcf8fad99448baa579c74be6a446c
+    text: Whether the experts a prompt routes count toward the usage that decides the cache's contents for generation.
+- part: decode-loop
+  does: Take one token through the 62 layers and the output head, at each layer handing the routing to the expert subsystem
+    and waiting until every routed expert has been computed.
+  types:
+  - step-execution
+  decisions:
+  - d: D020
+    decision: decode-loop/tokens-per-step
+    text_sha256: 1b531c2d4b99bbadbf3b8d0a6109498f836b2e7ec2fc5f54f71f334dc1d5880f
+    text: 'How many tokens are computed in one step: one in the first version.'
+  - d: D021
+    decision: decode-loop/layer-timeout
+    text_sha256: ad9b3a40716364008ca90b0cafdfdce4832d53db68a9ca9e5e16f65d5afdf437
+    text: How long a layer may wait for storage before the step is reported as failed.
+- part: prompt-builder
+  does: Produce the exact prompt token ids and the token limit for a request from its messages, or refuse the request.
+  types:
+  - prompt-preparation
+  decisions:
+  - d: D022
+    decision: prompt-builder/tokenizer-implementation
+    text_sha256: b5b9a9b92e263782e005d7689f3cab9292494c7b07f2eb20f386c72455bb60ff
+    text: The tokenizer used; it must reproduce the reference tokenizer exactly.
+  - d: D023
+    decision: prompt-builder/chat-template
+    text_sha256: 1c3524b710e2696cc37a42db7b4e8be0166345f1048d19678e3015cc145f3fbe
+    text: The template that turns messages into one prompt.
+  - d: D024
+    decision: prompt-builder/fit-max-tokens
+    text_sha256: 3b07d9c70e4eee07e723d75aee5975cd096e1bddfba43bcc189a3f7357f1f17d
+    text: 'What happens when prompt plus requested output exceed the configured context: refuse, or shorten the output limit.'
+candidates:
+  model-loading:
+  - id: model-loading#01
+    kind: placement
+    what: map the file in place or copy into memory
+  - id: model-loading#02
+    kind: placement
+    what: which tensors go to which memory or device
+  - id: model-loading#03
+    kind: format
+    what: whether weights are re-encoded at load and how
+  - id: model-loading#04
+    kind: timing
+    what: what is loaded at start and what on first use
+  - id: model-loading#05
+    kind: failure
+    what: what is done when a file is the wrong version, incomplete or of an unsupported shape
+  - id: model-loading#06
+    kind: sizing
+    what: staging buffers and reader threads used while loading
+  - id: model-loading#07
+    kind: format
+    what: which stored encoding of a tensor is loaded when the files carry more than one, and which kernels accept it
+  - id: model-loading#08
+    kind: precedence
+    what: a load option turned on from what the files carry against an operator value
+  - id: model-loading#09
+    kind: placement
+    what: whether resident weights are locked in memory
+  - id: model-loading#10
+    kind: policy
+    what: which optional parts of the model are loaded at all
+  - id: model-loading#11
+    kind: policy
+    what: whether parts in different precisions may be loaded together
+  - id: model-loading#12
+    kind: policy
+    what: reading files through the operating system's cache or around it
+  - id: model-loading#13
+    kind: policy
+    what: whether the model's positional range is extended beyond its trained length
+  - id: model-loading#14
+    kind: policy
+    what: how file reads are aligned and shared when several destinations need the same bytes
+  - id: model-loading#15
+    kind: policy
+    what: how the model's architecture is recognised from its files and matched to what the kernels support
+  - id: model-loading#16
+    kind: policy
+    what: which metadata must be present, and which falls back to built-in values
+  - id: model-loading#17
+    kind: policy
+    what: which parts are left out at load to be streamed later
+  memory-planning:
+  - id: memory-planning#01
+    kind: sizing
+    what: the reserve left free
+  - id: memory-planning#02
+    kind: sizing
+    what: what is priced before caches get the remainder
+  - id: memory-planning#03
+    kind: policy
+    what: how the remainder is split between cache, state and concurrency
+  - id: memory-planning#04
+    kind: failure
+    what: the order in which things are given up when memory is short, and when starting is refused
+  - id: memory-planning#05
+    kind: timing
+    what: whether free memory is read again after allocating
+  - id: memory-planning#06
+    kind: precedence
+    what: an operator's explicit size against the computed one
+  - id: memory-planning#07
+    kind: policy
+    what: whether a figure is measured by a trial run or computed
+  - id: memory-planning#08
+    kind: policy
+    what: whether memories that share one physical capacity are accounted as one budget or separately
+  - id: memory-planning#09
+    kind: sizing
+    what: capacity planned per device or pooled across devices
+  - id: memory-planning#10
+    kind: sizing
+    what: workers given to a second compute device, and what is left free
+  - id: memory-planning#11
+    kind: policy
+    what: a hard limit against a soft figure that may be exceeded with a warning
+  - id: memory-planning#12
+    kind: sizing
+    what: whether a cache's share is counted in uniform units or in bytes of blocks of different sizes
+  - id: memory-planning#13
+    kind: sizing
+    what: how cache capacity is divided between layers, and between fixed and reusable regions
+  - id: memory-planning#14
+    kind: sizing
+    what: staging slots and streaming space, sized from the largest blocks, and what is used when they do not fit
+  - id: memory-planning#15
+    kind: policy
+    what: which large parts stream instead of staying resident, and whether alternative sets are compared
+  - id: memory-planning#16
+    kind: sizing
+    what: the least a cache may be and still work
+  - id: memory-planning#17
+    kind: failure
+    what: whether a failed allocation is retried smaller, and by how much
+  - id: memory-planning#18
+    kind: timing
+    what: when memory is locked or held back during startup, and when it is released
+  - id: memory-planning#19
+    kind: policy
+    what: what bounds the context length
+  - id: memory-planning#20
+    kind: policy
+    what: 'how a figure is measured: after which warm-up and from which counter'
+  - id: memory-planning#21
+    kind: failure
+    what: what is assumed when a figure cannot be read
+  expert-source:
+  - id: expert-source#01
+    kind: placement
+    what: 'where the full set lives: host memory, mapped file, or storage'
+  - id: expert-source#02
+    kind: policy
+    what: read through the page cache or around it
+  - id: expert-source#03
+    kind: sizing
+    what: memory locked for the full set
+  - id: expert-source#04
+    kind: failure
+    what: what is used when the preferred place cannot hold the full set
+  - id: expert-source#05
+    kind: sizing
+    what: workers used to fill the full set at startup
+  - id: expert-source#06
+    kind: placement
+    what: how much of the full set is made directly readable by a device, and which part first
+  - id: expert-source#07
+    kind: policy
+    what: page size of the memory holding the full set, and what is used when large pages cannot be had
+  - id: expert-source#08
+    kind: format
+    what: which stored copy or encoding the full set is filled from
+  - id: expert-source#09
+    kind: timing
+    what: how long to wait for memory another process is still releasing
+  - id: expert-source#10
+    kind: threshold
+    what: when a shortfall is still accepted because reclaimable memory covers it
+  expert-cache:
+  - id: expert-cache#01
+    kind: sizing
+    what: total size and whether it can grow or shrink while running
+  - id: expert-cache#02
+    kind: format
+    what: fixed slots or sized per block
+  - id: expert-cache#03
+    kind: placement
+    what: one region or several with different roles
+  - id: expert-cache#04
+    kind: failure
+    what: what is done when it is full and nothing can be released
+  - id: expert-cache#05
+    kind: policy
+    what: the key that identifies a cached block
+  - id: expert-cache#06
+    kind: failure
+    what: what is done when the cache cannot be allocated at its planned size
+  - id: expert-cache#07
+    kind: policy
+    what: whether it arranges, compacts or pins what it holds by size
+  - id: expert-cache#08
+    kind: sizing
+    what: how many uses of cached blocks may be open at once
+  - id: expert-cache#09
+    kind: policy
+    what: which part is released or regrown first under memory pressure
+  expert-dispatch:
+  - id: expert-dispatch#01
+    kind: policy
+    what: the order in which the ways are tried
+  - id: expert-dispatch#02
+    kind: policy
+    what: whether low-ranked selections may be omitted
+  - id: expert-dispatch#03
+    kind: threshold
+    what: the share of misses fetched now against left to another device
+  - id: expert-dispatch#04
+    kind: timing
+    what: computing resident blocks while absent ones arrive
+  - id: expert-dispatch#05
+    kind: threshold
+    what: when computing resident blocks ahead of absent ones is switched on
+  - id: expert-dispatch#06
+    kind: policy
+    what: whether the split is decided from a snapshot of what is ready at the start of the layer
+  - id: expert-dispatch#07
+    kind: threshold
+    what: the share of selected blocks already in fast memory above which omitting low-ranked selections is off by default,
+      and the weight formats for which it is never on
+  layer-compute:
+  - id: layer-compute#01
+    kind: format
+    what: kernel variant per weight precision
+  - id: layer-compute#02
+    kind: policy
+    what: which operations are fused
+  - id: layer-compute#03
+    kind: policy
+    what: activation precision inside kernels
+  - id: layer-compute#04
+    kind: policy
+    what: any deliberate change to the model's arithmetic (it changes output and needs permission)
+  - id: layer-compute#05
+    kind: policy
+    what: kernel variant per device class, step shape and stored-state format
+  - id: layer-compute#06
+    kind: timing
+    what: how independent operations are ordered to overlap with work on another device
+  - id: layer-compute#07
+    kind: sizing
+    what: working space a kernel may hold, allocated ahead or during steps
+  - id: layer-compute#08
+    kind: failure
+    what: whether results are checked for non-finite values, and what is done then
+  - id: layer-compute#09
+    kind: placement
+    what: how a block's computation is divided when the model is split over devices
+  - id: layer-compute#10
+    kind: placement
+    what: conditions under which a weight may be read from slower memory
+  - id: layer-compute#11
+    kind: policy
+    what: which rows of a step are carried through every part of the model
+  - id: layer-compute#12
+    kind: format
+    what: precision and layout in which the computation writes the per-position state it appends
+  - id: layer-compute#13
+    kind: format
+    what: the order of heads or channels the kernels compute in, where it differs from the published order
+  residency-policy:
+  - id: residency-policy#01
+    kind: policy
+    what: fixed from an offline ranking, or adjusted from use while running
+  - id: residency-policy#02
+    kind: policy
+    what: the replacement rule
+  - id: residency-policy#03
+    kind: timing
+    what: on every miss or at intervals
+  - id: residency-policy#04
+    kind: threshold
+    what: the gain a change must bring, and a limit on changes per round
+  - id: residency-policy#05
+    kind: policy
+    what: what the cache holds before any request
+  - id: residency-policy#06
+    kind: policy
+    what: whether a region changes role with load
+  - id: residency-policy#07
+    kind: failure
+    what: what is done when every candidate for replacement is still in use
+  - id: residency-policy#08
+    kind: failure
+    what: which ranking is used when no recorded ranking matches the model
+  - id: residency-policy#09
+    kind: policy
+    what: how use counts age, so that recent use outweighs old use
+  - id: residency-policy#10
+    kind: threshold
+    what: the least use that qualifies a block to enter
+  - id: residency-policy#11
+    kind: policy
+    what: whether warming at startup is used at all, per model
+  - id: residency-policy#12
+    kind: timing
+    what: what event changes the role of a region, such as the size of the coming work
+  prompt-reading:
+  - id: prompt-reading#01
+    kind: sizing
+    what: chunk size
+  - id: prompt-reading#02
+    kind: timing
+    what: how it shares the device with generation in progress
+  - id: prompt-reading#03
+    kind: policy
+    what: whether it may borrow memory held by caches
+  - id: prompt-reading#04
+    kind: policy
+    what: whether what it selects counts toward cache usage
+  - id: prompt-reading#05
+    kind: timing
+    what: state snapshots taken on the way
+  - id: prompt-reading#06
+    kind: failure
+    what: what is done when a chunk does not fit
+  - id: prompt-reading#07
+    kind: policy
+    what: how the work of a chunk is shared with a second device, and when sharing is abandoned
+  - id: prompt-reading#08
+    kind: failure
+    what: what state is kept when reading is interrupted or cancelled
+  - id: prompt-reading#09
+    kind: policy
+    what: whether an approximate path may be taken for part of the prompt
+  - id: prompt-reading#10
+    kind: policy
+    what: whether chunks of several sequences are read together, layer by layer
+  - id: prompt-reading#11
+    kind: sizing
+    what: passes over the layers per chunk
+  step-execution:
+  - id: step-execution#01
+    kind: policy
+    what: one step as a whole, or driven layer by layer
+  - id: step-execution#02
+    kind: sizing
+    what: sequences and rows per step
+  - id: step-execution#03
+    kind: threshold
+    what: how long a layer may wait for something it needs
+  - id: step-execution#04
+    kind: failure
+    what: what is done when a step cannot complete
+  - id: step-execution#05
+    kind: policy
+    what: multi-row or per-row kernels for the rows of a step
+  - id: step-execution#06
+    kind: timing
+    what: cutting a step into parts so that work on two devices overlaps
+  - id: step-execution#07
+    kind: timing
+    what: when side inputs a layer needs are gathered within the step
+  - id: step-execution#08
+    kind: policy
+    what: whether proposing runs inside the same step as the token it follows
+  - id: step-execution#09
+    kind: policy
+    what: the conditions a sequence must meet to share a batched path, and what is done otherwise
+  - id: step-execution#10
+    kind: policy
+    what: which kinds of step are replayed from a recorded graph and which are launched directly
+  - id: step-execution#11
+    kind: timing
+    what: how long the host waits for a device signal before it checks for a fault
+  - id: step-execution#12
+    kind: sizing
+    what: how many proposed rows are passed on for checking
+  - id: step-execution#13
+    kind: timing
+    what: 'how host-side inputs of consecutive steps are kept apart: a barrier before reuse, or one buffer per step in flight'
+  prompt-preparation:
+  - id: prompt-preparation#01
+    kind: policy
+    what: the template used and how it is corrected
+  - id: prompt-preparation#02
+    kind: policy
+    what: what happens when prompt plus output exceed the context
+  - id: prompt-preparation#03
+    kind: sizing
+    what: caches of rendered or tokenized prompts
+  - id: prompt-preparation#04
+    kind: policy
+    what: keeping the start of the prompt stable so that stored state can be reused
+  - id: prompt-preparation#05
+    kind: precedence
+    what: defaults against the request's settings
+  - id: prompt-preparation#06
+    kind: policy
+    what: which tokenizer implementation is used, and how it is held to the reference tokenizer's output
+  - id: prompt-preparation#07
+    kind: policy
+    what: whether the prompt is tokenized whole or in pieces joined at a reuse boundary
+  - id: prompt-preparation#08
+    kind: threshold
+    what: tokens kept free between prompt plus output and the context length
+  - id: prompt-preparation#09
+    kind: policy
+    what: what an absent output limit means
+  - id: prompt-preparation#10
+    kind: policy
+    what: which earlier content is dropped from history when rendering
+  - id: prompt-preparation#11
+    kind: policy
+    what: where restore points may be placed in the prompt

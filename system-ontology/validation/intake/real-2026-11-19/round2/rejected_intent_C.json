@@ -1,0 +1,605 @@
+{
+ "schema_version": "1.0.0",
+ "request_ref": {
+  "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+  "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+ },
+ "interpretation": {
+  "problem": null,
+  "desired_change": {
+   "id": "intent.desired-change",
+   "text": "Build a custom inference engine for Meta Muse Spark Open that runs on NVIDIA DGX Spark, taking the supplied System Ontology files as the statement of what is wanted.",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+      "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+     },
+     "start": 0,
+     "end": 311
+    }
+   ]
+  },
+  "requested_result": {
+   "id": "intent.requested-result",
+   "text": "An implemented custom inference engine conforming to the supplied model, machine, target, system and node descriptions, with unresolved proposals and contradictions carried forward for clarification.",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+      "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+     },
+     "start": 0,
+     "end": 311
+    }
+   ]
+  }
+ },
+ "context": [
+  {
+   "id": "context.supplied-material",
+   "name": "Attached System Ontology files",
+   "role": "The user asserts that the files are attached and designates their model, machine, target, system and node descriptions as the statement of what is wanted.",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+      "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+     },
+     "start": 88,
+     "end": 311
+    }
+   ]
+  },
+  {
+   "id": "context.target",
+   "name": "spec/muse-spark-open-on-dgx-spark/target",
+   "role": "Target specification distinguishing required scope, proposed evaluation definitions, explicitly unset project decisions and implementation choices left open.",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+      "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+     },
+     "start": 0,
+     "end": 1000
+    }
+   ]
+  },
+  {
+   "id": "context.model",
+   "name": "model/muse-spark-open",
+   "role": "Supplied model description. It distinguishes vendor-stated structure from weight-size estimates derived under an explicit assumption; config.json was not read, and actual expert sizes, attention-state geometry and embedding/output-head tying remain unverified.",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a",
+      "sha256": "120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a"
+     },
+     "start": 0,
+     "end": 3000
+    }
+   ]
+  },
+  {
+   "id": "context.hardware",
+   "name": "hw/dgx-spark",
+   "role": "Supplied description of the NVIDIA DGX Spark 128 GB configuration, with CPU and GPU sharing a unified memory pool. Nominal memory unit basis is unspecified; storage capacity depends on configuration and SSD read bandwidth is not supplied.",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4",
+      "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"
+     },
+     "start": 0,
+     "end": 1900
+    }
+   ]
+  },
+  {
+   "id": "context.system",
+   "name": "sys/muse-on-spark",
+   "role": "Proposed, unbuilt engine design derived from Strata, with its storage path derived from ds4. Its summary retains frequently needed weights and cached experts in memory, stores all experts on storage, fetches misses on demand and overlaps reads with cached-expert computation.",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:929bf8cf48b79129a9ede51b899442a3bf2067fba9ba81088291a1073143889a",
+      "sha256": "929bf8cf48b79129a9ede51b899442a3bf2067fba9ba81088291a1073143889a"
+     },
+     "start": 0,
+     "end": 1000
+    }
+   ]
+  },
+  {
+   "id": "context.nodes",
+   "name": "Node-level description of muse-on-spark",
+   "role": "Supplied decomposition of component responsibilities and recorded choices under draft node types. It points to fuller component descriptions for call interfaces, source lines and complete parameter lists.",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:6de4ce9b20e626d4272e7cc243ca8462d1714353979191d59af90a3237a8b68c",
+      "sha256": "6de4ce9b20e626d4272e7cc243ca8462d1714353979191d59af90a3237a8b68c"
+     },
+     "start": 0,
+     "end": 680
+    }
+   ]
+  }
+ ],
+ "in_scope": [
+  {
+   "id": "scope.engine",
+   "text": "Implement the custom engine for the specified model and machine using the supplied system and node descriptions as its requested design.",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+      "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+     },
+     "start": 0,
+     "end": 311
+    }
+   ]
+  },
+  {
+   "id": "scope.text-container",
+   "text": "Provide text input and text output with container packaging.",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+      "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+     },
+     "start": 0,
+     "end": 1100
+    }
+   ]
+  },
+  {
+   "id": "scope.preparation-loading",
+   "text": "Prepare checkpoint files offline with each expert stored as a contiguous block-aligned range; expose prepared metadata without alteration, reject incompatible shapes, locate expert ranges and load the weights every token uses.",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:6de4ce9b20e626d4272e7cc243ca8462d1714353979191d59af90a3237a8b68c",
+      "sha256": "6de4ce9b20e626d4272e7cc243ca8462d1714353979191d59af90a3237a8b68c"
+     },
+     "start": 0,
+     "end": 2500
+    }
+   ]
+  },
+  {
+   "id": "scope.memory-experts",
+   "text": "Size memory for persistent weights, configured attention state, staging and reserve; allocate the remainder to an expert cache. Fetch missed experts from storage, apply the supplied residency-policy responsibility and issue reads before cached experts compute.",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:6de4ce9b20e626d4272e7cc243ca8462d1714353979191d59af90a3237a8b68c",
+      "sha256": "6de4ce9b20e626d4272e7cc243ca8462d1714353979191d59af90a3237a8b68c"
+     },
+     "start": 0,
+     "end": 7500
+    }
+   ]
+  },
+  {
+   "id": "scope.prompt-decode",
+   "text": "Implement layer computation, expert routing, output projection and token generation; read prompts in chunks one layer at a time so that an uncached routed expert is read once per chunk, leaving attention state for generation.",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:6de4ce9b20e626d4272e7cc243ca8462d1714353979191d59af90a3237a8b68c",
+      "sha256": "6de4ce9b20e626d4272e7cc243ca8462d1714353979191d59af90a3237a8b68c"
+     },
+     "start": 0,
+     "end": 5500
+    }
+   ]
+  },
+  {
+   "id": "scope.request-state",
+   "text": "The supplied node design includes attention-state storage and truncation, prefix-based conversation reuse, parked-conversation caching, validated session persistence, sampling, prompt construction, request execution and an OpenAI- and Anthropic-shaped HTTP front with cancellation and defined failure responses.",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:6de4ce9b20e626d4272e7cc243ca8462d1714353979191d59af90a3237a8b68c",
+      "sha256": "6de4ce9b20e626d4272e7cc243ca8462d1714353979191d59af90a3237a8b68c"
+     },
+     "start": 0,
+     "end": 11000
+    }
+   ]
+  },
+  {
+   "id": "scope.operation",
+   "text": "The supplied node design includes engine command handling and supervision, run-configuration generation and launch resolution, engine diagnostics, request accounting and external metric export.",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:6de4ce9b20e626d4272e7cc243ca8462d1714353979191d59af90a3237a8b68c",
+      "sha256": "6de4ce9b20e626d4272e7cc243ca8462d1714353979191d59af90a3237a8b68c"
+     },
+     "start": 0,
+     "end": 16000
+    }
+   ]
+  },
+  {
+   "id": "scope.delivery",
+   "text": "Deliver the target specification's reproducible container, clean rebuild, benchmark report and replayable run artifacts.",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+      "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+     },
+     "start": 88,
+     "end": 311
+    }
+   ]
+  }
+ ],
+ "out_of_scope": [
+  {
+   "id": "exclusion.media",
+   "text": "The first version does not load the perception encoder or serve image, video or audio input.",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:929bf8cf48b79129a9ede51b899442a3bf2067fba9ba81088291a1073143889a",
+      "sha256": "929bf8cf48b79129a9ede51b899442a3bf2067fba9ba81088291a1073143889a"
+     },
+     "start": 0,
+     "end": 1250
+    }
+   ]
+  },
+  {
+   "id": "exclusion.first-version",
+   "text": "Preserve the supplied system description's first-version exclusions: drafting, more than one conversation in memory at a time and more than one machine. Conflicting retained details require clarification rather than silently expanding this scope.",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+      "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+     },
+     "start": 88,
+     "end": 311
+    }
+   ]
+  }
+ ],
+ "constraints": [
+  {
+   "id": "constraint.supplied-specification",
+   "text": "Treat the attached ontology descriptions as the user's specification, preserving their distinctions between required, proposed, unset and open fields.",
+   "category": "specification-authority",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+      "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+     },
+     "start": 88,
+     "end": 311
+    },
+    {
+     "source_ref": {
+      "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+      "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+     },
+     "start": 0,
+     "end": 500
+    }
+   ]
+  },
+  {
+   "id": "constraint.memory-proposal",
+   "text": "The proposed memory acceptance budget is 80 decimal GB in mem0, accounting for everything the engine container holds in the unified pool at any moment, including CPU and GPU process allocations and attributable file page cache, while excluding the operating system and other processes. The amount, unit basis and accounting boundary are explicitly proposals awaiting confirmation; nominal machine capacity and the cited GPU working-set figure are not interchangeable with this budget.",
+   "category": "proposed-resource-acceptance",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+      "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+     },
+     "start": 0,
+     "end": 2500
+    }
+   ]
+  },
+  {
+   "id": "constraint.quality-proposal",
+   "text": "The proposed quality baseline is the published reference implementation with NVFP4 weights, the published tokenizer and greedy sampling. Its proposed comparison requires identical output tokens when computation changes are disallowed, or a task score meeting a threshold otherwise. The task set, threshold and permission for output-changing transformations remain unset.",
+   "category": "proposed-scientific-comparison",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+      "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+     },
+     "start": 0,
+     "end": 4000
+    }
+   ]
+  },
+  {
+   "id": "constraint.reporting-proposal",
+   "text": "The target proposes reporting time to first token, decode rate and peak memory. Proposed TTFT runs from request admission to the first engine-produced token and excludes model loading; proposed decode rate excludes the first token; proposed peak memory uses the memory-budget accounting boundary. These are reporting quantities, without supplied speed acceptance thresholds.",
+   "category": "proposed-measurement",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+      "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+     },
+     "start": 0,
+     "end": 4000
+    }
+   ]
+  },
+  {
+   "id": "constraint.open-implementation",
+   "text": "The target leaves execution, state, composition, policy and binding open. These open fields do not remove the separately supplied system and node responsibilities or resolve their contradictions.",
+   "category": "implementation-discretion",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+      "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+     },
+     "start": 0,
+     "end": 1200
+    },
+    {
+     "source_ref": {
+      "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+      "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+     },
+     "start": 88,
+     "end": 311
+    }
+   ]
+  }
+ ],
+ "preferences": [],
+ "user_targets": [
+  {
+   "id": "target.memory-proposed",
+   "metric": "memory_budget",
+   "target_text": "Proposed pass/fail target: 80 decimal GB under the proposed container-wide unified-memory accounting boundary; confirmation is required.",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+      "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+     },
+     "start": 0,
+     "end": 2500
+    }
+   ]
+  },
+  {
+   "id": "target.quality-proposed",
+   "metric": "quality_score",
+   "target_text": "Proposed pass/fail target: baseline-identical tokens if computation changes are prohibited, otherwise a task score not below a threshold that has not been supplied.",
+   "source_spans": [
+    {
+     "source_ref": {
+      "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+      "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+     },
+     "start": 0,
+     "end": 3500
+    }
+   ]
+  }
+ ],
+ "context_refs": [
+  {
+   "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+   "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+  },
+  {
+   "id": "blob:120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a",
+   "sha256": "120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a"
+  },
+  {
+   "id": "blob:b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4",
+   "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"
+  },
+  {
+   "id": "blob:929bf8cf48b79129a9ede51b899442a3bf2067fba9ba81088291a1073143889a",
+   "sha256": "929bf8cf48b79129a9ede51b899442a3bf2067fba9ba81088291a1073143889a"
+  },
+  {
+   "id": "blob:6de4ce9b20e626d4272e7cc243ca8462d1714353979191d59af90a3237a8b68c",
+   "sha256": "6de4ce9b20e626d4272e7cc243ca8462d1714353979191d59af90a3237a8b68c"
+  }
+ ],
+ "uncertainties": [
+  {
+   "id": "uncertainty.memory-acceptance",
+   "kind": "ambiguous",
+   "description": "The memory budget, decimal unit basis and container-wide accounting boundary are expressly proposed rather than confirmed. Nominal hardware memory is not a substitute acceptance budget.",
+   "affected_fields": [
+    "constraints",
+    "user_targets"
+   ],
+   "blocking": true,
+   "clarification": "Confirm or replace the proposed memory amount, unit basis and accounting boundary."
+  },
+  {
+   "id": "uncertainty.context-length",
+   "kind": "missing",
+   "description": "The target's required offered context length is UNSET. The model's maximum context and the node configuration generator's recommendation do not select the context on which this engine is to be judged.",
+   "affected_fields": [
+    "constraints",
+    "user_targets",
+    "in_scope"
+   ],
+   "blocking": true,
+   "clarification": "Specify the context length the delivered engine must support and be evaluated at."
+  },
+  {
+   "id": "uncertainty.workload",
+   "kind": "missing",
+   "description": "The fixed workload and metric-specific workloads are UNSET, so TTFT, decode-rate and peak-memory results do not yet have a defined evaluation workload.",
+   "affected_fields": [
+    "constraints",
+    "user_targets",
+    "in_scope"
+   ],
+   "blocking": true,
+   "clarification": "Define the fixed evaluation workload, including the prompt and generation conditions needed to reproduce the reported measurements."
+  },
+  {
+   "id": "uncertainty.quality-acceptance",
+   "kind": "missing",
+   "description": "The quality task set and pass threshold are UNSET, and the baseline and comparison definitions remain proposed.",
+   "affected_fields": [
+    "constraints",
+    "user_targets"
+   ],
+   "blocking": true,
+   "clarification": "Confirm or replace the proposed baseline and comparison, and specify the held-out task set and applicable quality pass threshold."
+  },
+  {
+   "id": "uncertainty.allowed-transformations",
+   "kind": "missing",
+   "description": "The target does not decide whether quantisation below NVFP4 or approximations that change outputs are allowed. This governs permitted engine computation changes, separately from the quality comparison rule.",
+   "affected_fields": [
+    "desired_change",
+    "constraints",
+    "user_targets"
+   ],
+   "blocking": true,
+   "clarification": "Specify which computation-changing transformations, if any, are permitted and which quality-comparison branch consequently applies."
+  },
+  {
+   "id": "uncertainty.checkpoint",
+   "kind": "missing",
+   "description": "The target's single model checkpoint is UNSET. The supplied model description lists BF16 and NVFP4, while the target notes that only NVFP4 is within reach; that observation does not identify the required checkpoint.",
+   "affected_fields": [
+    "context",
+    "constraints",
+    "in_scope"
+   ],
+   "blocking": true,
+   "clarification": "Identify the exact checkpoint and precision to be used for implementation and evaluation."
+  },
+  {
+   "id": "uncertainty.router-geometry",
+   "kind": "conflicting",
+   "description": "The model description specifies selecting 8 of 256 experts per token per layer, and the system summary and startup cache minimum use that geometry. The node expert-router instead produces 512 logits and chooses 10 experts; the system routed-experts flow also carries 10 expert IDs.",
+   "affected_fields": [
+    "context",
+    "in_scope",
+    "constraints"
+   ],
+   "blocking": true,
+   "clarification": "Resolve the expert-count and experts-per-token contradiction and identify the authoritative geometry for routing, kernels, prepared files and memory sizing."
+  },
+  {
+   "id": "uncertainty.storage-residency",
+   "kind": "conflicting",
+   "description": "The system summary stores experts on storage and reads cache misses on demand because the expert weights exceed machine memory. Its expert-bytes-from-files flow also describes reading every routed expert into an arena at startup, with mapping as another mode. The derivation explicitly excludes a page-locked host copy of all experts because it cannot fit.",
+   "affected_fields": [
+    "in_scope",
+    "constraints"
+   ],
+   "blocking": true,
+   "clarification": "Resolve whether the arena is a bounded staging/cache resource, a file mapping, or a full expert copy, and reconcile the startup flow with the specified memory-limited storage design."
+  },
+  {
+   "id": "uncertainty.drafting-graphs",
+   "kind": "conflicting",
+   "description": "The first-version coverage excludes drafting, the model description names no draft head, and the derivation excludes model-specific drafters while postponing lookup drafting, draft policy, verification and window graphs. Retained flows nevertheless describe accepted drafts, verify windows, a draft layer's K/V and doorbell or zero-doorbell recorded graphs; the node router also requires a recorded graph.",
+   "affected_fields": [
+    "in_scope",
+    "out_of_scope",
+    "constraints"
+   ],
+   "blocking": true,
+   "clarification": "Resolve the retained drafting and recorded-graph requirements against their explicit first-version exclusions or postponements."
+  },
+  {
+   "id": "uncertainty.conversation-residency",
+   "kind": "conflicting",
+   "description": "The first-version coverage excludes more than one conversation in memory at a time and postpones the slot scheduler because each additional conversation consumes attention-state memory otherwise available to experts. The node design also requires a budgeted parked-conversation cache holding other conversations' attention-state images, and system flows retain batch rows and batch-slot options.",
+   "affected_fields": [
+    "in_scope",
+    "out_of_scope",
+    "constraints"
+   ],
+   "blocking": true,
+   "clarification": "Define whether parked attention states may reside in the same unified memory pool, and reconcile parked-state and batch requirements with the single-conversation memory exclusion."
+  },
+  {
+   "id": "uncertainty.inherited-configuration",
+   "kind": "conflicting",
+   "description": "The system derivation excludes the n-gram reader because the model has no lookup table, but the node run-configuration generator retains an n-gram host-memory placement rule. The system coverage says numbers tuned for another model have become open choices, while node descriptions retain concrete context, K/V, sampling and supervision defaults or formulas without consistently marking which are binding.",
+   "affected_fields": [
+    "context",
+    "constraints",
+    "preferences",
+    "in_scope"
+   ],
+   "blocking": true,
+   "clarification": "Resolve the n-gram rule and identify which retained numerical defaults and formulas are intentional requirements for this engine versus inherited choices to leave open."
+  },
+  {
+   "id": "uncertainty.boundary",
+   "kind": "ambiguous",
+   "description": "The target leaves execution form and streaming UNSET, while the system and node descriptions include an HTTP service, an engine child process and streaming or JSON responses. It is unresolved whether these descriptions settle the target's open delivery boundary.",
+   "affected_fields": [
+    "requested_result",
+    "in_scope",
+    "constraints"
+   ],
+   "blocking": true,
+   "clarification": "Confirm whether the required product is the described service plus engine process, and which streaming behavior is required."
+  },
+  {
+   "id": "uncertainty.model-facts",
+   "kind": "missing",
+   "description": "The supplied model document explicitly lacks verified configuration and tensor-header facts needed to settle compiled shapes, actual expert and shared-weight sizes, attention-state bytes per token and embedding/output-head tying. Its derived size estimates are not verified measurements.",
+   "affected_fields": [
+    "context",
+    "constraints"
+   ],
+   "blocking": false,
+   "clarification": "Carry these verification obligations to implementation using the selected checkpoint's configuration and tensor metadata; retain the supplied estimates as conditional until verified."
+  },
+  {
+   "id": "uncertainty.environment",
+   "kind": "missing",
+   "description": "The target leaves the environment UNSET. The hardware description leaves actual SSD capacity configuration-dependent and SSD read bandwidth to measurement. These are execution-environment facts rather than grounds to invent hardware requirements or performance targets.",
+   "affected_fields": [
+    "context",
+    "constraints"
+   ],
+   "blocking": false,
+   "clarification": "Record the actual execution environment and storage facts in the later environment stage."
+  },
+  {
+   "id": "uncertainty.prior-design-reasons",
+   "kind": "ambiguous",
+   "description": "Carry forward all supplied derivation reasons: the native-weight-loader does not apply because Muse has one prepared form and loader; host-memory-admission does not apply because all expert copies cannot fit and no lookup table exists; replica-router does not apply on one machine; checkpoint-chain does not apply to truncatable attention-only state; the model-specific MTP and dflash2 drafters do not apply; session-loop applies only to a Strata pack; ngram-reader does not apply without a lookup table; CPU expert execution offers no stated advantage when CPU and GPU share memory and missing experts are on storage. Slot scheduling is postponed for attention-state memory cost; speed calibration awaits this engine's measurements; lookup drafting, its policy and verifier await miss-cost and acceptance measurements; window graphs await measured miss rates because storage can interrupt a layer. These reasons remain governing exclusions or deferrals, with their retained-detail conflicts recorded separately.",
+   "affected_fields": [
+    "context",
+    "in_scope",
+    "out_of_scope",
+    "constraints"
+   ],
+   "blocking": false,
+   "clarification": "Retain these supplied reasons during clarification; do not silently reinstate excluded or postponed components."
+  }
+ ],
+ "readiness": {
+  "status": "needs_clarification",
+  "reason": "The requested engine and supplied design are identified, but essential evaluation parameters remain unset or proposed, and the supplied descriptions conflict on routing geometry, expert residency, drafting and graphs, conversation residency, inherited configuration and product boundary."
+ }
+}

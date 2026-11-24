@@ -1,0 +1,177 @@
+# Written by tools/so_nodetypes_experiments.py classify.
+induction:
+  parts: 240
+  agree: 238
+  agree_main: 236
+  none_ref: 0
+  further_types: 18
+  per:
+    rater-a: 238
+    rater-b: 239
+  per_main:
+    rater-a: 236
+    rater-b: 237
+  answered:
+    rater-a: 240
+    rater-b: 240
+  all_answered: 240
+  same_type: 239
+  fits:
+    rater-a:
+      clean: 222
+      partial: 18
+    rater-b:
+      clean: 224
+      partial: 16
+held_out:
+  parts: 47
+  agree: 44
+  agree_main: 41
+  none_ref: 3
+  further_types: 18
+  per:
+    rater-a: 46
+    rater-b: 44
+  per_main:
+    rater-a: 43
+    rater-b: 41
+  answered:
+    rater-a: 47
+    rater-b: 47
+  all_answered: 47
+  same_type: 44
+  fits:
+    rater-a:
+      clean: 31
+      partial: 12
+      none: 4
+    rater-b:
+      clean: 34
+      partial: 12
+      none: 1
+raters_same_type: 283
+parts_every_rater_answered: 287
+generalisation_applies_to: every_fold
+marks:
+- check: 'the first five engines: every reader gives a type the key accepts'
+  mark: agreement.same_type_min
+  limit: at least 90%
+  figure: 238 of 240 (99.2%)
+  met: true
+  note: ''
+  scoring: true
+- check: 'the first five engines: every reader gives the main type of the key'
+  mark: agreement.same_type_min
+  limit: at least 90%
+  figure: 236 of 240 (98.3%)
+  met: true
+  note: 18 parts have further accepted types
+  scoring: false
+- check: 'the first five engines: the readers give each other the same type'
+  mark: null
+  limit: no mark was set for this check
+  figure: 239 of the 240 parts every reader answered
+  met: null
+  note: ''
+  scoring: false
+- check: 'llama.cpp: every reader gives a type the key accepts'
+  mark: agreement.same_type_min
+  limit: at least 90%
+  figure: 44 of 47 (93.6%)
+  met: true
+  note: ''
+  scoring: true
+- check: 'llama.cpp: every reader gives the main type of the key'
+  mark: agreement.same_type_min
+  limit: at least 90%
+  figure: 41 of 47 (87.2%)
+  met: false
+  note: 18 parts have further accepted types
+  scoring: false
+- check: 'llama.cpp: the readers give each other the same type'
+  mark: null
+  limit: no mark was set for this check
+  figure: 44 of the 47 parts every reader answered
+  met: null
+  note: ''
+  scoring: false
+- check: 'llama.cpp, rater-a: parts the reader calls plainly an instance of one type'
+  mark: generalisation.clean_fit_min
+  limit: at least 75%
+  figure: 31 of 47 (66.0%)
+  met: false
+  note: the reader's own fit marks; no part is dropped; 0 parts without an answer count as not plainly one type
+  scoring: true
+- check: 'llama.cpp, rater-a: parts the reader gives no type'
+  mark: generalisation.no_type_max
+  limit: at most 5%
+  figure: 4 of 47 (8.5%)
+  met: false
+  note: ''
+  scoring: true
+- check: 'llama.cpp, rater-b: parts the reader calls plainly an instance of one type'
+  mark: generalisation.clean_fit_min
+  limit: at least 75%
+  figure: 34 of 47 (72.3%)
+  met: false
+  note: the reader's own fit marks; no part is dropped; 0 parts without an answer count as not plainly one type
+  scoring: true
+- check: 'llama.cpp, rater-b: parts the reader gives no type'
+  mark: generalisation.no_type_max
+  limit: at most 5%
+  figure: 1 of 47 (2.1%)
+  met: true
+  note: ''
+  scoring: true
+problems: []
+disagreements:
+- engine: llama-cpp
+  part: hidden-state-bridge
+  accepted:
+  - none
+  given:
+    rater-a: none
+    rater-b: draft-proposal
+  notes:
+    rater-a: 'open gap: handing full-model hidden features to a separately run proposer; nearest draft-proposal'
+    rater-b: hands target hidden features to the proposer (listed open gap)
+- engine: llama-cpp
+  part: memory-composer
+  accepted:
+  - none
+  given:
+    rater-a: none
+    rater-b: positional-state-store
+  notes:
+    rater-a: 'open gap: composing several kinds of per-sequence state store; nearest positional/recurrent-state-store'
+    rater-b: composes several state stores into one interface (listed open gap)
+- engine: strata
+  part: slot-scheduler
+  accepted:
+  - sequence-lifecycle
+  given:
+    rater-a: step-scheduler
+    rater-b: step-scheduler
+  notes:
+    rater-a: assigns slots and orders the prompt-reading channel; keeps slot record consistent
+    rater-b: slot assignment and prompt-reading order plus slot record consistency
+- engine: ds4
+  part: server-generation-loop
+  accepted:
+  - output-interpretation
+  given:
+    rater-a: sequence-lifecycle
+    rater-b: output-interpretation
+  notes:
+    rater-a: per-job generation driver with stop/thinking tracking
+    rater-b: 'per-job driver: sampling calls, thinking, stops, streaming'
+- engine: llama-cpp
+  part: backend-registry
+  accepted:
+  - configuration
+  given:
+    rater-a: none
+    rater-b: device-backend
+  notes:
+    rater-a: 'open gap: discovering compute devices and loading matching backend; nearest configuration/device-backend'
+    rater-b: device discovery and backend loading (listed open gap)

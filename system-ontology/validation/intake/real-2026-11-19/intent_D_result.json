@@ -1,0 +1,110 @@
+{
+  "halt": {
+    "code": "check_failed",
+    "reason": "intent_schema: check_failed: Span is empty or outside Unicode code-point bounds; source_spans: check_failed: Span is empty or outside Unicode code-point bounds; exact_identity: check_failed: Span is empty or outside Unicode code-point bounds",
+    "stage": "verifier"
+  },
+  "receipt": {
+    "admitted": true,
+    "capability_id": "intent.compiler",
+    "check_verdict": "FAIL",
+    "checks": [
+      {
+        "check_id": "intent_schema",
+        "outcome": "FAIL",
+        "reason": "check_failed: Span is empty or outside Unicode code-point bounds"
+      },
+      {
+        "check_id": "source_spans",
+        "outcome": "FAIL",
+        "reason": "check_failed: Span is empty or outside Unicode code-point bounds"
+      },
+      {
+        "check_id": "exact_identity",
+        "outcome": "FAIL",
+        "reason": "check_failed: Span is empty or outside Unicode code-point bounds"
+      }
+    ],
+    "declaration_sha256": "dedd57b1141c4f4e4150d24266a905261c81465215bc5f71317851b6ad06b270",
+    "declared_effects": {
+      "effect_class": "read_only",
+      "effects": [
+        {
+          "assurance": "protected bridge enforces scope and limits",
+          "id": "model-disclosure",
+          "idempotent": false,
+          "op": "model_invoke",
+          "resource_key": "approved_model_bridge",
+          "reversibility": "none",
+          "risk": {
+            "blast_radius": "one approved context",
+            "irreversibility": true,
+            "severity": "bounded"
+          },
+          "scope": "bound permitted request context",
+          "undo": null
+        }
+      ]
+    },
+    "finished_at": "2026-11-19T20:00:56.493227Z",
+    "halt": {
+      "code": "check_failed",
+      "reason": "intent_schema: check_failed: Span is empty or outside Unicode code-point bounds; source_spans: check_failed: Span is empty or outside Unicode code-point bounds; exact_identity: check_failed: Span is empty or outside Unicode code-point bounds",
+      "stage": "verifier"
+    },
+    "input_sha256": "7074e76f339d593607cb81ad2ec45604ee5aa46bc5aaa19ab4c2e9905ac5f6e5",
+    "model_calls": [
+      {
+        "index": 1,
+        "model": null,
+        "prompt_sha256": "41c47d5db7d2f24c5d45c7c66d2b73284fc45136c634cc246d82ea2d22a4de73",
+        "provider_kind": "cmd",
+        "reply_sha256": "e7f913ace47c8b1025da6a6da4cd7520a88d290f75d0313d0c34eea4d9bc0d78",
+        "system_sha256": "5d7a748f5498f7c4858a29810d4e21bdf7c87c36271eae0722740ceb15b9b20a",
+        "tokens": null
+      }
+    ],
+    "not_applicable_outside_pipeline": [
+      {
+        "check": "exact_identity",
+        "part": "pinned invocation completed observably (observation outcome and observed_runtime)",
+        "status": "not_applicable_outside_pipeline",
+        "why": "needs the runner's invocation-observation record; the runtime enforces its own wall time and model-call limit instead"
+      },
+      {
+        "check": "host_contract, host_identity, host_limits, host_authority",
+        "status": "not_applicable_outside_pipeline",
+        "why": "host checks read run records, library standing and the sealed subnode contract"
+      },
+      {
+        "check": "internal_acceptance, external_output, aggregate_limits",
+        "status": "not_applicable_outside_pipeline",
+        "why": "node finalization and gate decisions belong to the run store"
+      }
+    ],
+    "output_sha256": {
+      "intent": "94c47774adf907905d08de7c3edacf9d41c32b934d6d47bac9369855b63d115a"
+    },
+    "packet_review": null,
+    "receipt_sha256": "8e237050aed4bcc10447e26ee6a1031cdb8243eacdc7a4c03f8a202ada2f3c34",
+    "release_hash": "deae99bb52e83ab325413f46ee05921af4b0fdf093a3f35cc3507dd7dc7d0e23",
+    "schema": "capsule-runtime-receipt:1",
+    "semantic_verifier": {
+      "reason": "not reached",
+      "status": "not_run"
+    },
+    "started_at": "2026-11-19T19:57:23.480366Z",
+    "status": "halted",
+    "trace": null,
+    "verifier_independent": null,
+    "verifiers": {},
+    "version": "m1-8",
+    "worker_model": {
+      "calls": 1,
+      "identity": "cmd:C:\\Users\\<user>\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B <work>\\real-compiler\\codex_call.py worker-intent-D",
+      "limit": 1,
+      "provider_kind": "cmd"
+    }
+  },
+  "status": "halted"
+}

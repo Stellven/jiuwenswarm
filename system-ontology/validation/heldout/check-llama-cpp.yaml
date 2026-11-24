@@ -1,0 +1,759 @@
+engine: llama.cpp
+assignment:
+  checkpoint-converter: model-conversion
+  importance-calibrator: calibration
+  weight-quantizer: model-conversion
+  backend-registry: configuration
+  model-file-reader: model-loading
+  memory-fit-planner: memory-planning
+  weight-placer: model-loading
+  lazy-table-reader: row-source
+  moe-expert-cache: expert-cache
+  host-expert-streamer: expert-fetch
+  tensor-split-device: model-partitioning
+  remote-device-rpc: device-communication
+  compute-memory-planner: memory-planning
+  adapter-overlay: model-edit
+  tokenizer: prompt-preparation
+  chat-template-renderer: prompt-preparation
+  output-message-parser: output-interpretation
+  multimodal-encoder: modality-encoding
+  speech-output-generator: none
+  batch-splitter: step-execution
+  kv-cache: positional-state-store
+  sparse-attention-cache: positional-state-store
+  recurrent-state-store: recurrent-state-store
+  memory-composer: none
+  decode-driver: step-execution
+  graph-builder: layer-compute
+  backend-scheduler: device-backend
+  op-kernels: device-backend
+  hidden-state-bridge: none
+  sampler-chain: sampling
+  backend-sampler: sampling
+  grammar-constraint: output-constraint
+  reasoning-budget: output-constraint
+  drafter: draft-proposal
+  draft-verifier: draft-verification
+  draft-rollback: draft-verification
+  http-front: request-front
+  task-queue: engine-supervision
+  slot-scheduler: sequence-lifecycle
+  request-slot: sequence-lifecycle
+  continuous-batcher: step-scheduler
+  prompt-cache: prefix-reuse
+  state-persistence: session-persistence
+  stream-replay-buffer: request-front
+  model-router: replica-routing
+  decision-scorer: scoring
+  telemetry: telemetry
+also:
+  weight-placer:
+  - model-partitioning
+  moe-expert-cache:
+  - residency-policy
+  - expert-dispatch
+  tensor-split-device:
+  - device-communication
+  remote-device-rpc:
+  - device-backend
+  tokenizer:
+  - output-interpretation
+  chat-template-renderer:
+  - output-constraint
+  multimodal-encoder:
+  - media-preparation
+  kv-cache:
+  - state-pool
+  decode-driver:
+  - graph-capture
+  backend-scheduler:
+  - secondary-compute
+  - model-partitioning
+  op-kernels:
+  - layer-compute
+  - graph-capture
+  reasoning-budget:
+  - output-interpretation
+  task-queue:
+  - sequence-lifecycle
+  slot-scheduler:
+  - prefix-reuse
+  request-slot:
+  - output-interpretation
+  continuous-batcher:
+  - prefix-reuse
+  prompt-cache:
+  - state-tiering
+  model-router:
+  - engine-supervision
+decision_coverage:
+  totals:
+    decisions: 121
+    covered: 60
+    loosely: 29
+    not_covered: 30
+    engine_specific: 2
+  per_type:
+  - type: model-conversion
+    decisions: 8
+    covered: 5
+    loosely: 1
+    not_covered: 2
+    engine_specific: 0
+  - type: calibration
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: configuration
+    decisions: 2
+    covered: 1
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: model-loading
+    decisions: 8
+    covered: 6
+    loosely: 1
+    not_covered: 1
+    engine_specific: 0
+  - type: memory-planning
+    decisions: 5
+    covered: 2
+    loosely: 3
+    not_covered: 0
+    engine_specific: 0
+  - type: row-source
+    decisions: 2
+    covered: 1
+    loosely: 0
+    not_covered: 1
+    engine_specific: 0
+  - type: expert-cache
+    decisions: 1
+    covered: 0
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: residency-policy
+    decisions: 1
+    covered: 1
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: expert-dispatch
+    decisions: 2
+    covered: 1
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: expert-fetch
+    decisions: 2
+    covered: 1
+    loosely: 0
+    not_covered: 0
+    engine_specific: 1
+  - type: model-partitioning
+    decisions: 3
+    covered: 2
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: device-communication
+    decisions: 2
+    covered: 1
+    loosely: 0
+    not_covered: 1
+    engine_specific: 0
+  - type: model-edit
+    decisions: 2
+    covered: 1
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: prompt-preparation
+    decisions: 3
+    covered: 0
+    loosely: 2
+    not_covered: 1
+    engine_specific: 0
+  - type: output-constraint
+    decisions: 4
+    covered: 0
+    loosely: 2
+    not_covered: 2
+    engine_specific: 0
+  - type: output-interpretation
+    decisions: 6
+    covered: 3
+    loosely: 3
+    not_covered: 0
+    engine_specific: 0
+  - type: media-preparation
+    decisions: 2
+    covered: 1
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: modality-encoding
+    decisions: 1
+    covered: 1
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: none
+    decisions: 6
+    covered: 0
+    loosely: 0
+    not_covered: 6
+    engine_specific: 0
+  - type: step-execution
+    decisions: 4
+    covered: 1
+    loosely: 0
+    not_covered: 3
+    engine_specific: 0
+  - type: positional-state-store
+    decisions: 4
+    covered: 1
+    loosely: 0
+    not_covered: 2
+    engine_specific: 1
+  - type: state-pool
+    decisions: 3
+    covered: 1
+    loosely: 2
+    not_covered: 0
+    engine_specific: 0
+  - type: recurrent-state-store
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: graph-capture
+    decisions: 2
+    covered: 1
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: layer-compute
+    decisions: 3
+    covered: 1
+    loosely: 1
+    not_covered: 1
+    engine_specific: 0
+  - type: secondary-compute
+    decisions: 1
+    covered: 1
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: device-backend
+    decisions: 2
+    covered: 1
+    loosely: 0
+    not_covered: 1
+    engine_specific: 0
+  - type: sampling
+    decisions: 4
+    covered: 2
+    loosely: 0
+    not_covered: 2
+    engine_specific: 0
+  - type: draft-proposal
+    decisions: 4
+    covered: 4
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: draft-verification
+    decisions: 3
+    covered: 2
+    loosely: 0
+    not_covered: 1
+    engine_specific: 0
+  - type: request-front
+    decisions: 3
+    covered: 2
+    loosely: 0
+    not_covered: 1
+    engine_specific: 0
+  - type: sequence-lifecycle
+    decisions: 4
+    covered: 3
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: engine-supervision
+    decisions: 3
+    covered: 1
+    loosely: 2
+    not_covered: 0
+    engine_specific: 0
+  - type: step-scheduler
+    decisions: 4
+    covered: 1
+    loosely: 1
+    not_covered: 2
+    engine_specific: 0
+  - type: prefix-reuse
+    decisions: 4
+    covered: 3
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: session-persistence
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: replica-routing
+    decisions: 2
+    covered: 1
+    loosely: 0
+    not_covered: 1
+    engine_specific: 0
+  - type: scoring
+    decisions: 3
+    covered: 0
+    loosely: 1
+    not_covered: 2
+    engine_specific: 0
+  - type: telemetry
+    decisions: 2
+    covered: 1
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  loosely:
+  - part: weight-quantizer
+    type: model-conversion
+    decision: whether a type requires an importance matrix
+    nearest_choice: the data a derived piece is selected or fitted from, and what is eligible for it
+  - part: backend-registry
+    type: configuration
+    decision: which backend variant to load (CPU feature level scoring)
+    nearest_choice: how machine facts are mapped to a machine class
+  - part: memory-fit-planner
+    type: memory-planning
+    decision: how to account for a draft or MTP model sharing the devices
+    nearest_choice: what is priced before caches get the remainder
+  - part: weight-placer
+    type: model-loading
+    decision: which buffer type to prefer per tensor (repacked CPU, host-pinned, device, row-split)
+    nearest_choice: whether weights are re-encoded at load and how
+  - part: moe-expert-cache
+    type: expert-cache
+    decision: budget split among GPUs and among layer groups
+    nearest_choice: one region or several with different roles
+  - part: moe-expert-cache
+    type: expert-dispatch
+    decision: batch size threshold above which the cache is not used for lookups
+    nearest_choice: the order in which the ways are tried
+  - part: tensor-split-device
+    type: model-partitioning
+    decision: which axis each tensor splits on
+    nearest_choice: split by layers, by parts of each layer, or by selectively used weights
+  - part: compute-memory-planner
+    type: memory-planning
+    decision: which shapes count as worst case (n_seqs 1 vs many for some recurrent inputs)
+    nearest_choice: what is priced before caches get the remainder
+  - part: compute-memory-planner
+    type: memory-planning
+    decision: whether pipeline parallel copies are kept
+    nearest_choice: whether a failed allocation is retried smaller, and by how much
+  - part: adapter-overlay
+    type: model-edit
+    decision: scale per adapter
+    nearest_choice: the range of strength allowed
+  - part: tokenizer
+    type: prompt-preparation
+    decision: whether to add BOS/EOS
+    nearest_choice: the template used and how it is corrected
+  - part: chat-template-renderer
+    type: prompt-preparation
+    decision: which format family a template belongs to
+    nearest_choice: the template used and how it is corrected
+  - part: chat-template-renderer
+    type: output-constraint
+    decision: whether tool calls get a lazy grammar
+    nearest_choice: which requests a rule is applied to, and which constraint languages may be combined
+  - part: output-message-parser
+    type: output-interpretation
+    decision: how to treat partial output
+    nearest_choice: what is returned when parsing fails
+  - part: multimodal-encoder
+    type: media-preparation
+    decision: merging consecutive video frames
+    nearest_choice: how media is resized, cut or sampled to fit the model
+  - part: kv-cache
+    type: state-pool
+    decision: one shared stream for all sequences or one stream per sequence
+    nearest_choice: page size and how the pool is split between kinds of state
+  - part: kv-cache
+    type: state-pool
+    decision: contiguous vs scattered cell placement
+    nearest_choice: target size of a contiguous run of pages
+  - part: graph-builder
+    type: layer-compute
+    decision: flash attention or not
+    nearest_choice: kernel variant per device class, step shape and stored-state format
+  - part: op-kernels
+    type: graph-capture
+    decision: whether a graph can be captured or must be re-captured
+    nearest_choice: which step shapes are recorded ahead and which on first use
+  - part: grammar-constraint
+    type: output-constraint
+    decision: native engine vs llguidance
+    nearest_choice: which rules are offered
+  - part: reasoning-budget
+    type: output-interpretation
+    decision: which sequences start and end reasoning
+    nearest_choice: reasoning and tool formats per model family
+  - part: task-queue
+    type: engine-supervision
+    decision: which tasks run while yielding
+    nearest_choice: where the process loop runs housekeeping between steps
+  - part: slot-scheduler
+    type: sequence-lifecycle
+    decision: prompt similarity threshold
+    nearest_choice: 'how a request is matched to a place: a slot or a lane'
+  - part: request-slot
+    type: output-interpretation
+    decision: hold back text that may be the start of a stop string
+    nearest_choice: stop conditions and their order
+  - part: continuous-batcher
+    type: step-scheduler
+    decision: on 'no room' free idle slots' cache or halve the batch and retry
+    nearest_choice: whether a sequence is paused and recomputed when shared memory is full
+  - part: continuous-batcher
+    type: prefix-reuse
+    decision: how many prompt tokens can be skipped (common prefix, chunk reuse by shifting)
+    nearest_choice: the key that decides whether stored state may be reused
+  - part: model-router
+    type: engine-supervision
+    decision: which instance to unload
+    nearest_choice: when an idle engine is unloaded
+  - part: decision-scorer
+    type: scoring
+    decision: joint vs per-question prompts
+    nearest_choice: which options can be scored in one step
+  - part: telemetry
+    type: telemetry
+    decision: whether eval callback forces per-node synchronization
+    nearest_choice: whether reading status may affect the engine's decisions
+  not_covered:
+  - part: checkpoint-converter
+    type: model-conversion
+    decision: which tokenizer type and pre-tokenizer hash to record
+    kind: format
+    missing_choice: how the tokenizer's type and pre-tokenization rules are identified and recorded with the converted files
+  - part: weight-quantizer
+    type: model-conversion
+    decision: fallback type when a tensor's row length does not fit the block size
+    kind: failure
+    missing_choice: which precision a tensor gets when its shape does not fit the chosen format
+  - part: model-file-reader
+    type: model-loading
+    decision: whether to release mmap pages of tensors that were copied to a device
+    kind: policy
+    missing_choice: whether file pages are released once the weights read from them have been copied to their device
+  - part: lazy-table-reader
+    type: row-source
+    decision: which tensors an architecture marks as lazy
+    kind: policy
+    missing_choice: which tables are served row by row instead of being held whole, and by what criterion
+  - part: remote-device-rpc
+    type: device-communication
+    decision: which tensors to send by hash instead of by value
+    kind: policy
+    missing_choice: whether a large transfer is replaced by a content key that the receiver resolves from its own store
+  - part: tokenizer
+    type: prompt-preparation
+    decision: whether to parse special tokens in the input
+    kind: policy
+    missing_choice: whether text supplied by the request may be read as control tokens
+  - part: speech-output-generator
+    type: none
+    decision: stage pipeline per model
+    kind: policy
+    missing_choice: which stages turn generated tokens into output that is not text, and how they are chained
+  - part: batch-splitter
+    type: step-execution
+    decision: which split strategy the memory asks for
+    kind: policy
+    missing_choice: how a step's rows are cut into sub-steps shaped for the kinds of per-sequence state
+  - part: batch-splitter
+    type: step-execution
+    decision: how many trailing tokens of a sequence must stay together
+    kind: policy
+    missing_choice: which rows of one sequence must stay in the same sub-step
+  - part: kv-cache
+    type: positional-state-store
+    decision: whether position shifting (RoPE re-rotation) is allowed
+    kind: policy
+    missing_choice: whether stored state may be moved to other positions so that earlier positions can be discarded or state
+      reused elsewhere
+  - part: sparse-attention-cache
+    type: positional-state-store
+    decision: mirror the main cache layout instead of searching its own cells
+    kind: placement
+    missing_choice: whether an auxiliary per-position store allocates its own places or mirrors the layout of the main store
+  - part: memory-composer
+    type: none
+    decision: memory type per architecture
+    kind: policy
+    missing_choice: which kinds of per-sequence store an architecture is given
+  - part: memory-composer
+    type: none
+    decision: layer filter and layer reuse/sharing callbacks
+    kind: placement
+    missing_choice: which layers' state goes to which store, and which layers share stored state
+  - part: memory-composer
+    type: none
+    decision: separate memory shape for an MTP draft context
+    kind: sizing
+    missing_choice: the shape of per-sequence state given to a secondary model that runs from the main model's features
+  - part: decode-driver
+    type: step-execution
+    decision: all tokens output for embeddings and non-causal models
+    kind: policy
+    missing_choice: which rows of a step return outputs to the caller
+  - part: graph-builder
+    type: layer-compute
+    decision: sliced attention per sequence (kv rows)
+    kind: policy
+    missing_choice: whether attention reads only a sequence's own stored rows or the whole shared store under a mask
+  - part: backend-scheduler
+    type: device-backend
+    decision: prefetch next split inputs to host
+    kind: timing
+    missing_choice: when inputs of the next piece of a step are copied ahead of it
+  - part: hidden-state-bridge
+    type: none
+    decision: device or host extraction
+    kind: placement
+    missing_choice: whether features handed from the full model to a proposer stay on the device or pass through the host
+  - part: hidden-state-bridge
+    type: none
+    decision: which layers' inputs to keep
+    kind: policy
+    missing_choice: which layers' features the full model keeps for a proposer
+  - part: sampler-chain
+    type: sampling
+    decision: apply grammar before the chain or only check the chosen token and resample
+    kind: policy
+    missing_choice: whether a constraint masks all candidates before the draw or only checks the drawn token and draws again
+      on rejection
+  - part: backend-sampler
+    type: sampling
+    decision: outputs per sequence limit
+    kind: sizing
+    missing_choice: how many positions per sequence a step may sample on the device
+  - part: grammar-constraint
+    type: output-constraint
+    decision: lazy vs always active
+    kind: timing
+    missing_choice: whether a rule is active from the start or only after a trigger appears in the output
+  - part: grammar-constraint
+    type: output-constraint
+    decision: trigger words, tokens and patterns
+    kind: policy
+    missing_choice: what may trigger a rule's activation
+  - part: draft-verifier
+    type: draft-verification
+    decision: synthetic acceptance for benchmarking replaces verification
+    kind: policy
+    missing_choice: whether acceptance may be replaced by a synthetic rate for measurement, and how output produced so is
+      marked
+  - part: http-front
+    type: request-front
+    decision: which endpoints answer from cache while sleeping
+    kind: policy
+    missing_choice: which requests are answered while the engine is unloaded
+  - part: continuous-batcher
+    type: step-scheduler
+    decision: only slots with the same adapter configuration share a batch
+    kind: policy
+    missing_choice: which sequences are compatible to share a step
+  - part: continuous-batcher
+    type: step-scheduler
+    decision: 'context shift: how many tokens to keep and discard'
+    kind: policy
+    missing_choice: whether, and how much of, a full context is discarded so that generation can continue
+  - part: model-router
+    type: replica-routing
+    decision: memory margin
+    kind: sizing
+    missing_choice: the memory kept free when deciding whether another copy may start
+  - part: decision-scorer
+    type: scoring
+    decision: number of order variants
+    kind: policy
+    missing_choice: whether options are scored in several orders and the results combined
+  - part: decision-scorer
+    type: scoring
+    decision: shared prefix grouping
+    kind: policy
+    missing_choice: how scoring prompts are grouped so that they share stored state
+contradictions:
+- part: telemetry
+  type: telemetry
+  claim: 'must: Recording does not change what the engine computes.'
+  evidence: 'With an eval callback set, the scheduler no longer submits each backend piece whole: it cuts it into graph views
+    ending at every node the callback wants, synchronizes after each, and stops the computation when the callback returns
+    false (ggml/src/ggml-backend.cpp:2252-2287). Backends fuse operations only within one submitted graph, so cutting at observed
+    nodes can change kernels and rounding, and the callback can abort a step.'
+  fix: Recording does not change what the engine computes, except an opt-in per-operation inspection that is stated to change
+    how work is submitted, and so may change rounding, or to stop a step.
+- part: draft-verifier
+  type: draft-proposal
+  claim: 'must: A proposed token is never returned to the client before the full model has accepted it.'
+  evidence: With --spec-synth-len or --spec-synth-rates (marked 'benchmarking only', common/arg.cpp:4217-4248) the server
+    accepts draft tokens at random instead of by match with the target and returns them (tools/server/server-context.cpp:96-134,
+    4864). The inventory records 'synthetic acceptance produces invalid output by design'.
+  fix: A proposed token is never returned before the full model has accepted it, except in an explicitly enabled measurement
+    mode whose output is declared invalid.
+- part: draft-verifier
+  type: output-constraint
+  claim: 'must: A token the rule forbids is never returned.'
+  evidence: Under synthetic acceptance, accepted draft tokens are returned without being checked against the grammar ('synthetic
+    draft tokens do not advance grammar or reasoning state', tools/server/server-context.cpp:120-123).
+  fix: A token the rule forbids is never returned, except in an explicitly enabled measurement mode whose output is declared
+    invalid.
+- part: continuous-batcher
+  type: step-scheduler
+  claim: 'effect_on_output: exact, always, in its own work'
+  evidence: 'When a slot''s context is full and context shift is on (opt-in, common/common.h:599), the batcher decides how
+    many tokens to keep and how many to discard and has the rest moved to earlier positions (inventory decision ''context
+    shift: how many tokens to keep and discard''; tools/server/server-context.cpp:3483-3520). It thereby decides what history
+    the model reads, which is the level ''defines''. If the shift itself is counted as the cache''s work, this is an indirect
+    effect not named in affects_output_through.'
+  fix: 'Add ''defines: when it discards part of a full context so that generation can continue''.'
+- part: weight-placer
+  type: model-loading
+  claim: 'effect_on_output: exact when weights are ... re-encoded without changing their values'
+  evidence: Weights placed in a CPU repacked buffer type are re-encoded at load into an interleaved layout without changing
+    their values (ggml/src/ggml-cpu/repack.cpp), and that layout is read by other matmul kernels with another accumulation
+    order; the inventory records 'different devices and repacked kernels round differently'. Re-encoding without changing
+    values is therefore not exact here.
+  fix: exact when weights are used as stored, or re-encoded without changing their values into a form the same kernels read;
+    rounding when re-encoding without changing values selects other kernels.
+- part: model-router
+  type: replica-routing
+  claim: 'summary: Present several independent copies of the engine as one, and choose which copy serves each request.'
+  evidence: The router's children are separate server processes each serving a different model, chosen by the model name in
+    the request, started on demand and unloaded by measured memory (tools/server/server-models-sched.h:1-60; inventory model-router).
+    They are not copies of one engine, and the choice is not among equivalent copies.
+  fix: 'Present several engine instances, of one model or of several, as one service: choose the instance that serves each
+    request, by model name, load or held state, and start or stop instances as needed.'
+new_causes:
+- part: kv-cache
+  type: positional-state-store
+  kind: own
+  level: rounding
+  cause: stored keys are re-rotated in place to new positions (shift, or division of positions), so they differ in their last
+    bits from keys computed at those positions, and a quantised store re-rounds them
+  evidence: 'inventory kv-cache: ''supports remove, copy (shared cells), keep, shift and divide of positions per sequence'',
+    ''pending shift flag'', decision ''whether position shifting (RoPE re-rotation) is allowed'''
+- part: continuous-batcher
+  type: prefix-reuse
+  kind: own
+  level: approximate
+  cause: it reuses stored state of a matching chunk that is not part of the common prefix, computed after different preceding
+    text, by moving it to its new positions
+  evidence: inventory continuous-batcher decision 'how many prompt tokens can be skipped (common prefix, chunk reuse by shifting)';
+    common/common.h:658 n_cache_reuse 'min chunk size to reuse from the cache via KV shifting' (opt-in, default 0)
+- part: backend-sampler
+  type: sampling
+  kind: own
+  level: resampled
+  cause: the draw runs on the device with another random generator than host sampling, so the same seed gives another draw
+    from the same distribution
+  evidence: 'inventory backend-sampler output_effect_when: ''stochastic draws can pick different tokens than CPU sampling
+    with the same seed; greedy matches'''
+- part: moe-expert-cache
+  type: expert-dispatch
+  kind: own
+  level: rounding
+  cause: the share of misses left to the other device carries a remainder over from earlier plans, so which blocks a request
+    computes on which device depends on what ran before it
+  evidence: inventory moe-expert-cache owns_state 'fraction of a miss carried to the next plan', decision 'which misses go
+    to the CPU (lowest score) and how many'
+- part: draft-rollback
+  type: draft-verification
+  kind: through
+  level: rounding
+  cause: after a checkpoint is restored, the accepted tokens are replayed in a further step, so their state is recomputed
+    at another step width than the checked block that accepted them
+  evidence: 'inventory draft-rollback: ''saves a state checkpoint before verification and restores it then replays the accepted
+    tokens''; gives ''replay of accepted tokens when a checkpoint was restored'' to continuous-batcher'
+- part: decision-scorer
+  type: scoring
+  kind: own
+  level: defines
+  cause: it applies per-model calibration stored with the weights (temperatures, biases) to the scores and averages them over
+    several orders of the options
+  evidence: inventory decision-scorer takes 'decision metadata (labels, temperatures, biases)', returns 'calibrated option
+    scores', 'order variants average out option-position bias'
+- part: memory-fit-planner
+  type: memory-planning
+  kind: through
+  level: defines
+  cause: the context length it lowers to make the plan fit decides where a sequence's output is cut by the context limit
+  evidence: 'inventory memory-fit-planner gives ''context size'' to kv-cache and adjusts unset parameters ''context size''
+    first among things given up; request-slot ends output when ''context full without shift: stop with limit'''
+relaxations:
+- part: op-kernels
+  type: layer-compute
+  rule: An approximation that is in effect is stated with the run's settings.
+  how: Quantised matmuls on CUDA run the activations at a reduced 8-bit precision in the kernels the engine chooses by device
+    class and by the number of rows in the step (ggml/src/ggml-cuda/mmq.cu:395-526, MMQ_DP4A_MAX_BATCH_SIZE), with only a
+    build-time switch to turn it off (GGML_CUDA_FORCE_CUBLAS); the run does not state it. This is a kernel default selected
+    by step width and device with no run-time switch, a mechanism the relaxed text does not name.
+- part: state-persistence
+  type: session-persistence
+  rule: A file is loaded only where its recorded identity matches the model and settings.
+  how: Session and sequence files are checked only for magic and version and then structurally (layer count, key and value
+    types and row sizes) (src/llama-context.cpp:3918-3990, src/llama-kv-cache.cpp:2729-2851). Nothing identifies the weights,
+    so a file written under another model of the same shape, another fine-tune or another weight precision loads.
+- part: continuous-batcher
+  type: prefix-reuse
+  rule: Stored state is reused only where the model, the weights' precision, the settings and the prefix match what it was
+    made for.
+  how: With chunk reuse on (n_cache_reuse > 0), stored state of chunks that match a later part of the prompt is reused although
+    the prefix before them differs (common/common.h:658).
+inventory_errors:
+- part: drafter
+  field: output_effect
+  recorded: none
+  source_shows: 'The number of draft tokens sets the number of rows the target verifies, and CUDA chooses the quantised matmul
+    kernel (and its activation precision) by the number of rows (ggml/src/ggml-cuda/mmq.cu:395-526, ggml_cuda_should_use_mmq
+    on ne11), so drafting changes the target''s arithmetic: at least numeric.'
+- part: draft-verifier
+  field: output_effect
+  recorded: none
+  source_shows: Rejection sampling draws the corrected token from a residual distribution (common/sampling.cpp:734-830), and
+    synthetic acceptance returns randomly accepted draft tokens (tools/server/server-context.cpp:96-134); the part's own must_never
+    even records that synthetic acceptance 'produces invalid output by design'. changes_output.
+- part: kv-cache
+  field: output_effect_when
+  recorded: with a quantized K/V type (q8_0, q4_0...), compared with f16; Hadamard rotation of K/V reduces that error
+  source_shows: Position shift and division re-rotate stored keys in place (the part's own 'shift and divide of positions',
+    pending shift flag; src/llama-kv-cache.h), which changes stored values also with f16 K/V; the condition is incomplete.
+missing_from_the_types:
+- 'Composing per-sequence memory: choosing for an architecture which kinds of state store it gets, routing each layer to one,
+  and presenting them as one store whose operations apply to all members together.'
+- Handing hidden features of the full model's computation to a separately run proposer on the device, ordered by device events
+  instead of host copies.
+- Producing output that is not text, such as speech, by further stage models that turn generated tokens and hidden states
+  into audio.
+- Cutting one step into sub-steps whose shape suits the kinds of per-sequence state (equal-length sequence groups for recurrent
+  state), with rows of one sequence that must stay together.
+- Discarding part of a full context and moving the remaining stored state to earlier positions so that generation continues,
+  and reusing stored chunks at new positions.
+- Activating an output constraint only after a trigger appears in the output, so that it stays inactive until then.

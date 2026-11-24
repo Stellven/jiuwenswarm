@@ -1,0 +1,139 @@
+# Blind selection of node types for Muse Spark Open (816B total, 42B active, 256 experts pick 8, 62 layers)
+# on one DGX Spark (128 GB unified LPDDR5x, 273 GB/s; NVMe measured about 4.8 GB/s), memory budget 80 GB,
+# text in and text out, one conversation at a time. Inputs: node-types.blind.yaml, model-muse-spark-open.yaml,
+# hw-dgx-spark.yaml, env-dgx-spark-measured.yaml only.
+#
+# Working figures used below (derived from the files, not stated in them):
+#   expert weights 399.5 GB at 4 bits, about 25.2 MB each, 15,872 experts (model file, status derived)
+#   non-expert weights 8.5 GB at 4 bits or 34 GB at 16 bits (model file, derived)
+#   worst-case expert bytes per decoded token: 62 layers x 8 experts x 25.2 MB = 12.5 GB, about 2.6 s at 4.8 GB/s
+#   experts that fit in about 60 GB left for a cache: about 2,400 of 15,872 (about 15 percent)
+
+selection:
+  - {type: "model-preparation", verdict: needed, reason: "The published checkpoint is safetensors and the 15,872 experts must be read one at a time from storage with direct reads; the file layout has to suit that, which is an offline step.", rests_on: "checkpoint_format safetensors; expert_weights partitioned_by layer and expert, about 25.2 MB each; measured reads were O_DIRECT", applies_when_evaluable: true}
+  - {type: "weight-loader", verdict: needed, reason: "Every engine must open the files and place the weights every token uses (the 8.5 to 34 GB of non-expert weights).", rests_on: "shared_weights 8.5 GB (4 bit) or 34 GB (16 bit)", applies_when_evaluable: true}
+  - {type: "table-reader", verdict: cannot_tell, reason: "The condition is literally true (the embedding table has 202,048 rows and a token reads one), but the type does not say whether an ordinary embedding table that fits in memory counts. Here the table is at most about 3.3 GB at 16 bits, so keeping it resident looks cheaper than a reader; the type gives no threshold to decide.", rests_on: "token_embedding 202,048 x 8,192 = 1.66B parameters; budget 80 GB", applies_when_evaluable: true}
+  - {type: "expert-source", verdict: needed, reason: "The model selects 8 of 256 experts per token per layer, and the full expert set (about 399.5 GB) cannot be held in memory, so it must be served from storage for the whole run.", rests_on: "expert_router out_of 256 pick 8; expert_weights 399.5 GB; ssd0 2,014.6 GB reported", applies_when_evaluable: true}
+  - {type: "expert-cache", verdict: needed, reason: "Not all experts fit: 399.5 GB of experts against an 80 GB budget. Evaluating the condition required equating fast memory with the single unified pool mem0, which the type does not define.", rests_on: "expert_weights 399.5 GB; budget 80 GB; mem0 is the only memory pool", applies_when_evaluable: true}
+  - {type: "cache-policy", verdict: needed, reason: "With only about 15 percent of experts resident, which ones are held decides how many 25 MB reads each token costs.", rests_on: "cache of about 2,400 of 15,872 experts; SSD read 4.8 GB/s", applies_when_evaluable: true}
+  - {type: "expert-dispatch", verdict: needed, reason: "Each layer of each step must decide for 8 selected experts whether they are resident or must be fetched.", rests_on: "expert_router pick 8 per token per layer; not all experts resident", applies_when_evaluable: true}
+  - {type: "expert-transfer", verdict: needed, reason: "Missing experts must be moved from the SSD into the memory pool before use. On this machine the slow place is storage and source and transfer amount to one SSD read; the types do not say whether they merge.", rests_on: "access path ssd0-to-mem0 page_in; scattered_read_bandwidth 4.58 to 4.82 GB/s", applies_when_evaluable: true}
+  - {type: "decode-loop", verdict: needed, reason: "Generation of text output requires a per-token loop through 62 layers and the head.", rests_on: "modality_out text; layers 62", applies_when_evaluable: true}
+  - {type: "layer-compute", verdict: needed, reason: "The model's arithmetic must be computed on the GPU.", rests_on: "operations shared_blocks, expert_ffn, output_projection; gpu0 Blackwell", applies_when_evaluable: true}
+  - {type: "secondary-executor", verdict: not_needed, reason: "The condition is false: CPU and GPU read the same unified pool, so there is no second memory where weights could be computed in place more cheaply than moving them.", rests_on: "access_paths cpu0-mem0 and gpu0-mem0 both direct; note 'CPU and GPU share one pool, no separate VRAM'", applies_when_evaluable: true}
+  - {type: "prompt-reader", verdict: needed, reason: "Any prompt must be read before generation; prompts may be long (context up to one million tokens) so token-by-token reading is not acceptable.", rests_on: "context_length 1,000,000", applies_when_evaluable: true}
+  - {type: "sampler", verdict: needed, reason: "Logits over a 202,048-token vocabulary must be turned into tokens.", rests_on: "vocab_size 202,048; modality_out text", applies_when_evaluable: true}
+  - {type: "memory-planner", verdict: needed, reason: "The 80 GB budget must be divided between non-expert weights, attention state and the expert cache, and these compete directly.", rests_on: "budget 80 GB; allocatable 126.18 GB; shared_weights 8.5 to 34 GB; attention_kv size unknown", applies_when_evaluable: true}
+  - {type: "attention-state-store", verdict: needed, reason: "The model keeps attention state per position.", rests_on: "shared_blocks writes attention_kv", applies_when_evaluable: true}
+  - {type: "conversation-reuse", verdict: cannot_tell, reason: "With one conversation at a time, reuse matters only if earlier conversations recur or if the next turn of the same conversation counts as reuse; the type does not say which, and no requirement on time to first token is given. With long prompts and expert streaming, re-reading a prompt is costly, which argues for it.", rests_on: "one conversation at a time (assumption given); no latency requirement in the inputs", applies_when_evaluable: true}
+  - {type: "drafter", verdict: cannot_tell, reason: "The model card states no draft head and no small companion model is given, so only repetition in the text remains as a source, which always exists. Whether drafting pays depends on whether checking a window of tokens enlarges the set of experts to fetch; nothing in the files allows judging that.", rests_on: "model note 'The card mentions no draft head'; SSD-bound per-step cost", applies_when_evaluable: false}
+  - {type: "draft-policy", verdict: cannot_tell, reason: "Needed exactly when a drafter is needed, which cannot be decided.", rests_on: "follows drafter", applies_when_evaluable: true}
+  - {type: "draft-verifier", verdict: cannot_tell, reason: "Needed exactly when a drafter is needed, which cannot be decided.", rests_on: "follows drafter", applies_when_evaluable: true}
+  - {type: "request-front", verdict: needed, reason: "Text requests must be turned into prompt tokens and generated tokens returned.", rests_on: "modality_in includes text; modality_out text", applies_when_evaluable: true}
+  - {type: "engine-control", verdict: needed, reason: "One request at a time must be driven through prompt read and generation.", rests_on: "one conversation at a time (assumption given)", applies_when_evaluable: true}
+  - {type: "multi-request-scheduler", verdict: not_needed, reason: "The condition is false: one conversation at a time on one machine.", rests_on: "one conversation at a time (assumption given); hardware file describes one machine", applies_when_evaluable: true}
+  - {type: "configuration", verdict: needed, reason: "Budget, context length and measured machine figures must be turned into starting settings.", rests_on: "budget 80 GB; measured env file exists", applies_when_evaluable: true}
+  - {type: "telemetry", verdict: needed, reason: "Cache policy and cache size can only be tuned from recorded expert usage and hit rates; nothing in the files gives these.", rests_on: "no expert usage statistics in the model file", applies_when_evaluable: true}
+
+choices_to_settle:
+  # model-preparation
+  - {type: "model-preparation", choice: "file layout and alignment", status: can_settle, note: "One contiguous region per expert, aligned for direct reads, because the measured 4.8 GB/s was obtained with O_DIRECT reads of 25.2 MB objects. The exact alignment unit is not in the files."}
+  - {type: "model-preparation", choice: "order of experts in the file", status: can_settle, note: "Order matters little: scattered reads of 25.2 MB objects (4.58 to 4.82 GB/s) are nearly as fast as sequential reads (4.81 GB/s). Grouping by layer is enough."}
+  - {type: "model-preparation", choice: "whether precision is changed here (then it does affect output)", status: can_settle, note: "No change: the vendor publishes NVFP4, the only precision under which experts are near 400 GB. Whether non-expert weights are 4 or 16 bits in that release (8.5 vs 34 GB) is not stated and must be read from the file headers."}
+  # weight-loader
+  - {type: "weight-loader", choice: "copy into memory or map the file in place", status: needs_measurement, note: "On unified memory the GPU reads mem0 directly, so mapping is possible, but whether GPU kernels may read page-cache pages, and at what speed, is not measured."}
+  - {type: "weight-loader", choice: "which tensors go to fast memory", status: can_settle, note: "All non-expert tensors (8.5 to 34 GB) stay resident; they fit in 80 GB and every token uses them."}
+  - {type: "weight-loader", choice: "re-encoding at load time", status: needs_measurement, note: "Depends on whether NVFP4 kernels exist on GB10 with CUDA 13.0; the hardware file lists no supported numeric formats."}
+  # expert-source
+  - {type: "expert-source", choice: "where the full set lives: slow memory or storage", status: can_settle, note: "Storage: 399.5 GB exceeds the 126.18 GB allocatable; SSD reports 2,014.6 GB."}
+  - {type: "expert-source", choice: "read through the page cache or around it", status: can_settle, note: "Around it: the page cache would occupy the same unified pool that holds the 80 GB budget, and direct reads were measured at 4.8 GB/s. Page-cache reads were not measured."}
+  - {type: "expert-source", choice: "how many reads may be in flight", status: can_settle, note: "8 to 16: measured 4.58 GB/s at 1, 4.75 at 8, 4.79 at 16, 4.82 at 32."}
+  # expert-cache
+  - {type: "expert-cache", choice: "size", status: needs_measurement, note: "80 GB minus non-expert weights (8.5 or 34 GB), attention state (per-token size unknown; 65 GB at 32k tokens under the worst assumption) and a reserve. Needs config.json and weight headers; it ranges from near zero to about 70 GB."}
+  - {type: "expert-cache", choice: "fixed slots or sized by expert", status: can_settle, note: "Fixed slots: all experts share one shape (about 25.2 MB each under the stated derivation)."}
+  - {type: "expert-cache", choice: "starting contents", status: needs_measurement, note: "No expert usage statistics are given; needs a usage profile from runs."}
+  # cache-policy
+  - {type: "cache-policy", choice: "when it acts: on a miss, or at intervals", status: no_guidance, note: "The type names the options but gives no criterion, e.g. what it costs to act on a miss when every fetch competes for the same 4.8 GB/s."}
+  - {type: "cache-policy", choice: "admission and eviction rule", status: needs_measurement, note: "Depends on how skewed and how stable expert selection is, which is unknown."}
+  - {type: "cache-policy", choice: "how fast usage counts fade", status: needs_measurement, note: "Depends on how expert usage drifts within and across conversations."}
+  - {type: "cache-policy", choice: "limit on changes per round", status: no_guidance, note: "Nothing relates this limit to the shared SSD bandwidth or to the miss traffic it competes with."}
+  # expert-dispatch
+  - {type: "expert-dispatch", choice: "order in which the paths are tried", status: can_settle, note: "Only two paths exist here: from the cache, or after a fetch (no secondary executor)."}
+  - {type: "expert-dispatch", choice: "whether low-ranked experts may be omitted", status: needs_requirement, note: "Changes output; no output-fidelity requirement is given. Omission would cut SSD traffic substantially."}
+  - {type: "expert-dispatch", choice: "share of misses fetched now against left to a slower device", status: can_settle, note: "All misses are fetched; there is no slower device."}
+  # expert-transfer
+  - {type: "expert-transfer", choice: "size of the staging area", status: needs_measurement, note: "At least one layer's misses (8 x 25.2 MB = about 200 MB) for double buffering; overlap with compute time per layer is not measured."}
+  - {type: "expert-transfer", choice: "how many transfers at once", status: can_settle, note: "Same as expert-source in-flight reads: 8 to 16."}
+  - {type: "expert-transfer", choice: "whether to fetch ahead of routing", status: no_guidance, note: "The type does not say what ahead-of-routing fetches would be predicted from, nor how wrong predictions are charged against bandwidth."}
+  # decode-loop
+  - {type: "decode-loop", choice: "tokens per step", status: needs_measurement, note: "1 unless speculation is adopted; whether a wider step increases distinct experts per layer is unknown."}
+  - {type: "decode-loop", choice: "one recorded graph per step, or driven layer by layer", status: can_settle, note: "Layer by layer: each layer may wait on SSD fetches decided only after its routing is known, so a fixed per-step graph cannot cover it (relies on general knowledge of recorded graphs)."}
+  - {type: "decode-loop", choice: "how long a layer may wait", status: needs_requirement, note: "No latency target is given; with no omission allowed, the invariant makes the wait unbounded by design."}
+  # layer-compute
+  - {type: "layer-compute", choice: "kernel variants per precision", status: needs_measurement, note: "Needs the attention form, norms and activation from config.json (not read; requires login) and confirmation of NVFP4 kernels on GB10. This is missing model input rather than a machine measurement."}
+  - {type: "layer-compute", choice: "which operations are fused", status: no_guidance, note: "The type gives no criterion and the layer's operations are not specified in the model file."}
+  # prompt-reader
+  - {type: "prompt-reader", choice: "chunk size", status: needs_measurement, note: "Depends on compute rate and on how many distinct experts a chunk touches; neither is in the files."}
+  - {type: "prompt-reader", choice: "whether it may borrow cache memory while it runs", status: needs_measurement, note: "Depends on activation size per chunk and the attention state size; both unknown."}
+  - {type: "prompt-reader", choice: "whether prompt routing counts toward cache usage", status: no_guidance, note: "The type gives nothing on how prompt routing differs from decode routing; a chunk of many tokens likely selects most of the 256 experts per layer, which would flatten usage counts."}
+  # sampler
+  - {type: "sampler", choice: "where it runs: inside the computation graph or outside", status: can_settle, note: "Either; on unified memory the CPU can read logits without a copy. Not output-relevant."}
+  # memory-planner
+  - {type: "memory-planner", choice: "reserve", status: needs_measurement, note: "126.18 GB was allocatable at probe time against an 80 GB budget; the share used by OS, driver and other processes during a run is not measured."}
+  - {type: "memory-planner", choice: "what is priced before the cache", status: can_settle, note: "Non-expert weights, attention state for the offered context, staging area, activations. The amounts are unknown (see expert-cache size); the list is settled."}
+  - {type: "memory-planner", choice: "what to give up first when memory is short", status: needs_requirement, note: "Context length against cache size is a product trade-off; no requirement gives priority."}
+  # attention-state-store
+  - {type: "attention-state-store", choice: "precision of stored state", status: needs_requirement, note: "Lower precision changes output; no fidelity requirement given. Per-token size also unknown."}
+  - {type: "attention-state-store", choice: "whether old state may leave fast memory", status: needs_measurement, note: "Per-token state size is not on the card; at the stated worst case (2.0 MB per token) one million tokens is about 2 TB, which cannot stay in memory. Needs config.json."}
+  # request-front
+  - {type: "request-front", choice: "interface offered", status: needs_requirement, note: "No client interface requirement is given."}
+  - {type: "request-front", choice: "what happens when prompt plus output exceed the context", status: needs_requirement, note: "And the offered context itself (anything up to 1,000,000) is not settled by any input."}
+  # engine-control
+  - {type: "engine-control", choice: "in-process or a separate engine process", status: no_guidance, note: "No criterion given."}
+  - {type: "engine-control", choice: "what happens when the engine fails", status: needs_requirement, note: "No availability requirement is given."}
+  # configuration
+  - {type: "configuration", choice: "which settings are measured on the machine and which are fixed", status: no_guidance, note: "The env file shows a probe exists, but the type gives no rule for what must be measured."}
+  # telemetry
+  - {type: "telemetry", choice: "what is recorded by default", status: needs_requirement, note: "The requirements the engine is judged on are not given."}
+  - {type: "telemetry", choice: "whether expert usage is recorded", status: can_settle, note: "Yes: cache contents and policy can only be tuned from it."}
+
+not_provided:
+  - {need: "A cost model or feasibility check for decoding speed", why: "Weights are about 5 times the budget. Worst case one token needs 62 x 8 x 25.2 MB = 12.5 GB of reads, about 2.6 s at 4.8 GB/s, and with about 15 percent of experts cached the hit rate decides speed. No node type estimates tokens per second from hit rate, SSD bandwidth and compute, and memory-planner refuses start only when memory does not fit, never when speed is unacceptable."}
+  - {need: "Layer-major expert streaming for prompt reading", why: "A chunk of many tokens selects most experts of every layer, so reading a long prompt means streaming close to the full 399.5 GB per pass (about 83 s at 4.8 GB/s). prompt-reader assumes the same expert path as decode and has no way to read each layer's experts once and apply them to all tokens of the chunk, nor to bound how often the full set is streamed for a one-million-token prompt."}
+  - {need: "Attention state beyond memory for long context", why: "At the stated worst case 2.0 MB per token, 32,768 tokens already take 65 GB of the 80 GB budget and one million tokens about 2 TB. attention-state-store names 'whether old state may leave fast memory' but no node types store state on SSD, page it back, or price it; nothing chooses the offered context length."}
+  - {need: "Storage budget planning", why: "Storage holds the checkpoint and the prepared files. A BF16 checkpoint is about 1.63 TB (816B x 2 bytes) against 2,014.6 GB reported, so it and its prepared copy cannot both fit; even NVFP4 needs about 408 GB twice. memory-planner covers memory only."}
+  - {need: "Mapping of resource tiers to the machine", why: "Node types use fast_memory, slow_memory and storage; the machine has one unified pool shared by CPU and GPU plus an SSD. No rule says what slow_memory means here, so expert-source and expert-transfer collapse into one step and the split is unclear."}
+  - {need: "Image, video and audio input (out of scope under the text-only assumption)", why: "The model has a perception_encoder with its own encoder_weights; no node type covers media decoding, the encoder, or merging encoder output into the token stream, and request-front only turns messages into tokens. Its weights would also need pricing in memory-planner."}
+  - {need: "A source for the tokenizer, chat template and reference outputs", why: "request-front and layer-compute both define correctness against a reference, but no node type obtains or checks the reference tokenizer, template or reference implementation, and the model file names none."}
+
+missing_in_descriptions:
+  - {type: "expert-cache", lacking: "What fast memory means on a unified-memory machine (here the cache and the slow place are the same pool)."}
+  - {type: "expert-cache", lacking: "How the size is derived: a formula from budget minus priced items, and a minimum useful size (e.g. at least one layer's 8 experts)."}
+  - {type: "cache-policy", lacking: "What it minimises (misses per token, bytes read per token) and which usage statistics it needs as input."}
+  - {type: "cache-policy", lacking: "How its fetches share bandwidth with on-demand miss fetches from the same SSD."}
+  - {type: "expert-transfer", lacking: "Whether it merges with expert-source when the slow place is storage and the destination is the same pool."}
+  - {type: "expert-transfer", lacking: "What fetch-ahead is predicted from and how wrong predictions are charged."}
+  - {type: "prompt-reader", lacking: "How expert access is organised during a chunk, given a chunk touches most experts of each layer."}
+  - {type: "prompt-reader", lacking: "How chunk size relates to expert bytes streamed per chunk and to activation memory."}
+  - {type: "attention-state-store", lacking: "The model facts needed to price per-token state (number of key/value heads, head size, attention kind) and where the offered context length is decided."}
+  - {type: "attention-state-store", lacking: "Which tier holds state that leaves fast memory, and how it is read back."}
+  - {type: "memory-planner", lacking: "A required list of priced items with how each is sized, including attention state as a function of context length."}
+  - {type: "layer-compute", lacking: "A list of model facts the builder must have (attention form, norms, activation, positional encoding, tied head) before kernels can be chosen."}
+  - {type: "layer-compute", lacking: "Which device numeric formats must be confirmed before choosing kernels."}
+  - {type: "table-reader", lacking: "A threshold for when a table counts (e.g. table size against the memory budget), so an ordinary embedding table can be ruled in or out."}
+  - {type: "drafter", lacking: "How to judge benefit when checking a window enlarges the set of experts to fetch per layer."}
+  - {type: "conversation-reuse", lacking: "Whether continuing the next turn of the live conversation is this node's job or the attention-state-store's."}
+  - {type: "request-front", lacking: "Where the reference tokenizer and chat template come from."}
+
+overall: "A builder could start: the selection step worked for 19 of 24 types from the given facts, and the inputs, outputs and invariants make the data flow between parts clear. The strongest part is the expert-store family, whose split into source, cache, policy, dispatch and transfer matches the central problem of this case (weights about five times the budget) and whose invariants are precise. The weakest part is that choices carry no decision criteria or cost relations, so 20 of 43 choices could not be settled from the inputs and nothing tells whether the engine will be usably fast; the three-tier memory vocabulary does not fit a unified-memory machine. Long context, prompt reading under expert streaming and storage capacity are not covered by any type."
+
+used_own_background:
+  - "Direct (O_DIRECT) reads need block-aligned offsets and buffers, used to justify aligned file layout."
+  - "Blackwell GPUs support 4-bit floating point arithmetic; the hardware file lists no supported formats, so this was not relied on for any can_settle."
+  - "Recorded GPU graphs cannot contain waits whose content depends on data decided during the step, used for the decode-loop graph choice."
+  - "The OS page cache occupies ordinary RAM, which on this machine is the same pool as the budget."
+  - "Expectation that a chunk of N tokens selecting 8 of 256 experts per layer touches most experts; this assumes routing is not extremely concentrated, which the files do not state."
+  - "A BF16 checkpoint takes 2 bytes per parameter (816B x 2 = 1.63 TB); the files give vram figures but no on-disk size."
+  - "Drafting from repetition in the text (prompt-lookup style) as a practical draft source, and that verifying several tokens in a mixture-of-experts model widens the expert set."
+  - "The notion of spilling attention state to storage for very long context."
+  - "That a chat template is needed in addition to a tokenizer to turn messages into tokens."

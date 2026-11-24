@@ -1,0 +1,109 @@
+{
+  "halt": {
+    "code": "check_failed",
+    "reason": "brief_schema: check_failed: unsupported_target_comparison: target.context-length; a mandatory quantitative target cannot be normalized; source_identity: check_failed: unsupported_target_comparison: target.context-length; a mandatory quantitative target cannot be normalized; requirement_coverage: check_failed: unsupported_target_comparison: target.context-length; a mandatory quantitative target cannot be normalized",
+    "stage": "verifier"
+  },
+  "receipt": {
+    "admitted": true,
+    "capability_id": "requirements.compiler",
+    "check_verdict": "FAIL",
+    "checks": [
+      {
+        "check_id": "brief_schema",
+        "outcome": "FAIL",
+        "reason": "check_failed: unsupported_target_comparison: target.context-length; a mandatory quantitative target cannot be normalized"
+      },
+      {
+        "check_id": "source_identity",
+        "outcome": "FAIL",
+        "reason": "check_failed: unsupported_target_comparison: target.context-length; a mandatory quantitative target cannot be normalized"
+      },
+      {
+        "check_id": "requirement_coverage",
+        "outcome": "FAIL",
+        "reason": "check_failed: unsupported_target_comparison: target.context-length; a mandatory quantitative target cannot be normalized"
+      }
+    ],
+    "declaration_sha256": "b3780fe0945eaf7c365c27337c259e3eefd17b9728fc032ee6d09f070e8e33df",
+    "declared_effects": {
+      "effect_class": "read_only",
+      "effects": [
+        {
+          "assurance": "protected bridge enforces scope and limits",
+          "id": "model-disclosure",
+          "idempotent": false,
+          "op": "model_invoke",
+          "resource_key": "approved_model_bridge",
+          "reversibility": "none",
+          "risk": {
+            "blast_radius": "one approved context",
+            "irreversibility": true,
+            "severity": "bounded"
+          },
+          "scope": "bound permitted request context",
+          "undo": null
+        }
+      ]
+    },
+    "finished_at": "2026-11-19T19:44:09.602793Z",
+    "halt": {
+      "code": "check_failed",
+      "reason": "brief_schema: check_failed: unsupported_target_comparison: target.context-length; a mandatory quantitative target cannot be normalized; source_identity: check_failed: unsupported_target_comparison: target.context-length; a mandatory quantitative target cannot be normalized; requirement_coverage: check_failed: unsupported_target_comparison: target.context-length; a mandatory quantitative target cannot be normalized",
+      "stage": "verifier"
+    },
+    "input_sha256": "234f1e74df642e96f71f2a3c9f12fb45642ce80b39a29626c321f7d1f75c784d",
+    "model_calls": [
+      {
+        "index": 1,
+        "model": null,
+        "prompt_sha256": "9e0d256f7a735d1809a69a0a82a8b82d6710b0a1e697751b6f25387f41b63fef",
+        "provider_kind": "cmd",
+        "reply_sha256": "19ada6f97515e8bdaf0af1de69ba4cf1c1eb74c667c4df2b020617631609cb8c",
+        "system_sha256": "df7f45187b8d86121ab3942098c613d6e964b36afe99c4e5b3ef0b76ff24cf1f",
+        "tokens": null
+      }
+    ],
+    "not_applicable_outside_pipeline": [
+      {
+        "check": "accepted_intent_input",
+        "status": "not_applicable_outside_pipeline",
+        "why": "the pipeline feeds only an Intent that passed its internal acceptance (checks and semantic review); here the supplied Intent is re-checked mechanically (schema, source spans, identity against the request) but its earlier review cannot be evidenced"
+      },
+      {
+        "check": "host_contract, host_identity, host_limits, host_authority",
+        "status": "not_applicable_outside_pipeline",
+        "why": "host checks read run records, library standing and the sealed subnode contract"
+      },
+      {
+        "check": "internal_acceptance, external_output, aggregate_limits",
+        "status": "not_applicable_outside_pipeline",
+        "why": "node finalization and gate decisions belong to the run store"
+      }
+    ],
+    "output_sha256": {
+      "brief": "7dcfe93f1a296c38a14f1ca8884171a63813f1ce2e29cab3b28354af512b758c"
+    },
+    "packet_review": null,
+    "receipt_sha256": "9e7411671078759a3c6db3029ef88707c0eef9b912dfd5c64fea89ccfe184e16",
+    "release_hash": "28d0a62be3881f57c133cbf67489e15d02ab172f136373bb78b832b557ce2286",
+    "schema": "capsule-runtime-receipt:1",
+    "semantic_verifier": {
+      "reason": "not reached",
+      "status": "not_run"
+    },
+    "started_at": "2026-11-19T19:41:56.421068Z",
+    "status": "halted",
+    "trace": null,
+    "verifier_independent": null,
+    "verifiers": {},
+    "version": "m1-9",
+    "worker_model": {
+      "calls": 1,
+      "identity": "cmd:C:\\Users\\<user>\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B <work>\\real-compiler\\codex_call.py worker-requirements-B",
+      "limit": 1,
+      "provider_kind": "cmd"
+    }
+  },
+  "status": "halted"
+}

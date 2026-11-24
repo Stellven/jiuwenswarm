@@ -1,0 +1,2264 @@
+- item: Q001
+  does: Turns a logits row into one token by a configured chain (penalties, DRY, top-k, top-p, min-p, typical, XTC, temperature,
+    mirostat, adaptive-p, logit bias, then a random or greedy pick) and records accepted tokens for history-based samplers.
+  runs:
+  - per_step
+  owns_state:
+  - previous tokens ring buffer
+  - RNG state
+  - mirostat and penalty state
+- item: Q002
+  does: Inside the engine process, count which kernel variants and window graphs were chosen, record what the run selected
+    at start, and sample batch windows, writing each only when asked by an environment variable.
+  runs:
+  - startup
+  - per_window
+  - on_demand
+  owns_state:
+  - dispatch_counts
+  - run_manifest_record
+- item: Q003
+  does: In one non-causal forward over 8 rows (anchor plus 7 mask rows) per lane, computes draft logits from its rings and
+    the target's vocabulary projection, keeps the top candidates per position, scores each by a codebook edge from the previous
+    choice, walks the 7 positions greedily or by sampling, and records each position's confidence.
+  runs:
+  - per_step
+  owns_state: []
+- item: Q004
+  does: Keeps very large lookup tables (per-layer embeddings, Engram n-gram tables) in the memory map and reads only the
+    rows a batch needs, letting the OS page them in on demand.
+  runs:
+  - startup
+  - per_step
+  owns_state:
+  - set of lazy byte ranges per file
+- item: Q005
+  does: Give the expert cache the device memory that remains after weights, session, drafter and output head, minus a reserve
+    and minus later allocations priced in advance; and when that is too little, step down through fixed last resort before
+    ending the start.
+  runs:
+  - startup
+  owns_state: []
+- item: Q006
+  does: 'Accepts draft tokens up to the first mismatch (greedy) or by u*q < p (sampled), keeps accepted+1 tokens cut at
+    a stop token and at the output budget, then commits: KV length advances by the kept count, GDN parity swaps with pending
+    rows, the target''s auxiliary state is rewritten, and the draft ring takes the kept rows.'
+  runs:
+  - per_step
+  owns_state: []
+- item: Q007
+  does: Finds, per request, the most recent occurrence of the longest suffix of its token history and fuses the tokens that
+    followed it into the draft block, rewriting the draft distribution to a point mass wherever it supplied the token.
+  runs:
+  - per_step
+  owns_state:
+  - per-request lookup tokens, match length, valid count and which positions came from the lookup
+- item: Q008
+  does: 'Turns each verified row''s logits into a token on the GPU: applies repetition/presence/frequency penalties and
+    the grammar mask, then greedy argmax (lowest id on ties) or min-p, top-k, top-p sampling, and for a sampled row with
+    a draft draws from the residual distribution the acceptance rule needs.'
+  runs:
+  - per_step
+  owns_state:
+  - per-lane RNG counter and penalty table
+- item: Q009
+  does: Fetches image and video bytes from files or URLs under size, time, redirect and private-network limits, decodes
+    them, runs the model processor (sampling, resize, patch order), and caches preprocessed results by content and processing
+    plan with a live-memory budget and single-flight.
+  runs:
+  - per_request
+  owns_state:
+  - preprocess cache entries and live payload budget
+- item: Q010
+  does: Keeps the SSE bytes of a generation tagged with a conversation id in a bounded ring buffer so a client can reattach
+    after a disconnect, while generation continues.
+  runs:
+  - per_request
+  - background
+  owns_state:
+  - one session per conversation id with a 4 MiB ring
+  - GC of completed sessions after a TTL
+- item: Q011
+  does: Turns logits into a token per row with per-request temperature, top-k (at most 20 candidates), top-p, min-p and
+    presence/frequency penalties, using counter-based random keys of (request seed, logical position, purpose).
+  runs:
+  - per_step
+  owns_state:
+  - per-request committed token counts for penalties (count slots)
+- item: Q012
+  does: Advances several sessions by one token in one call, using a family-specific fused path when supported, encoding
+    several graphs before one synchronisation on CUDA, or evaluating them one after another.
+  runs:
+  - per_step
+  owns_state: []
+- item: Q013
+  does: 'Reports what the engine is doing: metrics including spec-decode acceptance, one line per finished request, per-request
+    progress lines, prefill progress in SSE, and the pool''s resident-request capacity at boot.'
+  runs:
+  - per_step
+  - startup
+  owns_state: []
+- item: Q014
+  does: Holds a per-request grammar state for tool calls and masks the tokens the grammar forbids at each position.
+  runs:
+  - per_step
+  owns_state:
+  - per-request grammar matcher state
+- item: Q015
+  does: 'Validates a batch (positions, sequence ids, outputs), fills defaults, and cuts it into micro-batches shaped for
+    the memory type: simple splits, equal-length sequence sets, or one sequence set per micro-batch.'
+  runs:
+  - per_step
+  owns_state:
+  - which tokens are used, output index order, per-sequence position ranges of the current micro-batch
+- item: Q016
+  does: Read the prompt in large chunks, layer by layer, and leave behind the model state that generation continues from.
+  runs:
+  - per_request
+  owns_state: []
+- item: Q017
+  does: Compute the part of each layer every token needs, in a fixed order, and keep the per-sequence state those kernels
+    read and write at fixed device addresses.
+  runs:
+  - startup
+  - per_request
+  - per_layer
+  owns_state:
+  - gdn_state
+  - indexer_keys
+  - ple_history
+- item: Q018
+  does: Addresses committed 32-token KV blocks by chained hash of parent, tokens and image/salt identity across RAM pages
+    and SSD slots, matches a new prompt from the root, shares physical pages, and offers its blocks to the ledger as victims
+    in its own walk order.
+  runs:
+  - per_request
+  - per_step
+  owns_state:
+  - 'the block graph: resident subtree at the root plus disk-only blocks'
+  - one prefix reference per resident block
+  - Filling/Draining transfer marks
+- item: Q019
+  does: Quantizes the output head, the MTP module and the DFlash2 drafter to int4 group-128 with GPTQ using captured Hessians,
+    writing a new model-directory variant.
+  runs:
+  - offline
+  owns_state: []
+- item: Q020
+  does: Record the fixed sequence of device work once and keep the recorded graphs available for replay, freeing and re-recording
+    them when fast memory for a new one runs out.
+  runs:
+  - startup
+  - on_demand
+  owns_state:
+  - captured_graphs
+- item: Q021
+  does: Chooses which slot a missing key takes by adaptive replacement over recently-once and recently-again lists with
+    ghost lists, never a slot the same load uses, treating long prefill chunks as scans.
+  runs:
+  - per_layer
+  owns_state:
+  - T1/T2 lists, ghost lists, target share
+- item: Q022
+  does: Scores a given token sequence (log-probabilities) with the same model and execution base in a serial single-lane
+    lifecycle with temporary context, outside generation scheduling and prefix retention.
+  runs:
+  - per_request
+  owns_state:
+  - temporary context of the scored sequence
+- item: Q023
+  does: Writes every planned image into its own Metal buffer by reading source rows with F_NOCACHE and having the GPU repack
+    them into planes, quantizes the BF16 draft into 4-bit af4g64 planes, and checks afterwards that no source was written
+    meanwhile.
+  runs:
+  - startup
+  - on_demand
+  owns_state:
+  - the weight images and their open source files
+- item: Q024
+  does: 'Proposes up to n draft tokens per generating sequence from one or more configured methods: a separate draft model,
+    a target-conditioned draft (EAGLE-3, block-diffusion DFlash family, MTP heads), or n-gram lookups over history or a
+    shared hash pool.'
+  runs:
+  - startup
+  - per_step
+  owns_state:
+  - draft model context and its KV cache
+  - per-sequence carryover (pending hidden rows, deferred boundaries)
+  - n-gram maps and the shared n-gram hash pool
+  - acceptance counters
+- item: Q025
+  does: Hands hidden-state rows of the target context (selected layer inputs, pre-head states) to a draft context on the
+    device, ordering writer and reader with backend events instead of host copies.
+  runs:
+  - per_step
+  owns_state:
+  - device buffers of hidden rows
+  - written/read events
+- item: Q026
+  does: When each command is encoded, picks for every projection, MoE block and attention the kernel tile (register, staged,
+    prefill, float tile) and the K-split count and gate/up pass mode, from the GPU class, core count, weight formats, lane
+    count and rows, using a per-class table of measured constants and a wave-law cost model.
+  runs:
+  - per_step
+  owns_state:
+  - the per-device calibration table (fixed for the process)
+- item: Q027
+  does: 'From file metadata alone, plans each weight image: section offsets, row order (GDN value heads regrouped by key
+    head), which tensors become GPU-repacked planes, which are copied, and which parts (routed experts, PLE table) are left
+    out to stream.'
+  runs:
+  - startup
+  owns_state:
+  - image plans (immutable once made)
+- item: Q028
+  does: After routing in a streamed layer, a host step inside the command claims slots for non-resident routed experts,
+    reads their native rows from the source files into staging (directly with F_NOCACHE where stored as-is), and a GPU repack
+    kernel moves them into slots before the expert kernels run.
+  runs:
+  - per_layer
+  owns_state:
+  - the load in progress and its rounds
+- item: Q029
+  does: Prepares the step's inputs, block tables and attention metadata on the GPU and runs target forward, sampling, acceptance
+    and drafting for the whole batch, replaying a captured graph when the shape has one.
+  runs:
+  - per_step
+  owns_state:
+  - per-request token history on device (all_token_ids, total_len)
+  - input buffers with fixed addresses
+- item: Q030
+  does: Captures at startup one outer CUDA graph per batch size and round type (plain decode, draft plus verify), separate
+    decision graphs and commit graphs, and per-context-length-bucket child graphs for the sparse attention layers and draft
+    steps; at run time swaps child nodes when the visible length crosses a bucket, toggles the head and draft-readback sections,
+    and replays.
+  runs:
+  - startup
+  - per_step
+  owns_state:
+  - instantiated graphs, installed child bucket per round, enabled sections
+- item: Q031
+  does: Chooses the per-sequence memory for an architecture (none, KV, iSWA pair, sparse-index KV, recurrent, or a hybrid
+    that routes each layer to an attention or recurrent store) and presents it to the context through one interface.
+  runs:
+  - startup
+  - per_step
+  owns_state:
+  - the layer filters that assign layers to stores
+- item: Q032
+  does: Keeps several residual streams per token and mixes them before and after each sublayer with Sinkhorn-normalised
+    weights.
+  runs:
+  - per_layer
+  owns_state: []
+- item: Q033
+  does: Matches a request to the session slot with the most reusable live state through seven ordered tiers and, when needed,
+    picks a slot to repurpose, saving its old state to disk first.
+  runs:
+  - per_request
+  owns_state:
+  - Per-slot last use and live continuation bindings
+- item: Q034
+  does: For one layer of one window, decide for every routed expert which path computes it, and publish the accelerator's
+    share before the CPU's share starts.
+  runs:
+  - per_layer
+  owns_state: []
+- item: Q035
+  does: For each execution decides from its token count whether any layer needs full-layer streaming, switches the reusable
+    region between extra-cache layout and window layout, and after returning to small T refills the extra cache in small
+    batches.
+  runs:
+  - per_step
+  owns_state:
+  - current region mode and refill progress
+- item: Q036
+  does: Parses generated text, incrementally while streaming, into reasoning content, visible content and tool calls per
+    model format.
+  runs:
+  - per_step
+  owns_state:
+  - partial-response parse state per request (task_result_state, in the HTTP layer)
+- item: Q037
+  does: Turn the stored run configuration into the argument list and environment the engine process actually receives, at
+    every launch and every engine start, so that standing choices kept outside the list cannot be undone by whoever last
+    rewrote it.
+  runs:
+  - startup
+  owns_state: []
+- item: Q038
+  does: 'Carries one request through prompt processing and generation on its own sequence id: tracks tokens in memory, the
+    sampler, stop strings, limits (tokens, time, indentation, context), partial UTF-8, and emits partial and final results.'
+  runs:
+  - per_request
+  - per_step
+  owns_state:
+  - state machine (idle, started, processing prompt, done prompt, generating, waiting for parent)
+  - tokens held in memory for the sequence
+  - draft, draft distributions, generation statistics
+- item: Q039
+  does: Compiles the model graph and every Triton kernel variant the deployment can reach before the first request, keyed
+    so a cached compile is reused only for the same knob settings.
+  runs:
+  - startup
+  owns_state:
+  - 'the compile cache key: every registered knob except the runtime-only ones'
+- item: Q040
+  does: Computes the always-on shared expert and the dense FFN of leading dense layers.
+  runs:
+  - per_layer
+  owns_state: []
+- item: Q041
+  does: Moves tasks from HTTP threads to the single inference thread and results back, defers tasks that cannot start, lets
+    metrics tasks run while a decode is in flight, and puts the server to sleep after an idle timeout.
+  runs:
+  - background
+  - per_request
+  owns_state:
+  - task deque, deferred deque, unhandled deque
+  - sleeping flag and in-flight count
+- item: Q042
+  does: At startup jointly solves, from the remaining device bytes, the per-layer fixed expert set, the reusable region,
+    whether it holds two streaming windows or one, the small-T extra-cache target, the CPU worker count and the CPU/GPU
+    split threshold per layer; refuses to run if no solution exists.
+  runs:
+  - startup
+  owns_state:
+  - the offload plan
+- item: Q043
+  does: When a split on the GPU reads expert weights from host memory, uploads only the experts the batch actually selected,
+    grouped into contiguous runs, copying cached ones device-to-device.
+  runs:
+  - per_layer
+  owns_state:
+  - the last expert-id tensor read and the set of used experts
+- item: Q044
+  does: Accepts a unit of work into a reserved frame, hands it to the rank program(s), passes host decision inputs (grammar
+    masks) into the running ticket, delivers result-ready, commit receipts and device retirement in order, and frees frames
+    only when every participating rank's last consumer has retired.
+  runs:
+  - per_step
+  owns_state:
+  - compute and context frames, tickets with epoch and generation, command sequence, per-flight phase
+- item: Q045
+  does: At each start, finds the family whose rules the target configuration fits, validates target, draft and vision sources
+    against the assembly record's digests, and fixes the model's capabilities (window, YaRN, stop tokens, sparse KV shape).
+  runs:
+  - startup
+  owns_state:
+  - 'the model descriptor: family, sources, rope scaling, capabilities'
+- item: Q046
+  does: Fills the expert cache at startup from a built-in list of frequently used experts gathered offline, up to a cap,
+    so the first tokens do not cause thousands of reads.
+  runs:
+  - startup
+  owns_state: []
+- item: Q047
+  does: Turns a conversation into tokens with hand-written per-family chat renderers (not templates) and the model's tokenizer,
+    keeping both rendered text and tokens.
+  runs:
+  - per_request
+  owns_state: []
+- item: Q048
+  does: Maps the GGUF file read-only, parses metadata and tensor directory, selects the model family shape, and unmaps the
+    regions of disk-only tables so they never count as mapped.
+  runs:
+  - startup
+  owns_state:
+  - The file mapping and descriptor
+  - The global model shape (one family per process)
+- item: Q049
+  does: Runs the engine's single pool of reader threads for every SSD read a step needs (experts, PLE rows, spilled KV),
+    with foreground batches ahead of background ones and one retry per task.
+  runs:
+  - per_step
+  - background
+  owns_state:
+  - queued batches and their failures
+- item: Q050
+  does: Runs the served model offline over a prompt mix to produce self-distillation outputs, target hidden states and per-layer
+    Hessians of the drafters' own inputs.
+  runs:
+  - offline
+  owns_state:
+  - resumable generation output with an OS lock against a second generator
+- item: Q051
+  does: Drafts one or two tokens with the model's own multi-token-prediction block.
+  runs:
+  - per_step
+  owns_state:
+  - MTP tail row and its position (Qwen)
+- item: Q052
+  does: During wide prefills in streaming mode, touches the next layer's routed-weight pages of the mapped file from helper
+    threads so they are in the page cache when that layer runs.
+  runs:
+  - per_layer
+  owns_state: []
+- item: Q053
+  does: Proposes a block of 7 tokens per request in one non-autoregressive pass over target hidden states, picking each
+    position from a small candidate set by a seeded selector walk.
+  runs:
+  - per_step
+  owns_state:
+  - its sliding-window KV in the shared pool
+  - sparse draft-logit cache whose finite entries are listed per row
+  - last emitted count per request
+- item: Q054
+  does: Renders the conversation through the model's chat template (probed at startup and patched where the template rejects
+    or drops later system messages), decrypts carried reasoning signatures, and tokenizes, reusing cached tokens up to the
+    last literal message-boundary token.
+  runs:
+  - startup
+  - per_request
+  owns_state:
+  - chosen templates
+  - tokenized-prefix cache (a few prompts)
+  - thinking key
+- item: Q055
+  does: For V4.1, hashes each new token with the 3 previous ones into 24 row numbers per table and reads those rows directly
+    from the file with an uncached descriptor, decoding E4M3 to BF16.
+  runs:
+  - per_step
+  - per_request
+  owns_state:
+  - 3-token history (not serialised; rebuilt from the last tokens on load)
+- item: Q056
+  does: 'Produces the per-layer embedding rows each token needs: hashes the token''s 2- and 3-gram history into 16 row IDs,
+    reads those NF4 rows from the model file with io_uring and O_DIRECT through a row cache (merging requests for the same
+    page), decodes them to exact BF16 on a CPU worker and uploads them through slots; on two Sparks it looks rows up in
+    device shards and merges the words across ranks.'
+  runs:
+  - per_step
+  - background
+  owns_state:
+  - row cache, in-flight reads, prepared windows and upload slots
+- item: Q057
+  does: 'Decides batch membership and fairness: which lanes join a control or decode round, which lane gets the next prefill
+    chunk (round robin), which waiting requests are admission candidates (FIFO with a bounded bypass allowance), who owns
+    progress under memory pressure (service turns of 1 to 4 seconds), and which resident request is paused as a victim (the
+    youngest).'
+  runs:
+  - per_step
+  owns_state:
+  - prefill cursor, admission scan list, service order, pressure flag, service and recovery time
+- item: Q058
+  does: Allocates attention K/V in pages of 32 tokens inside extents of about 128 MiB of one page form (Full, Index-only,
+    or Slim), INT8 with per-token scales by default, reached by kernels through per-request GPU page tables; releases empty
+    extents between commands and compacts pages to empty extents.
+  runs:
+  - per_step
+  owns_state:
+  - extents, page forms, free pages, move map of compacted pages
+  - the startup runway
+- item: Q059
+  does: Inside the engine process, read one command at a time, run one prompt read at a time, advance every active batch
+    slot one window at a time between commands, and report each generation's tokens and end figures as text lines.
+  runs:
+  - startup
+  - per_request
+  - per_window
+  owns_state:
+  - live_conversation_record
+  - batch_slot_table
+- item: Q060
+  does: The single control thread that polls execution events, then each cycle settles finished and cancelled requests,
+    advances the service turn, admits or restores requests, reserves units, and submits at most one control batch, one decode
+    batch and one prefill chunk.
+  runs:
+  - per_step
+  owns_state:
+  - request slots (lanes), pending and paused queues, the cycle step, the current admission decision
+- item: Q061
+  does: Runs one token through the model for one session, updating its state and logits.
+  runs:
+  - per_step
+  owns_state: []
+- item: Q062
+  does: Encodes command graphs into Metal command buffers split at event signals and host steps, declares residency per
+    encoder only for the buffers its address tables reach, keeps a residency set wired by a heartbeat, optionally spins
+    one GPU thread through short host steps, and fails a command that makes no progress.
+  runs:
+  - per_step
+  - background
+  owns_state:
+  - every Metal buffer and its reach
+  - the residency set
+  - the command in flight and its watchdog deadline
+- item: Q063
+  does: Turns the operator's profile choices and the detected GPU, platform and parallel size into the vLLM flags and environment
+    knobs of one engine instance, and predicts how many requests the pool will hold.
+  runs:
+  - startup
+  owns_state:
+  - the effective configuration of one boot
+- item: Q064
+  does: When a request's thinking-token budget runs out, forces the format's end-of-thinking tokens into the selected rows
+    (replacing draft proposals at row 0), unless the model closed thinking first; for a constrained lane, starts the end
+    where the mask admits it.
+  runs:
+  - per_step
+  owns_state:
+  - per-request remaining thinking tokens and end tokens selected
+- item: Q065
+  does: Writes evicted or copied KV pages and composite states into slot files on the SSD, sized from the volume's free
+    space, under an optional daily write budget, read back by the SSD readers; optionally persists across processes in a
+    namespace keyed by models, layouts and RoPE scaling.
+  runs:
+  - background
+  - on_demand
+  owns_state:
+  - slot allocations and labels
+  - write budget token bucket
+  - limits from volume space
+  - namespace lock and clean/probation marks
+- item: Q066
+  does: Opens the artifact's directory and files, checks framing, reads resources (tokenizer, template, PLE hash controls),
+    and binds logical parameters with their shapes, uses and activation permits for the selected components into a device-free
+    model definition.
+  runs:
+  - startup
+  owns_state:
+  - the cold artifact directory and lazily opened file handles
+- item: Q067
+  does: Copies a missing expert's three blocks from the model file into its cache slot with several reader threads, starting
+    as soon as the selected ids are known.
+  runs:
+  - per_layer
+  - on_demand
+  owns_state: []
+- item: Q068
+  does: After an idle period with no request, releases the weight images, the expert store's chunks and staging, and the
+    ANE program; on the next request restores them one part per engine tick before any request runs.
+  runs:
+  - background
+  - on_demand
+  owns_state:
+  - held / released / restoring status and the idle clock
+- item: Q069
+  does: With batch slots on, decide for each request whether it runs alone or in a slot, which slot, and in what order requests
+    get the single prompt-reading channel, and keep the server's record of slots consistent with the engine's.
+  runs:
+  - per_request
+  - per_window
+  - background
+  owns_state:
+  - slot_ledger
+- item: Q070
+  does: Runs the model's built-in MTP layer K times (1 to 5) from the saved conditioning and its own history, taking the
+    argmax of the (optionally 4-bit) draft head each step, to propose K tokens.
+  runs:
+  - per_step
+  owns_state:
+  - temporary draft tail for this round (frame)
+- item: Q071
+  does: Copy every tensor the pack index lists, except those in a skip set, into one device memory range at its recorded
+    offset, applying the byte transform the index names for each plane, and return a table from tensor name to location.
+  runs:
+  - startup
+  owns_state: []
+- item: Q072
+  does: Computes attention for steps where each request has several query tokens (the verify block), splitting each request's
+    KV into segments with online-softmax partials and a combine.
+  runs:
+  - per_layer
+  owns_state:
+  - partial-result scratch sized once for the longest verify block
+- item: Q073
+  does: Offline, selects a target repository and the DFlash2 draft trained for its family, derives config and tokenizer
+    metadata from a GGUF header, pins the Hub snapshots and publishes an immutable assembly directory of links plus a model.json
+    naming every file's digest.
+  runs:
+  - offline
+  owns_state:
+  - assemblies under models/.resolved and selection links
+  - derived GGUF metadata keyed by adapter hash
+- item: Q074
+  does: Attaches immutable composite states (GDN cells plus draft context window) to complete KV blocks at replay points,
+    rolling prefill checkpoints and shared-prefix junctions, in RAM, on disk or both, so a prefix hit can resume only where
+    a state exists.
+  runs:
+  - per_request
+  - per_step
+  owns_state:
+  - states per block with class (checkpoint, ordinary, in use)
+  - the one state write in flight
+- item: Q075
+  does: Make the bytes of every routed expert of every layer addressable in host memory for the whole run, either as one
+    arena filled at startup or as mappings of the files that hold them, and say for each expert whether the GPU can read
+    it in place.
+  runs:
+  - startup
+  - on_demand
+  owns_state: []
+- item: Q076
+  does: Chooses the next token from logits by greedy argmax or by temperature with top-k, top-p and min-p, and computes
+    log-probabilities.
+  runs:
+  - per_step
+  owns_state:
+  - Per-request RNG state (held by caller)
+- item: Q077
+  does: 'Turns a published checkpoint (or several, e.g. a base BF16 checkpoint plus an NVIDIA NVFP4 one) into a .ninfer
+    v3 artifact: maps source tensors to logical roles, picks a storage format and encoding method per role, merges and orders
+    parent matrices, records per-use activation permits and auxiliary divisors, and writes framed object files plus a conversion
+    report.'
+  runs:
+  - offline
+  owns_state:
+  - the mapping from source tensor names to logical parameters and object layouts for one conversion
+- item: Q078
+  does: Copies evicted prefix blocks to a pinned host-memory tier and loads them back over PCIe on a later hit or after
+    preemption instead of recomputing.
+  runs:
+  - background
+  - on_demand
+  owns_state:
+  - host-tier blocks keyed by hash
+- item: Q079
+  does: Each step chooses which requests run and how many tokens of each (prefill chunks within the 2048-token budget, one
+    decode or verify block per running request), admits, preempts and finishes requests.
+  runs:
+  - per_step
+  owns_state:
+  - running and waiting sets
+  - computed-token count per request
+- item: Q080
+  does: Builds the per-micro-batch computation graph of the architecture from shared primitives (embedding, RoPE, attention
+    over the cache, FFN, MoE routing, recurrent scans, pooling, output head) as tensor operations.
+  runs:
+  - per_step
+  owns_state:
+  - none across steps beyond the reusable graph object
+- item: Q081
+  does: Moves encoded expert bytes from host to device in bounded batches (up to 96 MiB and 4096 copies per batch, a fixed
+    number of in-flight upload slots), merging contiguous runs, and in streaming mode fills the other window with the next
+    layer's missing experts while the current layer computes.
+  runs:
+  - per_layer
+  - background
+  owns_state:
+  - upload slots, pinned descriptors and in-flight batches
+- item: Q082
+  does: Runs queued jobs on slot threads, coalesces their pending decode tokens into one batch, and admits prefill one quantum
+    at a time only when no decode is pending, round-robin across slots.
+  runs:
+  - per_step
+  owns_state:
+  - FIFO job queue
+  - Pending-decode count, active generations, last prefill slot
+- item: Q083
+  does: Holds a per-request grammar matcher (JSON schema, tool-call languages, model output framing) on the host, builds
+    legal-token bitmasks for the target position and for draft lookahead positions, supplies them to the running ticket,
+    and advances only on committed tokens.
+  runs:
+  - per_request
+  - per_step
+  owns_state:
+  - matcher state with lookahead/accept/confirm/discard transaction
+- item: Q084
+  does: For one token on a canonical Q2_0 pack, launch the layers in order and place the CPU's expert rows between each
+    layer's routing and its combine, so that a layer's experts meet that layer's router weights.
+  runs:
+  - per_step
+  - per_layer
+  owns_state: []
+- item: Q085
+  does: On each rank, owns the context backing bindings, frames, workspace, fixed I/O buffers and graphs, and carries out
+    one unit (prefill chunk, control span, decode round, draft-plus-verify round, commit, context action) by running the
+    model's layer sequence, sampling or acceptance, and readback.
+  runs:
+  - per_step
+  owns_state:
+  - workspace arena, persistent I/O buffers, sampling frames, execution table rows, transition record buffers
+- item: Q086
+  does: Accepts chat and completion requests over HTTP and streams results back as SSE, plus model listing, tokenize and
+    Ollama-style discovery routes.
+  runs:
+  - per_request
+  owns_state: []
+- item: Q087
+  does: Reads a prompt (or replays a paused request's committed tokens) in chunks of a fixed size without graphs, splitting
+    media and math segments inside the model, and offers optional full checkpoints at chunk ends or semantic boundaries
+    near every 8192 tokens.
+  runs:
+  - per_request
+  - per_step
+  owns_state: []
+- item: Q088
+  does: 'Keep one engine child process resident and in step with the server: send each generation as one text command, deliver
+    its token lines to the caller, and end and restart a process that is dead, silent, frozen or fatally broken.'
+  runs:
+  - startup
+  - per_request
+  - per_window
+  - background
+  - on_demand
+  owns_state:
+  - engine_process_state
+- item: Q089
+  does: At startup refuses option combinations the chosen model family and backend do not support, and takes a machine-wide
+    lock so only one huge model process runs at a time.
+  runs:
+  - startup
+  owns_state:
+  - Instance lock
+- item: Q090
+  does: For Flash-Next only, decides per request whether its K/V stays Resident or Spills (only the index stays in memory,
+    K/V written through to the SSD tier), converts a lane to Spill when memory refuses its growth, and bounds its output
+    by the tier's active-KV quota.
+  runs:
+  - per_request
+  - per_step
+  owns_state:
+  - each request's KV mode and quota commitment
+- item: Q091
+  does: Loads the model and context in a no-allocation dry run to measure memory per device, then adjusts unset parameters
+    (layers on GPU, tensor split, which MoE weights stay on the host, context size) until the projection fits free device
+    memory minus margins.
+  runs:
+  - startup
+  owns_state:
+  - none kept after startup
+- item: Q092
+  does: Decides at startup how many bytes the state pool gets, from a profiling forward pass or from an operator-pinned
+    byte count, after charging weights, activation peak, graph memory and fixed scratch.
+  runs:
+  - startup
+  owns_state: []
+- item: Q093
+  does: Per request, previews candidate tokens against EOS, stop strings, output budget and cancellation to pick the actually
+    adopted prefix, then on commit detokenizes, separates thinking from content, parses tool calls, supplies forced control
+    tokens (e.g. template closings) and emits protocol-neutral output events; discards a preview without side effects.
+  runs:
+  - per_step
+  owns_state:
+  - detokenizer, thinking/content state, tool decoder, stop matcher, preview transaction
+- item: Q094
+  does: Measure on this machine, with the real engine and on demand, which of a bounded set of settings is faster, keep
+    a non-default value only when it beats the default by more than measurement noise, and store the result for later starts.
+  runs:
+  - offline
+  owns_state:
+  - calibration_record
+  - tuning_presets
+- item: Q095
+  does: Keep a bounded set of snapshots of the running state at chosen token positions of the conversation the session currently
+    holds, so a later request on the same history can rewind to one.
+  runs:
+  - per_request
+  - on_demand
+  owns_state:
+  - conversation_checkpoints
+- item: Q096
+  does: Brings a session from its live token list to a requested prompt by keeping the common prefix and running the remainder
+    through the model chunk by chunk, layer-major, with progress and cancel checks between chunks.
+  runs:
+  - per_request
+  owns_state: []
+- item: Q097
+  does: Hold the attention keys and values of every position of each attention layer in the configured format, reachable
+    through a page table, and when streaming is on make every block a selection names resident in fast memory before the
+    attention reads it.
+  runs:
+  - startup
+  - per_request
+  - per_layer
+  owns_state:
+  - attention_kv
+  - kv_residency_map
+- item: Q098
+  does: While a single request keeps reproducing its context, proposes whole verify blocks from the lookup alone and skips
+    the drafter's forward until the first rejection.
+  runs:
+  - per_step
+  owns_state:
+  - host-side chain state machine (engaged or not)
+- item: Q099
+  does: Routes requests to child server processes by model name, starting and stopping children on demand, limiting how
+    many run, and unloading instances by measured device memory.
+  runs:
+  - per_request
+  - background
+  owns_state:
+  - model list and instance states
+  - memory per instance
+  - conversation id to child map
+- item: Q100
+  does: Prepares communication groups and runs the all-reduce, all-gather, reduce-scatter and peer transfers the model's
+    partition requires, choosing per collective shape between NCCL and a native backend over InfiniBand verbs with device-visible
+    signals (preferred on two-rank Spark).
+  runs:
+  - startup
+  - per_layer
+  owns_state:
+  - communicators, RDMA queue pairs and registered buffers, signal slots, frozen routing table
+- item: Q101
+  does: Decide at startup, from host memory readings taken before the allocations, whether the n-gram table is locked in
+    RAM and whether the expert arena is loaded or replaced by the file source, and hold back page-locked memory while the
+    arena registers so that later small page-locked buffers succeed.
+  runs:
+  - startup
+  - on_demand
+  owns_state: []
+- item: Q102
+  does: 'Represents one mutable inference timeline: the exact token list whose state is live, a validity flag, the last
+    logits and image identities; callers give full prefixes and it reuses, extends or rebuilds.'
+  runs:
+  - per_request
+  - per_step
+  owns_state:
+  - Token list matching the live state
+  - Validity flag
+  - Logits
+  - Image identities
+- item: Q103
+  does: An external draft model conditioned on target residual features proposes up to 15 tokens at once with one non-causal
+    masked-block attention pass (sliding-window local layers in cyclic KV, full layers in paged history); DFlash2 adds a
+    dynamic grouped convolution and a candidate-path selector and keeps its actual proposal distribution q.
+  runs:
+  - per_step
+  owns_state:
+  - query block, candidate paths and proposal probabilities for this round
+- item: Q104
+  does: Proposes k tokens per request by chaining the model's own one-layer draft module, scoring only the draft vocabulary
+    and sampling from the request's truncated support.
+  runs:
+  - per_step
+  owns_state:
+  - the draft module's own KV in the pool
+- item: Q105
+  does: Keeps serialized sequence states of earlier prompts (target and draft) in host RAM, plus snapshots taken at points
+    within a prompt for SWA and recurrent models, and restores the best match so a new request processes only the new suffix.
+  runs:
+  - per_request
+  owns_state:
+  - list of cached prompt states, oldest first
+  - checkpoints shared between cache and slot
+  - size and token limits
+- item: Q106
+  does: 'Chooses which cached expert gives up its slot: on Metal the lowest decaying selection count then oldest use; on
+    CUDA simply the oldest use stamp after all hits of the step are protected.'
+  runs:
+  - per_layer
+  owns_state:
+  - 'Metal: per-(layer, expert) heat counter and decay clock'
+- item: Q107
+  does: On one CUDA machine with several GPUs, assigns embedding, each layer and the output head to GPUs in order within
+    per-GPU budgets, or pairs GPUs so each holds half of every layer's routed experts.
+  runs:
+  - startup
+  owns_state:
+  - Placement table
+- item: Q108
+  does: In the Python server, spawns and talks to the engine process, submits and cancels requests, probes liveness, relaunches
+    a failed engine with doubling backoff (never after permanent failures or a crash loop), and refuses requests that were
+    running at two consecutive engine failures they may have caused.
+  runs:
+  - per_request
+  - background
+  owns_state:
+  - pending calls
+  - restart streak
+  - quarantined request fingerprints
+  - crash trace ring
+- item: Q109
+  does: 'After the final accepted count m is known, writes every kind of per-sequence state for the committed prefix into
+    the destination state record: replays m GDN/KDA transition records from the unchanged start state S0, extracts QSA raw
+    index tail and PLE convolution history, scatters conditioning and continuation hidden, rebuilds MTP history from the
+    real backbone features when more than one token is accepted, and adds accepted tokens to penalty counts; does nothing
+    when m is zero.'
+  runs:
+  - per_step
+  owns_state:
+  - the transition records of the current verify round until fold and last consumer finish
+- item: Q110
+  does: 'Computes the model as written natively per architecture: embedding, four-stream gated residual mixing, GDN or KDA
+    linear attention with causal convolution (writing transition records during verify), QSA or Kpool sparse attention with
+    compressed index keys and top-K block selection, router, routed and shared experts, PLE, KV append in the chosen encoding,
+    final mixing and output head, using kernels that read encoded weights directly.'
+  runs:
+  - per_layer
+  owns_state: []
+- item: Q111
+  does: Keeps per lane the draft's ring K/V of the last sliding-window positions, computed from target layer captures, and
+    a context window of the rows the ring is computed from, which cached states keep instead of the ring and from which
+    a restore recomputes it.
+  runs:
+  - per_step
+  owns_state:
+  - ring K/V per draft layer
+  - context window
+  - pending ring rebuild range
+- item: Q112
+  does: Holds each lane's fixed-size GDN convolution and recurrent state in two cells plus a tape of the last decode step's
+    layer inputs, and the target's auxiliary state (indexer pending keys, PLE history); a committed step only records pending
+    rows and swaps cell parity, and the next step folds the taped rows in first.
+  runs:
+  - per_step
+  owns_state:
+  - two cells per lane, active parity, pending rows, logical lengths
+  - pool of idle cells, rings and windows
+- item: Q113
+  does: Executes tensor operations on each device, including quantized matmuls, flash attention and fused ops; the CPU backend
+    runs a thread pool and the CUDA backend captures and replays graphs.
+  runs:
+  - per_layer
+  owns_state:
+  - CPU thread pool
+  - captured CUDA graphs keyed by first node
+  - device streams
+- item: Q114
+  does: Builds the project's own GGUF files from source checkpoints, with low-bit formats spent on routed experts, layout
+    padding the kernels expect, page-aligned disk tables and separate draft and vision files.
+  runs:
+  - offline
+  owns_state: []
+- item: Q115
+  does: In the server process, turn the engine's end-of-request figures and the server's own clocks into per-request records,
+    running totals and a live rate, fill the usage and timings of each response, sample the machine once a second, and render
+    all of it for outside monitors.
+  runs:
+  - per_request
+  - per_window
+  - background
+  - on_demand
+  owns_state:
+  - request_history
+- item: Q116
+  does: 'Owns each request''s life on the engine: probes the prefix cache, assigns a lane and state, plans state boundaries,
+    grows its KV through its memory claim before each command, waits for memory with a limit, suspends lower-ranked or lower-priority
+    lanes (which later replay from cache), lets requests wait for another''s shared prefix, and settles ends, deadlines
+    and cancels.'
+  runs:
+  - per_request
+  - per_step
+  owns_state:
+  - requests and their resource waits
+  - suspended requests and recovery drain
+- item: Q117
+  does: Combines rows fetched from the disk lookup tables into the hidden state at the layers that use them.
+  runs:
+  - per_layer
+  owns_state: []
+- item: Q118
+  does: Applies low-rank adapters (with per-request scales, including activated LoRA that starts at an invocation token)
+    and control vectors on top of base weights inside the graph.
+  runs:
+  - startup
+  - per_step
+  owns_state:
+  - loaded adapter tensors
+  - active adapter set and scales of the context
+- item: Q119
+  does: Tracks a pushdown automaton over the GBNF grammar and masks every candidate token whose text cannot continue a valid
+    parse; lazy grammars stay inactive until a trigger word, token or pattern appears.
+  runs:
+  - per_request
+  - per_step
+  owns_state:
+  - parse stacks
+  - partial UTF-8 bytes
+  - trigger buffer of a lazy grammar
+- item: Q120
+  does: Hold whole images of other conversations, including their attention K/V, within a host memory budget, find the one
+    with the longest valid prefix for a prompt, and evict.
+  runs:
+  - startup
+  - per_request
+  - on_demand
+  owns_state:
+  - parked_conversations
+- item: Q121
+  does: Given the full model's target token for every row of a window, accept the longest prefix of drafts that agree, and
+    make exactly that prefix permanent in indexer keys, recurrent state, convolution history and n-gram history.
+  runs:
+  - per_window
+  owns_state:
+  - commit_stores
+- item: Q122
+  does: Computes the 16 full-attention layers over the paged KV cache for prefill chunks and single-token decode, with the
+    kernel chosen by KV format, compute capability and step shape.
+  runs:
+  - per_layer
+  owns_state: []
+- item: Q123
+  does: Indexes reusable prefixes and checkpoints, ranks restore sources for a new or paused request (device, host, other
+    rank, or recompute) by modelled transfer plus recompute time, decides which optional checkpoints to save, chooses reclaim
+    and demotion victims by loss per freed byte, and for GLM attention data parallelism picks the attention-owner rank.
+  runs:
+  - per_request
+  - on_demand
+  owns_state:
+  - prefix index, retention value, waiting references and source leases
+- item: Q124
+  does: Writes or reads a session's tokens, logits, row counters and live state rows in a versioned binary payload, validating
+    dimensions and counts on load.
+  runs:
+  - on_demand
+  owns_state: []
+- item: Q125
+  does: 'Turn the residual after the last layer into one row of vocabulary logits per position: a final residual read, then
+    the vocabulary projection.'
+  runs:
+  - per_window
+  - per_step
+  owns_state: []
+- item: Q126
+  does: Splits the model's layers' weights and heads across 2 or 4 GPUs (or pipelines layers across GPUs) and keeps them
+    in step with collectives.
+  runs:
+  - per_layer
+  owns_state: []
+- item: Q127
+  does: Drive one API request through one or more engine generations and turn the token ids into reasoning, content and
+    tool-call events with a final finish record.
+  runs:
+  - per_request
+  - per_window
+  owns_state: []
+- item: Q128
+  does: Starts worker processes for other ranks (posix_spawn locally, non-interactive SSH remotely), hands each its rank,
+    node, device and environment before CUDA initialization, keeps one persistent control connection per worker for commands
+    and results, and runs the worker loop that executes the coordinator's plan.
+  runs:
+  - startup
+  - per_step
+  owns_state:
+  - worker processes and control connections
+- item: Q129
+  does: 'Derives from the global config and bindings how one model is split across ranks: which heads, intermediate columns,
+    experts and vocabulary rows each rank holds, what is replicated (router, indexer, embedding, residual mixing), where
+    results must be reduced or gathered, and a 64-bit topology identity.'
+  runs:
+  - startup
+  owns_state:
+  - the immutable partition plan and its topology hash
+- item: Q130
+  does: Serves /v1/chat/completions, /v1/responses (with input_tokens, compact, cancel, get, delete), /v1/messages and count_tokens,
+    /v1/models, /health and /metrics over HTTP with streaming, validating and translating each protocol into one generation
+    request, establishing admission before committing a streaming response, and settling cancellation on client disconnect.
+  runs:
+  - per_request
+  owns_state:
+  - per-connection request lifetimes
+- item: Q131
+  does: For Flash-Next's attention layers, scores pooled block keys and picks the top blocks each row attends, and pools
+    the keys of blocks the step completes into the page's index plane.
+  runs:
+  - per_layer
+  owns_state:
+  - pending keys of an incomplete block (part of auxiliary state)
+- item: Q132
+  does: Decodes data-URL images, resizes them to patch-aligned RGB within the pixel budget, computes a content digest and
+    grid that identify image prefixes, and caches prepared images resent in chat history.
+  runs:
+  - per_request
+  owns_state:
+  - byte-budgeted prepared-image cache
+- item: Q133
+  does: Reports prefill and decode progress, cache decisions, tool events, speculative statistics and optional per-stage
+    timings to stderr or a trace file.
+  runs:
+  - per_step
+  - per_request
+  owns_state:
+  - Speculative statistics counters per session
+- item: Q134
+  does: 'Computes the target model for a prefill chunk or a verify block: embedding, hybrid GDN and attention layers (sinks
+    and sliding windows for Flint), dense or MoE FFN with routing, hyper-connected residual streams and PLE n-gram injection
+    for Flash-Next, capture of the draft''s chosen layer outputs, final norm and vocabulary projection.'
+  runs:
+  - per_layer
+  owns_state:
+  - per-command scratch arenas
+- item: Q135
+  does: Once per step on the host, decides whether the next step verifies the drafter's own block or the long block, requiring
+    two consecutive qualifying steps agreed by every request.
+  runs:
+  - per_step
+  owns_state:
+  - previous step's want flag
+  - sticky countdown
+  - pinned host copy of the flags
+- item: Q136
+  does: Turns off, at boot, feature combinations measured to corrupt output, and refuses combinations the kernels do not
+    support.
+  runs:
+  - startup
+  owns_state: []
+- item: Q137
+  does: Decodes PNG or JPEG data into pixels and runs the family's vision encoder to produce visual token embeddings that
+    are spliced into the prompt at image markers.
+  runs:
+  - per_request
+  owns_state:
+  - Server LRU of embeddings keyed by exact bytes
+- item: Q138
+  does: Moves activations between GPUs at layer boundaries and reduces expert-split partials, by peer copy or a pinned host
+    bounce.
+  runs:
+  - per_layer
+  owns_state:
+  - Peer-access matrix
+- item: Q139
+  does: One startup-sized byte backing per rank and domain holds every request's paged KV planes and fixed-size state images
+    (main, MTP and draft histories alike) in a few record size classes; it places records, tracks real allocatability, and
+    compacts blocks by moving records and patching device offset tables.
+  runs:
+  - startup
+  - per_step
+  - on_demand
+  owns_state:
+  - record placements, block classes, free blocks, pending moves
+- item: Q140
+  does: Removes the positions of rejected draft tokens from the target and draft memories, or, for memories that cannot
+    drop a tail (recurrent beyond its snapshots), saves a state checkpoint before verification and restores it then replays
+    the accepted tokens.
+  runs:
+  - per_step
+  owns_state:
+  - per-slot checkpoint of target and draft sequence state with its position range
+  - sampler copy saved before verification
+- item: Q141
+  does: Runs the last token plus drafts through the full model in one batch, accepts the longest matching prefix (or by
+    probability ratio in exact mode), and leaves state exactly as for the accepted prefix.
+  runs:
+  - per_step
+  owns_state:
+  - Frontier snapshots for up to 5 prefix lengths
+  - Pre-verify logits
+  - Rewind window end
+- item: Q142
+  does: Requires the bearer key on every path except the liveness paths and chooses the listening interface so an unkeyed
+    server is not exposed.
+  runs:
+  - startup
+  - per_request
+  owns_state: []
+- item: Q143
+  does: Sleeps after each prefill layer or decoded token for a time proportional to a smoothed measured work time, so the
+    GPU duty cycle approximates the requested percentage.
+  runs:
+  - per_layer
+  - per_step
+  owns_state:
+  - Smoothed per-layer prefill time and decode token time
+- item: Q144
+  does: Turns the TOML file, command-line options and environment variables into one validated set of startup options (model,
+    max concurrency, max context, prefill chunk, KV encoding, speculative backend and draft count, proposal head, CUDA graph
+    on/off, context cache sizes and cost presets, vision, sampling defaults, server and logging).
+  runs:
+  - startup
+  owns_state:
+  - the normalized startup option set
+- item: Q145
+  does: Read the pack's native_experts.txt once and answer, for the whole process, how many bytes each layer's expert blob
+    has, where it starts, and where each layer's gate, up and down tensors lie in the GGUF shards.
+  runs:
+  - startup
+  - on_demand
+  owns_state: []
+- item: Q146
+  does: Keep the expert cache filled with the experts the current conversation uses most, by swapping a bounded number of
+    them at fixed intervals.
+  runs:
+  - background
+  owns_state:
+  - expert_heat
+  - pending_swaps
+- item: Q147
+  does: Serves OpenAI Chat and Completions, Anthropic Messages, OpenAI Responses (with a stored-response conversation store)
+    and token counting over HTTP with streaming, bounding connections, threads and body bytes, and validating host, origin
+    and API key.
+  runs:
+  - per_request
+  owns_state:
+  - stored responses
+  - connection and body reservations
+- item: Q148
+  does: From the verify window's final hidden rows and the tokens that followed them, produce draft tokens with a probability
+    each, and keep the draft layer's own attention K/V complete for every accepted position.
+  runs:
+  - startup
+  - per_request
+  - per_window
+  owns_state:
+  - mtp_kv
+- item: Q149
+  does: Computes at startup how many routed experts the expert cache may hold, from the recommended working set times a
+    percentage, capped by a context-aware limit, minus non-routed weight bytes, divided by one expert's bytes.
+  runs:
+  - startup
+  owns_state: []
+- item: Q150
+  does: For MoE targets, allots verify rows across the batch's lanes on the GPU to maximize expected accepted tokens per
+    predicted cycle cost, using an acceptance model on draft confidence and a cost line per lane count, both refit online
+    on the host from completed cycles.
+  runs:
+  - per_step
+  owns_state:
+  - acceptance slope and per-position intercepts
+  - last labels
+  - decayed cost sums per lane count, constrained or not
+- item: Q151
+  does: A fixed team of pinned CPU threads computes the experts assigned to the CPU directly from encoded host weights,
+    grouping (token, expert) pairs per expert, and returns FP32 partial sums; the team is kept polling or put to sleep by
+    how many layers used it recently.
+  runs:
+  - per_layer
+  owns_state:
+  - worker threads, barriers, awake/asleep state
+- item: Q152
+  does: Appends supported samplers to the model graph so top-k, temperature, softmax and the random draw run on the device
+    and only candidates or the chosen token come back to the host.
+  runs:
+  - per_step
+  owns_state:
+  - per-sequence sampler state mirrored for the graph
+- item: Q153
+  does: Upload selected tensors in their unchanged GGUF block form (per-layer projections, output head, token embedding)
+    and attach them to the matching entries of the weight table, so that the pack copy of each can be skipped.
+  runs:
+  - startup
+  - on_demand
+  owns_state: []
+- item: Q154
+  does: Computes attention for each token over the visible cached rows, including compressing new rows and selecting the
+    top compressed rows with an indexer.
+  runs:
+  - per_layer
+  owns_state: []
+- item: Q155
+  does: Accepts the longest prefix of the proposed tokens the target agrees with (argmax under greedy, rejection sampling
+    against q under sampling), emits a corrected or bonus token, and reports how many were accepted so state can be committed.
+  runs:
+  - per_step
+  owns_state: []
+- item: Q156
+  does: Buffers each block's new K/V in an fp16 staging pool and, when a 128-token tile is full, rotates, variance-normalises
+    and packs it to 4-bit keys and 2-bit values in the cache; keeps finished requests' first blocks in fp16 until slots
+    run short.
+  runs:
+  - per_step
+  owns_state:
+  - fp16 staging pool slots per block
+  - fill count per physical block
+  - retired sinks (finished requests' first blocks held in fp16)
+  - pages another group has taken since the last flush
+- item: Q157
+  does: Holds the full-attention layers' keys and values for every context position in pool pages, in the storage format
+    chosen at boot.
+  runs:
+  - per_step
+  owns_state:
+  - K/V per position per layer
+  - per-token-head scales stored inline after each head
+- item: Q158
+  does: Keeps each request's fixed-size GDN recurrent state and convolution history in pool pages, with extra slots per
+    draft position so the state after any accepted prefix of a verify block can be continued.
+  runs:
+  - per_step
+  owns_state:
+  - per-request SSM state (48 layers x 128 x 128) and conv history
+  - per-draft-position speculative state slots
+  - align-mode snapshots at chunk boundaries
+- item: Q159
+  does: For DeepSeek V4/V4.1, proposes up to five next tokens from the target model's hidden features with a small block
+    drafter, each with a confidence, stopping when confidence falls below a threshold.
+  runs:
+  - per_step
+  owns_state:
+  - 128-position feature window with position tags per stage
+- item: Q160
+  does: Runs the engine in its own process, taking requests from the frontend, calling the scheduler and model runner once
+    per step, and returning outputs.
+  runs:
+  - per_step
+  owns_state:
+  - the request queue between frontend and core
+- item: Q161
+  does: 'Reports the engine''s state on /status and Prometheus: memory plan, governor and ledger accounts, host memory as
+    macOS counts it, memory audit against the plan, cache, spill, expert store, weights, scheduler and decode-gap causes,
+    latency histograms, and macOS thermal state (reported, never acted on).'
+  runs:
+  - on_demand
+  - background
+  owns_state:
+  - latency histograms
+  - last thermal state
+- item: Q162
+  does: During a dense target's prefill, runs the leading intermediate channels of each FFN layer on the GPU and the rest
+    as a W8A8 program on the Neural Engine (int8 weights requantized by the GPU one layer ahead into shared IOSurfaces),
+    ordered by a shared event, and adds the ANE's partial down projection to the GPU's.
+  runs:
+  - per_layer
+  owns_state:
+  - the loaded ANE program (memory held by the ANE service process, outside the Metal budget)
+  - the breaker state, permanent for the process
+- item: Q163
+  does: 'Runs the engine process''s single loop: a reader thread takes framed messages from the server''s pipe, the loop
+    hands frames to the engine, runs a memory control pass at command-free points and one engine tick, writes events back,
+    and turns any engine exception into an EngineUnhealthy error and exit.'
+  runs:
+  - per_step
+  owns_state:
+  - input queue
+  - longest tick
+- item: Q164
+  does: Samples the target at each draft position of the verification batch and accepts the longest matching prefix, or
+    accepts each draft token with probability min(1, p/q) and draws a replacement from the residual, always emitting one
+    more target token.
+  runs:
+  - per_step
+  owns_state:
+  - RNG for acceptance draws, independent of the draft
+- item: Q165
+  does: Generates an extra 4-bit (q4_g64) copy of the main output head for draft use only, either over the full vocabulary
+    or over a shortlist of the most frequent tokens chosen from an offline token-frequency ranking, storing the shortlist's
+    token-ID map.
+  runs:
+  - offline
+  owns_state: []
+- item: Q166
+  does: Holds one fixed-size recurrent state (convolution and SSM/RWKV states) per sequence, plus a configurable number
+    of earlier snapshots so the last few tokens can be rolled back.
+  runs:
+  - startup
+  - per_step
+  owns_state:
+  - state cells per sequence
+  - 1 + n_rs_seq snapshot groups
+- item: Q167
+  does: On an explicit command, write the session's current conversation to one file or read one back, refusing any file
+    that does not belong to this model, configuration and engine version before any state changes.
+  runs:
+  - on_demand
+  owns_state: []
+- item: Q168
+  does: Keeps every open memory claim with its rank and class, decides what each claim may take, and frees what it lacks
+    from heterogeneous holders in one fixed order, and grows elastic pools toward their caps when quiet.
+  runs:
+  - per_step
+  - background
+  owns_state:
+  - open claims and their waits
+  - pool accounts and grow/shrink counts
+  - quiet and copy-demand clocks
+- item: Q169
+  does: 'Runs one logical batch: applies pending cache shifts, gets a memory context for the micro-batches, reuses or rebuilds
+    the graph per micro-batch, sets inputs, computes, copies logits, embeddings and sampled tokens out, and restores the
+    caller''s output order.'
+  runs:
+  - per_step
+  owns_state:
+  - logits and embedding output buffers and output index map
+  - previous graph result for reuse
+  - lazy output swaps
+- item: Q170
+  does: 'Computes the 48 linear-attention layers: the short convolution and the gated delta-rule recurrence, chunked over
+    a prefill or step by step over a verify block, writing the state after each position.'
+  runs:
+  - per_layer
+  owns_state: []
+- item: Q171
+  does: When three or more selected experts of a layer are missing, computes the resident ones first while the missing ones
+    are read, then the late ones, and does the down projection and sum once at the end.
+  runs:
+  - per_layer
+  owns_state: []
+- item: Q172
+  does: Per MoE layer, takes one global top-k routing, splits (token, expert) pairs between GPU and CPU by a mask built
+    from a snapshot of ready experts (or streams the whole layer for large T), skips the CPU side when it has no pairs,
+    and adds the FP32 partial sums before one rounding to BF16.
+  runs:
+  - per_layer
+  owns_state:
+  - the bridge buffers for this layer's CPU inputs and partial sums
+- item: Q173
+  does: 'Turn each position''s logits into one token id by a fixed chain: logit bias, penalties, top-k, top-p, min-p, temperature,
+    pick.'
+  runs:
+  - per_window
+  - per_step
+  owns_state: []
+- item: Q174
+  does: Splits consecutive layer ranges across machines, forwarding tokens and hidden state stage to stage and returning
+    logits, with route discovery from worker registrations.
+  runs:
+  - per_layer
+  - per_request
+  owns_state:
+  - Worker registry and route plan, rolling token-prefix hash per worker
+- item: Q175
+  does: Captures CUDA graphs for each batch size up to the capture limit and for each verify-block length the drafting path
+    can schedule, fixing buffer addresses for replay.
+  runs:
+  - startup
+  owns_state:
+  - captured graphs and the addresses they hold
+- item: Q176
+  does: Answers typed questions (choice, score, yes/no) about a given state by rendering each question, sometimes in several
+    option orders, and reading the option-label logits of one forward pass, with no token generated.
+  runs:
+  - per_request
+  owns_state:
+  - per-model label tokens, temperatures, score biases
+- item: Q177
+  does: Encodes a prefill command of one or more lanes' chunks (up to 2048 rows each, grouped up to four chunks run layer
+    by layer when experts stream or K/V spills), split into layer passes, capturing composite states at planned boundaries,
+    then runs the draft's context prefill and selects the first anchor.
+  runs:
+  - per_step
+  owns_state:
+  - the command between its passes and its captures
+- item: Q178
+  does: At start, for a dense target only, times the FFN split at two ANE shares and the GPU alone on a few layers, fits
+    T(s) = max(A(s), G(s) + u A(s)), and picks the ANE's channel share and least chunk rows, or none; persists the result
+    keyed by layer shapes, device, macOS version, build and allowed units.
+  runs:
+  - startup
+  owns_state:
+  - the remembered calibration per key
+- item: Q179
+  does: Holds routed experts in slots grouped by expert size, in a floor chunk plus about 1 GiB elastic chunks, with per-block
+    slot tables the MoE kernels read; gives its last elastic chunk back under pressure (compacting experts below it) and
+    takes chunks back when memory is ample.
+  runs:
+  - startup
+  - background
+  owns_state:
+  - which expert sits in which slot of which chunk
+  - live chunk count
+  - failed-load flag
+- item: Q180
+  does: Computes every quantised linear layer of the target and drafters, optionally quantising activations to int8 per
+    token for the layers selected by name.
+  runs:
+  - per_layer
+  owns_state: []
+- item: Q181
+  does: Tracks whether generated text is inside tool-call structure or a string payload and makes structural tokens greedy
+    while payload text keeps the request temperature.
+  runs:
+  - per_step
+  owns_state:
+  - Five-state parser position over DSML, GLM and Qwen tag sets
+- item: Q182
+  does: Renders PDF pages to text and images in a disposable sandboxed PDFium process with memory and time budgets, for
+    the existing image prompt path.
+  runs:
+  - per_request
+  owns_state: []
+- item: Q183
+  does: Produce the exact prompt token ids and the token limit for a request from its messages, or refuse the request.
+  runs:
+  - startup
+  - per_request
+  owns_state:
+  - prompt_encode_cache
+- item: Q184
+  does: Turns a training-framework checkpoint (Hugging Face safetensors, PyTorch) into one GGUF file of renamed, reshaped
+    and optionally down-cast tensors plus key-value metadata (architecture, hyperparameters, tokenizer, chat template).
+  runs:
+  - offline
+  owns_state:
+  - mapping from checkpoint tensor names to GGUF tensor names per architecture
+- item: Q185
+  does: Produce a complete run configuration file for one model on this machine from machine facts and the person's answers,
+    and rewrite it without losing what the person added by hand.
+  runs:
+  - offline
+  owns_state:
+  - run_config
+- item: Q186
+  does: Collects timing and token counters per context and per sampler, speculative acceptance statistics, MoE cache statistics,
+    server Prometheus metrics, memory breakdowns, and logs through an asynchronous log thread.
+  runs:
+  - background
+  - per_step
+  owns_state:
+  - counters and buckets
+  - log queue
+- item: Q187
+  does: 'Is the sole admission for every Metal allocation: grants a short-lived byte reservation inside a claim''s scope
+    if it fits under the engine limit (less what higher-ranked waiting claims hold) and the host rule admits it for the
+    claim''s class, else refuses with the cause.'
+  runs:
+  - per_step
+  - background
+  owns_state:
+  - reserved bytes
+  - host band state with hysteresis and waiver
+  - unseen-growth correction
+  - denied count
+- item: Q188
+  does: Runs the start in fixed stages (configuration, backend, capability check, model loading, memory planning, storage
+    allocation, maximum-prefill and decode warmup, composite state restore from a persistent tier, memory audit) and reports
+    Ready or a classified start failure.
+  runs:
+  - startup
+  owns_state:
+  - start stage and the retry window for temporary allocation failures
+- item: Q189
+  does: Encodes one image per prompt into image tokens, with the tower's weights bulk-copied from host RAM per forward.
+  runs:
+  - per_request
+  owns_state:
+  - host-resident tower weights within a dedicated offload budget
+- item: Q190
+  does: Accepts HTTP requests (completions, OpenAI and Anthropic compatible chat, embeddings, rerank, infill, tokenize,
+    decisions, tools, slots, metrics), parses JSON into tasks in worker threads, and formats results or streams them as
+    server-sent events.
+  runs:
+  - per_request
+  owns_state:
+  - per-request response state in its thread
+- item: Q191
+  does: Reads exactly this rank's encoded rectangles of each parameter from the artifact files through bounded staging and
+    builds stable backing on the device, in ordinary host memory, in CUDA-registered host memory, or left as file backing,
+    then holds them as the rank's immutable weights.
+  runs:
+  - startup
+  owns_state:
+  - the rank's weight backings and their registration lifetimes
+- item: Q192
+  does: Exposes devices of other machines as local backend devices over TCP, forwarding buffer allocation, tensor transfers
+    and graph compute, with an optional server-side cache of large tensors keyed by hash.
+  runs:
+  - startup
+  - per_step
+  owns_state:
+  - connections and remote buffer handles
+  - on the server, a disk cache of tensors by hash
+- item: Q193
+  does: Builds worst-case prompt and single-token graphs against a simulated full cache and reserves compute buffers on
+    each backend so that later steps never allocate, reusing activation memory across graph nodes.
+  runs:
+  - startup
+  - on_demand
+  owns_state:
+  - compute buffer sizes per backend
+  - maximum graph node count
+- item: Q194
+  does: 'Brings spilled K/V back for attention: during decode a host step resolves each selected block on Index pages through
+    a shared hot block cache (reading misses from tier copies); during prefill it streams the history one attention layer
+    at a time into staging.'
+  runs:
+  - per_layer
+  owns_state:
+  - hot block cache directory
+  - history staging buffers
+- item: Q195
+  does: Keeps the most recently and frequently used experts of host-resident MoE layers in device slots, maps each selected
+    expert to a slot per small batch, uploads misses, and optionally leaves a share of misses to be computed on the CPU.
+  runs:
+  - startup
+  - per_layer
+  owns_state:
+  - device banks of expert slots per device and layer group
+  - slot map per layer
+  - combined recency-frequency score and LRU lists per class
+  - fraction of a miss carried to the next plan
+- item: Q196
+  does: Records every routing decision during a run, simulates per-layer LRU caches of several sizes, and writes a profile
+    and a hot-expert list that can seed the expert cache.
+  runs:
+  - per_layer
+  owns_state:
+  - Simulated LRU contents, hits and weighted hits per cache capacity and layer
+- item: Q197
+  does: 'Turns a protocol-neutral prompt (turns, tools, media references) into a PreparedPrompt: renders the model''s chat
+    template, tokenizes with the artifact''s BPE description, lays out media placeholder spans and positions, and produces
+    an input identity and candidate restore points for prefix reuse.'
+  runs:
+  - per_request
+  owns_state: []
+- item: Q198
+  does: Holds fixed-size recurrent and convolution state of linear-attention layers, plus up to three snapshots used to
+    roll back after rejected drafts.
+  runs:
+  - per_step
+  - per_layer
+  owns_state:
+  - Recurrent matrices
+  - Convolution history
+  - Snapshots for verify rollback
+- item: Q199
+  does: Updates the recurrent state and produces output for linear-attention layers.
+  runs:
+  - per_layer
+  owns_state: []
+- item: Q200
+  does: When memory clearly allows, reads the Engram tables sequentially in background threads to fill the page cache, stopping
+    under OS memory pressure.
+  runs:
+  - startup
+  - background
+  owns_state:
+  - Warm job progress and stop flag
+- item: Q201
+  does: Hold a fixed number of experts in fast memory and answer, for any expert, whether it is there and in which slot.
+  runs:
+  - startup
+  - on_demand
+  owns_state:
+  - residency_table
+- item: Q202
+  does: Reads the GPU family, core count, macOS version, unified memory and the recommended working set, classifies the
+    GPU as Apple9 or Apple10, and refuses unsupported Macs.
+  runs:
+  - startup
+  owns_state:
+  - device capability record
+- item: Q203
+  does: Lets a new request reuse pages of any earlier or concurrent request with the same prompt prefix, resuming attention
+    KV at block hashes and recurrent state from the nearest retained snapshot at or below the attention match.
+  runs:
+  - per_request
+  owns_state:
+  - block hashes
+  - which state snapshots are retained (every Nth block)
+- item: Q204
+  does: Loads target and drafter weights from the model directory onto the GPU and re-encodes them for the kernels that
+    will run them.
+  runs:
+  - startup
+  owns_state:
+  - resident weights
+- item: Q205
+  does: Keeps encoded image rows by content digest and grid, shared by repeated placements and concurrent requests, and
+    gives the least recently used unheld entries back to the ledger.
+  runs:
+  - per_request
+  owns_state:
+  - cached embeddings by image key
+- item: Q206
+  does: 'Given target logits for K+1 columns and the drafts, licenses a prefix: greedy rows accept the longest match with
+    the penalty-adjusted argmax plus one correction or bonus token; sampled rows accept with p(draft) (one-hot drafts) or
+    min(1, p/q) (DFlash2) and resample the first rejection from the residual.'
+  runs:
+  - per_step
+  owns_state: []
+- item: Q207
+  does: 'Drives one job: sync, then sample and evaluate tokens, tracking thinking, stop sequences and EOS, streaming text,
+    and triggering continued checkpoints.'
+  runs:
+  - per_request
+  - per_step
+  owns_state:
+  - Per-slot live tool and thinking bindings
+- item: Q208
+  does: Hands out, reference-counts and frees fixed-size pages per request and per group, keeping a free queue whose order
+    decides eviction.
+  runs:
+  - per_step
+  owns_state:
+  - page ownership and reference counts
+  - the free queue (eviction order)
+  - the null block
+  - sliding-window frees behind the window
+- item: Q209
+  does: Before the model loads, decides from the engine budget whether MoE routed experts and the PLE table load whole or
+    stream from SSD, sizes their stores and floors, and sizes the floors of KV spill for a sparse-attention target.
+  runs:
+  - startup
+  owns_state:
+  - the streamed plan
+- item: Q210
+  does: Makes the mapped weights readable by the GPU without a second copy (or copies them when asked), binding only a layer
+    slice or one expert half when the process owns only part of the model.
+  runs:
+  - startup
+  owns_state:
+  - Per-tensor device views and registrations
+  - Locked non-routed weights in SSD streaming mode
+- item: Q211
+  does: Runs the model in lockstep on two machines, each holding half of the routed experts (and half of some projections),
+    exchanging f32 partial sums at up to two gates per layer over RDMA or TCP, with the worker mirroring every session call.
+  runs:
+  - per_layer
+  - per_request
+  owns_state:
+  - Connection, gate sequence numbers, command mailbox, failed flag, leader-to-worker session id map
+- item: Q212
+  does: Compiles JSON-schema or tool-call grammars into cached llguidance matchers on the server, and for a constrained
+    lane computes a bitmask for the anchor and each of the 7 drafted tokens it simulates, while the engine runs the target
+    verify forward and waits (up to a limit) for the masks before selection.
+  runs:
+  - per_step
+  - per_request
+  owns_state:
+  - compiled matcher cache by grammar
+  - per-request matcher state and committed batches
+- item: Q213
+  does: Keeps Flash-Next's n-gram embedding table in its GGUF and, before each command, stages every distinct row the command
+    needs from a bounded host row cache (reading misses on the SSD readers) into memory the GPU reads.
+  runs:
+  - per_step
+  owns_state:
+  - host row cache
+- item: Q214
+  does: Copy expert bytes from slow memory to fast memory in an order the accelerator work that follows can rely on.
+  runs:
+  - on_demand
+  owns_state:
+  - staged_experts
+- item: Q215
+  does: Answers finite-option questions by rendering a fixed prompt, having the engine compute raw final-position logits
+    at verified single-token answer slots instead of generating, and returning softmax scores.
+  runs:
+  - per_request
+  owns_state: []
+- item: Q216
+  does: Parses GGUF metadata into hyperparameters and vocabulary, validates tensor bounds, and brings tensor bytes from
+    disk into their assigned buffers by memory map, plain read, direct I/O or locked pages, across split files.
+  runs:
+  - startup
+  owns_state:
+  - file mappings and the byte ranges each buffer pins
+  - progress of the load
+- item: Q217
+  does: Keeps session checkpoints on disk keyed by the SHA-1 of the rendered text prefix, finds the longest saved prefix
+    of a new prompt, and evicts by a decaying hit score within a disk budget.
+  runs:
+  - per_request
+  owns_state:
+  - Checkpoint files with header (model id, quant bits, context, hits, last use)
+- item: Q218
+  does: Holds a bounded set of routed experts (gate, up and down blocks) in separately allocated GPU-visible buffers and
+    answers which slot holds a selected expert of a layer.
+  runs:
+  - per_layer
+  - startup
+  owns_state:
+  - Map from (layer, expert) or file offset to slot, with in-flight marks and last-use stamps
+- item: Q219
+  does: 'Plans the next command: a prefill plan of the most urgent priority (overdue requests first, else fewest remaining
+    rows, with joiners), sized while decode waits to a time bound measured from past commands, or a decode batch of up to
+    4 ready lanes of one priority and stage; owes decode a share of contended prefill time.'
+  runs:
+  - per_step
+  owns_state:
+  - request phases and order
+  - decode debt
+  - overtake counts
+  - last measured command
+- item: Q220
+  does: Projects the final hidden state to vocabulary logits.
+  runs:
+  - per_step
+  owns_state: []
+- item: Q221
+  does: Discovers the available compute devices (CPU, CUDA, HIP, Metal, Vulkan, SYCL, OpenCL, CANN, RPC and others), loading
+    backend libraries dynamically and choosing the best build for the host CPU.
+  runs:
+  - startup
+  owns_state:
+  - registered backends and devices
+- item: Q222
+  does: Turns target logits into a token per request with temperature, top-k and top-p, and provides the truncated distributions
+    drafting and acceptance use.
+  runs:
+  - per_step
+  owns_state:
+  - per-request sampling states (temperature, top-k, top-p, seed)
+- item: Q223
+  does: 'Each iteration builds one shared batch: applies context shift, asks the drafter for drafts, adds each generating
+    slot''s last token plus draft, then fills remaining room with prompt chunks of compatible slots, decodes in chunks of
+    the logical batch size, and hands outputs to sampling and verification.'
+  runs:
+  - per_step
+  owns_state:
+  - the shared batch and its slot-to-row map
+  - consecutive empty batch counter
+- item: Q224
+  does: Chooses the token ids the MTP drafter may propose and slices those rows out of the already-quantized output head
+    into a separate draft head.
+  runs:
+  - offline
+  owns_state:
+  - the draft id list
+- item: Q225
+  does: Detokenizes streamed tokens, splits reasoning from answer, applies stop strings with partial-match holding, projects
+    tool calls into streamed argument deltas, and validates the final content.
+  runs:
+  - per_request
+  owns_state:
+  - per-request parse state and held partial text
+- item: Q226
+  does: Records request lifecycle (TTFT, queue wait, preemptions), execution samples per unit, GPU stream intervals, host
+    work, speculative counters per draft position, resource allocations, expert and PLE upload bytes and per-rank snapshots,
+    and exposes them as Prometheus metrics, JSONL and pretty logs, measurement windows and startup progress.
+  runs:
+  - per_step
+  - background
+  owns_state:
+  - cumulative statistics, measurement window
+- item: Q227
+  does: Produce 7 draft tokens in one forward pass of a separate 5-layer drafter model that reads the target model's hidden
+    states at five layers, and keep its context ring to committed rows only.
+  runs:
+  - startup
+  - per_window
+  owns_state:
+  - dflash2_context
+- item: Q228
+  does: Commits every offline rewrite of the model directory crash-safely and refuses a checkpoint the rewrites cannot extend,
+    so a killed or wrong preparation never leaves a half-written model.
+  runs:
+  - offline
+  owns_state:
+  - which preparation steps are done, read only from the safetensors index
+  - the first (pristine) backup of every rewritten file
+  - a lock beside the model directory serialising concurrent preparations
+- item: Q229
+  does: Looks up and dequantises the embedding row of each input token, from VRAM or from pinned host memory through a UVA
+    view.
+  runs:
+  - per_step
+  owns_state:
+  - placement of the packed table (VRAM or pinned host)
+- item: Q230
+  does: Turns generated semantic tokens and hidden states into audio codes and then a waveform through extra stage models
+    (code predictor, codec decoder), including a streaming realtime path.
+  runs:
+  - per_step
+  owns_state:
+  - per-sequence generation state on the encoder backends
+- item: Q231
+  does: Decodes and preprocesses images, audio and video frames, splits them into chunks with model-specific marker tokens
+    and positions, runs the vision or audio encoder and projector, and returns embedding rows for the language model.
+  runs:
+  - startup
+  - per_request
+  owns_state:
+  - projector weights
+  - its own backend scheduler and compute buffers
+  - a compute mutex so only one encode runs at a time
+- item: Q232
+  does: Assigns each graph node to a backend (following where weights live, offloading host-weight ops to an accelerator
+    for big batches), splits the graph into per-backend pieces, copies inputs between backends, and runs the pieces with
+    events, prefetch and multiple input copies for pipelining.
+  runs:
+  - per_step
+  owns_state:
+  - node-to-backend assignment
+  - splits and their inputs
+  - per-backend input copies and events (up to 4 copies)
+- item: Q233
+  does: 'Keeps each sequence''s token ledger and main/draft frontiers, turns a request into a complete work demand (reads,
+    writes, growth, copy-on-write tails, speculative peak, commit objects), binds sequences to lanes and restore sources,
+    and runs generation transactions: plan, submit, decide, commit or discard, pause and resume.'
+  runs:
+  - per_request
+  - per_step
+  owns_state:
+  - token ledger, main and backend frontiers, current transaction per sequence, recovery targets
+- item: Q234
+  does: Parses generated tool calls per family, repairs a missing wrapper, retries once with a model-visible error, and
+    remembers the exact sampled call text by id so history replays byte-identically.
+  runs:
+  - per_request
+  owns_state:
+  - LRU map from tool-call id to sampled text (100k ids, 512 MiB), also persisted in checkpoint trailers
+- item: Q235
+  does: Rewrites a GGUF model with each tensor converted to a block-quantized type chosen per tensor from the requested
+    file type, layer position, tensor role and whether an importance matrix is present.
+  runs:
+  - offline
+  owns_state:
+  - per-run counters of which layer and tensor category is being quantized
+- item: Q236
+  does: Copies the newest restore point of each conversation to the SSD tier ahead of need, after a delay and only if deep
+    enough and not superseded, so a later reclaim frees its memory at once; on a persistent tier it copies every point.
+  runs:
+  - background
+  owns_state:
+  - points waiting, copied, superseded, failed
+- item: Q237
+  does: 'While the GPU runs, reads ahead into the free staging the experts most likely next: the next round''s, or after
+    a decode step the next block''s experts its router picks from this block''s input, ranked by summed routing weight;
+    for a long prefill chunk the whole next block.'
+  runs:
+  - background
+  owns_state:
+  - the read-ahead batch in flight
+- item: Q238
+  does: Counts tokens inside a thinking block and, when the budget runs out, waits for a UTF-8 boundary and then forces
+    the closing sequence token by token.
+  runs:
+  - per_step
+  owns_state:
+  - state IDLE, COUNTING, WAITING_UTF8, FORCING, DONE and remaining count
+- item: Q239
+  does: Present several independent engine processes, each on its own group of cards, as one engine, and choose a process
+    for each generation.
+  runs:
+  - startup
+  - per_request
+  - background
+  owns_state:
+  - replica_index
+- item: Q240
+  does: For each request, choose the stored state that shares the longest valid prefix with the prompt, make the session
+    hold exactly that state, and report the prefix length.
+  runs:
+  - per_request
+  owns_state: []
+- item: Q241
+  does: Holds the extra per-token state that sparse or compressed attention needs (indexer keys for top-k token selection,
+    compressed KV rows and scores, raw-window token history for Engram n-gram hashing), kept in lockstep with the main KV
+    cells.
+  runs:
+  - startup
+  - per_step
+  owns_state:
+  - indexer K tensors
+  - compressed KV and score rows per ratio
+  - cell layout mirrored from the main cache
+- item: Q242
+  does: Removes or amplifies one stored direction per layer from attention and/or FFN outputs at run time.
+  runs:
+  - per_layer
+  owns_state:
+  - Per-session steering scale
+- item: Q243
+  does: Compute a batch of expert evaluations on CPU cores, reading each expert's bytes in place, and return only when every
+    job is done and every worker is parked again.
+  runs:
+  - startup
+  - per_layer
+  - background
+  owns_state: []
+- item: Q244
+  does: 'Picks which slot a new task goes to: the requested slot, else the idle slot whose cached prompt shares the longest
+    prefix above a similarity threshold, else an empty or least recently used slot, and says whether to swap prompt states
+    through the prompt cache.'
+  runs:
+  - per_request
+  owns_state:
+  - none (decides only)
+- item: Q245
+  does: A daemon thread warns once per episode when no step has completed for a threshold while the scheduler still holds
+    requests.
+  runs:
+  - background
+  owns_state:
+  - time of last completed step
+  - whether this episode was logged
+- item: Q246
+  does: Computes the engine's hard Metal budget (recommended working set less a margin, optionally lowered by --max-memory),
+    the host reserves, the fixed floors, the KV page and extent geometry, and the longest context one request may take,
+    which is a result of the plan.
+  runs:
+  - startup
+  owns_state:
+  - the budget breakdown and context bounds
+- item: Q247
+  does: Keeps stored Responses objects and their previous_response_id conversation DAG in process memory, bounded by record
+    count and bytes with LRU eviction, and flattens a stored context when a continuation is submitted.
+  runs:
+  - per_request
+  owns_state:
+  - stored responses, context nodes with shared parents, LRU order
+- item: Q248
+  does: Computes the selected experts' gate/up/SwiGLU/down and their weighted sum for each token.
+  runs:
+  - per_layer
+  owns_state: []
+- item: Q249
+  does: Measures device-to-host, host-to-device and device-to-device context copy times and prefill recomputation times
+    on the actual machine and model, fits the cost model, accepts or rejects the fit on held-out error and ordering, and
+    writes a machine/model cost preset JSON.
+  runs:
+  - offline
+  owns_state: []
+- item: Q250
+  does: Converts text to token ids and back with the model's tokenizer type (SPM, BPE, WordPiece, Unigram, RWKV, PLaMo)
+    and pre-tokenizer rules, and classifies special and end-of-generation tokens.
+  runs:
+  - per_request
+  - per_step
+  owns_state:
+  - vocabulary tables, caches of token pieces
+- item: Q251
+  does: Presents several GPUs as one device whose buffers hold slices of each weight and KV tensor, and runs every op on
+    all slices with cross-GPU reductions (NCCL/RCCL when built).
+  runs:
+  - startup
+  - per_layer
+  owns_state:
+  - slice layout of each tensor across the member devices
+- item: Q252
+  does: Renders a chat message list, tools and options into the prompt text with the model's Jinja template, and derives
+    the grammar, lazy triggers and preserved tokens needed to constrain tool-call output.
+  runs:
+  - per_request
+  owns_state:
+  - parsed templates
+- item: Q253
+  does: Computes target logits over the full vocabulary for the positions that are sampled or verified.
+  runs:
+  - per_step
+  owns_state: []
+- item: Q254
+  does: Run one window of 1 to max_t tokens through the layers and the output head as a single replayed graph, and serve
+    each layer's host-side expert work when the GPU signals that the layer's routing is known.
+  runs:
+  - per_window
+  - per_layer
+  owns_state: []
+- item: Q255
+  does: Propose the tokens that followed the longest earlier occurrence of the text's current ending, with the match length,
+    using no model weights.
+  runs:
+  - per_request
+  - per_window
+  owns_state:
+  - lookup_history
+- item: Q256
+  does: Runs the engine over a calibration text set and accumulates per-expert activation statistics for the gate/up and
+    down matrices, then writes them as an importance matrix.
+  runs:
+  - on_demand
+  owns_state:
+  - Per-layer, per-expert accumulated squared activations and sample counts
+- item: Q257
+  does: For each token, compute its 16 row numbers from the token and its two predecessors and deliver those 16 rows of
+    the n-gram table as 2560 floats before layer 1 needs them.
+  runs:
+  - startup
+  - per_window
+  - per_step
+  - background
+  - on_demand
+  owns_state: []
+- item: Q258
+  does: For each token in each layer, turn the feed-forward input into 512 logits and choose 10 experts with renormalised
+    weights, on the device inside the recorded graph.
+  runs:
+  - per_layer
+  owns_state: []
+- item: Q259
+  does: 'Holds DeepSeek attention state per layer: a 128-row ring of raw rows, appended compressed rows, indexer rows, the
+    compressor''s pending group, and row counters that define which rows are valid.'
+  runs:
+  - per_step
+  - per_layer
+  owns_state:
+  - Raw window ring
+  - Compressed and indexer rows
+  - Compressor frontier
+  - Row counters
+- item: Q260
+  does: Estimates context, scratch and model bytes for the requested context and session count and refuses to start (or
+    refuses an allocation) when they exceed the machine's budget minus a reserve.
+  runs:
+  - startup
+  - on_demand
+  owns_state: []
+- item: Q261
+  does: Requantizes the tensors the published quant left in bf16 (output head, input embedding, MTP draft module) to symmetric
+    group-128 int8 (MTP optionally int4) by round-to-nearest, with an error bound.
+  runs:
+  - offline
+  owns_state: []
+- item: Q262
+  does: Decides per round whether drafting runs, pausing it for some rounds when recent acceptance counts show it does not
+    pay.
+  runs:
+  - per_step
+  owns_state:
+  - Window counters, pause remaining, lifetime acceptance
+- item: Q263
+  does: Turns generated tokens into text and separates reasoning, content and XML tool calls while streaming, keeping usage
+    updates flowing.
+  runs:
+  - per_step
+  owns_state:
+  - per-request parser buffer of not-yet-classified text
+- item: Q264
+  does: Encodes and runs the model's operations as GPU kernels specialised per tensor format, per family and per batch shape.
+  runs:
+  - per_layer
+  owns_state:
+  - Command buffers or streams, scratch and prefill workspaces
+- item: Q265
+  does: Keeps the device-side index of which experts are published in which slots of the fixed and reusable regions, lets
+    consumers acquire and release sets of experts with generation numbers on their stream, and rebuilds a reusable region
+    only after its readers have retired.
+  runs:
+  - startup
+  - per_layer
+  owns_state:
+  - slot placements, published flags, open uses and their generations, the device offset/divisor index
+- item: Q266
+  does: Holds per-position key/value (or compact latent) rows and sparse-attention indexer keys for GLM and for Qwen's attention
+    layers.
+  runs:
+  - per_step
+  - per_layer
+  owns_state:
+  - Per-layer K/V or latent rows, indexer keys, valid length
+- item: Q267
+  does: Accepts OpenAI chat/completions/responses and Anthropic messages over hand-written HTTP/1.1, streams SSE, detects
+    disconnects and cancels jobs.
+  runs:
+  - per_request
+  owns_state:
+  - One thread per connection; job lifetime
+- item: Q268
+  does: Runs the model over calibration text and accumulates, per weight matrix column, the squared activations that reach
+    it, saving them as an importance matrix.
+  runs:
+  - offline
+  owns_state:
+  - running sums of activation statistics per tensor
+- item: Q269
+  does: Runs the vision tower on an image's pixels inside the prefill command that first reaches the image, producing embedding
+    rows that replace the image placeholder tokens.
+  runs:
+  - per_request
+  owns_state:
+  - the vision arena, built on demand and released when idle (rebuild-only pool)
+- item: Q270
+  does: Stores keys and values per layer in a fixed pool of cells, each tagged with a position and a set of sequence ids,
+    finds cells for each micro-batch, writes new K/V by index, and supports remove, copy (shared cells), keep, shift and
+    divide of positions per sequence.
+  runs:
+  - startup
+  - per_step
+  owns_state:
+  - K/V tensors per layer
+  - cell positions and sequence membership bitsets
+  - per-stream head and used count
+  - pending shift flag
+- item: Q271
+  does: For Qwen3.8, reads BF16 n-gram embedding rows for each token from the on-disk table with pread, and during prefill
+    reads the next chunk's rows in a background thread.
+  runs:
+  - per_step
+  - per_request
+  owns_state:
+  - N-gram history (ple_hist, ple_prev) per session
+- item: Q272
+  does: 'Assigns every weight tensor to a device and buffer type: whole layers to devices in proportion to free memory or
+    a given split, input embedding on the CPU, pattern overrides (for example MoE experts to host), CPU repacked layouts,
+    row-split buffers, and checks the device can run the ops that read it.'
+  runs:
+  - startup
+  owns_state:
+  - layer-to-device map
+  - buffer-type preference list per device
+- item: Q273
+  does: Supplies, compiled into the binary, a per-layer ranking of all experts from highest to lowest cache priority, derived
+    from an offline routing-count calibration over 128 tasks in nine domains, with a geometry check that decides whether
+    the table applies.
+  runs:
+  - startup
+  owns_state:
+  - the static ranking tables
+- item: Q274
+  does: Prices fixed weights, workspace, transition records, vision window, communication and allocator metadata per rank,
+    measures graph capture growth by capturing, releasing and recapturing, and sizes the shared context backing from what
+    remains, keeping planning headroom, a mandatory host reservation and a final whole-instance check apart.
+  runs:
+  - startup
+  owns_state:
+  - initial memory snapshot, limit, headroom and host reservation
+- item: Q275
+  does: Runs the vision tower eagerly on independently encodable media units chosen to fit a separate vision memory window,
+    borrowing scratch from the program workspace, and keeps features until the matching text spans have consumed them.
+  runs:
+  - per_request
+  owns_state:
+  - vision feature window lease
+- item: Q276
+  does: Map a GGUF v3 shard read-only, expose its metadata, tensor directory and tensor bytes unchanged, and refuse a file
+    whose declared shape the compiled kernels cannot run.
+  runs:
+  - startup
+  - on_demand
+  owns_state: []
+- item: Q277
+  does: Choose, for each round, where the verify window's drafts come from and how wide the window is, so that committed
+    tokens per measured millisecond is highest; and under automatic drafter selection, which neural drafter a request uses.
+  runs:
+  - startup
+  - per_request
+  - per_window
+  owns_state:
+  - draft_estimates
+  - drafter_choice_stats
+- item: Q278
+  does: Parses and checks every serve option, passes them to the server and the native command line, reports which options
+    each family can use, and writes the serve record the desktop app follows.
+  runs:
+  - startup
+  owns_state:
+  - serve record file
+- item: Q279
+  does: Moves context records between device memory, a pinned host tier (RTX 5090, default 8 GiB plus 8 state images; zero
+    on Spark) and peer ranks in bounded chunks on a transfer stream, for demotion, restore, pause snapshots and attention-owner
+    changes.
+  runs:
+  - on_demand
+  - background
+  owns_state:
+  - per-slot staging, pinned mapping storage and events
+  - the host-side context backing
+- item: Q280
+  does: Serializes and restores the whole context or one sequence (memory cells and data, optionally only the partial-rollback
+    part) to buffers or files, with slot checkpoints appended to slot files.
+  runs:
+  - on_demand
+  owns_state:
+  - none beyond the files written
+- item: Q281
+  does: Holds every main routed expert of the model in host memory registered with CUDA, so the same bytes can be copied
+    asynchronously to the GPU and read in place by CPU workers.
+  runs:
+  - startup
+  - on_demand
+  owns_state:
+  - all main routed expert weights and their registration
+- item: Q282
+  does: Keeps logical identity of states, histories and pages (content version, coverage, references, copy-on-write branching
+    of shared tail pages, reservations, address borrows), evaluates a demand jointly across ranks and domains, and runs
+    context transactions that copy, map, wait for retirement and then publish.
+  runs:
+  - per_step
+  - on_demand
+  owns_state:
+  - object identities, references, coverage, reservations, checkpoint records and identity forest
+- item: Q283
+  does: Splits the pool into equal-size pages shared by attention KV, recurrent state and drafter window layers, choosing
+    group size, per-kind block size and padding, and computes how many requests can be admitted and resident.
+  runs:
+  - startup
+  owns_state: []
+- item: Q284
+  does: Rewrites the model's chat template so array-shaped tool arguments and unknown reasoning-effort names no longer fail
+    rendering.
+  runs:
+  - offline
+  owns_state: []
+- item: Q285
+  does: Turns a request's messages, tools and reasoning-effort setting into prompt token ids.
+  runs:
+  - per_request
+  owns_state: []
+- item: Q286
+  does: Accept OpenAI- and Anthropic-shaped HTTP requests, bound how many inference calls are pending, answer every failure
+    class with a defined status code, and cancel a request whose client has hung up.
+  runs:
+  - per_request
+  - background
+  owns_state:
+  - admission_counters
+- item: Q287
+  does: 'Chooses the routed experts and their weights per token and layer: by a learned gate, or in the first DeepSeek layers
+    by a token-id lookup table.'
+  runs:
+  - per_layer
+  owns_state: []

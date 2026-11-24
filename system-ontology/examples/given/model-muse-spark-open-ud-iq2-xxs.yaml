@@ -1,0 +1,80 @@
+kind: model
+id: model/muse-spark-open-ud-iq2-xxs
+title: "Meta Muse Spark Open, the UD-IQ2_XXS conversion that is on the DGX Spark (about 2 bits per expert weight)"
+default_status: vendor_stated
+note: "The same model as model/muse-spark-open in another storage precision: the files a baseline run on the DGX Spark loads. Structure as in that description; sizes as stored in these files."
+operations:
+  - id: expert_router
+    kind: selection
+    selects: {operation: expert_ffn, out_of: 256, pick: 8, per: "token per layer"}
+  - id: expert_ffn
+    kind: compute
+    reads: [expert_weights]
+  - id: shared_blocks
+    kind: compute
+    reads: [shared_weights, token_embedding]
+    writes: [attention_kv]
+  - id: output_projection
+    kind: compute
+    reads: [output_head_weights]
+    note: "The projection to the vocabulary of 202,048 tokens."
+  - id: perception_encoder
+    kind: compute
+    serves_modality: [image, video, audio]
+    reads: [encoder_weights]
+data:
+  # The sizes are the bytes of the tensors in the six files on the DGX Spark
+  # (~/ifbench/models/muse/UD-IQ2_XXS, 225.6 GB in all), read from their headers on 2026-11-19
+  # (examples/given/records/muse-ud-iq2_xxs.header.json). The weights themselves were not read.
+  # This is a third party's conversion (Unsloth) at lower precision than the published NVFP4 weights: an engine that
+  # uses it changes the model's output, which the target has not allowed or refused.
+  - id: expert_weights
+    kind: weight
+    partitioned_by: [layer, expert]          # 62 layers x 256 = 15,872 experts
+    encoded_bits: 2.06
+    size: {value: 205.96, unit: GB, unit_basis: decimal, status: measured, note: "798.86B parameters stored as IQ2_XXS. One expert is 12.98 MB."}
+  - id: shared_weights
+    kind: weight
+    encoded_bits: 7.77
+    size: {value: 17.31, unit: GB, unit_basis: decimal, status: measured, note: "Attention, the projections around the experts, the router and the norms: 17.82B parameters stored at 6 to 8 bits and as 32-bit floats."}
+  - id: token_embedding
+    kind: weight
+    encoded_bits: 4.5
+    size: {value: 0.93, unit: GB, unit_basis: decimal, status: measured, note: "202,048 rows of 8,192 values as Q4_K. A token reads one row."}
+  - id: output_head_weights
+    kind: weight
+    encoded_bits: 6.56
+    size: {value: 1.36, unit: GB, unit_basis: decimal, status: measured, note: "202,048 x 8,192 values as Q6_K."}
+  - id: encoder_weights
+    kind: weight
+    note: "Not in these text-only files."
+  - {id: attention_kv, kind: model_state, note: "As for the published model: 0.254 MB per token over 62 layers at 16 bits; 46 of the 62 layers attend only to the last 2,048 tokens."}
+statements:
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: params_total,            value: 816e9, status: vendor_stated, source: "hf-model-card#overview"}
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: params_active_per_token, value: 42e9,  status: vendor_stated, source: "hf-model-card#overview"}
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: layers,                  value: 62,    status: vendor_stated, source: "hf-model-card#language-model"}
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: hidden_dim,              value: 8192,  status: vendor_stated, source: "hf-model-card#language-model"}
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: vocab_size,              value: 202048, status: vendor_stated, source: "hf-model-card#overview"}
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: context_length,          value: 1000000, status: vendor_stated, source: "hf-model-card#overview"}
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: modality_in,             value: "text+image+video+audio", status: vendor_stated, source: "hf-model-card#overview"}
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: modality_out,            value: text,  status: vendor_stated, source: "hf-model-card#overview"}
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: weight_precisions,       value: "BF16, NVFP4", status: vendor_stated, source: "hf-model-card#weights"}
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: checkpoint_format,       value: safetensors, status: vendor_stated, source: "hf-model-card#files"}
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: vram_required, value: 700,  unit: GB, status: vendor_stated, source: "hf-model-card#weights", conditions: {precision: NVFP4}}
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: vram_required, value: 2000, unit: GB, status: vendor_stated, source: "hf-model-card#weights", conditions: {precision: BF16}}
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: license,                 value: "Muse Model License", status: vendor_stated, source: "hf-model-card#license"}
+  # Read from the headers of the model files on the DGX Spark, 2026-11-19. The card's figures above are kept as stated.
+  # Every tensor of the text-only files. The card says 816B. With 8 of 256 experts per layer, 46.1B are active per token; the card says 42B.
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: params_counted,            value: 819991575808, status: measured, source: "model files read on the DGX Spark, 2026-11-19 (records/muse-ud-iq2_xxs.header.json)"}
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: expert_width,              value: 4096, status: measured, source: "model files read on the DGX Spark, 2026-11-19 (records/muse-ud-iq2_xxs.header.json)"}
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: attention_heads,           value: 128,  status: measured, source: "model files read on the DGX Spark, 2026-11-19 (records/muse-ud-iq2_xxs.header.json)"}
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: attention_kv_heads,        value: 16,   status: measured, source: "model files read on the DGX Spark, 2026-11-19 (records/muse-ud-iq2_xxs.header.json)"}
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: attention_key_length,      value: 64,   status: measured, source: "model files read on the DGX Spark, 2026-11-19 (records/muse-ud-iq2_xxs.header.json)"}
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: attention_value_length,    value: 64,   status: measured, source: "model files read on the DGX Spark, 2026-11-19 (records/muse-ud-iq2_xxs.header.json)"}
+  # 62 layers x 16 heads x (64 + 64) values x 2 bytes: every layer keeping the token, at 16 bits.
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: attention_state_per_token, value: 253952, unit: B, status: derived, source: "model files read on the DGX Spark, 2026-11-19 (records/muse-ud-iq2_xxs.header.json)"}
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: attention_window_tokens,   value: 2048, status: measured, source: "model files read on the DGX Spark, 2026-11-19 (records/muse-ud-iq2_xxs.header.json)"}
+  # Of 62. The 16 layers that attend to the whole context are every fourth one, from the second.
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: attention_windowed_layers, value: 46,   status: measured, source: "model files read on the DGX Spark, 2026-11-19 (records/muse-ud-iq2_xxs.header.json)"}
+  # The card says 1,000,000.
+  - {subject: model/muse-spark-open-ud-iq2-xxs, property: context_length_in_files,   value: 1048576, status: measured, source: "model files read on the DGX Spark, 2026-11-19 (records/muse-ud-iq2_xxs.header.json)"}

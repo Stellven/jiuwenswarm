@@ -1,0 +1,219 @@
+36 components (0 reused, 36 adapted, 0 new), 15 not carried, 66 flows
+321 texts: 261 written for this engine in the derivation list; 24 the source's word for word and 7 the source's with a stated replacement, each listed as read; 29 titles taken from the source as names; 0 in components carried whole
+read by: Claude (an AI model), 2026-11-18. Not read by a person.
+49 word patterns looked for in every text
+
+comp/muse/preparation: removed mechanism `mech/low-bit-expert-quantization` from mechanisms (it does not exist in this engine)
+comp/muse/run-config-generator: 3 of the source's 3 not_responsible_for not carried (not listed as read)
+comp/muse/run-config-generator: 11 of the source's 11 decisions not carried (not listed as read)
+comp/muse/run-config-generator: 3 of the source's 3 invariants not carried (not listed as read)
+comp/muse/run-config-generator: 4 of the source's 4 calls not carried (not listed as read)
+comp/muse/run-config-generator: the source's equivalence claim not carried
+comp/muse/launch-argument-resolver: 3 of the source's 3 not_responsible_for not carried (not listed as read)
+comp/muse/launch-argument-resolver: 1 of the source's 1 needs_resources not carried (not listed as read)
+comp/muse/launch-argument-resolver: 6 of the source's 6 decisions not carried (not listed as read)
+comp/muse/launch-argument-resolver: 4 of the source's 4 invariants not carried (not listed as read)
+comp/muse/launch-argument-resolver: 4 of the source's 4 calls not carried (not listed as read)
+comp/muse/launch-argument-resolver: the source's equivalence claim not carried
+comp/muse/loading: 3 of the source's 3 not_responsible_for not carried (not listed as read)
+comp/muse/loading: 2 of the source's 2 decisions not carried (not listed as read)
+comp/muse/loading: 1 of the source's 1 invariants not carried (not listed as read)
+comp/muse/model-file-reader: 4 of the source's 4 not_responsible_for not carried (not listed as read)
+comp/muse/model-file-reader: 4 of the source's 4 invariants not carried (not listed as read)
+comp/muse/expert-layout: 2 of the source's 2 not_responsible_for not carried (not listed as read)
+comp/muse/expert-layout: 1 of the source's 1 invariants not carried (not listed as read)
+comp/muse/weight-loader: 4 of the source's 4 not_responsible_for not carried (not listed as read)
+comp/muse/weight-loader: 5 of the source's 5 invariants not carried (not listed as read)
+comp/muse/startup-memory-sizing: 5 of the source's 5 not_responsible_for not carried (not listed as read)
+comp/muse/startup-memory-sizing: 3 of the source's 3 invariants not carried (not listed as read)
+comp/muse/expert-subsystem: removed mechanism `mech/route-tail-skip` from mechanisms (it does not exist in this engine)
+comp/muse/expert-cache: 3 of the source's 3 not_responsible_for not carried (not listed as read)
+comp/muse/expert-cache: 3 of the source's 3 calls not carried (not listed as read)
+comp/muse/expert-cache: the source's equivalence claim not carried
+comp/muse/expert-dispatch: removed mechanism `mech/route-tail-skip` from mechanisms (it does not exist in this engine)
+comp/muse/expert-dispatch: 4 of the source's 4 observation_points not carried (not listed as read)
+comp/muse/cache-policy: removed state `pending_swaps` from state.owns (it does not exist in this engine)
+comp/muse/cache-policy: 2 of the source's 2 not_responsible_for not carried (not listed as read)
+comp/muse/cache-policy: 2 of the source's 2 observation_points not carried (not listed as read)
+comp/muse/storage-reader: the source's equivalence claim not carried
+comp/muse/prompt-path: removed policy `prefill-cpu-share` from policies (it does not exist in this engine)
+comp/muse/prompt-path: removed state `indexer_keys` from state.writes (it does not exist in this engine)
+comp/muse/prompt-path: removed state `gdn_state` from state.writes (it does not exist in this engine)
+comp/muse/prompt-path: removed state `ple_history` from state.writes (it does not exist in this engine)
+comp/muse/prompt-path: removed mechanism `mech/work-based-prefill-split` from mechanisms (it does not exist in this engine)
+comp/muse/prompt-path: 2 of the source's 2 not_responsible_for not carried (not listed as read)
+comp/muse/prompt-path: 1 of the source's 1 invariants not carried (not listed as read)
+comp/muse/prompt-path: 3 of the source's 3 observation_points not carried (not listed as read)
+comp/muse/token-path: timings startup, per_request, per_window, per_step, per_layer, background, on_demand written as startup, per_request, per_step, per_layer, background, on_demand
+comp/muse/token-path: 3 of the source's 3 not_responsible_for not carried (not listed as read)
+comp/muse/token-path: 2 of the source's 2 decisions not carried (not listed as read)
+comp/muse/decode-loop: timings per_window, per_layer written as per_step, per_layer
+comp/muse/decode-loop: removed stage `verify` from implements_stages (it does not exist in this engine)
+comp/muse/decode-loop: removed state `indexer_keys` from state.writes (it does not exist in this engine)
+comp/muse/decode-loop: removed state `ple_history` from state.writes (it does not exist in this engine)
+comp/muse/decode-loop: 4 of the source's 4 not_responsible_for not carried (not listed as read)
+comp/muse/decode-loop: 5 of the source's 5 invariants not carried (not listed as read)
+comp/muse/decode-loop: 5 of the source's 5 observation_points not carried (not listed as read)
+comp/muse/layer-kernels: removed state `gdn_state` from state.owns (it does not exist in this engine)
+comp/muse/layer-kernels: removed state `indexer_keys` from state.owns (it does not exist in this engine)
+comp/muse/layer-kernels: removed state `ple_history` from state.owns (it does not exist in this engine)
+comp/muse/layer-kernels: 3 of the source's 3 not_responsible_for not carried (not listed as read)
+comp/muse/layer-kernels: 5 of the source's 5 invariants not carried (not listed as read)
+comp/muse/layer-kernels: the source's equivalence claim not carried
+comp/muse/expert-router: 2 of the source's 2 not_responsible_for not carried (not listed as read)
+comp/muse/expert-router: 1 of the source's 2 needs_resources not carried (not listed as read)
+comp/muse/expert-router: 3 of the source's 3 decisions not carried (not listed as read)
+comp/muse/expert-router: 2 of the source's 2 invariants not carried (not listed as read)
+comp/muse/expert-router: 2 of the source's 2 calls not carried (not listed as read)
+comp/muse/kv-store: removed policy `kv-residency` from policies (it does not exist in this engine)
+comp/muse/kv-store: removed state `kv_residency_map` from state.owns (it does not exist in this engine)
+comp/muse/kv-store: 2 of the source's 2 not_responsible_for not carried (not listed as read)
+comp/muse/kv-store: 5 of the source's 5 invariants not carried (not listed as read)
+comp/muse/kv-store: the source's equivalence claim not carried
+comp/muse/output-head: timings per_window, per_step written as per_step
+comp/muse/output-head: 1 of the source's 1 not_responsible_for not carried (not listed as read)
+comp/muse/output-head: 2 of the source's 2 decisions not carried (not listed as read)
+comp/muse/output-head: 1 of the source's 1 invariants not carried (not listed as read)
+comp/muse/output-head: 2 of the source's 2 calls not carried (not listed as read)
+comp/muse/output-head: the source's equivalence claim not carried
+comp/muse/sampler: timings per_window, per_step written as per_step
+comp/muse/sampler: removed stage `verify` from implements_stages (it does not exist in this engine)
+comp/muse/sampler: 2 of the source's 2 not_responsible_for not carried (not listed as read)
+comp/muse/sampler: 5 of the source's 5 decisions not carried (not listed as read)
+comp/muse/sampler: 3 of the source's 3 invariants not carried (not listed as read)
+comp/muse/sampler: 2 of the source's 2 calls not carried (not listed as read)
+comp/muse/serving: timings startup, per_request, per_window, background, on_demand written as startup, per_request, per_step, background, on_demand
+comp/muse/serving: 2 of the source's 2 not_responsible_for not carried (not listed as read)
+comp/muse/http-front: 3 of the source's 3 not_responsible_for not carried (not listed as read)
+comp/muse/http-front: 5 of the source's 5 decisions not carried (not listed as read)
+comp/muse/http-front: 3 of the source's 3 invariants not carried (not listed as read)
+comp/muse/http-front: 4 of the source's 4 calls not carried (not listed as read)
+comp/muse/http-front: 4 of the source's 4 observation_points not carried (not listed as read)
+comp/muse/http-front: the source's equivalence claim not carried
+comp/muse/prompt-builder: 2 of the source's 2 not_responsible_for not carried (not listed as read)
+comp/muse/prompt-builder: 3 of the source's 3 invariants not carried (not listed as read)
+comp/muse/prompt-builder: the source's equivalence claim not carried
+comp/muse/request-runner: timings per_request, per_window written as per_request, per_step
+comp/muse/request-runner: 3 of the source's 3 not_responsible_for not carried (not listed as read)
+comp/muse/request-runner: 7 of the source's 7 decisions not carried (not listed as read)
+comp/muse/request-runner: 3 of the source's 3 invariants not carried (not listed as read)
+comp/muse/request-runner: 1 of the source's 1 calls not carried (not listed as read)
+comp/muse/request-runner: 9 of the source's 9 observation_points not carried (not listed as read)
+comp/muse/request-runner: the source's equivalence claim not carried
+comp/muse/engine-client: timings startup, per_request, per_window, background, on_demand written as startup, per_request, per_step, background, on_demand
+comp/muse/engine-client: 3 of the source's 3 not_responsible_for not carried (not listed as read)
+comp/muse/engine-client: 1 of the source's 1 needs_resources not carried (not listed as read)
+comp/muse/engine-client: 11 of the source's 11 decisions not carried (not listed as read)
+comp/muse/engine-client: 5 of the source's 5 invariants not carried (not listed as read)
+comp/muse/engine-client: 4 of the source's 4 calls not carried (not listed as read)
+comp/muse/engine-client: 5 of the source's 5 observation_points not carried (not listed as read)
+comp/muse/engine-client: the source's equivalence claim not carried
+comp/muse/engine-command-loop: timings startup, per_request, per_window written as startup, per_request, per_step
+comp/muse/engine-command-loop: removed stage `verify` from implements_stages (it does not exist in this engine)
+comp/muse/engine-command-loop: removed policy `batch-window-composition` from policies (it does not exist in this engine)
+comp/muse/engine-command-loop: removed state `batch_slot_table` from state.owns (it does not exist in this engine)
+comp/muse/engine-command-loop: removed state `conversation_checkpoints` from state.reads (it does not exist in this engine)
+comp/muse/engine-command-loop: 3 of the source's 3 not_responsible_for not carried (not listed as read)
+comp/muse/engine-command-loop: 4 of the source's 4 invariants not carried (not listed as read)
+comp/muse/engine-command-loop: 7 of the source's 7 observation_points not carried (not listed as read)
+comp/muse/conversation-reuse: 2 of the source's 2 not_responsible_for not carried (not listed as read)
+comp/muse/resume-decision: removed state `conversation_checkpoints` from state.reads (it does not exist in this engine)
+comp/muse/resume-decision: removed state `batch_slot_table` from state.reads (it does not exist in this engine)
+comp/muse/resume-decision: removed state `conversation_checkpoints` from state.writes (it does not exist in this engine)
+comp/muse/resume-decision: 3 of the source's 3 not_responsible_for not carried (not listed as read)
+comp/muse/resume-decision: 7 of the source's 7 invariants not carried (not listed as read)
+comp/muse/resume-decision: 2 of the source's 2 observation_points not carried (not listed as read)
+comp/muse/resume-decision: the source's equivalence claim not carried
+comp/muse/parked-conversations: removed state `indexer_keys` from state.reads (it does not exist in this engine)
+comp/muse/parked-conversations: removed state `gdn_state` from state.reads (it does not exist in this engine)
+comp/muse/parked-conversations: removed state `ple_history` from state.reads (it does not exist in this engine)
+comp/muse/parked-conversations: removed state `indexer_keys` from state.writes (it does not exist in this engine)
+comp/muse/parked-conversations: removed state `gdn_state` from state.writes (it does not exist in this engine)
+comp/muse/parked-conversations: removed state `ple_history` from state.writes (it does not exist in this engine)
+comp/muse/parked-conversations: 3 of the source's 3 not_responsible_for not carried (not listed as read)
+comp/muse/parked-conversations: 5 of the source's 5 invariants not carried (not listed as read)
+comp/muse/parked-conversations: the source's equivalence claim not carried
+comp/muse/session-files: removed state `conversation_checkpoints` from state.reads (it does not exist in this engine)
+comp/muse/session-files: removed state `indexer_keys` from state.reads (it does not exist in this engine)
+comp/muse/session-files: removed state `gdn_state` from state.reads (it does not exist in this engine)
+comp/muse/session-files: removed state `ple_history` from state.reads (it does not exist in this engine)
+comp/muse/session-files: removed state `conversation_checkpoints` from state.writes (it does not exist in this engine)
+comp/muse/session-files: removed state `indexer_keys` from state.writes (it does not exist in this engine)
+comp/muse/session-files: removed state `gdn_state` from state.writes (it does not exist in this engine)
+comp/muse/session-files: removed state `ple_history` from state.writes (it does not exist in this engine)
+comp/muse/session-files: 3 of the source's 3 not_responsible_for not carried (not listed as read)
+comp/muse/session-files: 7 of the source's 7 decisions not carried (not listed as read)
+comp/muse/session-files: 4 of the source's 4 invariants not carried (not listed as read)
+comp/muse/session-files: 2 of the source's 2 calls not carried (not listed as read)
+comp/muse/session-files: the source's equivalence claim not carried
+comp/muse/telemetry: timings startup, per_request, per_window, background, on_demand written as startup, per_request, per_step, background, on_demand
+comp/muse/telemetry: 1 of the source's 2 not_responsible_for not carried (not listed as read)
+comp/muse/engine-diagnostics: timings startup, per_window, on_demand written as startup, per_step, on_demand
+comp/muse/engine-diagnostics: 2 of the source's 2 not_responsible_for not carried (not listed as read)
+comp/muse/engine-diagnostics: 2 of the source's 3 needs_resources not carried (not listed as read)
+comp/muse/engine-diagnostics: 3 of the source's 3 invariants not carried (not listed as read)
+comp/muse/engine-diagnostics: the source's equivalence claim not carried
+comp/muse/server-metrics: timings per_request, per_window, background, on_demand written as per_request, per_step, background, on_demand
+comp/muse/server-metrics: 2 of the source's 2 not_responsible_for not carried (not listed as read)
+comp/muse/server-metrics: 7 of the source's 7 decisions not carried (not listed as read)
+comp/muse/server-metrics: 5 of the source's 5 invariants not carried (not listed as read)
+comp/muse/server-metrics: 5 of the source's 5 calls not carried (not listed as read)
+comp/muse/server-metrics: 14 of the source's 14 observation_points not carried (not listed as read)
+comp/muse/server-metrics: the source's equivalence claim not carried
+comp/muse/expert-subsystem: timings set from its parts: startup, per_layer, background, on_demand
+comp/muse/token-path: timings set from its parts: startup, per_request, per_step, per_layer
+flow gguf-shards-read: dropped by hand
+flow gguf-tensor-bytes: dropped by hand
+flow expert-layout-to-admission: not carried (host-memory-admission is not in this engine)
+flow natively-served-names: not carried (native-weight-loader is not in this engine)
+flow weight-table-to-native: not carried (native-weight-loader is not in this engine)
+flow native-projections-in-vram: not carried (native-weight-loader is not in this engine)
+flow native-head-weights: not carried (native-weight-loader is not in this engine)
+flow prompt-buffer-plan: dropped by hand
+flow head-to-host: not carried (native-weight-loader is not in this engine)
+flow host-memory-readings: not carried (host-memory-admission is not in this engine)
+flow ngram-residency-decision: not carried (host-memory-admission, ngram-reader is not in this engine)
+flow arena-admission-settings: not carried (host-memory-admission is not in this engine)
+flow arena-outcome: not carried (host-memory-admission is not in this engine)
+flow expert-bytes-in-host-memory: not carried (cpu-expert-pool is not in this engine)
+flow gpu-readable-experts: dropped by hand
+flow cpu-expert-work: not carried (cpu-expert-pool is not in this engine)
+flow swap-requests: removed pending_swaps from refs
+flow expert-bytes-to-fast-memory: dropped by hand
+flow prompt-state: removed indexer_keys, gdn_state, ple_history from refs
+flow prompt-cpu-experts: not carried (cpu-expert-pool is not in this engine)
+flow window-tokens-to-ngram-reader: not carried (ngram-reader is not in this engine)
+flow ngram-rows-from-file: not carried (ngram-reader is not in this engine)
+flow ngram-rows-to-layer-1: not carried (ngram-reader is not in this engine)
+flow launch-window-graph: not carried (window-graphs is not in this engine)
+flow session-layer-handoff: not carried (session-loop is not in this engine)
+flow cpu-expert-rows: not carried (cpu-expert-pool is not in this engine)
+flow picks-to-verifier: not carried (draft-verifier is not in this engine)
+flow mtp-drafts: not carried (mtp-drafter, draft-policy is not in this engine)
+flow dflash2-drafts: not carried (dflash2-drafter, draft-policy is not in this engine)
+flow lookup-proposal: not carried (lookup-drafter, draft-policy is not in this engine)
+flow chain-continue: not carried (draft-policy, mtp-drafter is not in this engine)
+flow draft-cap: not carried (draft-policy, mtp-drafter is not in this engine)
+flow verify-window: not carried (draft-policy is not in this engine)
+flow draft-distributions: not carried (mtp-drafter, draft-verifier is not in this engine)
+flow ngram-prefetch: not carried (mtp-drafter, ngram-reader is not in this engine)
+flow accepted-count: not carried (draft-verifier, draft-policy is not in this engine)
+flow accepted-rows-to-mtp: not carried (draft-verifier, mtp-drafter is not in this engine)
+flow accepted-rows-to-dflash2: not carried (draft-verifier, dflash2-drafter is not in this engine)
+flow accepted-tokens-to-lookup: not carried (draft-verifier, lookup-drafter is not in this engine)
+flow accepted-tokens: not carried (draft-verifier, session-loop is not in this engine)
+flow commit-prefix: not carried (draft-verifier, window-graphs is not in this engine)
+flow generation-to-replica: not carried (replica-router is not in this engine)
+flow generation-to-slots: not carried (slot-scheduler is not in this engine)
+flow slot-commands: not carried (slot-scheduler is not in this engine)
+flow slot-token-lines: not carried (slot-scheduler is not in this engine)
+flow rewind-to-checkpoint: not carried (checkpoint-chain is not in this engine)
+flow checkpoint-restore: not carried (checkpoint-chain, session-loop is not in this engine)
+flow parked-restore: removed indexer_keys, gdn_state, ple_history from refs
+flow session-file-out: removed indexer_keys, gdn_state, ple_history from refs
+flow session-file-in: removed indexer_keys, gdn_state, ple_history from refs
+flow measured-settings: not carried (speed-calibration is not in this engine)
+flow preset-overlay: not carried (speed-calibration is not in this engine)
+flow calibration-generations: not carried (speed-calibration is not in this engine)
+flow drafter-options: not carried (draft-policy is not in this engine)
+flow batch-samples: dropped by hand

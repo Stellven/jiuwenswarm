@@ -1,0 +1,625 @@
+# Strata, token-path area. Written from engines/strata-notes/token-path.md (commit 504b143, CUDA path,
+# Qwen3.8-Flash-Next). One document per component.
+kind: component
+id: comp/strata/token-path
+system: sys/strata
+title: "Token path"
+role: subsystem
+responsibility: "Take one token, or one window of tokens, through all 48 layers and the output head and produce a token choice for each position."
+not_responsible_for:
+  - "Computing or placing the routed experts (expert subsystem)"
+  - "Deciding how many tokens to draft and which drafts to keep (speculation)"
+  - "Reading the prompt in chunks (prompt path)"
+parts:
+  - comp/strata/window-loop
+  - comp/strata/session-loop
+  - comp/strata/layer-kernels
+  - comp/strata/expert-router
+  - comp/strata/window-graphs
+  - comp/strata/kv-store
+  - comp/strata/ngram-reader
+  - comp/strata/output-head
+  - comp/strata/sampler
+runs: [startup, per_request, per_window, per_step, per_layer, background, on_demand]
+decisions:
+  - id: which-per-token-path
+    text: "Which of the two host loops runs. A pack whose folder holds native_experts.txt (the IQ2_XS, IQ3_XXS, IQ3_S, NVFP4 and Unsloth packs) runs the window loop only, with a window of one token for plain decoding. A pack without that file (the canonical Q2_0 pack) runs the session loop for the prompt tail and the first generated token, and hands over to the window loop from the second generated token when a draft window is configured."
+    resolved_at: startup
+    source: "src/program/generate.cpp:4680, 9196, 9714, 20220, 20437; src/kernels/cpu/expert_layout.cpp:456-458"
+  - id: dense-kernel-set
+    text: "Which dense kernel set the layers use. The --native preset turns on the native kernels (projections, recurrent mixer, router, attention, indexer, rope). The window loop refuses to run without them. Every switch is fixed before the first graph is captured."
+    resolved_at: startup
+    source: "src/program/generate.cpp:4380-4416, 5300-5320; src/core/layer.cpp:537-547"
+sources:
+  - {ref: "src/program/generate.cpp:4680, 9196, 9714, 20218-20437", basis: code}
+  - {ref: "src/core/session.cpp:51-984", basis: code}
+  - {ref: "src/core/verify.cpp:3229-3702", basis: code}
+not_read: "Kernel numerics. Most of src/core/verify.cpp and src/program/generate.cpp outside the cited ranges."
+---
+kind: component
+id: comp/strata/window-loop
+system: sys/strata
+parent: comp/strata/token-path
+title: "Window loop"
+role: host_loop
+responsibility: "Run one window of 1 to max_t tokens through the layers and the output head as a single replayed graph, and serve each layer's host-side expert work when the GPU signals that the layer's routing is known."
+not_responsible_for:
+  - "Drafting tokens or choosing the window size (speculation)"
+  - "Deciding which accepted prefix to keep and making it permanent (draft verifier)"
+  - "Deciding which device computes an expert (expert dispatch, called through the pool callback)"
+  - "Recording the graph (window graphs)"
+runs: [per_window, per_layer]
+implements_stages: [decode, verify]
+state:
+  reads: [residency_table]
+  writes: [attention_kv, indexer_keys, ple_history]
+needs_resources:
+  - {resource: cpu, purpose: "one host thread that spins on the layer signal and then runs the pool callback"}
+  - {resource: slow_memory, purpose: "page-locked, device-mapped staging: window tokens, positions, n-gram rows, the layer's activations and routed ids, the CPU's expert rows, the picks, the signal and flag words"}
+  - {resource: fast_memory, purpose: "one arena sized for max_t rows: the window's own residual, per-layer mixer inputs kept for commit, router logits, expert rows, head logits, a 16-expert staging area"}
+  - {resource: accelerator, purpose: "the window graph"}
+decisions:
+  - id: graph-variant
+    text: "Per window: the zero-doorbell graph when the host residency table shows every expert of the stage in fast memory, otherwise the doorbell graph. Checked before each window."
+    resolved_at: runtime
+    source: "src/core/verify.cpp:2736-2750"
+  - id: batched-rows
+    text: "Whether the window's rows go through multi-row kernels (STRATA_DEC_BATCH)."
+    value: {value: "on", status: reported, source: "src/core/verify.cpp:1360"}
+    resolved_at: startup
+  - id: token-groups
+    text: "Whether the window is split into two token groups whose CPU and GPU work are pipelined (--spec-split)."
+    value: {value: "off", status: reported, source: "include/strata/core/verify.hpp:733"}
+    resolved_at: startup
+  - id: late-signal-flush
+    text: "How long the host waits for a layer signal before it enters the driver once to flush and check for a fault."
+    value: {value: 2000, unit: us, status: reported, source: "src/core/verify.cpp:3445"}
+    resolved_at: design
+  - id: layer-timeout
+    text: "How long a layer may stay silent before the window is abandoned and the GPU's waits are force-released."
+    value: {value: 20, unit: s, status: reported, source: "src/core/verify.cpp:3460-3475"}
+    resolved_at: design
+  - id: ngram-gather-point
+    text: "When the window's n-gram rows are gathered. Doorbell graph: after layer 0's CPU experts are served and before the layer-0 flag is raised. Zero-doorbell graph: right after the launch, or before it when STRATA_VERIFY_EARLY_PLE_FLAG says so (0 on CUDA)."
+    resolved_at: startup
+    source: "src/core/verify.cpp:377-387, 3308-3318, 3419-3431, 3521-3531"
+invariants:
+  - {id: inv/window-inside-context, text: "A window's last position is inside the context the session was sized for."}
+  - {id: inv/payload-before-signal, text: "The layer signal is the last write in stream order, so a host that sees it may read the published activations and routed ids."}
+  - {id: inv/cpu-rows-before-flag, text: "The host raises a layer's flag only after the CPU's expert rows for that layer are in the mapped buffer."}
+  - {id: inv/ngram-rows-before-layer-1, text: "The window's n-gram rows are in mapped memory before the flag that layer 1 waits on is raised."}
+  - {id: inv/no-window-after-forced-release, text: "After the GPU's waits were force-released, no further window is run on that verifier."}
+calls:
+  - {name: run, takes: "window size T, T token ids, first position, pool callback", returns: "one pick per row", does: "Launches the T-token graph, serves every layer that signals, waits for the graph to finish, and returns the picks."}
+  - {name: prepare, takes: "window size T", returns: "done, or that fast memory was insufficient", does: "Has the T-token graph recorded ahead of first use without changing anything else."}
+  - {name: set_sampling, takes: "sampling settings of the request", returns: "nothing", does: "Makes the next windows re-sample outside the graph with these settings."}
+verification:
+  - {method: none_found, checks: "No isolated test of the window host loop was found. The multi-row kernels it launches are tested (route_window_parity, kv_window_parity, kv_steps_parity)."}
+observation_points: [ms_wait, ms_pool, ms_host, windows, verify_trace]
+equivalence:
+  - {level: bit_exact, relative_to: "token-by-token greedy decoding", holds_when: "default configuration; stated by the header comment, not checked here"}
+  - {level: approximate, relative_to: "token-by-token greedy decoding", holds_when: "STRATA_ROUTE_PRIOR or STRATA_ROUTE_RESIDENT is set, or a route tail skip rank is set"}
+sources:
+  - {ref: "src/core/verify.cpp:3229-3702", basis: code}
+  - {ref: "src/core/verify.cpp:1420-1604, 2190-2645", basis: code}
+  - {ref: "src/core/verify.cpp:1020-1118", basis: code}
+  - {ref: "include/strata/core/verify.hpp:1-21", basis: header_comment}
+not_read: "Verifier::commit, the batch and pipelined windows, stage_inputs, and the mixer section of record_window (only its call order was extracted)."
+---
+kind: component
+id: comp/strata/session-loop
+system: sys/strata
+parent: comp/strata/token-path
+title: "Session loop"
+role: host_loop
+responsibility: "For one token on a canonical Q2_0 pack, launch the layers in order and place the CPU's expert rows between each layer's routing and its combine, so that a layer's experts meet that layer's router weights."
+not_responsible_for:
+  - "Any token of a native pack (window loop)"
+  - "The n-gram read, the embedding, the output head and the sampler, which the generate driver calls around it"
+  - "Deciding which device computes an expert (inside the pool and hit callbacks)"
+runs: [per_step, per_layer]
+implements_stages: [decode]
+state:
+  writes: [attention_kv, indexer_keys, gdn_state, ple_history]
+needs_resources:
+  - {resource: cpu, purpose: "one host thread pinned to the core the CPU pool leaves free, spinning on the layer signal"}
+  - {resource: slow_memory, purpose: "page-locked mapped staging for the CPU's expert rows (k x n_embd floats) and the doorbell words"}
+  - {resource: fast_memory, purpose: "the device copy of the expert rows"}
+  - {resource: accelerator, purpose: "two graphs per layer, or one graph per token"}
+decisions:
+  - id: loop-form
+    text: "Three forms: one graph per token with a device-side wait per layer (default when it can be captured); two graphs per layer with a host poll per layer (--no-token-graph, dumps, or a hit path the token graph cannot hold); direct kernel launches (--no-capture)."
+    resolved_at: startup
+    source: "src/program/generate.cpp:9714, 20277-20295"
+  - id: late-signal-flush
+    text: "Token graph: how long a late layer signal waits before one driver call (STRATA_TG_FLUSH_US)."
+    value: {value: 2000, unit: us, status: reported, source: "src/core/session.cpp:934-937"}
+    resolved_at: startup
+  - id: layer-timeout
+    text: "Token graph: time after which a silent layer is an error."
+    value: {value: 20, unit: s, status: reported, source: "src/core/session.cpp:962"}
+    resolved_at: design
+invariants:
+  - {id: inv/position-staged-before-replay, text: "The per-token position and step counts are written to their fixed pinned buffers before every replay, because the graphs captured the source address and not the value."}
+  - {id: inv/no-sync-in-layer-loop, text: "The layer loop makes no blocking synchronization; it waits by querying."}
+  - {id: inv/post-before-next-pre, text: "A layer's combine half is launched before the next layer's first half, because the next layer's residual read overwrites the buffers the combine reads."}
+  - {id: inv/experts-of-this-layer, text: "The expert rows combined in a layer are the ones that layer's own router selected."}
+  - {id: inv/payload-before-signal, text: "The layer signal is the last write in stream order, so a host that sees it may read the published activation, ids and weights."}
+calls:
+  - {name: session_loop, takes: "position, session state, per-layer graphs, pool callback, hit callback, scratch", returns: "success or an error", does: "Per layer: wait for the signal, start the GPU's own experts, run the pool, copy its rows to the device, launch the combine half, launch the next layer's first half. One synchronization at the end of the token."}
+  - {name: session_run_token, takes: "position, session state, token graph, pool callback, the captured staging buffer", returns: "success or an error", does: "One launch per token; per layer the host only waits for the signal, runs the pool and writes the flag the device waits on."}
+  - {name: session_token, takes: "position, session state, expert rows prepared by the caller", returns: "success or an error", does: "Runs the 48 layers by direct launches; a debug option synchronizes after every layer."}
+verification:
+  - {method: none_found, checks: "No test source in the checkout calls session_loop, session_run_token or session_token. The built-in oracle is a per-layer residual dump compared with a reference outside the engine."}
+observation_points: [rings_mid_graph, ms_to_ring, ms_host, calls_total, token_graph_ms_wait, token_graph_ms_pool, token_graph_flushes]
+equivalence: {level: bit_exact, relative_to: "the same kernels launched directly in order", holds_when: "stated by comments (same kernels in the same order per layer); not tested in the checkout"}
+sources:
+  - {ref: "src/core/session.cpp:191-198, 533-585, 587-843, 923-984", basis: code}
+  - {ref: "src/program/generate.cpp:20218-20438", basis: code}
+  - {ref: "include/strata/core/session.hpp:309-434", basis: header_comment}
+---
+kind: component
+id: comp/strata/layer-kernels
+system: sys/strata
+parent: comp/strata/token-path
+title: "Layer kernels and their order"
+role: kernel_set
+responsibility: "Compute the part of each layer every token needs, in a fixed order, and keep the per-sequence state those kernels read and write at fixed device addresses."
+not_responsible_for:
+  - "Choosing the routed experts (expert router) or computing them (expert dispatch, CPU expert pool)"
+  - "Hashing a token to n-gram rows or reading the table (n-gram reader); both are host work and must stay outside any recorded graph"
+  - "The vocabulary projection (output head)"
+runs: [startup, per_request, per_layer]
+performs: [shared_blocks]
+state:
+  owns: [gdn_state, indexer_keys, ple_history]
+  reads: [attention_kv]
+  writes: [attention_kv]
+needs_resources:
+  - {resource: accelerator, purpose: "residual read and write, recurrent mixer, attention mixer, shared expert, combine of expert rows, layer-1 n-gram block, token embedding"}
+  - {resource: fast_memory, purpose: "the session arena: residual stack, one recurrent state per recurrent layer, per attention layer the indexer keys and position tables, shared scratch, n-gram convolution history"}
+decisions:
+  - id: order-in-a-layer
+    text: "Residual read (attention half), mixer (attention on 12 layers, recurrent on 36), residual write, residual read (feed-forward half), router and publish, shared expert, then after the host or the GPU has supplied the expert rows the combine and the residual write. On layer 1 the n-gram block updates the residual first."
+    resolved_at: design
+    source: "src/core/layer.cpp:1473-1650; src/core/verify.cpp:2511-2517"
+  - id: order-in-an-attention-mixer
+    text: "Norm, key and value projections, append to the key and value store, append to the indexer, query projection, block scores, block top-k, make the selected blocks resident, attention, gate, output projection."
+    resolved_at: design
+    source: "src/core/layer.cpp:1144-1320 (call order)"
+  - id: shared-expert-early
+    text: "The shared expert runs right after the layer signal so that the GPU computes it while the host runs the CPU experts."
+    value: {value: "on", status: reported, source: "include/strata/core/layer.hpp:194-199; src/core/layer.cpp:1587"}
+    resolved_at: startup
+  - id: fused-residual-read
+    text: "The residual read folds in the previous half's pending write. On only with the native projection contract and no dump or stage timing."
+    resolved_at: startup
+    source: "src/program/generate.cpp:5304-5309"
+  - id: session-size
+    text: "The session arena is sized once from the context length, the layer range and the key and value storage plan; nothing is allocated on the token path."
+    resolved_at: startup
+    source: "src/core/session.cpp:51-126"
+invariants:
+  - {id: inv/fixed-addresses, text: "Every buffer a recorded graph touches keeps its address from session set-up until the graphs are freed."}
+  - {id: inv/halves-share-buffers, text: "The mixed activation and the injection a layer's first half leaves are untouched until its combine half has read them."}
+  - {id: inv/experts-of-this-layer, text: "The expert rows combined in a layer are the ones that layer's own router selected."}
+  - {id: inv/host-work-outside-graphs, text: "Host operations (the n-gram hash and the table gather) are never inside a recorded function, or they would run once at recording time and replay the same rows for every token."}
+  - {id: inv/router-activation-format, text: "The router reads the activation in the format its weight was stored for; another format moves the logits enough to change a selection."}
+calls:
+  - {name: block_layer_pre, takes: "layer index, session buffers, doorbell, n-gram run", returns: "success or an error", does: "Launches a layer from its first residual read through the router, the publish and the shared expert."}
+  - {name: block_layer_post, takes: "layer index, session buffers, the layer's expert rows", returns: "success or an error", does: "Launches the combine and the residual write of a layer."}
+  - {name: session_zero, takes: "session, initial residual", returns: "nothing", does: "Returns every layer's state and the n-gram history and token window to the start of a sequence."}
+  - {name: layer_verify_compatible, takes: "nothing", returns: "yes, or the first switch that is off", does: "Says whether the current kernel set is the one the window graph reproduces."}
+verification:
+  - {method: parity_with_reference, checks: "Each kernel alone against its reference, stated by the header comment; the parity sources were not read.", against: "ref/ reference implementations", source: "include/strata/core/layer.hpp:3-6"}
+  - {method: end_to_end_only, checks: "The order of kernels in a layer: per-layer and per-half residual dumps compared with a reference outside the engine.", source: "include/strata/core/layer.hpp:467-475; include/strata/core/session.hpp:345-353"}
+equivalence:
+  - {level: bit_exact, relative_to: "the single-token kernels", holds_when: "multi-row window kernels, default configuration; stated by comments"}
+  - {level: numeric, relative_to: "the reference implementation", holds_when: "not established here; several selectable kernel sets exist and kernel numerics were not read", note: "UNSET in substance"}
+sources:
+  - {ref: "src/core/layer.cpp:405-561, 1473-1650", basis: code}
+  - {ref: "src/core/layer.cpp:251-384, 1144-1320", basis: code}
+  - {ref: "src/core/session.cpp:51-198", basis: code}
+  - {ref: "src/core/verify.cpp:1420-1604, 2280-2332, 2341-2509", basis: code}
+  - {ref: "include/strata/core/verify.hpp:13-18", basis: header_comment}
+not_read: "All kernel bodies. For the two mixers only the order of calls was extracted. The commit rules in the states file come from a header comment."
+---
+kind: component
+id: comp/strata/expert-router
+system: sys/strata
+parent: comp/strata/token-path
+title: "Expert router"
+role: kernel_set
+responsibility: "For each token in each layer, turn the feed-forward input into 512 logits and choose 10 experts with renormalised weights, on the device inside the recorded graph."
+not_responsible_for:
+  - "Deciding which device computes a chosen expert (expert dispatch)"
+  - "Publishing the choice to the host (the loops' doorbell)"
+runs: [per_layer]
+performs: [expert_router]
+state:
+  reads: [residency_table]
+needs_resources:
+  - {resource: accelerator, purpose: "one projection with the router weight and one top-10 per token per layer"}
+  - {resource: fast_memory, purpose: "logits, ids and weights per window row"}
+decisions:
+  - id: router-kernel
+    text: "Which top-10 kernel runs. Without the --native preset: the generic kernel (router_top10.cu). With it, for 512 experts and 10 picks: the fused native kernel (native_router.cu), in its multi-row form for a window of more than one row. The window loop requires the preset, so native packs use the native kernel."
+    resolved_at: startup
+    source: "src/core/layer.cpp:420-423; src/core/verify.cpp:2202-2227; src/program/generate.cpp:4414, 5316"
+  - id: residency-biased-pick
+    text: "STRATA_ROUTE_PRIOR=lambda: pick the 10 again with a logit bonus for experts resident in fast memory; the weights stay the router's own."
+    value: {value: 0, status: reported, source: "src/core/verify.cpp:281-291, 2233-2235", note: "off unless the variable is set"}
+    resolved_at: startup
+  - id: resident-tail-swap
+    text: "STRATA_ROUTE_RESIDENT: swap a non-resident expert at a tail rank for a resident one within a logit margin."
+    value: {value: "off", status: reported, source: "src/core/verify.cpp:2236-2243"}
+    resolved_at: startup
+invariants:
+  - {id: inv/deterministic-ties, text: "Equal probabilities select the lower expert index."}
+  - {id: inv/route-independent-of-window, text: "A token's routing does not depend on how many tokens share its window."}
+calls:
+  - {name: moe_route, takes: "layer index, the feed-forward input of one token", returns: "10 ids and 10 weights in device memory", does: "Projects, selects, and when a doorbell is given publishes the input, ids and weights and raises the layer signal last."}
+  - {name: moe_route_window, takes: "layer index, the inputs of n tokens", returns: "n x 10 ids and weights", does: "Routes the rows in two launches; each row equals the single-token call bit for bit."}
+verification:
+  - {method: parity_with_reference, checks: "Ids exactly and weights to a tolerance on several logit distributions, ties and near-ties included.", against: "a host re-implementation of ref/moe.py router; not llama.cpp itself", invariants: [inv/deterministic-ties], source: "src/kernels/router_top10_parity.cpp"}
+  - {method: parity_with_reference, checks: "The batched window routing equals the per-token calls bit for bit.", against: "the per-token kernels", invariants: [inv/route-independent-of-window], source: "src/kernels/route_window_parity.cpp"}
+  - {method: unit_test, checks: "The resident tail swap.", source: "src/kernels/route_resident_parity.cu"}
+equivalence:
+  - {level: bit_exact, relative_to: "the reference router contract", holds_when: "default; intended by the contract comments and covered only by the parity tests named above"}
+  - {level: approximate, relative_to: "the reference router contract", holds_when: "STRATA_ROUTE_PRIOR or STRATA_ROUTE_RESIDENT is set"}
+sources:
+  - {ref: "src/core/layer.cpp:405-467", basis: code}
+  - {ref: "src/core/verify.cpp:2195-2271", basis: code}
+  - {ref: "src/kernels/cuda/router_top10.cu:395-497", basis: code}
+  - {ref: "src/kernels/cuda/native_router.cu:205-222", basis: code}
+  - {ref: "include/strata/kernels/router_top10.hpp; include/strata/kernels/native_router.hpp; include/strata/kernels/route_prior.hpp", basis: header_comment}
+not_read: "The kernel bodies of both routers and of the two opt-in re-pick kernels."
+---
+kind: component
+id: comp/strata/window-graphs
+system: sys/strata
+parent: comp/strata/token-path
+title: "Recorded graphs"
+role: graph_runner
+responsibility: "Record the fixed sequence of device work once and keep the recorded graphs available for replay, freeing and re-recording them when fast memory for a new one runs out."
+not_responsible_for:
+  - "Owning or checking the buffers a graph touches; fixed addresses are the caller's obligation"
+  - "Launching a graph and serving it (the two loops)"
+runs: [startup, on_demand]
+state:
+  owns: [captured_graphs]
+needs_resources:
+  - {resource: fast_memory, purpose: "driver memory held by each instantiated graph", note: "The code does not compute the amount; a comment gives 20 to 30 MiB per batch-layout pair on one card."}
+  - {resource: accelerator, purpose: "recording and upload"}
+decisions:
+  - id: graph-unit
+    text: "Window loop: one graph per window size, holding all layers and the head, in two variants (zero-doorbell and doorbell), recorded on first use or ahead of it, plus one commit graph. Session loop: one graph per token, or a first-half and a combine-half graph per layer."
+    resolved_at: design
+    source: "src/core/verify.cpp:2752-2916; src/core/session.cpp:200-285, 849-921"
+  - id: eviction-on-out-of-memory
+    text: "When instantiating a graph reports out of memory: first free the least recently used batch-layout graphs; then, for a single-request window, free the graph of the largest other window size that is neither the one being recorded nor one already launched ahead. A freed size is recorded again when next used."
+    resolved_at: runtime
+    source: "src/core/verify.cpp:4409-4427, 4525-4570; include/strata/core/window_evict.hpp:11-17"
+  - id: batch-graph-limit
+    text: "Upper bound on recorded batch layouts (0 means unbounded)."
+    resolved_at: startup
+    source: "include/strata/core/verify.hpp:258-259"
+invariants:
+  - {id: inv/fixed-addresses, text: "A recorded graph reads and writes buffers at the addresses it was recorded with."}
+  - {id: inv/per-token-values-are-data, text: "Anything that changes per token (position, step counts, token id) reaches a graph through a fixed-address buffer, never as a kernel argument."}
+  - {id: inv/switches-before-capture, text: "Every kernel-set switch is set before the first recording."}
+  - {id: inv/no-capture-while-in-flight, text: "No graph is recorded or freed while a window is in flight on the same stream; the stream is synchronised first."}
+calls:
+  - {name: capture, takes: "window size T", returns: "a graph handle, or out of memory", does: "Records the T-token window once; a second call for the same size and variant does nothing."}
+  - {name: session_capture, takes: "session, the device address of the expert rows", returns: "two graph handles per layer", does: "Records every layer's two halves once."}
+  - {name: session_capture_token, takes: "session, device and host addresses of the expert rows", returns: "one graph handle", does: "Records all 48 layers with a device-side wait and a copy from mapped memory between each layer's halves."}
+  - {name: pick_window_victim, takes: "which sizes have a graph, the size to keep, the size launched ahead", returns: "the size to free, or none", does: "Names the largest other size."}
+verification:
+  - {method: unit_test, checks: "The victim rule: largest first, never the kept size, never the launched-ahead size.", source: "src/core/window_evict_test.cpp"}
+  - {method: none_found, checks: "No test of recording or replay itself was found."}
+equivalence: {level: bit_exact, relative_to: "the same kernels launched directly", holds_when: "stated by comments; the documented failure is a stale recorded value replayed for every token"}
+sources:
+  - {ref: "src/core/verify.cpp:2752-2916, 4405-4427, 4525-4589", basis: code}
+  - {ref: "src/core/session.cpp:200-285, 496-531, 849-921", basis: code}
+  - {ref: "include/strata/core/window_evict.hpp", basis: code}
+not_read: "The batch-layout and commit graph recording."
+---
+kind: component
+id: comp/strata/kv-store
+system: sys/strata
+parent: comp/strata/token-path
+title: "Key and value store"
+role: state_manager
+responsibility: "Hold the attention keys and values of every position of each attention layer in the configured format, reachable through a page table, and when streaming is on make every block a selection names resident in fast memory before the attention reads it."
+not_responsible_for:
+  - "Choosing which positions are attended (the indexer and block top-k in the layer kernels)"
+  - "Choosing the format or the resident window (start-up flags written by setup)"
+runs: [startup, per_request, per_layer]
+state:
+  owns: [attention_kv, kv_residency_map]
+needs_resources:
+  - {resource: fast_memory, purpose: "the key and value pages (all of them, or the resident window when streaming), the page table and the residency map"}
+  - {resource: slow_memory, purpose: "when streaming: the authoritative copy of every page, page-locked and device-mapped"}
+  - {resource: accelerator, purpose: "append, resolve and copy kernels inside the recorded graphs"}
+policies: [kv-residency]
+decisions:
+  - id: kv-format
+    text: "Storage format, with bytes per position per attention layer: fp16 2048, int8 with one scale per 64 values 1056, rotated 4-bit 576, 8-bit keys with rotated 4-bit values 816."
+    value: {value: "fp16", status: reported, source: "src/program/generate.cpp:670", note: "the engine's flag default; the setup tool writes int8 (strata_control/presets.py:111)"}
+    resolved_at: startup
+  - id: resident-window
+    text: "Positions per attention layer kept in fast memory (--kv-resident). 0 keeps every position there and makes the resolve step a no-op. Streaming applies only when the window is smaller than the context."
+    value: {value: 0, status: reported, source: "src/program/generate.cpp:671", note: "setup writes 32768 for a context of 65536 or more when host memory suffices, never under WSL (strata_control/setup_config.py:290-312)"}
+    resolved_at: startup
+  - id: resident-window-floor
+    text: "The smallest resident window a streamed layer may have (STRATA_KV_RESIDENT_MIN, at least 1024)."
+    value: {value: 4096, unit: positions, status: reported, source: "src/core/layer.cpp:771-785"}
+    resolved_at: startup
+  - id: page-size
+    text: "Positions per page; one page is one indexer block."
+    value: {value: 4, unit: positions, status: reported, source: "include/strata/kernels/qsa.hpp:119"}
+    resolved_at: design
+  - id: elastic-store
+    text: "With --kv-grow (fully resident, single GPU only) the pages get addresses for the whole context but physical memory only for the first 16384 positions; more is mapped as the context grows, from chunks the expert cache gives up."
+    value: {value: "off", status: reported, source: "src/program/generate.cpp:672, 6751-6752; src/core/layer.cpp:624-730"}
+    resolved_at: startup
+  - id: drafter-ring
+    text: "The draft layer's state keeps only its window of pages in fast memory at block modulo slots, with a host copy for resume."
+    resolved_at: startup
+    source: "src/core/layer.cpp:738-756"
+invariants:
+  - {id: inv/kv-resident-before-read, text: "Every block a selection names is resident in fast memory before the attention kernel reads it; this is kept by stream order and by a slot count large enough for one call."}
+  - {id: inv/host-copy-authoritative, text: "A writer writes the host copy always and the fast-memory slot only if the block is resident, so a slot never goes stale."}
+  - {id: inv/no-evict-in-use, text: "A slot used by the current resolve call is never taken as a victim in that call."}
+  - {id: inv/addresses-never-move, text: "Pool addresses do not change after set-up, including when the elastic store grows."}
+  - {id: inv/min-slots, text: "A streamed layer has at least 1024 slots; fewer stops the process."}
+calls:
+  - {name: qsa_state_init, takes: "context length, a device base address, optionally another layer's position tables to share", returns: "bytes used, or zero on failure", does: "Lays out one layer's pools, page table, residency map and host copy for the configured format and mode."}
+  - {name: qsa_kv_resolve, takes: "selected position ids per query, per-query widths", returns: "nothing", does: "When streaming, makes every named block resident: marks hits, picks one victim per miss, re-points the page table, copies the missed blocks from the host copy. Otherwise does nothing."}
+  - {name: qsa_attn_pools, takes: "a layer's state", returns: "the pool pointers and the page table a reader uses", does: "Gives readers one view whatever the format."}
+  - {name: kv_stream_counters, takes: "a residency map", returns: "misses, lookups, calls, overflow flag", does: "A synchronous read for the end-of-request summary."}
+verification:
+  - {method: parity_with_reference, checks: "Streamed attention output is bitwise equal to a fully resident pool, the map stays consistent, no call overflows, a ring restored from the host copy reads the same values; all four formats.", against: "a fully resident pool with the identity page table", invariants: [inv/kv-resident-before-read, inv/host-copy-authoritative], source: "src/kernels/kv_stream_parity.cpp"}
+  - {method: parity_with_reference, checks: "The window's multi-position append, batched resolve and batched attention inside a recorded graph on a layer that must evict.", against: "the single-position calls", source: "src/kernels/kv_window_parity.cpp; src/kernels/kv_steps_parity.cpp"}
+  - {method: parity_with_reference, checks: "Each storage format's append and gather.", source: "src/kernels/kv_q8_parity.cpp; src/kernels/kv_q4_parity.cpp; src/kernels/kv_hybrid_parity.cpp"}
+equivalence:
+  - {level: bit_exact, relative_to: "fp16 storage fully resident", holds_when: "fp16 format, with or without streaming (streaming is tested bitwise equal to resident)"}
+  - {level: approximate, relative_to: "fp16 storage", holds_when: "int8, 4-bit or mixed format", note: "A setup tuner note says a resident window below the context changes answers; this was not reconciled with the parity test."}
+sources:
+  - {ref: "src/core/layer.cpp:572-1027", basis: code}
+  - {ref: "src/kernels/cuda/kv_stream.cu:1-286", basis: code}
+  - {ref: "include/strata/kernels/kv_stream.hpp; include/strata/kernels/kv_q8.hpp; include/strata/kernels/kv_q4.hpp", basis: header_comment}
+  - {ref: "strata_control/setup_config.py:290-312", basis: code}
+not_read: "The append and gather kernels of each format. What the attention kernel does with a page-table entry left at -1 after an overflow. The elastic store's memory mapping layer."
+---
+kind: component
+id: comp/strata/ngram-reader
+system: sys/strata
+parent: comp/strata/token-path
+title: "N-gram hash and table reader"
+role: table_reader
+responsibility: "For each token, compute its 16 row numbers from the token and its two predecessors and deliver those 16 rows of the n-gram table as 2560 floats before layer 1 needs them."
+not_responsible_for:
+  - "The layer-1 block that consumes the rows and its convolution history (layer kernels)"
+  - "Advancing the two-token window, which the driver and the window commit do"
+runs: [startup, per_window, per_step, background, on_demand]
+performs: [ngram_lookup]
+needs_resources:
+  - {resource: storage, purpose: "the table: direct reads of one 4096-byte page per row (8192 when a row straddles two), rows on the same page sharing a read"}
+  - {resource: slow_memory, purpose: "direct mode: a read slab and a bounded row cache; resident mode: the whole table mapped and locked; mapped mode: the table's pages in the file cache"}
+  - {resource: cpu, purpose: "the hash on the calling thread, one I/O worker thread, row dequantisation"}
+decisions:
+  - id: table-residency
+    text: "How rows are read. Unless --ple-io is given: the table is held locked in memory when available memory is at least the table plus the expert arena still to be filled plus 8 GiB, measured before either is allocated; otherwise unbuffered direct reads. Unknown figures admit nothing. STRATA_PLE_AUTO_RAM=0 keeps direct reads. A third mode maps the table without locking."
+    resolved_at: startup
+    source: "src/program/generate.cpp:5413-5492; include/strata/core/ple_residency.hpp:25-37"
+  - id: reads-in-flight
+    text: "Outstanding storage reads (--ple-inflight, 1 to 1024)."
+    value: {value: 256, status: reported, source: "src/program/generate.cpp:667"}
+    resolved_at: startup
+  - id: row-cache
+    text: "Rows kept after being read, 8-way set-associative with round-robin replacement (--ple-row-cache, 0 disables)."
+    value: {value: 1048576, unit: rows, status: reported, source: "src/program/generate.cpp:666"}
+    resolved_at: startup
+  - id: ssd-keepalive
+    text: "Direct mode with the worker: after this long without a read, read one random page of the table, until 60 s after the last request for rows (STRATA_SSD_KEEPALIVE, 0 off)."
+    value: {value: 100, unit: ms, status: reported, source: "src/program/generate.cpp:5424-5430"}
+    resolved_at: startup
+  - id: slow-direct-probe
+    text: "Direct reads are probed at start; below 15000 rows per second the engine warns and switches to mapped reads only when STRATA_PLE_AUTO_MMAP=1."
+    resolved_at: startup
+    source: "src/program/generate.cpp:5495-5527"
+  - id: hash
+    text: "Row number = (XOR over the n-gram of token id times a per-position multiplier) modulo the head's vocabulary size plus the head's offset; 8 bigram heads and 8 trigram heads; a missing or end-of-sequence predecessor cuts all older context."
+    resolved_at: design
+    source: "src/kernels/ngram.cpp:100-126"
+invariants:
+  - {id: inv/rows-before-layer-1, text: "A token's rows are collected before layer 1 reads them. Session loop: before the layer loop starts. Window loop: before the flag layer 1 waits on is raised."}
+  - {id: inv/one-token-in-flight, text: "At most one single-token request is in flight per table; a batch gather is refused while one is."}
+  - {id: inv/table-fits-file, text: "The table's rows times row bytes fit the file at the offset a validated header parse gives, and fill it exactly when the table is alone in its file."}
+  - {id: inv/no-mapping-while-direct, text: "The table file is not kept mapped while it is read direct; a live mapping serialises the unbuffered reads."}
+  - {id: inv/failed-reader-stays-failed, text: "After a failed read every later request returns the error at once until the table is reopened."}
+calls:
+  - {name: ngram_rows, takes: "token ids, two predecessors each (oldest first, -1 for none), the hash constants", returns: "16 row numbers per token", does: "Pure host hash."}
+  - {name: issue, takes: "16 row numbers", returns: "accepted, or refused when a token is already in flight", does: "Starts the reads and returns at once."}
+  - {name: collect, takes: "a host buffer of 2560 floats", returns: "success or an I/O error", does: "Blocks until the issued rows have arrived and writes them dequantised."}
+  - {name: prefetch_rows, takes: "16 row numbers", returns: "nothing", does: "Starts the reads without a waiter; a later batch gather of the same rows uses them."}
+  - {name: gather_batch, takes: "16 row numbers for each of n tokens, a host buffer", returns: "success or an I/O error", does: "Reads all rows as one request with pages deduplicated and sorted by offset."}
+verification:
+  - {method: parity_with_reference, checks: "The direct reader on a synthetic table whose rows encode their own index (wrong offset, page straddle, dedup mix-up), and direct against mapped bytes on the real table.", against: "ground truth rows; the mapped read", source: "src/ngram/ple_reader_test.cpp; src/ngram/ple_reader_stress_test.cpp"}
+  - {method: parity_with_reference, checks: "The hash with the file's own constants, the row dequantisation, and the layer-1 block; stated by header comments.", against: "ref/ngram.py, numpy over the original file, ggml's graph", source: "src/kernels/ple_parity.cpp"}
+  - {method: unit_test, checks: "The residency admission rule.", source: "src/core/ple_residency_test.cpp"}
+  - {method: measurement, checks: "Issue latency.", source: "tests/ngram/ple_issue_bench.cpp"}
+observation_points: [reader_requests, reader_cache_hits, reader_dedup_rows, reader_reads, reader_bytes, reader_wait_us, reader_read_latency, keepalive_reads]
+equivalence: {level: bit_exact, relative_to: "the rows as stored in the table file", holds_when: "any of the three read modes; the table's own encoding (for example IQ4_NL against FP8) is a property of the model file, not of the reader"}
+sources:
+  - {ref: "src/ngram/ple_reader.cpp:1-625", basis: code}
+  - {ref: "src/kernels/ngram.cpp:96-145, 248-747", basis: code}
+  - {ref: "src/program/generate.cpp:5405-5550, 20236-20255", basis: code}
+  - {ref: "src/core/verify.cpp:3291-3318, 3419-3431, 3521-3531", basis: code}
+  - {ref: "include/strata/kernels/ngram.hpp; include/strata/ngram/ple_reader.hpp; include/strata/core/ple_residency.hpp:1-47", basis: header_comment}
+not_read: "The platform file layer under the direct reader. Test bodies."
+---
+kind: component
+id: comp/strata/output-head
+system: sys/strata
+parent: comp/strata/token-path
+title: "Output head"
+role: kernel_set
+responsibility: "Turn the residual after the last layer into one row of vocabulary logits per position: a final residual read, then the vocabulary projection."
+not_responsible_for:
+  - "Choosing a token from the logits (sampler)"
+runs: [per_window, per_step]
+performs: [output_projection]
+needs_resources:
+  - {resource: accelerator, purpose: "the final residual read and the vocabulary projection"}
+  - {resource: fast_memory, purpose: "one logits row of vocabulary size per window row"}
+decisions:
+  - id: head-kernel
+    text: "The projection reads the head in the model file's own format when the --native preset loaded it, otherwise in the pack's format with an 8-bit activation image."
+    resolved_at: startup
+    source: "src/program/generate.cpp:9241-9246; src/core/verify.cpp:2612-2626"
+  - id: where-it-runs
+    text: "Window loop: inside the window graph, in column chunks for long windows. Session loop: called by the driver after the layer loop, followed by a device synchronisation and by default a full logits read-back and a scan for non-finite values."
+    resolved_at: design
+    source: "src/core/verify.cpp:2531-2641; src/program/generate.cpp:20320-20354"
+invariants:
+  - {id: inv/nonfinite-logits-reported, text: "A row of logits holding a NaN or an infinity is reported for the window, not silently picked from."}
+calls:
+  - {name: lm_head, takes: "the residual stack", returns: "logits in device memory", does: "Final residual read, activation image, vocabulary projection."}
+  - {name: lm_head_mix, takes: "the residual stack", returns: "the mixed activation", does: "Only the final residual read, so a different projection can follow."}
+verification:
+  - {method: none_found, checks: "No isolated test of the head was identified. Dense projection parity tests exist (native_dense_parity and others) but were not read."}
+equivalence: {level: numeric, relative_to: "the reference implementation", holds_when: "not established here; kernel numerics were not read", note: "UNSET in substance"}
+sources:
+  - {ref: "src/core/layer.cpp:1391-1425", basis: code}
+  - {ref: "src/core/verify.cpp:2531-2641", basis: code}
+  - {ref: "src/program/generate.cpp:9241-9246, 20320-20377", basis: code}
+not_read: "The native head and its projection kernels."
+---
+kind: component
+id: comp/strata/sampler
+system: sys/strata
+parent: comp/strata/token-path
+title: "Sampler"
+role: sampler
+responsibility: "Turn each position's logits into one token id by a fixed chain: logit bias, penalties, top-k, top-p, min-p, temperature, pick."
+not_responsible_for:
+  - "Computing the logits (output head)"
+  - "Deciding whether a drafted token is accepted (draft verifier)"
+runs: [per_window, per_step]
+implements_stages: [decode, verify]
+needs_resources:
+  - {resource: accelerator, purpose: "the pick: one block per row for greedy; for a sampled request a split top-k over the vocabulary and one warp per row"}
+  - {resource: fast_memory, purpose: "scratch for the split top-k, grown on demand outside any recording"}
+decisions:
+  - id: where-it-runs
+    text: "Greedy: inside the window graph, at no extra launch or synchronisation. A sampled, penalised or biased request: again outside the graph after the window has finished, with the request's own settings, followed by a synchronisation. Session loop: once per token after the head."
+    resolved_at: runtime
+    source: "src/core/verify.cpp:2628-2638, 3602-3642; src/program/generate.cpp:20382-20390"
+  - id: default-settings
+    text: "A request without settings is greedy in the window loop. The parameter defaults are top-k 20, top-p 0.95, min-p 0, temperature 1.0, penalties off."
+    resolved_at: runtime
+    source: "include/strata/core/verify.hpp:553-558; include/strata/kernels/sampler.hpp:15-30"
+  - id: draw-key
+    text: "The random draw of a row is a counter-based generator keyed by the seed and the row's absolute position."
+    resolved_at: design
+    source: "src/core/verify.cpp:3594-3605; src/program/generate.cpp:20380-20382"
+  - id: sampled-implementation
+    text: "Three implementations of the sampled chain that pick the same token: split top-k (default), one block per row (STRATA_SAMPLER_ONE_BLOCK, and where the split cannot run), the older kernel (STRATA_OLD_SAMPLER)."
+    resolved_at: startup
+    source: "src/kernels/cuda/sampler.cu:1123-1139, 1285-1312"
+  - id: penalty-window
+    text: "Penalties count only the current reply unless STRATA_PENALTY_PROMPT=1; each window row gets its own history ending with the drafts before it."
+    resolved_at: startup
+    source: "include/strata/kernels/sampler.hpp:94-122"
+invariants:
+  - {id: inv/sampler-order, text: "The chain order is logit bias, penalties, top-k, top-p, min-p, temperature, pick."}
+  - {id: inv/draw-tied-to-position, text: "A seed gives the same text however the output was cut into windows, because a row's draw depends only on the seed and the position."}
+  - {id: inv/sampling-outside-graph, text: "Request-specific sampling is never part of a recorded graph, which would replay the same settings and draws."}
+calls:
+  - {name: sample_tokens, takes: "device logits for n rows, optional per-row history, settings", returns: "one token id per row in device or mapped memory", does: "Applies the chain; with no stream it also synchronises the device."}
+  - {name: penalty_rows, takes: "the tokens consumed before the window, the window's tokens, a history length", returns: "one history row per window row", does: "Builds on the host the history plain decoding would count at each row."}
+verification:
+  - {method: parity_with_reference, checks: "The pick on a fixture where the two possible chain orders give different tokens, for each of the three sampled implementations.", against: "an independently computed distribution", invariants: [inv/sampler-order], source: "src/kernels/sampler_parity.cpp; cmake/strata_gpu_engine.cmake:1140-1161"}
+  - {method: unit_test, checks: "The penalty window.", source: "src/kernels/penalty_window_test.cpp"}
+equivalence:
+  - {level: bit_exact, relative_to: "token-by-token decoding with the same seed", holds_when: "greedy, or sampled with exact-match draft acceptance"}
+  - {level: distribution_exact, relative_to: "token-by-token sampled decoding", holds_when: "STRATA_SPEC_PROB=1 (drafts judged by rejection sampling); intended, not checked here"}
+sources:
+  - {ref: "src/kernels/cuda/sampler.cu:1-60, 1255-1320", basis: code}
+  - {ref: "src/core/verify.cpp:2628-2641, 3594-3650", basis: code}
+  - {ref: "include/strata/kernels/sampler.hpp", basis: header_comment}
+not_read: "The sampler kernels themselves and the draft-acceptance variants."
+---
+kind: component
+id: comp/strata/cpu-expert-pool
+system: sys/strata
+parent: comp/strata/expert-subsystem
+title: "CPU expert pool"
+role: executor
+responsibility: "Compute a batch of expert evaluations on CPU cores, reading each expert's bytes in place, and return only when every job is done and every worker is parked again."
+not_responsible_for:
+  - "Choosing which experts it is given (expert dispatch)"
+  - "Applying the router weights or summing; it returns unweighted rows and a GPU kernel does the weighted sum"
+  - "Holding the expert bytes (expert source)"
+runs: [startup, per_layer, background]
+performs: [expert_ffn]
+needs_resources:
+  - {resource: cpu, purpose: "one pinned worker per physical core used, plus the host thread, which also takes jobs"}
+  - {resource: slow_memory, purpose: "per-thread scratch and the split buffers, allocated once; it reads expert bytes from wherever the expert source holds them and writes rows into the loop's page-locked mapped buffer"}
+decisions:
+  - id: worker-count
+    text: "Default: physical cores on the host thread's socket minus one for the host; one more kept free when that is 16 or more; on a hybrid CPU with more efficiency than performance cores at most performance cores minus one plus half the efficiency cores; at most a container's CPU quota minus one; never above 32. A configured count runs as given with a warning."
+    resolved_at: startup
+    source: "include/strata/kernels/cpu/pool_plan.hpp:27-123; src/kernels/cpu/pool.cpp:802-818"
+  - id: host-thread-works
+    text: "The host thread claims jobs itself during a batch."
+    value: {value: "on", status: reported, source: "src/program/generate.cpp:7850; src/kernels/cpu/pool.cpp:1430-1440"}
+    resolved_at: startup
+  - id: tasks-per-phase
+    text: "Row ranges a phase is cut into (--pool-tasks, 0 to 4096)."
+    value: {value: "3 per participating thread", status: reported, source: "src/kernels/cpu/pool.cpp:1322-1324"}
+    resolved_at: startup
+  - id: park-spin
+    text: "A parked worker spins this long, then sleeps on a condition variable (STRATA_POOL_SPIN_US)."
+    value: {value: 20, unit: ms, status: reported, source: "include/strata/kernels/cpu/pool.hpp:282"}
+    resolved_at: design
+  - id: stall-limit
+    text: "A wait that sees no progress this long stops the process after releasing the GPU's waits."
+    value: {value: 60, unit: s, status: reported, source: "include/strata/kernels/cpu/pool.hpp:285; src/kernels/cpu/pool.cpp:1138-1172"}
+    resolved_at: design
+  - id: job-shape
+    text: "Single-token path: one job per missed expert, whole or split by rows across threads. Window path: one job per distinct missed expert carrying every token routed to it, in two row phases (gate and up rows, then down rows) with a quantisation between."
+    resolved_at: design
+    source: "src/core/expert_source.cpp:4841-4851, 5279-5331; src/kernels/cpu/pool.cpp:1306-1395"
+  - id: numa-split
+    text: "With two or more memory nodes the row phases are split one slice per node when that can run (STRATA_NUMA_POOL=0 turns it off)."
+    resolved_at: startup
+    source: "src/kernels/cpu/pool.cpp:753-760, 819-911"
+invariants:
+  - {id: inv/claim-carries-batch, text: "A claim succeeds only for the batch the thread woke for, so a late worker can never take or count a job of the next batch."}
+  - {id: inv/batch-is-a-barrier, text: "A batch is published only when every worker is parked, and the call returns only when every job is done and every worker is parked again."}
+  - {id: inv/one-writer-per-row, text: "Each output row is written by exactly one thread."}
+  - {id: inv/hit-rows-zeroed, text: "A row that belongs to the GPU is written as zeros by the host or the device, never left with the previous layer's content."}
+  - {id: inv/no-token-path-allocation, text: "Nothing is allocated while a batch runs."}
+calls:
+  - {name: run, takes: "n jobs, each an expert's bytes, a shared quantised activation and an output row", returns: "when all rows are written", does: "Whole experts, one claim per job."}
+  - {name: run_split, takes: "up to 16 single-token jobs", returns: "when all rows are written", does: "Every expert split by rows across all threads; bitwise the same rows as run."}
+  - {name: run_split_multi_native, takes: "the layer's format, jobs each with up to a window's tokens", returns: "when all rows are written", does: "The same for a native pack's layer, reading each expert's rows once for all its tokens, in batches of 96 experts."}
+  - {name: diag, takes: "an output file", returns: "nothing", does: "Prints the batch, the counters and every thread's state for the stall watchdog."}
+verification:
+  - {method: parity_with_reference, checks: "Every job's output is bit-identical to running that expert serially; every job runs exactly once; repeated batches; batches larger and smaller than the worker count.", against: "serial execution", invariants: [inv/claim-carries-batch, inv/one-writer-per-row], source: "src/kernels/cpu/pool_test.cpp"}
+  - {method: invariant_test, checks: "Stress of the park and claim protocol.", invariants: [inv/claim-carries-batch, inv/batch-is-a-barrier], source: "src/kernels/cpu/pool_stress.cpp"}
+  - {method: unit_test, checks: "The default worker count on mock CPU layouts; task counts; explicit core lists; affinity; the per-node split.", source: "src/kernels/cpu/pool_plan_test.cpp; pool_tasks_test.cpp; pool_cores_test.cpp; pool_affinity_test.cpp; numa_pool_test.cpp"}
+  - {method: parity_with_reference, checks: "The CPU expert kernels.", source: "src/kernels/cpu/expert_parity.cpp; src/kernels/cpu/expert_multi_test.cpp; src/kernels/native_expert_parity.cpp"}
+observation_points: [pool_wait_park_ms, pool_drain_ms, pool_repark_ms, multi_gu_ms, multi_quant_ms, multi_down_ms, multi_bytes, numa_slice_ms]
+equivalence:
+  - {level: bit_exact, relative_to: "the same CPU kernel run serially", holds_when: "always; scheduling and row splitting do not change a row"}
+  - {level: numeric, relative_to: "the same expert computed by the GPU", holds_when: "not established here; a window-invariant arithmetic option and a multi-token kernel switch exist", note: "UNSET in substance"}
+sources:
+  - {ref: "src/kernels/cpu/pool.cpp:743-1454", basis: code}
+  - {ref: "include/strata/kernels/cpu/pool_plan.hpp:1-146", basis: code}
+  - {ref: "src/core/expert_source.cpp:4770-4861, 5240-5409", basis: code}
+  - {ref: "include/strata/kernels/cpu/pool.hpp", basis: header_comment}
+not_read: "CPU topology detection and affinity (pool.cpp:1-742), the vector kernels, and the instruction set each pack requires."

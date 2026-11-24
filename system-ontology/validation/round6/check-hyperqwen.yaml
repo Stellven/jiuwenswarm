@@ -1,0 +1,112 @@
+engine: hyperqwen
+# Checked against ontology/node-types.draft.yaml (draft 0.6), validation/inventory/hyperqwen.yaml read together with
+# hyperqwen.corrections.yaml, and the hyperqwen section of validation/reference-assignment.yaml (no `also` entries
+# for this engine). Source consulted read-only: patches/marlin-int8-negative-scales.patch,
+# patches/prefill-attn-int8.patch, single-user/start_qwen.sh (effective-config print).
+#
+# per_part: one verdict per decision, in the inventory's order. c = covered, l = loosely, n = not_covered,
+# e = engine_specific.
+per_part:
+  model-dir-publisher: {type: model-conversion, verdicts: [c, c, c]}
+  offline-weight-requantizer: {type: model-conversion, verdicts: [c, c, c]}
+  draft-vocab-builder: {type: model-conversion, verdicts: [c, c, l, c]}
+  gptq-requantizer: {type: model-conversion, verdicts: [c, c, c]}
+  chat-template-rewriter: {type: model-conversion, verdicts: [c]}
+  calibration-data-capture: {type: calibration, verdicts: [c, c, c]}
+  launch-profile-resolver: {type: configuration, verdicts: [c, c, l, l, c, c, l]}
+  correctness-pins: {type: configuration, verdicts: [c, c]}
+  compile-and-warmup: {type: graph-capture, verdicts: [c, c, c]}
+  graph-capture: {type: graph-capture, verdicts: [c, c, c]}
+  weight-loader: {type: model-loading, verdicts: [c, c, c, c]}
+  memory-budget-planner: {type: memory-planning, verdicts: [c, c, c]}
+  pool-layout-planner: {type: state-pool, verdicts: [c, c, c, e]}
+  paged-block-pool: {type: state-pool, verdicts: [c, c]}
+  recurrent-state-store: {type: recurrent-state-store, verdicts: [c, c, e]}
+  attention-kv-store: {type: positional-state-store, verdicts: [c, c]}
+  kvarn-staging-quantizer: {type: positional-state-store, verdicts: [l, c, c, l, c]}
+  prefix-cache: {type: prefix-reuse, verdicts: [c, c, c, c]}
+  kv-offload-tier: {type: state-tiering, verdicts: [l, c, e]}
+  api-server: {type: request-front, verdicts: [c, e, c, c]}
+  access-guard: {type: request-front, verdicts: [c, e, c, c]}
+  prompt-renderer: {type: prompt-preparation, verdicts: [c]}
+  output-parser: {type: output-interpretation, verdicts: [c]}
+  engine-core-loop: {type: engine-supervision, verdicts: [c]}
+  request-scheduler: {type: step-scheduler, verdicts: [c, c, c, c]}
+  model-runner: {type: step-execution, verdicts: [c, c]}
+  token-embedding: {type: layer-compute, verdicts: [c, c]}
+  linear-gemm: {type: layer-compute, verdicts: [c, c, e]}
+  gdn-recurrence-compute: {type: layer-compute, verdicts: [c, e]}
+  full-attention-compute: {type: layer-compute, verdicts: [c, c, l]}
+  verify-attention: {type: layer-compute, verdicts: [c, c, c]}
+  output-head: {type: layer-compute, verdicts: []}
+  image-encoder: {type: modality-encoding, verdicts: [c, c, c]}
+  sampler: {type: sampling, verdicts: [c, c]}
+  grammar-constraint: {type: output-constraint, verdicts: [c, e]}
+  mtp-drafter: {type: draft-proposal, verdicts: [c, c, l, c]}
+  dflash2-drafter: {type: draft-proposal, verdicts: [c, c, e, c]}
+  context-lookup-proposer: {type: draft-proposal, verdicts: [c, c, c, c]}
+  drafter-free-chains: {type: draft-policy, verdicts: [c, c]}
+  verify-length-controller: {type: draft-policy, verdicts: [c, c, c, c]}
+  draft-acceptance: {type: draft-verification, verdicts: [l, c]}
+  tensor-parallel: {type: model-partitioning, verdicts: [l, c]}
+  telemetry: {type: telemetry, verdicts: [c, c]}
+  stall-watchdog: {type: engine-supervision, verdicts: [c, c]}
+# engine_specific decisions, for the record: pool-layout-planner "exclude the null block from displayed concurrency"
+# (display detail); recurrent-state-store "bound the spec-decode state lookup by the previous step's row width" (fix
+# of a defect); kv-offload-tier "device pointers on WSL2" (platform workaround); api-server "mount /tokenize under /v1"
+# and access-guard "ignore a trailing slash" (naming); linear-gemm "pad 2-4 row GEMMs to 5 rows" (library slow-kernel
+# workaround); gdn-recurrence-compute "mask partial boundary chunks" (defect fix); grammar-constraint "source build of
+# xgrammar" (packaging, library defect); dflash2-drafter "residual at 1/32 scale under fp16" (overflow workaround).
+decision_coverage:
+  totals: {decisions: 125, covered: 105, loosely: 11, not_covered: 0, engine_specific: 9}
+  per_type:
+    - {type: "model-conversion", decisions: 14, covered: 13, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "calibration", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "configuration", decisions: 9, covered: 6, loosely: 3, not_covered: 0, engine_specific: 0}
+    - {type: "graph-capture", decisions: 6, covered: 6, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "model-loading", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "memory-planning", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "state-pool", decisions: 6, covered: 5, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "recurrent-state-store", decisions: 3, covered: 2, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "positional-state-store", decisions: 7, covered: 5, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "prefix-reuse", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "state-tiering", decisions: 3, covered: 1, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "request-front", decisions: 8, covered: 6, loosely: 0, not_covered: 0, engine_specific: 2}
+    - {type: "prompt-preparation", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-interpretation", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "engine-supervision", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-scheduler", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-execution", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "layer-compute", decisions: 13, covered: 10, loosely: 1, not_covered: 0, engine_specific: 2}
+    - {type: "modality-encoding", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "sampling", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-constraint", decisions: 2, covered: 1, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "draft-proposal", decisions: 12, covered: 10, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "draft-policy", decisions: 6, covered: 6, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-verification", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "model-partitioning", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "telemetry", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+  loosely:
+    - {part: "draft-vocab-builder", type: "model-conversion", decision: "which extra scripts (CJK, Cyrillic) are appended to the draft vocabulary and under what row budget", nearest_choice: "the data a derived piece is selected or fitted from, and what is eligible for it (forced inclusion of a reserved share is not eligibility)"}
+    - {part: "launch-profile-resolver", type: "configuration", decision: "drafter kind and number of draft tokens", nearest_choice: "named profiles and what each fixes"}
+    - {part: "launch-profile-resolver", type: "configuration", decision: "pin the pool by bytes or by utilisation; skip the pin under tensor parallelism", nearest_choice: "rules that derive a setting's default from other settings and machine facts"}
+    - {part: "launch-profile-resolver", type: "configuration", decision: "prefix caching on with align-mode recurrent state, and the snapshot retention interval", nearest_choice: "which settings that change output are on by default, and in which profile"}
+    - {part: "kvarn-staging-quantizer", type: "positional-state-store", decision: "flush a finished request's full block (a later prefix hit may read it) but discard a partial one", nearest_choice: "when state held in a staging precision is converted to its stored format (says nothing of what a finished sequence's staged state becomes)"}
+    - {part: "kvarn-staging-quantizer", type: "positional-state-store", decision: "draft passes after the first only allocate staging slots, never flush", nearest_choice: "when state held in a staging precision is converted to its stored format (not tied to whether the positions can still be rejected)"}
+    - {part: "kv-offload-tier", type: "state-tiering", decision: "which groups count as draft attention (only the drafter's sliding-window groups)", nearest_choice: "which kinds of state the slower tier holds"}
+    - {part: "full-attention-compute", type: "layer-compute", decision: "sparse attention budget when LSA is on", nearest_choice: "any deliberate change to the model's arithmetic (names the change, not its budget)"}
+    - {part: "mtp-drafter", type: "draft-proposal", decision: "draft from the target's top-k/top-p support; optional draft temperature scale", nearest_choice: "the set of tokens proposals are restricted to (the temperature scale of the proposer is not named)"}
+    - {part: "draft-acceptance", type: "draft-verification", decision: "draft sampling must be probabilistic so the draft distribution is passed (otherwise acceptance is strictly stricter)", nearest_choice: "the acceptance rule under sampling"}
+    - {part: "tensor-parallel", type: "model-partitioning", decision: "allocator without expandable segments so graph buffers can be exported between processes", nearest_choice: "which other engine features may be combined with splitting the model, and which are refused"}
+  not_covered: []
+contradictions:
+  - {part: "calibration-data-capture", type: "calibration", claim: "effect_on_output: exact (in itself), rounding (split between devices / restore vs recompute), approximate (feeds a lossy conversion or reduced-precision path)", evidence: "Its captured Hessians feed GPTQ of the MTP module and the DFlash2 drafter, whose quantization 'changes only acceptance' (gptq-requantizer output_effect_when), and its self-generated outputs are what draft-vocab-builder counts to choose the draft vocabulary. Both change only pieces used for proposals: under sampling with acceptance using q this is `resampled` (output_principles 3), a level the type does not list.", fix: "Add `resampled` when its results feed a conversion or selection of pieces used only for proposals, and acceptance under sampling uses the proposals; keep `approximate` for results that feed a lossy conversion of what the full model computes."}
+  - {part: "paged-block-pool", type: "state-pool", claim: "effect_on_output: exact (in itself), approximate (the pool fixes a quantised stored format)", evidence: "The pool owns 'the free queue (eviction order)' and decides 'order in which freed blocks enter the free queue' (mamba-align-checkpoint-order.patch); that order decides which cached prefix blocks and recurrent snapshots survive, and prefix-cache records that greedy text differs between a hit and a miss (different chunking and rounding). The pool's own choice therefore reaches `rounding`, which the type does not list (output_principles 1 and 4 would put it there).", fix: "Add `rounding` when the order in which it reuses freed pages decides which stored state survives for reuse, and reused state differs in rounding from a fresh read."}
+  - {part: "engine-core-loop", type: "engine-supervision", claim: "effect_on_output: exact when it passes requests on unchanged; defines when it rewrites request settings", evidence: "Its one decision is async scheduling (plan step N+1 while step N runs). Under it the verify-length count is ignored and 'async scheduling pads every decode step to the full draft count' (request-scheduler, verify-length-controller), so the width of every verify block changes, and verify-length-controller records that block length changes rounding and greedy text. That is `rounding`, not listed for the type.", fix: "Add `rounding` when preparing the next step while the current one runs fixes the width of steps (for example the number of proposed rows checked) differently from serial planning."}
+new_causes:
+  - {part: "weight-loader", type: "model-loading", level: "rounding", cause: "re-encoding the stored weights into the form a kernel reads cannot represent every stored value, so a rare value is moved by one quantisation step", evidence: "marlin-int8-negative-scales.patch folds the sign of negative group scales into the int4 codes for the int8-activation kernel; 'numerically identical except that the rare code -8 becomes -7 (one LSB) in flipped groups'. The type's rounding conditions name only a change of floating-point width or a choice among stored encodings."}
+  - {part: "request-scheduler", type: "step-scheduler", level: "approximate", cause: "whether a prompt chunk runs alone in a step or shares it with other sequences selects a reduced-precision kernel (not only how many rows the step holds)", evidence: "patches/prefill-attn-int8.patch: the int8-QK prefill kernel 'fires only for single-request prefill chunks (max_seqlen_q > 16, one request in the varlen batch)'; with other requests in the batch the step falls back to FA2. The type's approximate condition names only the number of rows."}
+  - {part: "kvarn-staging-quantizer", type: "positional-state-store", level: "approximate", cause: "whether state reused by a later request is still held at the higher staging precision or has been converted to the stored quantised format depends on slot pressure from other sequences", evidence: "kvarn-staging-quantizer keeps finished requests' first blocks in fp16 'until slots run short' and evicts the oldest only when slots run dry; output_effect_when says these retained sinks keep multi-turn reuse closer to unquantised. The type names only 'stored quantised or compressed', not a precision of reused state that depends on concurrent load."}
+relaxations: []
+wrong_assignments: []
+inventory_errors: []

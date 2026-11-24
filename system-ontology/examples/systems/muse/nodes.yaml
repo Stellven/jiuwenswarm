@@ -1,0 +1,370 @@
+# The node level of Engine for Muse Spark Open on DGX Spark (proposed) under the generic node types. Written by
+# `tools/so_nodetypes.py example muse-on-spark`. The type of each node is the one stated in node-assignment.yaml
+# beside this file, read from the component's own text and pinned to its responsibility
+# (`responsibility_sha256`); `fit` and `reason` appear where that reading found the type does not fit plainly.
+# Who read: Claude subagents, 2026-11-18 (not a person).
+# `settles` names the choices of the type this design decides, with its decisions word for word, from
+# validation/choices/map-muse-on-spark.yaml, keyed by decision id and text. `own_decisions` counts the
+# decisions of the component that are not a kept choice of its types. The full description of each
+# component is at `described_in`.
+engine: muse-on-spark
+node_types: ontology/node-types.draft.yaml, draft 0.9
+nodes:
+- component: preparation
+  title: Model preparation
+  described_in: comp/muse/preparation
+  derived_from:
+  - comp/ds4/model-preparation
+  type: model-conversion
+  responsibility_sha256: df72f9bfeb23d3d83fb27f5cb7709cab8fc0a30281243219fc566207c8da49ac
+  does: 'Offline, turn the model checkpoint the target names into the files the engine reads: the weights every token uses
+    in load order, and every expert as one contiguous block-aligned range with a table of where each lies.'
+- component: model-file-reader
+  title: Model file reader and geometry check
+  described_in: comp/muse/model-file-reader
+  derived_from:
+  - comp/strata/model-file-reader
+  type: model-loading
+  responsibility_sha256: 6e9c84607b6ab89eb422b7673ab526185a9cf7594908d85910fa3e1cf40076bf
+  does: Open the prepared files read-only, expose their metadata and tensor directory unchanged, and refuse files whose
+    declared shape the compiled kernels cannot run.
+  own_decisions: 1
+- component: expert-layout
+  title: Expert layout table
+  described_in: comp/muse/expert-layout
+  derived_from:
+  - comp/strata/expert-layout
+  type: model-loading
+  responsibility_sha256: e921ff03fc1b05cf367627bb48460ee4645fe21abe4c150211857ea98e4963f5
+  does: Read the table of expert ranges once and answer, for the whole process, where each expert's bytes lie in the prepared
+    file and how long they are.
+  own_decisions: 1
+- component: weight-loader
+  title: Weight loader
+  described_in: comp/muse/weight-loader
+  derived_from:
+  - comp/strata/weight-loader
+  type: model-loading
+  responsibility_sha256: 4e5d0f4c2473eb45d96f053f6b78dfabcc5323b544246754d47013368af4291c
+  does: At startup, place the weights every token uses in fast memory and return a table from tensor name to location.
+  own_decisions: 1
+- component: startup-memory-sizing
+  title: Startup memory sizing
+  described_in: comp/muse/startup-memory-sizing
+  derived_from:
+  - comp/strata/startup-memory-sizing
+  type: memory-planning
+  responsibility_sha256: ab6b10ecc8a81a9af982f9218313377da8fee7847e9d29c3e1ff67ece8f69bb4
+  does: Within the memory budget, price the weights every token uses, the attention state for the configured context, the
+    staging area and a reserve; give the expert cache what remains; and refuse to start when the cache would be below its
+    minimum.
+  settles:
+  - choice: the reserve left free
+    how:
+    - Memory left free for the operating system and for allocations not priced in advance.
+  - choice: the least a cache may be and still work
+    how:
+    - 'The smallest cache the engine will start with: at least the experts one step can route, 8 times 62.'
+  own_decisions: 3
+- component: layer-kernels
+  title: Layer kernels and their order
+  described_in: comp/muse/layer-kernels
+  derived_from:
+  - comp/strata/layer-kernels
+  type: layer-compute
+  responsibility_sha256: b7bf4fa72d8cdd4cdea796c413843c52b7e12f1a58864db64edb40381d4dc206
+  does: Compute the part of each layer every token needs, in a fixed order.
+- component: expert-router
+  title: Expert router
+  described_in: comp/muse/expert-router
+  derived_from:
+  - comp/strata/expert-router
+  type: layer-compute
+  responsibility_sha256: fa16b7600b22e8ad1d515a7639ee5ab2c5a285cf7131701b22bbe6630ca89dc3
+  does: For each token in each layer, turn the feed-forward input into 256 logits and choose 8 experts with their weights.
+- component: output-head
+  title: Output head
+  described_in: comp/muse/output-head
+  derived_from:
+  - comp/strata/output-head
+  type: layer-compute
+  responsibility_sha256: 5346ca133861d9b961f89dab3324f1748028dbbccbdaac773903eed2154b86c9
+  does: Turn the residual after the last layer into one row of vocabulary logits per position.
+- component: decode-loop
+  title: Decode loop
+  described_in: comp/muse/decode-loop
+  derived_from:
+  - comp/strata/window-loop
+  - comp/ds4/decode-loop
+  type: step-execution
+  responsibility_sha256: 4ec78b0249867dafbc0568d0f7598e81590826db79c1c624b55a8c3981b44b4b
+  does: Take one token through the 62 layers and the output head, at each layer handing the routing to the expert subsystem
+    and waiting until every routed expert has been computed.
+  own_decisions: 2
+- component: prompt-path
+  title: Prompt path
+  described_in: comp/muse/prompt-path
+  derived_from:
+  - comp/strata/prompt-path
+  - comp/ds4/prefill-driver
+  type: prompt-reading
+  responsibility_sha256: 1f046f08c90b41472f6db985131d67895c364522a25f5912bf3f2099dfa3fc50
+  does: Read the prompt in chunks, one layer at a time, reading each routed expert that is not cached once per chunk, and
+    leave behind the attention state that generation continues from.
+  settles:
+  - choice: chunk size
+    how:
+    - Tokens per chunk. Larger chunks amortise each expert read over more tokens but need more experts in memory at once.
+  own_decisions: 2
+- component: expert-source
+  title: Expert source
+  described_in: comp/muse/expert-source
+  derived_from:
+  - comp/strata/expert-source
+  - comp/ds4/expert-stream-reader
+  type: expert-source
+  responsibility_sha256: e3465b213550b638f5217459c0c1db7e9875ae78cdfd4149ad99ab1cba92a0f3
+  does: For any expert, give the range of the prepared file that holds it, and deliver its bytes into a buffer it is handed.
+  own_decisions: 2
+- component: expert-cache
+  title: Expert cache
+  described_in: comp/muse/expert-cache
+  derived_from:
+  - comp/strata/expert-cache
+  - comp/ds4/expert-cache
+  type: expert-cache
+  responsibility_sha256: ac575090e312fd8ae041be413d891d54e4af8689cda04c18f27dfb71d5fd1226
+  does: Hold as many experts in fast memory as its budget allows and answer, for any expert, whether it is there and in
+    which slot.
+  own_decisions: 1
+- component: cache-policy
+  title: Cache policy
+  described_in: comp/muse/cache-policy
+  derived_from:
+  - comp/strata/adaptive-tier
+  - comp/ds4/expert-eviction
+  type: residency-policy
+  responsibility_sha256: 3bc4e4cbe4aea7aa650cfb5d0a1a1e66de02ae4def4d5c2638672cb4e58b3f9b
+  does: Decide, for an expert that has just been read from storage, whether it enters the cache and which resident expert
+    leaves, so that the cache holds the experts the current work uses most.
+  settles:
+  - choice: how use counts age, so that recent use outweighs old use
+    how:
+    - How fast usage counts fade.
+  own_decisions: 3
+- component: storage-reader
+  title: Storage reader
+  described_in: comp/muse/storage-reader
+  derived_from:
+  - comp/strata/host-to-device-transfer
+  - comp/ds4/expert-stream-reader
+  type: expert-fetch
+  responsibility_sha256: 8495daa3961301f1242ffc7c36634daa87fd9e49212b7f4b6e5851fa43f44c6e
+  does: Read the bytes of missed experts from storage into the staging area or a cache slot, several at a time, and report
+    each as ready only when it is complete.
+- component: expert-dispatch
+  title: Expert dispatch
+  described_in: comp/muse/expert-dispatch
+  derived_from:
+  - comp/strata/expert-dispatch
+  - comp/ds4/expert-split-dispatch
+  type: expert-dispatch
+  also: [layer-compute]
+  responsibility_sha256: 72c221532e5a9d20df0229e8eb734d5dfa23ffa78cea0ca0c5993349b1301e45
+  does: For one layer of one step, decide for every routed expert whether it is computed from the cache at once or after
+    a read from storage, and issue the reads before the cached experts start computing.
+  own_decisions: 1
+- component: kv-store
+  title: Key and value store
+  described_in: comp/muse/kv-store
+  derived_from:
+  - comp/strata/kv-store
+  type: positional-state-store
+  responsibility_sha256: d0a7e52df469193ce9822213c17359338f73a6d0d1af6a119047bc5d272b26c6
+  does: Hold the attention keys and values of every position up to the configured context length, and truncate them to a
+    given position when asked.
+- component: resume-decision
+  title: Resume decision
+  described_in: comp/muse/resume-decision
+  derived_from:
+  - comp/strata/resume-decision
+  type: prefix-reuse
+  responsibility_sha256: f6eda388af1c280befb5d1f9ea9b6ba0a001dd6d9bfd1809eaa9448e4c0ba017
+  does: For each request, choose the stored state that shares the longest valid prefix with the prompt, make the session
+    hold exactly that state by truncating or restoring, and report the prefix length.
+- component: parked-conversations
+  title: Parked conversation cache
+  described_in: comp/muse/parked-conversations
+  derived_from:
+  - comp/strata/parked-conversations
+  type: prefix-reuse
+  responsibility_sha256: 1876a97cfdc1bb2fa70c7b0b43f3716075b3d319987215f3caa66c4e5e00c602
+  does: Hold images of other conversations' attention state within a budget, find the one with the longest valid prefix
+    for a prompt, and evict.
+- component: session-files
+  title: Session files
+  described_in: comp/muse/session-files
+  derived_from:
+  - comp/strata/session-files
+  type: session-persistence
+  responsibility_sha256: 251cb049b28b9a79b23ba5c5f9f45a082c41dc5007e7c5136d92f267f86c4c32
+  does: On an explicit command, write the session's current conversation to one file or read one back, refusing any file
+    that does not belong to this model, configuration and engine version before any state changes.
+- component: sampler
+  title: Sampler
+  described_in: comp/muse/sampler
+  derived_from:
+  - comp/strata/sampler
+  type: sampling
+  responsibility_sha256: 8dc0c0ca7db8836f5138809b749625ab6a878b6dad5d50fc1cd30b2647562c64
+  does: 'Turn the logits of the position being generated into one token id by a fixed chain: logit bias, penalties, top-k,
+    top-p, min-p, temperature, pick.'
+- component: request-runner
+  title: Request runner
+  described_in: comp/muse/request-runner
+  derived_from:
+  - comp/strata/request-runner
+  type: output-interpretation
+  fit: partial
+  reason: It also drives one API request through one or more engine generations, a job of the serving side that output-interpretation
+    does not name and that no single type describes.
+  responsibility_sha256: 771cf7fc82655449b38b6d91d1b38dfae3e87df7ce55f42675825a4829113ca1
+  does: Drive one API request through one or more engine generations and turn the token ids into content events with a final
+    finish record.
+- component: http-front
+  title: HTTP front and admission bound
+  described_in: comp/muse/http-front
+  derived_from:
+  - comp/strata/http-front
+  type: request-front
+  fit: partial
+  reason: It also bounds how many inference calls are pending and owns the admission counters. request-front does not name
+    admission, and no other type is that job at the door (resource-governing is about memory or power, sequence-lifecycle
+    about sequences inside the engine).
+  responsibility_sha256: 68f9e9c1d98a3f34da666bff581610a8806f059891121e8594d4011d483638cc
+  does: Accept client requests over HTTP, bound how many inference calls are pending, answer every failure class with a
+    defined status code, and cancel a request whose client has hung up.
+- component: prompt-builder
+  title: Prompt builder
+  described_in: comp/muse/prompt-builder
+  derived_from:
+  - comp/strata/prompt-builder
+  type: prompt-preparation
+  responsibility_sha256: c19c100d6269549395f677dd7b41d367c2877c32309a492bde60a44160feb177
+  does: Produce the exact prompt token ids and the token limit for a request from its messages, or refuse the request.
+  settles:
+  - choice: the template used and how it is corrected
+    how:
+    - The template that turns messages into one prompt.
+  own_decisions: 2
+- component: engine-client
+  title: Engine process client and supervisor
+  described_in: comp/muse/engine-client
+  derived_from:
+  - comp/strata/engine-client
+  type: engine-supervision
+  responsibility_sha256: d42f7c0d580fba81e41675f0f8397351a652f9a3bd4fda3c7d55cf92f6623202
+  does: 'Keep one engine child process resident and in step with the server: send each generation as one text command, deliver
+    its token lines to the caller, and end and restart a process that is dead, silent, frozen or fatally broken.'
+- component: engine-command-loop
+  title: Engine command loop
+  described_in: comp/muse/engine-command-loop
+  derived_from:
+  - comp/strata/engine-command-loop
+  type: engine-supervision
+  also: [sequence-lifecycle]
+  fit: partial
+  reason: 'The suggested main type, step-scheduler, does not fit its text: with one generation at a time nothing decides
+    what a step contains or which sequences join it. Of sequence-lifecycle it has only the record; admitting, pausing and
+    releasing sequences are not in its text.'
+  responsibility_sha256: 68f97f43878fdbebfb1131007375aecec2fd6fdf1688577d65a84aa145fcd3cf
+  does: Inside the engine process, read one command at a time, run one prompt read and one generation at a time, and report
+    each generation's tokens and end figures as text lines.
+- component: run-config-generator
+  title: Run configuration generator and store
+  described_in: comp/muse/run-config-generator
+  derived_from:
+  - comp/strata/run-config-generator
+  type: configuration
+  responsibility_sha256: a6a67fb45a2134d8e441ca0e556950c326966978835b28a4aa94a9292f43906c
+  does: Produce a complete run configuration file for one model on this machine from machine facts and the person's answers,
+    and rewrite it without losing what the person added by hand.
+- component: launch-argument-resolver
+  title: Launch and start-time argument resolver
+  described_in: comp/muse/launch-argument-resolver
+  derived_from:
+  - comp/strata/launch-argument-resolver
+  type: configuration
+  responsibility_sha256: 825b72c64f89f87038177560de0ba85c2afe67f4f5dad740e1febd04079e1a0c
+  does: Turn the stored run configuration into the argument list and environment the engine process actually receives, at
+    every launch and every engine start, so that standing choices kept outside the list cannot be undone by whoever last
+    rewrote it.
+- component: engine-diagnostics
+  title: Engine diagnostics
+  described_in: comp/muse/engine-diagnostics
+  derived_from:
+  - comp/strata/engine-diagnostics
+  type: telemetry
+  also: [calibration]
+  fit: partial
+  reason: The responsibility itself says only that the counts are recorded and written when asked, which is telemetry. That
+    the usage profile is input other nodes take as fixed (calibration) rests on the system level (the flow usage-profile-out,
+    'a file that a later start can load') and on cache-policy's decision starting-contents, not on this component's text;
+    and it is counted during ordinary runs, not offline, at startup or in an opt-in profiling run as calibration says.
+  responsibility_sha256: 42427be49ff601b5a5644394a2710dfbd0fcc13298c239a37f3144b0c0385dfe
+  does: Inside the engine process, record what the run selected at start, count cache hits and storage reads per layer,
+    and record how often each expert is routed, writing each when asked.
+- component: server-metrics
+  title: Request accounting and metric exporters
+  described_in: comp/muse/server-metrics
+  derived_from:
+  - comp/strata/server-metrics
+  type: telemetry
+  responsibility_sha256: f4211edbcc37eb1bf2dc711f407c89ce008b4bbb75f41c4e5aaa3a3e6e684f92
+  does: In the server process, turn the engine's end-of-request figures and the server's own clocks into per-request records,
+    running totals and a live rate, fill the usage and timings of each response, sample the machine at intervals, and render
+    all of it for outside monitors.
+types_without_a_part:
+- type: graph-capture
+  needed_when: The device benefits from pre-recorded or pre-compiled work, or first-use compilation would stall a request.
+- type: device-backend
+- type: secondary-compute
+  needed_when: A second device can compute something sooner than moving its inputs to the main device, or has spare capacity
+    the main device lacks.
+- type: model-edit
+  needed_when: The engine offers run-time changes to the model's behaviour.
+- type: media-preparation
+  needed_when: The engine serves input other than text.
+- type: modality-encoding
+  needed_when: The model accepts input other than text and the engine serves it.
+- type: row-source
+  needed_when: The model has a table too large to hold whole in fast memory, of which each token reads a few rows.
+- type: storage-reader
+  needed_when: Several kinds of data are read from the same storage while the engine runs.
+- type: recurrent-state-store
+  needed_when: The model has state that cannot be cut back to an earlier position, such as recurrent or convolution state.
+- type: state-pool
+  needed_when: Several sequences are in the engine at once and share one backing memory for state.
+- type: state-tiering
+  needed_when: State in fast memory exceeds what fits, for long contexts or many sequences.
+- type: draft-proposal
+  needed_when: 'A cheap source of proposals exists: a draft head of the model, a separate small model, or repetition in
+    the text.'
+- type: draft-policy
+  needed_when: The amount of drafting is adjusted while running.
+- type: draft-verification
+  needed_when: Tokens are proposed ahead.
+- type: output-constraint
+  needed_when: The service offers constrained output, or a format that must be enforced.
+- type: step-scheduler
+- type: replica-routing
+  needed_when: Several whole copies of the engine run side by side.
+- type: scoring
+  needed_when: The service offers scoring.
+- type: model-partitioning
+  needed_when: The model is spread over more than one device or machine.
+- type: device-communication
+  needed_when: The model is spread over more than one device or machine.
+- type: resource-governing
+  needed_when: 'What the engine may use changes while it runs: the system reclaims memory, sequences come and go, or power
+    is limited.'

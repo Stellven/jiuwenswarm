@@ -1,0 +1,9 @@
+预热 0：TTFT 252.186 s，解码 0.46 tok/s（不计入）
+预热 1：TTFT 366.108 s，解码 0.44 tok/s（不计入）
+提示 0 第 0 次：TTFT 265.107 s，解码 0.44 tok/s，128 个 token
+提示 1 第 0 次：TTFT 404.341 s，解码 0.43 tok/s，128 个 token
+提示 2 第 0 次：TTFT 368.975 s，解码 0.43 tok/s，128 个 token
+提示 3 第 0 次：TTFT 353.162 s，解码 0.50 tok/s，128 个 token
+TTFT 中位数 361.069 s；解码中位数 0.4368 tok/s；系统内存最大下降 1.64 GB
+运行时自己的计时：提示 6.6927 tok/s，生成 0.4187 tok/s
+已写出 /home/<spark-user>/system-ontology-run-20261119/muse-runs/cache-16g/evidence-cache-16g.yaml

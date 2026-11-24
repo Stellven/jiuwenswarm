@@ -1,0 +1,89 @@
+# Entries of the inventory that a later reader found wrong and confirmed against the engine's source.
+# The inventory itself is left as first written; read it together with this file.
+engine: ds4
+corrections:
+- part: compressed-attention-state
+  field: output_effect
+  recorded: none (and decision 'Compressed rows optionally stored as F16')
+  source_shows: 'ds4.c 17236-17246: on Apple the persistent compressed KV cache is stored in F16 by build (DS4_GPU_ATTN_COMP_CACHE_F16=1),
+    F32 elsewhere, with F32 staging; storage width differs by platform, so the effect is numeric and the F16 choice is fixed
+    per platform, not optional.'
+  found_in: round3
+- part: dense-attention-cache
+  field: output_effect
+  recorded: none
+  source_shows: 'ds4.c 17248-17250: GLM''s persistent compact cache is stored in F16 on all GPU backends while producers
+    keep F32 staging; stored width is reduced, so the effect is numeric.'
+  found_in: round3
+- part: disk-kv-checkpoint-store
+  field: output_effect
+  recorded: numeric (reuse across quantizations brings state computed by another quantization)
+  source_shows: 'ds4_kvstore.c 518-519, 616-643, 852-858: cross-quant reuse is accepted unless reject_different_quant is
+    set; state computed under other routed-expert weights differs by more than last bits, so changes_output.'
+  found_in: round3
+- part: offline-converter-quantizer
+  field: when_things_go_wrong
+  recorded: Merge script verifies shard sizes and checksums and keeps the previous default model (per docs)
+  source_shows: gguf-tools/deepseek4-quantize.c 2042, 2793-2856 writes directly to the output path and exits on error leaving
+    a partial file; deepseek41_quantize.py 248-314 and glm53_quantize.py 1113 write .partial (with a journal) and rename
+    on completion. Shard checksum verification belongs to download_model.sh, listed outside the engine.
+  found_in: round3
+- part: pipeline-parallel
+  field: output_effect
+  recorded: numeric, when activations are sent as f16 or fp8 instead of f32
+  source_shows: 'ds4_distributed.c 790-793, 949-955: the 8-bit wire format is FP8 E4M3, a lossy reduction beyond last bits,
+    so the effect is changes_output for 8 bits (f16 alone is numeric); default is 32 bits (line 65).'
+  found_in: round4
+- part: gpu-backend
+  field: output_effect
+  recorded: numeric (scalar, batched and tensor-parallel kernels are not numerically identical)
+  source_shows: 'ds4_cuda.cu 1236-1277: single-GPU CUDA uses the vendored mmq tier by default for steps of 2 or more rows,
+    quantising activations to Q8_1 (off with --quality, DS4_CUDA_MMQ=0 or several GPUs); ds4_cuda.cu 14787-14792: MXFP4
+    indexer for steps of 32 or more tokens with 1024 or more compressed rows (off with --quality). Reduced activation precision
+    is changes_output, on by default, settable off.'
+  found_in: round5
+- part: prompt-prefill-driver
+  field: output_effect
+  recorded: numeric (batched prefill versus token-by-token decode differ in summation order)
+  source_shows: 'Same source as above: on CUDA, prefill chunks of 2 or more tokens run with Q8_1-quantised activations by
+    default (ds4_cuda.cu 1236-1277), so prefill versus decode differs beyond summation order unless --quality is set.'
+  found_in: round5
+- part: request-scheduler
+  field: output_effect
+  recorded: none
+  source_shows: 'ds4_server.c 12431-12439, 12473-12474: the prefill quantum, and so where a prompt is cut into chunks, is
+    128 tokens while any generation is active and 2048 or more otherwise; chunk boundaries depend on concurrent load, so
+    the effect is at least numeric (and, with the CUDA Q8_1 tier, beyond last bits).'
+  found_in: round6
+- part: cross-gpu-transfer
+  field: output_effect
+  recorded: none
+  source_shows: 'ds4_gpu_mgpu.h 184-189: ds4_gpu_add_xdev_tensor adds partial results from two GPUs for tensor-parallel
+    reductions, so the sum order differs from one device; numeric.'
+  found_in: round6
+- part: tool-call-codec
+  field: output_effect
+  recorded: none
+  source_shows: 'ds4_server.c 14323-14396: repaired tool-call text replaces the generated text, and a failed parse of a
+    non-streaming request reruns generation with a model-visible error; changes_output.'
+  found_in: round6
+- part: dspark-scheduler
+  field: output_effect_when
+  recorded: Which path advances a token changes summation order only (numeric)
+  source_shows: 'ds4.c 88383-88384: in the default mode a draft is accepted when it equals the argmax at any temperature,
+    so whether a round drafts changes the distribution at temperature above 0; changes_output.'
+  found_in: round6
+- part: (missing part)
+  field: parts
+  recorded: no part for recorded execution graphs
+  source_shows: 'ds4_cuda.cu 1118-1216 (also 9923, 24567): CUDA decode steps are captured as graphs per layer and island
+    key with a warm pass, replayed on later steps, and fall back to eager encoding when capture or replay fails; this is
+    a graph-capture part the inventory omits.'
+  found_in: round6
+- part: weight-binder
+  field: output_effect
+  recorded: none (and no decision about re-encoding)
+  source_shows: 'ds4.c 3601-3646 (accelerator_cache_q8_tensors) and ds4_cuda.cu 5330-5378: on CUDA (not ROCm, not with DS4_CUDA_DIRECT_MODEL)
+    2-D Q8_0 tensors are cached as dequantized F16 or F32 device copies at load within a budget (ds4_cuda.cu 1562-1673);
+    kernels then read the wider copy, so the effect is numeric and depends on available VRAM.'
+  found_in: round7

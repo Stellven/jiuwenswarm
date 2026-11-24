@@ -1,0 +1,125 @@
+kind: model
+id: model/qwen3.8-flash-125b-a6b
+default_status: reported
+operations:
+- id: expert_router
+  kind: selection
+  selects:
+    operation: expert_ffn
+    out_of: 512
+    pick: 10
+    per: token per layer
+- id: expert_ffn
+  kind: compute
+  reads:
+  - expert_weights
+- id: shared_blocks
+  kind: compute
+  reads:
+  - shared_weights
+  - token_embedding
+  writes:
+  - attention_kv
+  - indexer_keys
+  - gdn_state
+- id: ngram_lookup
+  kind: compute
+  reads:
+  - ngram_table
+  writes:
+  - ple_history
+- id: output_projection
+  kind: compute
+  reads:
+  - output_head_weights
+  note: The final residual read and the projection to the vocabulary. A step apart from the layers; the engine places its
+    weights separately.
+- id: mtp_draft
+  kind: draft
+  drafts:
+    up_to: 7
+    proposes: the next tokens
+  reads:
+  - mtp_weights
+  - token_embedding
+  - output_head_weights
+  writes:
+  - mtp_kv
+- id: dflash2_draft
+  kind: draft
+  drafts:
+    up_to: 7
+    proposes: the next tokens
+  reads:
+  - dflash2_weights
+data:
+- id: expert_weights
+  kind: weight
+  partitioned_by:
+  - layer
+  - expert
+  size:
+    value: 50.3
+    unit: GB
+    unit_basis: decimal
+    status: reported
+- id: shared_weights
+  kind: weight
+  size:
+    value: 4.522
+    unit: GiB
+    unit_basis: binary
+    status: reported
+    note: The whole set in the engine's canonical form. Native packs skip about 2.7 GiB of it.
+  note: The weights every token uses, other than the embedding table and the output head listed below.
+- id: token_embedding
+  kind: weight
+  size:
+    value: 0.444
+    unit: GiB
+    unit_basis: binary
+    status: reported
+  note: One row is read per token; the engine places it apart from the other weights.
+- id: output_head_weights
+  kind: weight
+  size:
+    value: 0.41
+    unit: GiB
+    unit_basis: binary
+    status: reported
+  note: The one dense tensor the engine's startup sizing may move from fast to slow memory.
+- id: ngram_table
+  kind: weight
+  size:
+    value: 28.8
+    unit: GB
+    unit_basis: decimal
+    status: reported
+- id: mtp_weights
+  kind: weight
+  size:
+    value: 0.82
+    unit: GB
+    unit_basis: decimal
+    status: derived
+    note: 708 MB of experts plus a 111 MiB dense part; approximate
+  note: 'The draft layer has weights of its own: dense projections and 512 routed experts.'
+- id: dflash2_weights
+  kind: weight
+  note: The weights of the optional second drafter. Size not read.
+- id: attention_kv
+  kind: model_state
+- id: indexer_keys
+  kind: model_state
+- id: gdn_state
+  kind: model_state
+- id: ple_history
+  kind: model_state
+- id: mtp_kv
+  kind: model_state
+  note: The draft layer's own attention keys and values, one cell per position.
+statements:
+- subject: model/qwen3.8-flash-125b-a6b
+  property: layers
+  value: 48
+  status: reported

@@ -1,0 +1,228 @@
+engine: hyperqwen
+decision_coverage:
+  totals: {decisions: 125, covered: 103, loosely: 12, not_covered: 0, engine_specific: 10}
+  per_type:
+    - {type: "model-conversion", decisions: 14, covered: 13, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "calibration", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "configuration", decisions: 9, covered: 6, loosely: 3, not_covered: 0, engine_specific: 0}
+    - {type: "graph-capture", decisions: 6, covered: 6, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "model-loading", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "memory-planning", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "state-pool", decisions: 6, covered: 5, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "recurrent-state-store", decisions: 3, covered: 2, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "positional-state-store", decisions: 7, covered: 4, loosely: 3, not_covered: 0, engine_specific: 0}
+    - {type: "prefix-reuse", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "state-tiering", decisions: 3, covered: 1, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "request-front", decisions: 8, covered: 6, loosely: 0, not_covered: 0, engine_specific: 2}
+    - {type: "prompt-preparation", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-interpretation", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "engine-supervision", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-scheduler", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-execution", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "layer-compute", decisions: 13, covered: 10, loosely: 1, not_covered: 0, engine_specific: 2}
+    - {type: "modality-encoding", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "sampling", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "output-constraint", decisions: 2, covered: 1, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "draft-proposal", decisions: 12, covered: 10, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "draft-policy", decisions: 6, covered: 6, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-verification", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "model-partitioning", decisions: 2, covered: 0, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "telemetry", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+  verdicts:
+    model-dir-publisher:
+      - {decision: "Order of writes, index last as commit point", verdict: covered, choice: "the order of writes, and which write marks the conversion complete"}
+      - {decision: "Whether a checkpoint is an extendable schema, checked before any read", verdict: covered, choice: "which source formats and architecture constants a recipe accepts"}
+      - {decision: "Backup suffix per step so steps sharing a shard keep separate pristine copies", verdict: covered, choice: "whether files are rewritten in place, and how the originals are kept"}
+    offline-weight-requantizer:
+      - {decision: "Bit width per tensor group and group size", verdict: covered, choice: "precision per kind of weight"}
+      - {decision: "Whether mtp.fc is kept in bf16", verdict: covered, choice: "precision per kind of weight"}
+      - {decision: "Read whole shards or stream a single huge shard", verdict: covered, choice: "memory used while converting: whole files or piece by piece"}
+    draft-vocab-builder:
+      - {decision: "Number of rows kept", verdict: covered, choice: "the size of a derived piece"}
+      - {decision: "Which corpus the counts come from", verdict: covered, choice: "the data a derived piece is selected or fitted from"}
+      - {decision: "Which extra scripts are appended and under what row budget", verdict: loosely}
+      - {decision: "Only whole-UTF-8 rows are eligible", verdict: covered, choice: "the data a derived piece is selected or fitted from, and what is eligible for it"}
+    gptq-requantizer:
+      - {decision: "Bits and group size; no act-order", verdict: covered, choice: "precision per kind of weight"}
+      - {decision: "Which drafter modules stay bf16", verdict: covered, choice: "precision per kind of weight"}
+      - {decision: "Bit width of the DFlash2 fc projection (per correction)", verdict: covered, choice: "precision per kind of weight"}
+    chat-template-rewriter:
+      - {decision: "Which effort names map to which template level", verdict: covered, choice: "how a derived template is corrected: which inputs it accepts and what each maps to"}
+    calibration-data-capture:
+      - {decision: "Prompt mix and thinking share", verdict: covered, choice: "what is measured and on which prompts"}
+      - {decision: "Number of calibration rows", verdict: covered, choice: "how much data a measurement collects"}
+      - {decision: "Run eagerly so module hooks see inputs", verdict: covered, choice: "whether a measurement runs the serving path or a slower instrumented path that exposes internal values"}
+    launch-profile-resolver:
+      - {decision: "Profile and context class", verdict: covered, choice: "named profiles and what each fixes"}
+      - {decision: "KV format and attention backend from context class and compute capability", verdict: covered, choice: "rules that derive a setting's default from other settings and machine facts"}
+      - {decision: "Drafter kind and number of draft tokens", verdict: loosely}
+      - {decision: "Pin the pool by bytes or by utilisation; skip the pin under tensor parallelism", verdict: loosely}
+      - {decision: "Which layers run int8 activations", verdict: covered, choice: "which settings that change output are on by default, and in which profile"}
+      - {decision: "Allocator mode by platform, connector and parallel size", verdict: covered, choice: "rules that derive a setting's default from other settings and machine facts"}
+      - {decision: "Prefix caching with align-mode state, and the snapshot retention interval", verdict: loosely}
+    correctness-pins:
+      - {decision: "Which combinations are pinned and to what", verdict: covered, choice: "which combinations are refused; how a known-bad combination is handled: refused, or one member replaced"}
+      - {decision: "Whether an explicit operator override is honoured", verdict: covered, choice: "operator values, presets, measured values and defaults"}
+    compile-and-warmup:
+      - {decision: "Which knobs enter the cache key", verdict: covered, choice: "the key that decides whether a stored compiled artifact may be reused"}
+      - {decision: "Which kernel rungs and spec-shaped dummy verifies run at boot", verdict: covered, choice: "which step shapes are recorded ahead and which on first use"}
+      - {decision: "Which Triton kernels must not specialise on batch size", verdict: covered, choice: "which step dimensions compiled kernels may be specialised on"}
+    graph-capture:
+      - {decision: "FULL, PIECEWISE or both per profile", verdict: covered, choice: "whole-step or piecewise recording, per profile"}
+      - {decision: "Capture both verify lengths when the lookup can lengthen the block", verdict: covered, choice: "which step shapes are recorded ahead and which on first use"}
+      - {decision: "Largest captured batch size", verdict: covered, choice: "which step shapes are recorded ahead / upper bound on the number of recorded layouts"}
+    weight-loader:
+      - {decision: "Fold the sign of negative scales into int4 codes", verdict: covered, choice: "whether weights are re-encoded at load and how"}
+      - {decision: "Accept asymmetric zero-point int4 on the int8-activation path", verdict: covered, choice: "which stored encoding of a tensor is loaded ... and which kernels accept it"}
+      - {decision: "Stage repack transients through one grow-only buffer", verdict: covered, choice: "staging buffers and reader threads used while loading"}
+      - {decision: "Load a bf16 drafter beside a quantized target", verdict: covered, choice: "whether parts in different precisions may be loaded together"}
+    memory-budget-planner:
+      - {decision: "Measure after an uncounted warm pass; empty the allocator cache before allocating", verdict: covered, choice: "how a figure is measured: after which warm-up and from which counter; when memory is ... released"}
+      - {decision: "Measure graph memory by allocator reserved bytes", verdict: covered, choice: "how a figure is measured: ... from which counter"}
+      - {decision: "Pin by bytes for fixed-context profiles", verdict: covered, choice: "an operator's explicit size against the computed one"}
+    pool-layout-planner:
+      - {decision: "Group size when the smallest bucket is the drafter's window layers", verdict: covered, choice: "page geometry shared by kinds of state of different sizes"}
+      - {decision: "Promote a draft layer's block to a divisor of the primary block", verdict: covered, choice: "page geometry shared by kinds of state of different sizes"}
+      - {decision: "Charge state pages for in-flight async batches, speculative scratch and checkpoints", verdict: covered, choice: "what the pool is charged for beyond live sequences"}
+      - {decision: "Exclude the null block from displayed concurrency", verdict: engine_specific}
+    paged-block-pool:
+      - {decision: "Order in which freed blocks enter the free queue", verdict: covered, choice: "the order in which free pages are reused"}
+      - {decision: "Free sliding-window blocks behind the window", verdict: covered, choice: "whether pages that fall out of the model's view are released before the sequence ends"}
+    recurrent-state-store:
+      - {decision: "State dtype", verdict: covered, choice: "precision of stored state"}
+      - {decision: "Copy state across a block boundary during chunked prefill only when the column changes", verdict: covered, choice: "when state is copied across a block boundary while a prompt is read"}
+      - {decision: "Bound the spec-decode state lookup by the previous step's row width", verdict: engine_specific}
+    attention-kv-store:
+      - {decision: "Format per context class and compute capability", verdict: covered, choice: "precision and layout of stored state"}
+      - {decision: "Padded-page views when another group's page is larger", verdict: covered, choice: "how pages of different sizes are presented to the kernels"}
+    kvarn-staging-quantizer:
+      - {decision: "Flush a finished request's full block but discard a partial one", verdict: loosely}
+      - {decision: "Keep retired sinks resident; evict oldest first when slots run dry", verdict: loosely}
+      - {decision: "Drop anything held for a page another group now owns", verdict: covered, choice: "what is done with pending writes for memory that has changed owner"}
+      - {decision: "Draft passes after the first only allocate slots, never flush", verdict: loosely}
+      - {decision: "Size of the staging pool as a share of memory", verdict: covered, choice: "a staging area for state not yet in its stored format"}
+    prefix-cache:
+      - {decision: "Retention interval of state snapshots", verdict: covered, choice: "where restore points exist when state cannot be truncated"}
+      - {decision: "Hold the resumed-from and prompt-boundary snapshots until request end, freed last", verdict: covered, choice: "whether a request may pin stored state against eviction; what is evicted first"}
+      - {decision: "Hash unit", verdict: covered, choice: "the unit in which prefixes are hashed"}
+      - {decision: "Export several interior recurrent states per prefill (opt-in)", verdict: covered, choice: "where restore points exist when state cannot be truncated; when state is stored for later reuse"}
+    kv-offload-tier:
+      - {decision: "Which groups count as draft attention", verdict: loosely}
+      - {decision: "Retain the window history at the recurrent state's replay boundary under sparse retention", verdict: covered, choice: "which pieces of different kinds of state are kept together so that a restored state is usable"}
+      - {decision: "Device pointers on WSL2", verdict: engine_specific}
+    api-server:
+      - {decision: "Accepted model names", verdict: covered, choice: "the names a request may use for the served model"}
+      - {decision: "Mount /tokenize under /v1 too", verdict: engine_specific}
+      - {decision: "Serve Ollama discovery routes", verdict: covered, choice: "protocols offered"}
+      - {decision: "SSE keep-alive interval", verdict: covered, choice: "keep-alive for a response stream with nothing to send"}
+    access-guard:
+      - {decision: "Deny by default; allow liveness and discovery routes", verdict: covered, choice: "who is allowed and how; what the engine exposes about itself"}
+      - {decision: "Ignore a trailing slash on the allowlist", verdict: engine_specific}
+      - {decision: "Let only a real CORS preflight skip the token", verdict: covered, choice: "who is allowed and how"}
+      - {decision: "Bind to loopback when no key is set", verdict: covered, choice: "what is exposed by default when no credential is set"}
+    prompt-renderer:
+      - {decision: "Which chat template", verdict: covered, choice: "the template used and how it is corrected"}
+    output-parser:
+      - {decision: "Parser must match the template's tool-call format", verdict: covered, choice: "reasoning and tool formats per model family"}
+    engine-core-loop:
+      - {decision: "Async scheduling overlaps planning of the next step with execution", verdict: covered, choice: "whether the process loop prepares the next step while the current one runs on the device"}
+    request-scheduler:
+      - {decision: "Token budget per step", verdict: covered, choice: "sequences and rows per step"}
+      - {decision: "Admission count versus residency", verdict: covered, choice: "what admission is counted in: sequences or memory pages"}
+      - {decision: "Preempt and recompute when the pool is full", verdict: covered, choice: "whether a sequence is paused and recomputed when shared memory is full"}
+      - {decision: "Synchronous scheduling when the worker must choose the draft count", verdict: covered, choice: "whether the next step is planned while the current one runs"}
+    model-runner:
+      - {decision: "Blocking sequence-length read as barrier between steps under async", verdict: covered, choice: "how host-side inputs of consecutive steps are kept apart"}
+      - {decision: "Truncate draft tokens handed for verification to the controller's count", verdict: covered, choice: "how many proposed rows are passed on for checking"}
+    token-embedding:
+      - {decision: "Keep the table in host memory (opt-in)", verdict: covered, choice: "conditions under which a weight may be read from slower memory"}
+      - {decision: "Skip host placement for tied or unquantised tables", verdict: covered, choice: "conditions under which a weight may be read from slower memory"}
+    linear-gemm:
+      - {decision: "Which layers use int8 activations", verdict: covered, choice: "activation precision inside kernels"}
+      - {decision: "Tuned tile table (opt-in)", verdict: covered, choice: "kernel variant per device class, step shape and stored-state format"}
+      - {decision: "Pad 2-4 row batches of one unquantised GEMM to 5 rows to avoid a slow library kernel", verdict: engine_specific}
+    gdn-recurrence-compute:
+      - {decision: "Kernel per compute capability", verdict: covered, choice: "kernel variant per device class, step shape and stored-state format"}
+      - {decision: "Mask partial boundary chunks before exponentials", verdict: engine_specific}
+    full-attention-compute:
+      - {decision: "Backend per KV format and card", verdict: covered, choice: "kernel variant per device class, step shape and stored-state format"}
+      - {decision: "int8-QK prefill only for one-request chunks over a width on one geometry with bf16 KV", verdict: covered, choice: "activation precision inside kernels; kernel variant per ... step shape and stored-state format"}
+      - {decision: "Sparse attention budget when LSA is on", verdict: loosely}
+    verify-attention:
+      - {decision: "Query-row tile size by row count and register budget", verdict: covered, choice: "kernel variant per device class, step shape and stored-state format"}
+      - {decision: "Halve the KV tile when shared memory is short", verdict: covered, choice: "kernel variant per device class, step shape and stored-state format"}
+      - {decision: "Scratch capacity in tokens, shared by builders of one geometry", verdict: covered, choice: "working space a kernel may hold, allocated ahead or during steps"}
+    output-head: []
+    image-encoder:
+      - {decision: "Load the tower at all", verdict: covered, choice: "whether the encoder is loaded at all"}
+      - {decision: "Bulk-copy per module rather than zero-copy", verdict: covered, choice: "how encoder weights that are not resident are brought to the device"}
+      - {decision: "Pixel cap and one image per prompt", verdict: covered, choice: "the largest input the encoder accepts, and how many embedding rows one prompt may carry"}
+    sampler:
+      - {decision: "One topk instead of a full sort when every request's top-k is small", verdict: loosely}
+      - {decision: "Multi-block row softmax for up to a row count", verdict: covered, choice: "the kernel used for the sampling arithmetic, and how it changes with the number of rows"}
+    grammar-constraint:
+      - {decision: "Hold every tool to its schema, not only strict ones", verdict: covered, choice: "which requests a rule is applied to"}
+      - {decision: "Use a source build of the grammar library for a fast path", verdict: engine_specific}
+    mtp-drafter:
+      - {decision: "Number of drafts", verdict: covered, choice: "how many per round"}
+      - {decision: "Use the truncated head when the id list exists", verdict: covered, choice: "whether a cheaper reduced output head is used"}
+      - {decision: "Draft from the target's top-k/top-p support; optional draft temperature scale", verdict: loosely}
+      - {decision: "Probabilistic draft sampling rather than argmax", verdict: covered, choice: "greedy or sampled proposals"}
+    dflash2-drafter:
+      - {decision: "Draft block equals the trained block even when the verify block is longer", verdict: covered, choice: "how the proposed block relates to the block length the proposer was trained on"}
+      - {decision: "Truncate the candidate walk to the request's top-k/top-p", verdict: covered, choice: "the set of tokens proposals are restricted to"}
+      - {decision: "Carry the residual at a reduced scale under fp16", verdict: engine_specific}
+      - {decision: "Refuse a context whose length plus lookahead exceeds the drafter's capacity", verdict: covered, choice: "what the proposer needs before it may propose, and what is done when it cannot cover the context"}
+    context-lookup-proposer:
+      - {decision: "Minimum and maximum match length, ties by recency", verdict: covered, choice: "the shortest match a lookup extends on, and how many tokens it may append; how a lookup source matches earlier text"}
+      - {decision: "Head positions: strong match alone, shorter only with drafter agreement", verdict: covered, choice: "how several sources are combined at each position"}
+      - {decision: "Tail positions: lower threshold, consistent with the head", verdict: covered, choice: "how several sources are combined at each position"}
+      - {decision: "Search distance", verdict: covered, choice: "how a lookup source matches earlier text, and how far back it searches"}
+    drafter-free-chains:
+      - {decision: "Entry needs a fresh match; first miss ends the chain", verdict: covered, choice: "how many qualifying steps enter and leave a mode"}
+      - {decision: "Single request only; greedy only by default", verdict: covered, choice: "in which modes drafting is offered: single request only, greedy only"}
+    verify-length-controller:
+      - {decision: "Unanimity across the batch", verdict: covered, choice: "decisions per sequence or jointly across sequences sharing a step"}
+      - {decision: "Two qualifying steps to enter, sticky steps to leave", verdict: covered, choice: "how many qualifying steps enter and leave a mode"}
+      - {decision: "Take the long block unconditionally below a context length", verdict: covered, choice: "a context length below which the larger round is taken whatever the other signals say"}
+      - {decision: "Read the flags one step stale rather than synchronise", verdict: covered, choice: "how fresh the signals it decides from must be"}
+    draft-acceptance:
+      - {decision: "Draft sample method must be probabilistic so q is passed", verdict: covered, choice: "the acceptance rule under sampling"}
+      - {decision: "Kernels must not specialise on batch size", verdict: covered, choice: "which step dimensions the acceptance kernels may be specialised on"}
+    tensor-parallel:
+      - {decision: "Allocator without expandable segments so graph buffers can be exported across processes", verdict: engine_specific}
+      - {decision: "Size the pool from utilisation rather than the single-card pin", verdict: loosely}
+    telemetry:
+      - {decision: "Progress lines opt-in; no device synchronisation", verdict: covered, choice: "what is recorded by default and what on request"}
+      - {decision: "Prompt progress only for requests that asked", verdict: covered, choice: "what is recorded by default and what on request"}
+    stall-watchdog:
+      - {decision: "Threshold (off by default)", verdict: covered, choice: "when the engine counts as stalled or failed"}
+      - {decision: "No lock shared with the main loop", verdict: covered, choice: "whether the stall monitor is independent of the loop it watches"}
+  loosely:
+    - {part: "draft-vocab-builder", type: "model-conversion", decision: "Which extra scripts are appended to the derived vocabulary and under what row budget", nearest_choice: "the data a derived piece is selected or fitted from, and what is eligible for it (forced inclusions and a reserved budget are not eligibility)"}
+    - {part: "launch-profile-resolver", type: "configuration", decision: "Drafter kind and number of draft tokens", nearest_choice: "which settings that change output are on by default, and in which profile"}
+    - {part: "launch-profile-resolver", type: "configuration", decision: "Pin the pool by bytes or by utilisation; skip the pin under tensor parallelism", nearest_choice: "rules that derive a setting's default from other settings and machine facts (the form in which a budget is expressed is not named)"}
+    - {part: "launch-profile-resolver", type: "configuration", decision: "Prefix caching on with align-mode recurrent state, and the snapshot retention interval", nearest_choice: "which settings that change output are on by default, and in which profile"}
+    - {part: "kvarn-staging-quantizer", type: "positional-state-store", decision: "Flush a finished request's full block but discard a partial one", nearest_choice: "when state held in a staging precision is converted to its stored format (what happens to staged state when its sequence ends is not named)"}
+    - {part: "kvarn-staging-quantizer", type: "positional-state-store", decision: "Keep retired sinks resident; evict oldest first only when slots run dry", nearest_choice: "which positions are kept at higher precision than the stored format (for how long, and the eviction order of such positions, is not named)"}
+    - {part: "kvarn-staging-quantizer", type: "positional-state-store", decision: "Draft passes after the first only allocate slots, never flush", nearest_choice: "when state held in a staging precision is converted to its stored format (not converting state that may still be rejected is not named)"}
+    - {part: "kv-offload-tier", type: "state-tiering", decision: "Which groups count as draft attention (only the drafter's window groups)", nearest_choice: "which kinds of state the slower tier holds"}
+    - {part: "full-attention-compute", type: "layer-compute", decision: "Sparse attention budget when the sparse mode is on", nearest_choice: "any deliberate change to the model's arithmetic (the size of an approximation is not named)"}
+    - {part: "sampler", type: "sampling", decision: "One top-k selection instead of a full sort when every request's top-k is small", nearest_choice: "the kernel used for the sampling arithmetic, and how it changes with the number of rows (here it changes with the settings of the requests in the step)"}
+    - {part: "mtp-drafter", type: "draft-proposal", decision: "Draft from the target's top-k/top-p support; optional draft temperature scale", nearest_choice: "the set of tokens proposals are restricted to (a temperature applied to proposals is not named)"}
+    - {part: "tensor-parallel", type: "model-partitioning", decision: "Size the pool from utilisation rather than the single-card byte pin", nearest_choice: "per-device budgets"}
+  not_covered: []
+contradictions: []
+new_causes:
+  - {part: "prefix-cache", type: "prefix-reuse", kind: "own", level: "approximate", cause: "a hit reads reused positions in the quantised stored format, where a fresh read of the same prompt would still hold the last positions of each chunk at the staging precision; the level of the difference follows how much staged state the store kept", evidence: "kvarn-staging-quantizer: fp16 staging until a 128-token tile fills, retained fp16 sinks 'keep multi-turn reuse closer to unquantised'; prefix-cache output_effect_when. The type's approximate conditions name other weights or settings and another activation precision, not another stored precision. Cannot fully tell whether this is prefix-reuse's own effect or the stored-state node's effect through reuse (output_principles last item speaks of rounding and precision of the producing step, not of a stored format that differs from a fresh read)."}
+  - {part: "full-attention-compute", type: "layer-compute", kind: "own", level: "approximate", cause: "a reduced-precision kernel is selected by whether a prompt chunk runs alone in its step (and above a width), so one sequence's precision depends on whether others share the step", evidence: "decision 'int8-QK prefill only for one-request chunks over 16 tokens'; patches/prefill-attn-int8.patch gate. The type's condition names only the number of rows; step-scheduler names the sharing as its through effect, layer-compute does not name it as a cause of its own."}
+  - {part: "sampler", type: "sampling", kind: "own", level: "rounding", cause: "the sampling kernel is chosen by the number of rows in the step and by the settings of every request in it, so one request's arithmetic depends on the others in the batch", evidence: "decisions 'one topk when every request's top-k is at most 64' and 'multi-block row softmax for up to 16 rows' (patches/sampler-small-topk-fast-softmax.patch). The type's rounding condition is only 'the same chain differs only in floating point'."}
+  - {part: "compile-and-warmup", type: "graph-capture", kind: "own", level: "rounding", cause: "compiled kernels specialised on a step dimension such as batch size run different code, and so may round differently, per value of that dimension", evidence: "decision 'which Triton kernels must not specialise on batch size' (patches/vllm-pr64137-logits-stats-no-specialize.patch, vllm-pr66026-gather-draft-sampled-no-specialize.patch). The type's rounding condition names only a recorded graph fixing a variant that differs from the unrecorded path."}
+  - {part: "weight-loader", type: "model-loading", kind: "through", level: "approximate", cause: "while preparing weights it marks, per layer by name, which layers the matrix kernels run with reduced activation precision, from a run-time setting", evidence: "gives linear-gemm 'int8-activation selection per layer'; patches/marlin-int8-layer-select.patch (include/exclude patterns applied in process_weights_after_loading). model-loading has no affects_output_through, and output_principles names a permit recorded at conversion, not a selection applied at load."}
+relaxations:
+  - {part: "linear-gemm", type: "layer-compute", rule: "An approximation that is in effect is stated with the run's settings.", how: "The batch profile turns int8 activations on by default for the MLP layers (batch/start_qwen.sh:156 INT8_ACT=${INT8_ACT-int8}); the launcher exports the knob without printing it (launcher_common.sh:120-125). Whether vLLM itself logs the W4A8 path was not checked. The relaxed text describes a row-count default and a conversion permit, not a per-profile default chosen by layer name."}
+wrong_assignments:
+  - {part: "drafter-free-chains", assigned: "draft-policy", better: "draft-policy, also draft-proposal", why: "Besides deciding to skip the drafter, it forms the proposals itself (whole verify blocks of point-mass drafts from the lookup); under draft-policy alone its own effect would be claimed exact, while its proposals set the checked block width and, under sampling, the draw."}
+  - {part: "tensor-parallel", assigned: "model-partitioning", better: "model-partitioning, also device-communication", why: "The part also runs the collectives (custom all-reduce) that combine partial results, and its recorded effect, a different reduction order, is device-communication's rounding case; no other part of the inventory does that job."}
+inventory_errors:
+  - {part: "gptq-requantizer", field: "when_things_go_wrong", recorded: "[] (and must_never [])", source_shows: "The scripts write the variant directory in place with no temporary name: shard by save_file, then the index, then config.json last (drafter/gptq_lm_head.py:73-110, drafter/quant_dflash2.py:93-117); an interrupted run leaves a partial directory that is rejected at load only because config.json is written last or a truncated shard fails its header. The served copy is fetched prebuilt through temp file and rename (prepare/fetch_fast_variant.py:9,22-23). Each script also prints a round-trip error."}

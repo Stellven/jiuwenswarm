@@ -1,0 +1,1169 @@
+# DRAFT 0.2 for review. Generic node types of an inference engine.
+#
+# Induced from the parts inventories of five engines (validation/inventory/): Strata, ds4, HyperQwen, NInfer, Splash.
+# 240 parts in all. A sixth engine is held out and was not looked at while these were written (validation/criteria.yaml).
+#
+# A node type describes a kind of engine part, independent of any engine and any machine. It states what the part
+# promises and not how it is built. It holds no parameter values, no call interfaces and no source references.
+#
+# Fields
+#   summary           the one job
+#   not               what is easily mistaken for its job
+#   applies_when      the property of the model, machine or service that makes the node necessary; absent when every
+#                     engine has it
+#   forms             distinct ways engines realise it, when there is more than one
+#   takes, gives      what it consumes and produces. Which node it connects to differs between engines and is stated
+#                     at system level, not here.
+#   state             what it alone keeps consistent
+#   effect_on_output  whether it can change what the model outputs, each case with its condition:
+#                     none | numeric (last bits may differ) | changes_output
+#   must_never        rules it must never break
+#   choices           what is left for whoever builds the engine to decide, each with its kind:
+#                     sizing | placement | policy | timing | threshold | failure | precedence | format
+draft_version: '0.2'
+induced_from:
+- strata
+- ds4
+- hyperqwen
+- ninfer
+- splash
+families:
+- id: preparation
+  title: Preparation
+  about: 'What is done before the engine starts serving: converting the model''s files and measuring what later choices
+    rest on.'
+- id: startup
+  title: Startup
+  about: Loading the model and dividing the machine's resources before the first request.
+- id: computation
+  title: Computation
+  about: Carrying out the model's arithmetic on the machine's devices.
+- id: selective-weights
+  title: Selectively used weights
+  about: 'For models that use only some of their weights per token (experts, lookup rows): keeping the right ones within
+    reach.'
+- id: sequence-state
+  title: Sequence state
+  about: What the engine remembers per sequence, where it is kept, and how it is reused.
+- id: speculation
+  title: Speculation
+  about: Proposing several tokens cheaply and having the full model check them.
+- id: token-output
+  title: Token output
+  about: Turning logits into the tokens and text that are returned.
+- id: serving
+  title: Serving
+  about: Everything between a client request and a step of the engine.
+- id: multi-device
+  title: Several devices
+  about: One model spread over several devices or machines.
+- id: operations
+  title: Operations
+  about: Settings, limits while running, and records of what happened.
+types:
+- id: model-conversion
+  family: preparation
+  summary: 'Offline, turn the published model into the files this engine reads: weights in the engine''s layout and precision,
+    and any derived pieces such as a reduced draft head or a corrected chat template.'
+  not: It does nothing while the engine serves.
+  takes:
+  - the published checkpoint, tokenizer and template
+  - calibration data, when precision is changed
+  gives:
+  - the engine's model files
+  - a record of what was converted and how
+  effect_on_output:
+  - effect: none
+    when: it only re-arranges bytes
+  - effect: changes_output
+    when: it changes precision, cuts the vocabulary, or rewrites the template
+  must_never:
+  - A partly written or mismatched set of files is never left looking complete.
+  choices:
+  - kind: format
+    what: file layout, alignment and ordering of weights
+  - kind: format
+    what: precision per kind of weight
+  - kind: policy
+    what: which derived pieces are built (draft head, shortlist vocabulary, extra copies)
+  - kind: policy
+    what: whether conversion is one step or resumable stages
+  - kind: failure
+    what: what happens to a conversion that is interrupted or does not match its source
+  - kind: precedence
+    what: which source wins when several checkpoints supply the same tensor
+- id: calibration
+  family: preparation
+  summary: Measure the model or the machine, offline or at startup, and record results that other nodes take as fixed input.
+  forms:
+  - usage statistics of selectively used weights
+  - cost or speed fits for a machine
+  - statistics for lossy conversion
+  - a split ratio between two devices
+  takes:
+  - the model and a set of prompts, or timings on the machine
+  gives:
+  - 'recorded data: usage rankings, cost fits, statistics for quantisation, per-machine settings'
+  state:
+  - the recorded results and the key that says what they are valid for
+  effect_on_output:
+  - effect: none
+    when: in itself
+  - effect: numeric
+    when: its results steer a node that can change rounding, such as a split between devices
+  - effect: changes_output
+    when: its results feed a change of precision
+  must_never:
+  - A recorded result is never used for a model, machine or build other than the one it was measured on.
+  choices:
+  - kind: policy
+    what: what is measured and on which prompts
+  - kind: policy
+    what: the rule that accepts or rejects a measured result
+  - kind: timing
+    what: offline, at install, or at every start
+  - kind: precedence
+    what: when a recorded result is trusted over a default or an operator setting
+  - kind: failure
+    what: what is used when no valid record exists
+  - kind: threshold
+    what: when a stored record is considered stale
+- id: model-loading
+  family: startup
+  summary: At startup, open the model's files, check they are something this engine can run, and make the weights every
+    token uses readable by the computation.
+  not: It does not decide how much memory each consumer gets; memory planning does.
+  takes:
+  - the engine's model files
+  - a placement plan
+  gives:
+  - resident weights
+  - the model's shape and tensor directory
+  - where selectively used weights lie in the files
+  effect_on_output:
+  - effect: none
+    when: weights are used in the stored encoding
+  - effect: numeric
+    when: weights are re-encoded while loading
+  must_never:
+  - A file whose declared shape the kernels cannot run is refused, not loaded.
+  choices:
+  - kind: placement
+    what: map the file in place or copy into memory
+  - kind: placement
+    what: which tensors go to which memory or device
+  - kind: format
+    what: whether weights are re-encoded at load and how
+  - kind: timing
+    what: what is loaded at start and what on first use
+  - kind: failure
+    what: what is done when a file is the wrong version, incomplete or of an unsupported shape
+  - kind: sizing
+    what: staging buffers and reader threads used while loading
+- id: memory-planning
+  family: startup
+  summary: At startup, divide the memory budget among resident weights, per-sequence state, working space, reserves and
+    caches, and refuse to start when the minimum does not fit.
+  takes:
+  - the budget and the operator's limits
+  - the model's shape
+  - what the machine reports as free
+  gives:
+  - sizes for caches, state pools and work areas
+  - which large parts stay in memory and which are streamed
+  - the context length and concurrency the engine can offer
+  effect_on_output:
+  - effect: none
+    when: in itself
+  - effect: numeric
+    when: its placement decides which device computes something
+  must_never:
+  - Everything it prices plus what it hands out never exceeds the budget.
+  choices:
+  - kind: sizing
+    what: the reserve left free
+  - kind: sizing
+    what: what is priced before caches get the remainder
+  - kind: policy
+    what: how the remainder is split between cache, state and concurrency
+  - kind: failure
+    what: the order in which things are given up when memory is short, and when starting is refused
+  - kind: timing
+    what: whether free memory is read again after allocating
+  - kind: precedence
+    what: an operator's explicit size against the computed one
+  - kind: policy
+    what: whether a figure is measured by a trial run or computed
+- id: graph-capture
+  family: startup
+  summary: 'Prepare the computation for fast repeated execution: compile kernels, warm up, and record execution graphs for
+    the step shapes the engine will run.'
+  applies_when: The device benefits from pre-recorded or pre-compiled work, or first-use compilation would stall a request.
+  takes:
+  - the loaded model
+  - the step shapes that can occur
+  gives:
+  - compiled kernels and recorded graphs ready to replay
+  state:
+  - compiled kernels and recorded graphs
+  effect_on_output:
+  - effect: none
+    when: intended
+  - effect: numeric
+    when: a recorded graph fixes a kernel variant or buffer layout that differs from the unrecorded path
+  must_never:
+  - A recorded graph is never replayed after the addresses or shapes it fixed have changed.
+  choices:
+  - kind: policy
+    what: which step shapes are recorded ahead and which on first use
+  - kind: sizing
+    what: the memory recorded graphs may take
+  - kind: timing
+    what: recorded at startup or lazily
+  - kind: failure
+    what: what is done when recording runs out of memory
+  - kind: policy
+    what: where a graph must be split so that host work can run between its parts
+- id: layer-compute
+  family: computation
+  summary: 'Compute what the model defines: embedding, attention of every kind the model has, recurrent layers, feed-forward
+    blocks, expert selection and the selected experts, and the projection to the vocabulary.'
+  not: It does not choose where weights live or which device runs a kernel.
+  takes:
+  - the tokens of the step
+  - resident weights
+  - per-sequence state
+  - weights or rows brought in for this step
+  gives:
+  - updated per-sequence state
+  - logits
+  - hidden features other nodes ask for
+  effect_on_output:
+  - effect: numeric
+    when: 'always: agreement with the reference implementation is what correctness means, and the last bits depend on kernel,
+      device, precision and batch'
+  must_never:
+  - The order of operations the model defines is not changed.
+  choices:
+  - kind: format
+    what: kernel variant per weight precision
+  - kind: policy
+    what: which operations are fused
+  - kind: policy
+    what: activation precision inside kernels
+  - kind: policy
+    what: any deliberate change to the model's arithmetic (it changes output and needs permission)
+- id: device-backend
+  family: computation
+  summary: 'Turn a step''s work into commands for a device: choose the kernel variant for this device and step shape, submit,
+    and retire completed work.'
+  takes:
+  - the work of one step
+  - what the device is
+  gives:
+  - submitted commands
+  - completion and retirement signals
+  state:
+  - device buffers and what is in flight
+  effect_on_output:
+  - effect: none
+    when: one variant per operation
+  - effect: numeric
+    when: the variant chosen depends on device class or batch width
+  must_never:
+  - Memory still read by submitted work is not released or reused.
+  choices:
+  - kind: policy
+    what: how a kernel variant is chosen per device and step shape
+  - kind: timing
+    what: where a step is split so host work can run inside it
+  - kind: sizing
+    what: scratch and command buffers
+  - kind: failure
+    what: what is done when a submission fails or does not complete
+- id: secondary-compute
+  family: computation
+  summary: Compute a share of a layer's work on a second device, from weights that device can read where they lie.
+  applies_when: A second device can compute something sooner than moving its inputs to the main device, or has spare capacity
+    the main device lacks.
+  forms:
+  - selected experts on the CPU
+  - a share of a dense block on another accelerator
+  takes:
+  - the share of work assigned to it
+  - weights readable by the second device
+  gives:
+  - partial results merged into the layer's output
+  effect_on_output:
+  - effect: numeric
+    when: the second device rounds differently
+  - effect: changes_output
+    when: it computes at a lower precision than the main device
+  must_never:
+  - Weights handed to it stay readable for the whole of its computation.
+  choices:
+  - kind: sizing
+    what: number of workers
+  - kind: policy
+    what: how work is cut into jobs
+  - kind: threshold
+    what: when a share is too small or too large to hand over
+  - kind: failure
+    what: what is done when it hangs or falls behind
+  - kind: timing
+    what: how idle workers wait
+- id: step-execution
+  family: computation
+  summary: 'Carry one planned step through the model: a decode step, a verify block or a prompt chunk, for one sequence
+    or for several sharing the step.'
+  takes:
+  - the plan of one step
+  - per-sequence state
+  gives:
+  - logits or accepted tokens for each sequence in the step
+  - updated state
+  effect_on_output:
+  - effect: none
+    when: one sequence per step
+  - effect: numeric
+    when: 'several sequences share a step: rounding can depend on who shares it'
+  must_never:
+  - A step ends only when every part of its work is complete.
+  choices:
+  - kind: policy
+    what: one step as a whole, or driven layer by layer
+  - kind: sizing
+    what: sequences and rows per step
+  - kind: threshold
+    what: how long a layer may wait for something it needs
+  - kind: failure
+    what: what is done when a step cannot complete
+- id: prompt-reading
+  family: computation
+  summary: Read a prompt in chunks, faster than token by token, and leave behind the state generation continues from.
+  applies_when: The engine reads prompts by a path of its own. Engines that put prompt chunks and decode rows in the same
+    step have no separate node.
+  takes:
+  - prompt tokens
+  - the position reading starts from
+  gives:
+  - per-sequence state up to the end of the prompt
+  effect_on_output:
+  - effect: numeric
+    when: 'always: it is compared with the engine''s own token-by-token path or with its own precision, not bit for bit'
+  must_never:
+  - The state it leaves is the state of that prompt, whatever the chunking.
+  choices:
+  - kind: sizing
+    what: chunk size
+  - kind: timing
+    what: how it shares the device with generation in progress
+  - kind: policy
+    what: whether it may borrow memory held by caches
+  - kind: policy
+    what: whether what it selects counts toward cache usage
+  - kind: timing
+    what: state snapshots taken on the way
+  - kind: failure
+    what: what is done when a chunk does not fit
+- id: modality-encoding
+  family: computation
+  summary: Turn input that is not text (images, video, documents) into the embeddings the model takes in their place.
+  applies_when: The model accepts input other than text and the engine serves it.
+  takes:
+  - media from the request
+  gives:
+  - embedding rows placed in the prompt
+  state:
+  - cache of encoded media
+  effect_on_output:
+  - effect: none
+    when: in itself
+  - effect: numeric
+    when: the encoder runs at reduced precision
+  must_never:
+  - Media is never fetched or decoded outside the limits set for size, time and origin.
+  choices:
+  - kind: sizing
+    what: memory window for the encoder
+  - kind: policy
+    what: whether encoder weights stay resident
+  - kind: policy
+    what: caching of encoded media and its key
+  - kind: failure
+    what: what is done with media that is too large, malformed or of an unsupported kind
+  - kind: threshold
+    what: limits on size, time and where media may be fetched from
+- id: expert-source
+  family: selective-weights
+  summary: Keep every selectively used weight obtainable for the whole run from the slow place where all of them are held.
+  applies_when: The model selects a few of many weight blocks per token, and they do not all sit in the memory the computation
+    reads.
+  takes:
+  - where each one lies in the files
+  gives:
+  - the bytes of any requested one
+  effect_on_output:
+  - effect: none
+  must_never:
+  - What it delivers is complete; a partial read is an error, never reported as ready.
+  choices:
+  - kind: placement
+    what: 'where the full set lives: host memory, mapped file, or storage'
+  - kind: policy
+    what: read through the page cache or around it
+  - kind: sizing
+    what: memory locked for the full set
+  - kind: failure
+    what: what is used when the preferred place cannot hold the full set
+- id: expert-cache
+  family: selective-weights
+  summary: Hold as many selectively used weights in fast memory as its budget allows, and answer for any of them whether
+    it is there and where.
+  not: It does not choose its own contents.
+  applies_when: Not all selectively used weights fit in fast memory, or a copy in fast memory is faster to compute from.
+  takes:
+  - its size
+  - incoming weights
+  - changes to its contents
+  gives:
+  - 'for each requested block: its slot, or that it is absent'
+  state:
+  - which block is in which slot
+  effect_on_output:
+  - effect: none
+  must_never:
+  - A block is reported present only after its bytes have fully arrived.
+  - A slot is not overwritten while a computation may still read it.
+  choices:
+  - kind: sizing
+    what: total size and whether it can grow or shrink while running
+  - kind: format
+    what: fixed slots or sized per block
+  - kind: placement
+    what: one region or several with different roles
+  - kind: failure
+    what: what is done when it is full and nothing can be released
+- id: residency-policy
+  family: selective-weights
+  summary: Decide which selectively used weights are kept in fast memory.
+  applies_when: There is a cache of selectively used weights.
+  forms:
+  - fixed at startup from an offline ranking
+  - adjusted while running from use counts
+  - a preloaded list
+  takes:
+  - how often each is used, or a ranking made offline
+  gives:
+  - what enters and what leaves
+  state:
+  - use counts or the ranking
+  effect_on_output:
+  - effect: none
+    when: in itself
+  - effect: numeric
+    when: what is resident decides which device computes a block
+  must_never:
+  - A change of contents never makes a block unavailable to a computation already started.
+  choices:
+  - kind: policy
+    what: fixed from an offline ranking, or adjusted from use while running
+  - kind: policy
+    what: the replacement rule
+  - kind: timing
+    what: on every miss or at intervals
+  - kind: threshold
+    what: the gain a change must bring, and a limit on changes per round
+  - kind: policy
+    what: what the cache holds before any request
+  - kind: policy
+    what: whether a region changes role with load
+- id: expert-fetch
+  family: selective-weights
+  summary: Bring absent selectively used weights into fast memory, in an order the computation that follows can rely on.
+  applies_when: There is a cache of selectively used weights.
+  takes:
+  - requests for absent blocks
+  - their bytes from the source
+  gives:
+  - the blocks in fast memory, and a signal when each is ready
+  state:
+  - what is staged or in flight
+  effect_on_output:
+  - effect: none
+  must_never:
+  - A fetch is complete before the computation that uses its destination starts.
+  choices:
+  - kind: sizing
+    what: staging area and how many fetches at once
+  - kind: timing
+    what: whether it fetches ahead of selection, and from what prediction
+  - kind: timing
+    what: how fetching overlaps with computation
+  - kind: policy
+    what: one reader shared with other reads or its own
+  - kind: failure
+    what: what is done when a read fails or is short
+- id: expert-dispatch
+  family: selective-weights
+  summary: 'For each layer of each step, decide how every selected block gets computed: from fast memory, after a fetch,
+    by another device, or not at all.'
+  applies_when: Selected blocks can be in more than one place or computed by more than one device.
+  takes:
+  - which blocks each token selected
+  - what is resident
+  gives:
+  - a plan for the layer
+  - fetch requests
+  - use counts
+  effect_on_output:
+  - effect: none
+    when: every selected block is computed by the same device
+  - effect: numeric
+    when: blocks are split between devices that round differently
+  - effect: changes_output
+    when: it omits selected blocks
+  must_never:
+  - Every selected block that is not deliberately omitted is computed exactly once in the step that selected it.
+  choices:
+  - kind: policy
+    what: the order in which the ways are tried
+  - kind: policy
+    what: whether low-ranked selections may be omitted
+  - kind: threshold
+    what: the share of misses fetched now against left to another device
+  - kind: timing
+    what: computing resident blocks while absent ones arrive
+- id: row-source
+  family: selective-weights
+  summary: Serve the rows of a large table that each token needs, without holding the whole table in fast memory.
+  applies_when: The model has a table of which each token reads a few rows.
+  takes:
+  - the row numbers for the coming tokens
+  - the table on storage
+  gives:
+  - the rows, before the layer that uses them
+  state:
+  - row cache and the token history the row numbers are computed from
+  effect_on_output:
+  - effect: none
+  must_never:
+  - The rows delivered for a token are the rows that token's keys name.
+  choices:
+  - kind: placement
+    what: the table on storage, mapped, or locked in memory
+  - kind: sizing
+    what: row cache
+  - kind: timing
+    what: prefetching rows for coming or drafted tokens
+  - kind: policy
+    what: warming the table in the background and when to stop
+  - kind: failure
+    what: what is done when a row read fails
+- id: positional-state-store
+  family: sequence-state
+  summary: Hold the state the model keeps per position (attention keys and values, and any compressed or indexed form of
+    them), in the format chosen for storage.
+  takes:
+  - new state from the computation
+  - how much it may hold
+  gives:
+  - past state to the computation
+  state:
+  - per-position state of each sequence
+  effect_on_output:
+  - effect: none
+    when: state is stored as computed
+  - effect: numeric
+    when: stored at a reduced floating-point precision
+  - effect: changes_output
+    when: stored quantised or compressed
+  must_never:
+  - State of a position that is not part of the valid sequence is never read as history.
+  choices:
+  - kind: format
+    what: precision and layout of stored state
+  - kind: sizing
+    what: page size and growth
+  - kind: policy
+    what: whether going back is by truncation, and when it is not possible
+  - kind: failure
+    what: what is done when a sequence outgrows its allowance
+- id: recurrent-state-store
+  family: sequence-state
+  summary: Hold state that is fixed in size and overwritten as the sequence advances, with the snapshots needed to go back.
+  applies_when: The model has state that cannot be cut back to an earlier position, such as recurrent or convolution state.
+  takes:
+  - state updates from the computation
+  gives:
+  - current state
+  - a snapshot to restore from
+  state:
+  - the recurrent state and its snapshots
+  effect_on_output:
+  - effect: none
+    when: stored as computed
+  - effect: numeric
+    when: stored at a reduced precision
+  must_never:
+  - After drafted tokens are rejected, the state continues from the last accepted position.
+  choices:
+  - kind: policy
+    what: 'how rejected steps are undone: snapshots, one slot per draft position, or late commit'
+  - kind: sizing
+    what: how many snapshots are kept
+  - kind: format
+    what: precision of stored state
+  - kind: timing
+    what: when a snapshot is taken
+- id: state-pool
+  family: sequence-state
+  summary: 'Own the memory that all sequences'' state shares: hand out and take back pages, track who owns each, and allow
+    shared pages to be read by several sequences.'
+  applies_when: Several sequences are in the engine at once and share one backing memory for state.
+  takes:
+  - requests for pages
+  - releases
+  gives:
+  - pages
+  - who may read or write each
+  state:
+  - ownership, reference counts and the free list
+  effect_on_output:
+  - effect: none
+  must_never:
+  - A page is never written by a sequence that no longer owns it.
+  choices:
+  - kind: sizing
+    what: page size and how the pool is split between kinds of state
+  - kind: policy
+    what: sharing and copy-on-write
+  - kind: policy
+    what: the order in which free pages are reused
+  - kind: failure
+    what: what is done when the pool is exhausted
+- id: state-tiering
+  family: sequence-state
+  summary: Move per-sequence state out of fast memory to a slower place and back, so that more sequences or longer contexts
+    fit.
+  applies_when: State in fast memory exceeds what fits, for long contexts or many sequences.
+  takes:
+  - state chosen to leave fast memory
+  - requests to bring state back
+  gives:
+  - state restored where the computation reads it
+  state:
+  - what is on the slower tier
+  effect_on_output:
+  - effect: none
+    when: state comes back as it left
+  - effect: numeric
+    when: it is stored in a different precision on the slower tier
+  must_never:
+  - State brought back is the state that left.
+  choices:
+  - kind: placement
+    what: 'the slower tier: host memory, storage, another device'
+  - kind: policy
+    what: what leaves first
+  - kind: timing
+    what: copying ahead of need
+  - kind: sizing
+    what: the tier's size and write budget
+  - kind: failure
+    what: what is done when the tier is full or a read fails
+- id: prefix-reuse
+  family: sequence-state
+  summary: Find stored state that a new or resumed request can continue from, and make the sequence hold exactly that state.
+  takes:
+  - the request's tokens
+  - stored state and what it is valid for
+  gives:
+  - the position reading continues from
+  - restored state
+  state:
+  - the index of stored prefixes
+  effect_on_output:
+  - effect: none
+    when: the engine's arithmetic does not depend on how a state was reached
+  - effect: numeric
+    when: state is stored at reduced precision, or batched and unbatched paths round differently
+  must_never:
+  - Stored state is reused only for the model, settings and prefix it was made for.
+  choices:
+  - kind: policy
+    what: the key that decides whether stored state may be reused
+  - kind: policy
+    what: where restore points exist when state cannot be truncated
+  - kind: sizing
+    what: how many are kept and where
+  - kind: policy
+    what: what is evicted first
+  - kind: threshold
+    what: when restoring is refused in favour of reading again
+  - kind: policy
+    what: whether a hit takes the stored state or copies it
+- id: session-persistence
+  family: sequence-state
+  summary: Write a sequence's whole state to a file and read it back, on request.
+  applies_when: The engine offers saving and restoring sessions.
+  takes:
+  - a sequence's state
+  gives:
+  - a file
+  - a restored sequence
+  effect_on_output:
+  - effect: none
+  must_never:
+  - A file is loaded only into the model and settings it was written for.
+  choices:
+  - kind: format
+    what: what the file contains and its version
+  - kind: failure
+    what: what is done with a file that does not match
+- id: draft-proposal
+  family: speculation
+  summary: Cheaply propose the next few tokens, and when needed their probabilities, for the full model to check.
+  applies_when: 'A cheap source of proposals exists: a draft head of the model, a separate small model, or repetition in
+    the text.'
+  forms:
+  - a draft head of the model
+  - a separate draft model
+  - lookup of earlier text
+  - several sources fused per position
+  takes:
+  - hidden features or recent tokens
+  - how many to propose
+  gives:
+  - proposed tokens
+  - their proposal probabilities, when acceptance needs them
+  state:
+  - the proposer's own state, when it has one
+  effect_on_output:
+  - effect: none
+    when: 'in itself: a proposal is never output unchecked'
+  must_never:
+  - A proposed token is never returned to the client before the full model has accepted it.
+  choices:
+  - kind: policy
+    what: the source of proposals
+  - kind: sizing
+    what: how many per round
+  - kind: threshold
+    what: when a chain of proposals stops
+  - kind: policy
+    what: greedy or sampled proposals
+  - kind: policy
+    what: how its own state is kept in step after checking
+- id: draft-policy
+  family: speculation
+  summary: Decide each round whether to draft, from which source, and how many proposed tokens are sent for checking.
+  applies_when: The amount of drafting is adjusted while running.
+  takes:
+  - acceptance results
+  - the cost of a round
+  gives:
+  - the next round's size and source
+  state:
+  - estimates of acceptance and cost
+  effect_on_output:
+  - effect: none
+    when: the arithmetic does not depend on how many rows are checked
+  - effect: numeric
+    when: the number of rows checked changes rounding
+  - effect: changes_output
+    when: its decision depends on timing, so the same input can give different text between runs
+  must_never:
+  - It changes how much is checked, never the rule by which a token is accepted.
+  choices:
+  - kind: policy
+    what: what it optimises
+  - kind: threshold
+    what: when drafting pauses and resumes
+  - kind: timing
+    what: how often it re-decides
+  - kind: sizing
+    what: limits on the round
+  - kind: policy
+    what: the rule for choosing among sources
+- id: draft-verification
+  family: speculation
+  summary: Accept the longest prefix of proposed tokens the full model agrees with, and make every kind of state reflect
+    exactly that prefix.
+  applies_when: Tokens are proposed ahead.
+  takes:
+  - the full model's logits for the proposed positions
+  - the proposals and, under sampling, their probabilities
+  gives:
+  - the accepted tokens
+  - state committed to the accepted prefix
+  effect_on_output:
+  - effect: none
+    when: greedy decoding with exact agreement
+  - effect: numeric
+    when: the checked block is computed by a different path than single-token decoding
+  - effect: changes_output
+    when: an acceptance rule that does not preserve the sampling distribution
+  must_never:
+  - All state is committed to the same accepted prefix.
+  - State of a rejected token is never read as history.
+  choices:
+  - kind: policy
+    what: the acceptance rule under sampling
+  - kind: policy
+    what: how each kind of state is committed or undone
+  - kind: timing
+    what: commit at once or with the next step
+  - kind: policy
+    what: who may shorten the accepted prefix afterwards (stop conditions, limits)
+- id: sampling
+  family: token-output
+  summary: Turn each position's logits into one token by a fixed chain of steps.
+  takes:
+  - logits
+  - the request's sampling settings
+  - any mask from an output constraint
+  gives:
+  - the chosen token
+  - its probabilities, when asked
+  effect_on_output:
+  - effect: changes_output
+    when: 'always: it defines the output, given the logits'
+  must_never:
+  - With a fixed seed and fixed logits it returns the same token.
+  choices:
+  - kind: policy
+    what: the chain of steps and their order
+  - kind: policy
+    what: 'where it runs: with the computation or outside it'
+  - kind: policy
+    what: the source of randomness and what it is keyed on
+  - kind: sizing
+    what: limits on candidates considered
+  - kind: precedence
+    what: default settings against the request's
+- id: output-constraint
+  family: token-output
+  summary: 'Restrict or force which tokens may come next, from a rule outside the model: a grammar, a tool-call format,
+    a budget.'
+  applies_when: The service offers constrained output, or a format that must be enforced.
+  takes:
+  - the rule
+  - the tokens produced so far
+  gives:
+  - a mask or forced tokens for the next position
+  state:
+  - per-sequence position in the rule
+  effect_on_output:
+  - effect: changes_output
+    when: always, by design
+  must_never:
+  - A token the rule forbids is never returned.
+  choices:
+  - kind: policy
+    what: which rules are offered
+  - kind: timing
+    what: where the mask is computed relative to the step
+  - kind: policy
+    what: how it applies to proposed tokens that are not yet accepted
+  - kind: failure
+    what: what is done when the rule leaves no legal token
+- id: output-interpretation
+  family: token-output
+  summary: 'Turn produced tokens into what is returned: text, the split between reasoning, answer and tool calls, and the
+    decision where the output stops.'
+  takes:
+  - produced tokens
+  - the request's stop conditions and limits
+  gives:
+  - text and structured parts
+  - the point at which generation ends
+  state:
+  - per-request parse position
+  effect_on_output:
+  - effect: changes_output
+    when: it decides where the returned output stops and how it is divided
+  must_never:
+  - Text is not returned while it could still turn out to be part of a stop sequence.
+  choices:
+  - kind: policy
+    what: stop conditions and their order
+  - kind: policy
+    what: how tool calls are parsed, repaired or retried
+  - kind: threshold
+    what: guards against degenerate output
+  - kind: policy
+    what: how the generation is driven and continued for one request
+  - kind: failure
+    what: what is returned when parsing fails
+- id: request-front
+  family: serving
+  summary: Accept requests over the protocols offered, hold the connection, and return results.
+  takes:
+  - client requests
+  gives:
+  - requests for the engine
+  - responses to the client
+  state:
+  - connections and stored responses
+  effect_on_output:
+  - effect: none
+  must_never:
+  - A request is not accepted from a caller who is not allowed.
+  choices:
+  - kind: policy
+    what: protocols offered
+  - kind: policy
+    what: who is allowed and how
+  - kind: sizing
+    what: limits on connections, body size and queue
+  - kind: failure
+    what: what is done on disconnect, timeout or overload
+  - kind: policy
+    what: whether earlier responses are stored for later requests to refer to
+- id: prompt-preparation
+  family: serving
+  summary: Turn a request's messages, tools and settings into the exact prompt tokens.
+  takes:
+  - messages, tools and settings
+  gives:
+  - prompt tokens and the token limit
+  effect_on_output:
+  - effect: changes_output
+    when: 'always: the template and tokenizer define the model''s input'
+  must_never:
+  - The token ids it produces are those of the model's own tokenizer.
+  choices:
+  - kind: policy
+    what: the template used and how it is corrected
+  - kind: policy
+    what: what happens when prompt plus output exceed the context
+  - kind: sizing
+    what: caches of rendered or tokenized prompts
+  - kind: policy
+    what: keeping the start of the prompt stable so that stored state can be reused
+  - kind: precedence
+    what: defaults against the request's settings
+- id: step-scheduler
+  family: serving
+  summary: 'Run the engine''s loop: decide each cycle what the next step contains, which sequences join it, and what waits.'
+  takes:
+  - waiting and running sequences
+  - what each needs next
+  gives:
+  - the plan of the next step
+  state:
+  - queues of sequences and their turn
+  effect_on_output:
+  - effect: none
+    when: one sequence at a time
+  - effect: numeric
+    when: which sequences share a step changes rounding
+  must_never:
+  - Every admitted sequence is eventually served.
+  choices:
+  - kind: policy
+    what: whether prompt reading and generation share a step
+  - kind: policy
+    what: order and fairness between sequences
+  - kind: sizing
+    what: sequences and rows per step
+  - kind: timing
+    what: how a long prompt yields to generation in progress
+  - kind: policy
+    what: which sequence is paused when resources run short
+  - kind: threshold
+    what: when a sequence is overdue
+- id: sequence-lifecycle
+  family: serving
+  summary: 'Own each sequence''s life in the engine: admit it, give it a place, keep the record of the tokens whose state
+    is live, pause and resume it, and release it.'
+  takes:
+  - a request for the engine
+  - what is free
+  gives:
+  - an admitted sequence with a place
+  - its record of committed tokens
+  state:
+  - per-sequence record and place
+  effect_on_output:
+  - effect: none
+  must_never:
+  - The record of committed tokens always matches the state held for the sequence.
+  choices:
+  - kind: policy
+    what: 'how a request is matched to a place: a slot, a lane, an engine copy'
+  - kind: policy
+    what: admission when resources are short
+  - kind: policy
+    what: 'how a paused sequence is kept: in place, copied out, or released and replayed'
+  - kind: sizing
+    what: how many sequences at once
+  - kind: failure
+    what: what is done with a sequence whose state has become invalid
+- id: engine-supervision
+  family: serving
+  summary: Start the engine in order, keep it alive, notice when it stalls or fails, and restart it.
+  takes:
+  - start and stop commands
+  - liveness signals
+  gives:
+  - a running engine
+  - failure reports
+  state:
+  - the engine's start stage and health
+  effect_on_output:
+  - effect: none
+  must_never:
+  - A request is not sent to an engine that has not finished starting.
+  choices:
+  - kind: policy
+    what: the engine in the serving process or in its own
+  - kind: timing
+    what: the stages of a start and what is retried
+  - kind: threshold
+    what: when the engine counts as stalled or failed
+  - kind: failure
+    what: restart, and what happens to requests in flight
+  - kind: timing
+    what: when an idle engine is unloaded
+- id: scoring
+  family: serving
+  summary: Compute the model's probabilities for given text or given options, without generating.
+  applies_when: The service offers scoring.
+  takes:
+  - text or options to score
+  gives:
+  - log-probabilities
+  effect_on_output:
+  - effect: none
+  must_never:
+  - A score is computed by the same model and arithmetic as generation.
+  choices:
+  - kind: policy
+    what: whether scoring shares the engine with generation or runs alone
+  - kind: sizing
+    what: limits on what can be scored
+- id: model-partitioning
+  family: multi-device
+  summary: Decide how one model is split over several devices or machines, and keep the parts in step.
+  applies_when: The model is spread over more than one device or machine.
+  takes:
+  - the model's shape
+  - the devices and their memory
+  gives:
+  - which part of the model each device holds and computes
+  state:
+  - the partition plan
+  effect_on_output:
+  - effect: numeric
+    when: 'always: partial results are combined in a different order than on one device'
+  must_never:
+  - Every device makes the same selection where the model selects, so that the parts agree.
+  choices:
+  - kind: policy
+    what: split by layers, by parts of each layer, or by selectively used weights
+  - kind: sizing
+    what: per-device budgets
+  - kind: failure
+    what: what is done when a device or link is lost
+- id: device-communication
+  family: multi-device
+  summary: Move activations and partial results between the devices or machines a model is split over.
+  applies_when: The model is spread over more than one device or machine.
+  takes:
+  - partial results
+  gives:
+  - combined results on each device
+  effect_on_output:
+  - effect: none
+    when: it only moves data
+  - effect: numeric
+    when: it reduces partial sums
+  must_never:
+  - Data is combined only from the same step on every device.
+  choices:
+  - kind: policy
+    what: the transport
+  - kind: sizing
+    what: buffers registered for transfer
+  - kind: failure
+    what: what is done when a transfer fails or a peer falls out of step
+- id: configuration
+  family: operations
+  summary: Turn the operator's choices and the machine's facts into one validated set of settings, and refuse combinations
+    the engine does not support or that are known to give wrong output.
+  takes:
+  - operator choices
+  - what the machine is
+  gives:
+  - the settings every other node starts with
+  state:
+  - the settings of the run
+  effect_on_output:
+  - effect: none
+    when: in itself
+  - effect: changes_output
+    when: it selects among settings that change output
+  must_never:
+  - The settings a run used can be recovered afterwards.
+  - A combination known to give wrong output is not started.
+  choices:
+  - kind: precedence
+    what: operator values, presets, measured values and defaults
+  - kind: policy
+    what: which combinations are refused
+  - kind: policy
+    what: whether an operator value is a hard limit or a target
+  - kind: policy
+    what: which settings are fixed per machine class
+- id: resource-governing
+  family: operations
+  summary: 'While the engine runs, keep its use of memory or power within limits: admit or refuse what is asked for, and
+    take back from holders in a fixed order when the limit tightens.'
+  applies_when: 'What the engine may use changes while it runs: the system reclaims memory, sequences come and go, or power
+    is limited.'
+  takes:
+  - requests for memory
+  - what the system reports about pressure
+  gives:
+  - grants and refusals
+  - requests to holders to give memory back
+  state:
+  - what each holder has and what is reserved
+  effect_on_output:
+  - effect: none
+  must_never:
+  - A grant never takes the engine over its limit.
+  choices:
+  - kind: policy
+    what: the order in which holders give up memory
+  - kind: threshold
+    what: the pressure levels that trigger reclaim
+  - kind: timing
+    what: releasing large holdings when idle and restoring them
+  - kind: policy
+    what: who may wait for memory and who is refused
+  - kind: policy
+    what: limiting duty cycle
+- id: telemetry
+  family: operations
+  summary: Record what the run chose and what it did, in a form that can be attached to the requirements the engine is judged
+    on.
+  takes:
+  - counters and timings from other nodes
+  gives:
+  - metrics, logs and traces
+  state:
+  - counters and histograms
+  effect_on_output:
+  - effect: none
+  must_never:
+  - Recording does not change what the engine computes.
+  choices:
+  - kind: policy
+    what: what is recorded by default and what on request
+  - kind: policy
+    what: where records go
+  - kind: threshold
+    what: when something is reported as abnormal

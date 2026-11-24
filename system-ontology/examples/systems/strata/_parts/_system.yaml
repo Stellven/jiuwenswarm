@@ -1,0 +1,68 @@
+# What belongs to Strata as a whole. tools/so_assemble.py merges this with the area fragments into ../system.yaml.
+assemble:
+  area_order: [loading, expert, token-path, speculation, serving]
+  specs:
+    pc: spec/qwen-flash-on-pc/strata-like
+    spark: spec/qwen-flash-on-dgx-spark/strata-like
+  model: model/qwen3.8-flash-125b-a6b
+  # the speculation area read the commit code; the token-path area took these rules from a header comment
+  prefer: {attention_kv: speculation, indexer_keys: speculation, gdn_state: speculation, ple_history: speculation}
+id: sys/strata
+title: "Strata"
+summary: "Strata is an engine written for one mixture-of-experts model whose expert weights do not fit the fast memory of a consumer machine. Each token uses 10 of 512 experts in each of 48 layers. The engine keeps the weights every token needs and the most used experts in fast memory, keeps every expert in slow memory where the CPU computes the ones that are not in fast memory, moves experts between the two as usage changes, reads a lookup table from storage a few rows per token, and has the full model check several drafted tokens in one pass. A serving layer in front of the engine process holds conversations so that a continued conversation is not read again."
+product:
+  name: Strata
+  revision: 504b143342a9fe1aa8320a7b31e11f5c0ac265c3
+  upstream: "https://github.com/Niko1221/Strata"
+  form: "Written from scratch in C++ and CUDA, with a Python serving layer that drives the engine process."
+targets:
+  - model: model/qwen3.8-flash-125b-a6b
+    hardware: hw/pc-12g-64g
+    spec: spec/qwen-flash-on-pc/strata-like
+    note: "A discrete GPU with 12 GB of its own memory and 64 GB of host memory. The configuration the component descriptions were read for."
+  - model: model/qwen3.8-flash-125b-a6b
+    hardware: hw/dgx-spark
+    spec: spec/qwen-flash-on-dgx-spark/strata-like
+    note: "One memory pool shared by CPU and GPU. Described from the project's document for this machine and from the code paths it names; nothing was run there."
+components:
+  - comp/strata/setup
+  - comp/strata/loading
+  - comp/strata/serving
+  - comp/strata/conversation-reuse
+  - comp/strata/prompt-path
+  - comp/strata/token-path
+  - comp/strata/expert-subsystem
+  - comp/strata/speculation
+  - comp/strata/telemetry
+declares:
+  stages: [load, prefill, draft, verify, commit]
+  states: [attention_kv, indexer_keys, gdn_state, ple_history, expert_heat, residency_table, pending_swaps]
+  policies: [expert-cache, prefill-cpu-share, draft-window]
+mechanisms:
+  - mech/hot-expert-residency
+  - mech/work-based-prefill-split
+  - mech/draft-then-verify
+  - mech/route-tail-skip
+resource_expectations:
+  - holding: "Weights every token uses, session state for the configured context, and the drafter"
+    held_on: fast_memory
+    note: "Sized first. What remains, less a reserve, goes to the expert cache."
+  - holding: "Expert cache: the most used experts, one per slot"
+    held_on: fast_memory
+    note: "Slot count is decided at startup from free memory and reduced if the reserve was not really left. The project's document says each extra GB holds about 700 more experts."
+  - holding: "Every expert, 24,576 of them"
+    held_on: slow_memory
+    amount: {value: 50.3, unit: GB, unit_basis: decimal, status: reported, source: "strata docs/DGX_SPARK_LINUX.md:75 (IQ3_S)"}
+  - holding: "Lookup table read by row"
+    held_on: storage
+    amount: {value: 28.8, unit: GB, unit_basis: decimal, status: reported, source: "strata docs/HOW_IT_WORKS.md:31"}
+claims:
+  - text: "Drafting and verifying yields 2.4 to 3.2 tokens per pass on average, 1.6 to 1.8 times sooner"
+    status: reported
+    source: "strata docs/HOW_IT_WORKS.md:41-43"
+    baseline: "token-by-token decoding; the document does not give the measurement conditions"
+  - text: "Long prompts are read at over 1,000 tokens per second"
+    status: reported
+    source: "strata docs/HOW_IT_WORKS.md:50-51"
+    baseline: "not stated"
+coverage: "Written from the source at the revision above and from the project's own documents; nothing was built or run. Each component states what was read in code, what only in a header comment or a document, and what was not read. Covered: the CUDA path for Qwen3.8-Flash-Next and the Python serving layer. Not covered: the HIP, SYCL and Metal backends, the other model engines in the same repository, kernel numerics, and vision input. Facts with file and line are in engines/strata-notes/."

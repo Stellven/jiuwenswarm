@@ -1,0 +1,1917 @@
+# Written by tools/so_intake_trial.py score.
+A:
+  engine_description: {}
+  query_bytes: 11262
+  schema_valid: true
+  quotes: 110
+  quotes_not_found: 0
+  readiness: ready
+  readiness_reason: The purpose (a custom inference engine for Meta Muse Spark Open on NVIDIA DGX Spark), the required text
+    interface, container packaging, the judging target and the four required deliverables are stated, so Requirements can
+    start without inventing the work. All listed uncertainties are missing or unconfirmed parameters (context length, thresholds,
+    workload, form, environment, checkpoint, proposed budget) that Requirements can carry as unresolved items; none leaves
+    the requested work unknown and no two required constraints contradict each other, so none is blocking.
+  entries:
+    context: 12
+    in_scope: 8
+    out_of_scope: 4
+    constraints: 7
+    preferences: 0
+    user_targets: 5
+    uncertainties: 13
+  uncertainties_blocking: 0
+  uncertainties:
+  - id: unc-context-length
+    kind: missing
+    blocking: false
+    description: The pass/fail context length is not given. The model allows 1,000,000 tokens; the target says the attention
+      state comes from the same 80 GB budget and the engine cannot be sized until this value is given. The scope page does
+      not give it.
+  - id: unc-memory-budget
+    kind: ambiguous
+    blocking: false
+    description: The scope page names three memory figures (128 GB, 12 GB, 80 GB). The target proposes 80 GB as the budget,
+      with decimal unit basis and its accounting boundary, all as proposals to be confirmed.
+  - id: unc-quality
+    kind: missing
+    blocking: false
+    description: The quality task set and pass threshold are not named; the baseline and comparison rule are proposals.
+  - id: unc-allowed-transformations
+    kind: missing
+    blocking: false
+    description: Whether quantisation below NVFP4 or approximations that change output are allowed is not stated; the quality
+      comparison rule depends on it.
+  - id: unc-workload
+    kind: missing
+    blocking: false
+    description: The fixed workload is not defined; prompt lengths decide the time to first token, and the ttft, decode-rate
+      and peak-memory reports each lack a workload.
+  - id: unc-form
+    kind: missing
+    blocking: false
+    description: 'The engine''s form is not decided: execution library, offline engine or online service. Streaming is also
+      not decided.'
+  - id: unc-environment
+    kind: missing
+    blocking: false
+    description: The software environment is not given.
+  - id: unc-checkpoint
+    kind: missing
+    blocking: false
+    description: The model checkpoint is not chosen. The scope page asks for one checkpoint; the model card offers BF16
+      and NVFP4, and the target notes that only NVFP4 is within reach.
+  - id: unc-vram-vs-budget
+    kind: ambiguous
+    blocking: false
+    description: The model card states 700 GB of VRAM required at NVFP4, which exceeds the machine's 128 GB nominal memory
+      and the proposed 80 GB budget. The sources do not say how that card figure relates to the requested engine; this is
+      the setting of the request, not a contradiction between two user requirements.
+  - id: unc-model-sizes
+    kind: missing
+    blocking: false
+    description: Weight sizes are derived from the card's totals under a stated assumption, not read; the attention state
+      size per token is not on the card and must be read from config.json, which was not read; whether the output head is
+      tied to the embedding is not stated.
+  - id: unc-ssd-bandwidth
+    kind: missing
+    blocking: false
+    description: The SSD read bandwidth is not given by the vendor and is to be measured on the machine; the SSD capacity
+      depends on the configuration.
+  - id: unc-modality
+    kind: ambiguous
+    blocking: false
+    description: The model accepts text, image, video and audio and has a perception encoder for the non-text modalities,
+      while the required interface is text in and text out. The sources do not say explicitly whether the perception encoder
+      is excluded from the engine.
+  - id: unc-scope-page
+    kind: missing
+    blocking: false
+    description: The target cites a scope page (scope-slide) as the source of its stated items, but that scope page is not
+      among the supplied sources. Separately, the vendor states the machine's memory only in GB without saying decimal or
+      binary.
+  interpretation:
+    problem:
+      id: int-problem
+      text: Meta Muse Spark Open (816B parameters in total, 42B active per token) is to be run for inference on an NVIDIA
+        DGX Spark (128 GB configuration). The sources state that the model card gives 700 GB of VRAM required at NVFP4 (2000
+        GB at BF16), while the machine has 128 GB of nominal unified memory shared by CPU and GPU with no separate GPU memory,
+        and the target proposes an 80 GB memory budget for the engine.
+      source_spans:
+      - source_ref:
+          id: request
+          sha256: 7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc
+        start: 0
+        end: 87
+      - source_ref:
+          id: model
+          sha256: 120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a
+        start: 4376
+        end: 4510
+      - source_ref:
+          id: model
+          sha256: 120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a
+        start: 4549
+        end: 4682
+      - source_ref:
+          id: machine
+          sha256: b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4
+        start: 902
+        end: 1011
+      - source_ref:
+          id: machine
+          sha256: b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4
+        start: 1633
+        end: 1658
+      - source_ref:
+          id: target
+          sha256: c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346
+        start: 1835
+        end: 1893
+    desired_change:
+      id: int-change
+      text: A custom inference engine exists for Meta Muse Spark Open that runs on NVIDIA DGX Spark, takes text in and gives
+        text out, is packaged as a container, and is judged against the attached target.
+      source_spans:
+      - source_ref:
+          id: request
+          sha256: 7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc
+        start: 0
+        end: 87
+      - source_ref:
+          id: request
+          sha256: 7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc
+        start: 88
+        end: 194
+      - source_ref:
+          id: target
+          sha256: c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346
+        start: 694
+        end: 782
+    requested_result:
+      id: int-result
+      text: The engine delivered as a reproducible container with a clean rebuild, a benchmark report and replayable run
+        artifacts.
+      source_spans:
+      - source_ref:
+          id: target
+          sha256: c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346
+        start: 3886
+        end: 3940
+      - source_ref:
+          id: target
+          sha256: c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346
+        start: 3945
+        end: 3999
+      - source_ref:
+          id: target
+          sha256: c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346
+        start: 4004
+        end: 4058
+      - source_ref:
+          id: target
+          sha256: c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346
+        start: 4063
+        end: 4119
+  target_spec:
+    requirement:
+      items: 6
+      cited: 6
+      cited_specifically: 6
+      touched_only_by_quotes_spanning_several: []
+      cited_by_an_uncertainty: 3
+      not_cited: []
+    stated:
+      items: 9
+      cited: 9
+      cited_specifically: 9
+      touched_only_by_quotes_spanning_several: []
+      cited_by_an_uncertainty: 2
+      not_cited: []
+    left_open:
+      items: 5
+      cited: 2
+      cited_specifically: 2
+      touched_only_by_quotes_spanning_several: []
+      cited_by_an_uncertainty: 0
+      not_cited:
+      - state
+      - composition
+      - policy
+    not_set:
+      items: 12
+      cited: 9
+      cited_specifically: 9
+      touched_only_by_quotes_spanning_several: []
+      cited_by_an_uncertainty: 8
+      not_cited:
+      - c-ttft.workload
+      - c-decode.workload
+      - c-peak.workload
+  target_items:
+  - item: model
+    kind: stated
+    start: 517
+    end: 548
+    cited_by:
+    - constraints:con-model
+    by_uncertainty: false
+    cited_specifically_by:
+    - constraints:con-model
+    widest_quote_touches: 1
+    quote_characters:
+    - 28
+  - item: hardware
+    kind: stated
+    start: 548
+    end: 573
+    cited_by:
+    - constraints:con-hardware
+    by_uncertainty: false
+    cited_specifically_by:
+    - constraints:con-hardware
+    widest_quote_touches: 1
+    quote_characters:
+    - 22
+  - item: environment
+    kind: not_set
+    start: 573
+    end: 594
+    cited_by:
+    - uncertainties:unc-environment
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-environment
+    widest_quote_touches: 1
+    quote_characters:
+    - 18
+  - item: form
+    kind: not_set
+    start: 605
+    end: 692
+    cited_by:
+    - uncertainties:unc-form
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-form
+    widest_quote_touches: 1
+    quote_characters:
+    - 84
+  - item: packaging
+    kind: stated
+    start: 692
+    end: 783
+    cited_by:
+    - constraints:con-packaging
+    - uncertainties:unc-scope-page
+    by_uncertainty: true
+    cited_specifically_by:
+    - constraints:con-packaging
+    - uncertainties:unc-scope-page
+    widest_quote_touches: 1
+    quote_characters:
+    - 35
+    - 88
+  - item: input
+    kind: stated
+    start: 795
+    end: 881
+    cited_by:
+    - constraints:con-input-text
+    - in_scope:is-text-interface
+    - uncertainties:unc-modality
+    by_uncertainty: true
+    cited_specifically_by:
+    - constraints:con-input-text
+    - in_scope:is-text-interface
+    - uncertainties:unc-modality
+    widest_quote_touches: 1
+    quote_characters:
+    - 83
+  - item: output
+    kind: stated
+    start: 881
+    end: 967
+    cited_by:
+    - constraints:con-output-text
+    - in_scope:is-text-interface
+    by_uncertainty: false
+    cited_specifically_by:
+    - constraints:con-output-text
+    - in_scope:is-text-interface
+    widest_quote_touches: 1
+    quote_characters:
+    - 83
+  - item: streaming
+    kind: not_set
+    start: 967
+    end: 986
+    cited_by:
+    - uncertainties:unc-form
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-form
+    widest_quote_touches: 1
+    quote_characters:
+    - 16
+  - item: execution
+    kind: left_open
+    start: 987
+    end: 1003
+    cited_by:
+    - in_scope:is-factory-open
+    by_uncertainty: false
+    cited_specifically_by:
+    - in_scope:is-factory-open
+    widest_quote_touches: 1
+    quote_characters:
+    - 15
+  - item: state
+    kind: left_open
+    start: 1003
+    end: 1015
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: composition
+    kind: left_open
+    start: 1015
+    end: 1033
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: policy
+    kind: left_open
+    start: 1033
+    end: 1046
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: binding
+    kind: left_open
+    start: 1046
+    end: 1060
+    cited_by:
+    - in_scope:is-factory-open
+    by_uncertainty: false
+    cited_specifically_by:
+    - in_scope:is-factory-open
+    widest_quote_touches: 1
+    quote_characters:
+    - 13
+  - item: c-mem
+    kind: requirement
+    start: 1087
+    end: 1981
+    unset: false
+    cited_by:
+    - constraints:con-memory-budget
+    - context:ctx-mem0
+    - out_of_scope:oos-os-memory
+    - uncertainties:unc-memory-budget
+    by_uncertainty: true
+    cited_specifically_by:
+    - constraints:con-memory-budget
+    - context:ctx-mem0
+    - out_of_scope:oos-os-memory
+    - uncertainties:unc-memory-budget
+    widest_quote_touches: 1
+    quote_characters:
+    - 23
+    - 35
+    - 53
+    - 64
+    - 85
+    - 101
+    - 108
+    - 190
+  - item: c-context
+    kind: requirement
+    start: 1981
+    end: 2319
+    unset: true
+    cited_by:
+    - uncertainties:unc-context-length
+    - user_targets:tgt-context
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-context-length
+    - user_targets:tgt-context
+    widest_quote_touches: 1
+    quote_characters:
+    - 12
+    - 24
+    - 32
+    - 144
+  - item: c-context.value
+    kind: not_set
+    start: 2054
+    end: 2073
+    cited_by:
+    - user_targets:tgt-context
+    by_uncertainty: false
+    cited_specifically_by:
+    - user_targets:tgt-context
+    widest_quote_touches: 1
+    quote_characters:
+    - 12
+  - item: c-quality
+    kind: requirement
+    start: 2319
+    end: 2907
+    unset: true
+    cited_by:
+    - context:ctx-baseline
+    - uncertainties:unc-quality
+    - user_targets:tgt-quality
+    by_uncertainty: true
+    cited_specifically_by:
+    - context:ctx-baseline
+    - uncertainties:unc-quality
+    - user_targets:tgt-quality
+    widest_quote_touches: 1
+    quote_characters:
+    - 23
+    - 55
+    - 69
+    - 119
+    - 146
+  - item: c-quality.taskset
+    kind: not_set
+    start: 2693
+    end: 2769
+    cited_by:
+    - uncertainties:unc-quality
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-quality
+    widest_quote_touches: 1
+    quote_characters:
+    - 69
+  - item: c-quality.threshold
+    kind: not_set
+    start: 2769
+    end: 2845
+    cited_by:
+    - uncertainties:unc-quality
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-quality
+    widest_quote_touches: 1
+    quote_characters:
+    - 69
+  - item: c-ttft
+    kind: requirement
+    start: 2907
+    end: 3156
+    unset: true
+    cited_by:
+    - in_scope:is-reports
+    - out_of_scope:oos-model-load
+    - user_targets:tgt-ttft
+    by_uncertainty: false
+    cited_specifically_by:
+    - in_scope:is-reports
+    - out_of_scope:oos-model-load
+    - user_targets:tgt-ttft
+    widest_quote_touches: 1
+    quote_characters:
+    - 14
+    - 63
+    - 70
+  - item: c-ttft.workload
+    kind: not_set
+    start: 3134
+    end: 3156
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: c-decode
+    kind: requirement
+    start: 3156
+    end: 3301
+    unset: true
+    cited_by:
+    - in_scope:is-reports
+    - out_of_scope:oos-first-token-decode
+    - user_targets:tgt-decode
+    by_uncertainty: false
+    cited_specifically_by:
+    - in_scope:is-reports
+    - out_of_scope:oos-first-token-decode
+    - user_targets:tgt-decode
+    widest_quote_touches: 1
+    quote_characters:
+    - 21
+    - 27
+  - item: c-decode.workload
+    kind: not_set
+    start: 3279
+    end: 3301
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: c-peak
+    kind: requirement
+    start: 3301
+    end: 3484
+    unset: true
+    cited_by:
+    - in_scope:is-reports
+    - out_of_scope:oos-os-memory
+    - user_targets:tgt-peak-memory
+    by_uncertainty: false
+    cited_specifically_by:
+    - in_scope:is-reports
+    - out_of_scope:oos-os-memory
+    - user_targets:tgt-peak-memory
+    widest_quote_touches: 1
+    quote_characters:
+    - 21
+    - 50
+  - item: c-peak.workload
+    kind: not_set
+    start: 3462
+    end: 3484
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: allowed_transformations
+    kind: not_set
+    start: 3484
+    end: 3601
+    cited_by:
+    - uncertainties:unc-allowed-transformations
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-allowed-transformations
+    widest_quote_touches: 1
+    quote_characters:
+    - 114
+  - item: workload
+    kind: not_set
+    start: 3601
+    end: 3726
+    cited_by:
+    - uncertainties:unc-workload
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-workload
+    widest_quote_touches: 1
+    quote_characters:
+    - 122
+  - item: model_checkpoint
+    kind: not_set
+    start: 3737
+    end: 3866
+    cited_by:
+    - uncertainties:unc-checkpoint
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-checkpoint
+    widest_quote_touches: 1
+    quote_characters:
+    - 126
+  - item: deliverable reproducible_container
+    kind: stated
+    start: 3882
+    end: 3941
+    cited_by:
+    - in_scope:is-deliverable-container
+    by_uncertainty: false
+    cited_specifically_by:
+    - in_scope:is-deliverable-container
+    widest_quote_touches: 1
+    quote_characters:
+    - 54
+  - item: deliverable clean_rebuild
+    kind: stated
+    start: 3941
+    end: 4000
+    cited_by:
+    - in_scope:is-deliverable-rebuild
+    by_uncertainty: false
+    cited_specifically_by:
+    - in_scope:is-deliverable-rebuild
+    widest_quote_touches: 1
+    quote_characters:
+    - 54
+  - item: deliverable benchmark_report
+    kind: stated
+    start: 4000
+    end: 4059
+    cited_by:
+    - in_scope:is-deliverable-benchmark
+    by_uncertainty: false
+    cited_specifically_by:
+    - in_scope:is-deliverable-benchmark
+    widest_quote_touches: 1
+    quote_characters:
+    - 54
+  - item: deliverable replayable_run_artifacts
+    kind: stated
+    start: 4059
+    end: 4120
+    cited_by:
+    - in_scope:is-deliverable-artifacts
+    by_uncertainty: false
+    cited_specifically_by:
+    - in_scope:is-deliverable-artifacts
+    widest_quote_touches: 1
+    quote_characters:
+    - 56
+  per_source:
+    request:
+      characters: 241
+      cited: 238
+      entries: 6
+    target:
+      characters: 4120
+      cited: 2837
+      entries: 34
+    model:
+      characters: 4841
+      cited: 1253
+      entries: 8
+    machine:
+      characters: 1770
+      cited: 1152
+      entries: 8
+  node_types_cited: {}
+B:
+  engine_description: {}
+  query_bytes: 60077
+  schema_valid: true
+  quotes: 73
+  quotes_not_found: 0
+  readiness: ready
+  readiness_reason: 'The requested work is clear: a custom inference engine for Meta Muse Spark Open on NVIDIA DGX Spark,
+    judged on the attached target, delivered as a reproducible container with clean rebuild, benchmark report and replayable
+    run artifacts. The open items are missing or proposed parameters (context length, workload, quality task set and threshold,
+    allowed transformations, checkpoint, form, environment, streaming) and confirmation of proposals; none leaves the purpose
+    unknown and no two stated requirements contradict each other, so none is blocking under the producer rules. Requirements
+    must carry them as unresolved items.'
+  entries:
+    context: 8
+    in_scope: 6
+    out_of_scope: 0
+    constraints: 7
+    preferences: 0
+    user_targets: 4
+    uncertainties: 12
+  uncertainties_blocking: 0
+  uncertainties:
+  - id: unc-context-length
+    kind: missing
+    blocking: false
+    description: The context length the engine must offer (a pass/fail requirement) is not given; the target notes the engine
+      cannot be sized until it is, because attention state shares the 80 GB budget with the expert cache.
+  - id: unc-workload
+    kind: missing
+    blocking: false
+    description: The fixed workload used for measurement (prompt lengths and requests) is not defined, for the target as
+      a whole and for TTFT, decode rate and peak memory.
+  - id: unc-quality-taskset-threshold
+    kind: missing
+    blocking: false
+    description: The held-out task set and the pass threshold for the quality requirement are not named.
+  - id: unc-allowed-transformations
+    kind: missing
+    blocking: false
+    description: Whether quantisation below NVFP4 or approximations that change output are allowed is not set; the quality
+      comparison (identical tokens vs a task-score threshold) depends on it.
+  - id: unc-checkpoint
+    kind: missing
+    blocking: false
+    description: Which single checkpoint is used is not set. The model offers BF16 and NVFP4; the target comments that only
+      NVFP4 is within reach and the quality baseline names NVFP4 weights, but this is not set as a decision.
+  - id: unc-form-environment-streaming
+    kind: missing
+    blocking: false
+    description: The engine's form (execution library, offline engine or online service), the software environment and whether
+      output is streamed are not set.
+  - id: unc-proposed-status
+    kind: ambiguous
+    blocking: false
+    description: The memory budget, the quality baseline and comparison, and the TTFT, decode-rate and peak-memory definitions
+      are marked as proposals to be confirmed or replaced, while the request says to take the files as the statement of
+      what is wanted. Whether the proposals are binding is not confirmed.
+  - id: unc-memory-figure
+    kind: ambiguous
+    blocking: false
+    description: 'The scope page names three memory figures (128 GB nominal, 12 GB GPU working set, 80 GB); the target chose
+      80 GB, cited as ''Strata-Spark: 80 GB Unified Memory'', as the budget. The choice is the target author''s interpretation
+      and the scope page is not supplied to check it.'
+  - id: unc-vendor-memory
+    kind: conflicting
+    blocking: false
+    description: The model card states 700 GB of memory required at NVFP4, while the machine has 128 GB nominal unified
+      memory and the proposed budget is 80 GB. This is a tension between a vendor statement and the given budget, not between
+      two stated requirements; the sources do not say how it is to be resolved.
+  - id: unc-non-text-modalities
+    kind: ambiguous
+    blocking: false
+    description: The model accepts text, image, video and audio, while the target requires text input. Whether the other
+      input modalities are excluded from the engine or merely not required is not stated.
+  - id: unc-model-facts-unverified
+    kind: missing
+    blocking: false
+    description: Model sizes are derived under an assumption and attention-state size per token is not on the model card;
+      config.json was not read. SSD read bandwidth is not given for the machine.
+  - id: unc-node-types-role
+    kind: ambiguous
+    blocking: false
+    description: The request says the attached files describe the model, the machine and the target; the node-types draft
+      is none of these, so its role for this request is not stated.
+  interpretation:
+    problem: null
+    desired_change:
+      id: interp-desired-change
+      text: A custom inference engine for Meta Muse Spark Open exists that runs on NVIDIA DGX Spark.
+      source_spans:
+      - source_ref:
+          id: request
+          sha256: 7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc
+        start: 0
+        end: 87
+    requested_result:
+      id: interp-requested-result
+      text: The engine, judged against the attached target specification, delivered as a reproducible container with a clean
+        rebuild, a benchmark report and replayable run artifacts.
+      source_spans:
+      - source_ref:
+          id: request
+          sha256: 7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc
+        start: 88
+        end: 194
+      - source_ref:
+          id: target
+          sha256: c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346
+        start: 3886
+        end: 3940
+      - source_ref:
+          id: target
+          sha256: c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346
+        start: 4004
+        end: 4058
+  target_spec:
+    requirement:
+      items: 6
+      cited: 6
+      cited_specifically: 6
+      touched_only_by_quotes_spanning_several: []
+      cited_by_an_uncertainty: 3
+      not_cited: []
+    stated:
+      items: 9
+      cited: 9
+      cited_specifically: 9
+      touched_only_by_quotes_spanning_several: []
+      cited_by_an_uncertainty: 1
+      not_cited: []
+    left_open:
+      items: 5
+      cited: 2
+      cited_specifically: 2
+      touched_only_by_quotes_spanning_several: []
+      cited_by_an_uncertainty: 0
+      not_cited:
+      - state
+      - composition
+      - policy
+    not_set:
+      items: 12
+      cited: 8
+      cited_specifically: 8
+      touched_only_by_quotes_spanning_several: []
+      cited_by_an_uncertainty: 8
+      not_cited:
+      - c-context.value
+      - c-ttft.workload
+      - c-decode.workload
+      - c-peak.workload
+  target_items:
+  - item: model
+    kind: stated
+    start: 517
+    end: 548
+    cited_by:
+    - context:ctx-model
+    by_uncertainty: false
+    cited_specifically_by:
+    - context:ctx-model
+    widest_quote_touches: 1
+    quote_characters:
+    - 28
+  - item: hardware
+    kind: stated
+    start: 548
+    end: 573
+    cited_by:
+    - context:ctx-machine
+    by_uncertainty: false
+    cited_specifically_by:
+    - context:ctx-machine
+    widest_quote_touches: 1
+    quote_characters:
+    - 22
+  - item: environment
+    kind: not_set
+    start: 573
+    end: 594
+    cited_by:
+    - uncertainties:unc-form-environment-streaming
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-form-environment-streaming
+    widest_quote_touches: 1
+    quote_characters:
+    - 18
+  - item: form
+    kind: not_set
+    start: 605
+    end: 692
+    cited_by:
+    - uncertainties:unc-form-environment-streaming
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-form-environment-streaming
+    widest_quote_touches: 1
+    quote_characters:
+    - 84
+  - item: packaging
+    kind: stated
+    start: 692
+    end: 783
+    cited_by:
+    - constraints:con-packaging
+    - context:ctx-scope-page
+    by_uncertainty: false
+    cited_specifically_by:
+    - constraints:con-packaging
+    - context:ctx-scope-page
+    widest_quote_touches: 1
+    quote_characters:
+    - 35
+    - 88
+  - item: input
+    kind: stated
+    start: 795
+    end: 881
+    cited_by:
+    - constraints:con-input-text
+    - uncertainties:unc-non-text-modalities
+    by_uncertainty: true
+    cited_specifically_by:
+    - constraints:con-input-text
+    - uncertainties:unc-non-text-modalities
+    widest_quote_touches: 1
+    quote_characters:
+    - 83
+  - item: output
+    kind: stated
+    start: 881
+    end: 967
+    cited_by:
+    - constraints:con-output-text
+    by_uncertainty: false
+    cited_specifically_by:
+    - constraints:con-output-text
+    widest_quote_touches: 1
+    quote_characters:
+    - 83
+  - item: streaming
+    kind: not_set
+    start: 967
+    end: 986
+    cited_by:
+    - uncertainties:unc-form-environment-streaming
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-form-environment-streaming
+    widest_quote_touches: 1
+    quote_characters:
+    - 16
+  - item: execution
+    kind: left_open
+    start: 987
+    end: 1003
+    cited_by:
+    - in_scope:scope-factory-open
+    by_uncertainty: false
+    cited_specifically_by:
+    - in_scope:scope-factory-open
+    widest_quote_touches: 1
+    quote_characters:
+    - 15
+  - item: state
+    kind: left_open
+    start: 1003
+    end: 1015
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: composition
+    kind: left_open
+    start: 1015
+    end: 1033
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: policy
+    kind: left_open
+    start: 1033
+    end: 1046
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: binding
+    kind: left_open
+    start: 1046
+    end: 1060
+    cited_by:
+    - in_scope:scope-factory-open
+    by_uncertainty: false
+    cited_specifically_by:
+    - in_scope:scope-factory-open
+    widest_quote_touches: 1
+    quote_characters:
+    - 13
+  - item: c-mem
+    kind: requirement
+    start: 1087
+    end: 1981
+    unset: false
+    cited_by:
+    - constraints:con-memory-budget
+    - context:ctx-mem0
+    - context:ctx-scope-page
+    - uncertainties:unc-memory-figure
+    by_uncertainty: true
+    cited_specifically_by:
+    - constraints:con-memory-budget
+    - context:ctx-mem0
+    - context:ctx-scope-page
+    - uncertainties:unc-memory-figure
+    widest_quote_touches: 1
+    quote_characters:
+    - 9
+    - 10
+    - 23
+    - 35
+    - 58
+    - 64
+    - 73
+    - 85
+  - item: c-context
+    kind: requirement
+    start: 1981
+    end: 2319
+    unset: true
+    cited_by:
+    - constraints:con-context-length
+    - uncertainties:unc-context-length
+    by_uncertainty: true
+    cited_specifically_by:
+    - constraints:con-context-length
+    - uncertainties:unc-context-length
+    widest_quote_touches: 1
+    quote_characters:
+    - 24
+    - 32
+    - 49
+  - item: c-context.value
+    kind: not_set
+    start: 2054
+    end: 2073
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: c-quality
+    kind: requirement
+    start: 2319
+    end: 2907
+    unset: true
+    cited_by:
+    - context:ctx-quality-baseline
+    - uncertainties:unc-quality-taskset-threshold
+    - user_targets:tgt-quality
+    by_uncertainty: true
+    cited_specifically_by:
+    - context:ctx-quality-baseline
+    - uncertainties:unc-quality-taskset-threshold
+    - user_targets:tgt-quality
+    widest_quote_touches: 1
+    quote_characters:
+    - 23
+    - 69
+    - 119
+    - 146
+  - item: c-quality.taskset
+    kind: not_set
+    start: 2693
+    end: 2769
+    cited_by:
+    - uncertainties:unc-quality-taskset-threshold
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-quality-taskset-threshold
+    widest_quote_touches: 1
+    quote_characters:
+    - 69
+  - item: c-quality.threshold
+    kind: not_set
+    start: 2769
+    end: 2845
+    cited_by:
+    - uncertainties:unc-quality-taskset-threshold
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-quality-taskset-threshold
+    widest_quote_touches: 1
+    quote_characters:
+    - 69
+  - item: c-ttft
+    kind: requirement
+    start: 2907
+    end: 3156
+    unset: true
+    cited_by:
+    - user_targets:tgt-ttft
+    by_uncertainty: false
+    cited_specifically_by:
+    - user_targets:tgt-ttft
+    widest_quote_touches: 1
+    quote_characters:
+    - 14
+    - 63
+    - 70
+  - item: c-ttft.workload
+    kind: not_set
+    start: 3134
+    end: 3156
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: c-decode
+    kind: requirement
+    start: 3156
+    end: 3301
+    unset: true
+    cited_by:
+    - user_targets:tgt-decode
+    by_uncertainty: false
+    cited_specifically_by:
+    - user_targets:tgt-decode
+    widest_quote_touches: 1
+    quote_characters:
+    - 21
+    - 27
+  - item: c-decode.workload
+    kind: not_set
+    start: 3279
+    end: 3301
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: c-peak
+    kind: requirement
+    start: 3301
+    end: 3484
+    unset: true
+    cited_by:
+    - user_targets:tgt-peak-memory
+    by_uncertainty: false
+    cited_specifically_by:
+    - user_targets:tgt-peak-memory
+    widest_quote_touches: 1
+    quote_characters:
+    - 21
+    - 50
+  - item: c-peak.workload
+    kind: not_set
+    start: 3462
+    end: 3484
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: allowed_transformations
+    kind: not_set
+    start: 3484
+    end: 3601
+    cited_by:
+    - uncertainties:unc-allowed-transformations
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-allowed-transformations
+    widest_quote_touches: 1
+    quote_characters:
+    - 114
+  - item: workload
+    kind: not_set
+    start: 3601
+    end: 3726
+    cited_by:
+    - constraints:con-fixed-workload
+    - uncertainties:unc-workload
+    by_uncertainty: true
+    cited_specifically_by:
+    - constraints:con-fixed-workload
+    - uncertainties:unc-workload
+    widest_quote_touches: 1
+    quote_characters:
+    - 75
+  - item: model_checkpoint
+    kind: not_set
+    start: 3737
+    end: 3866
+    cited_by:
+    - constraints:con-one-checkpoint
+    - uncertainties:unc-checkpoint
+    by_uncertainty: true
+    cited_specifically_by:
+    - constraints:con-one-checkpoint
+    - uncertainties:unc-checkpoint
+    widest_quote_touches: 1
+    quote_characters:
+    - 60
+    - 65
+  - item: deliverable reproducible_container
+    kind: stated
+    start: 3882
+    end: 3941
+    cited_by:
+    - in_scope:scope-deliverable-container
+    by_uncertainty: false
+    cited_specifically_by:
+    - in_scope:scope-deliverable-container
+    widest_quote_touches: 1
+    quote_characters:
+    - 54
+  - item: deliverable clean_rebuild
+    kind: stated
+    start: 3941
+    end: 4000
+    cited_by:
+    - in_scope:scope-deliverable-rebuild
+    by_uncertainty: false
+    cited_specifically_by:
+    - in_scope:scope-deliverable-rebuild
+    widest_quote_touches: 1
+    quote_characters:
+    - 54
+  - item: deliverable benchmark_report
+    kind: stated
+    start: 4000
+    end: 4059
+    cited_by:
+    - in_scope:scope-deliverable-benchmark
+    by_uncertainty: false
+    cited_specifically_by:
+    - in_scope:scope-deliverable-benchmark
+    widest_quote_touches: 1
+    quote_characters:
+    - 54
+  - item: deliverable replayable_run_artifacts
+    kind: stated
+    start: 4059
+    end: 4120
+    cited_by:
+    - in_scope:scope-deliverable-artifacts
+    by_uncertainty: false
+    cited_specifically_by:
+    - in_scope:scope-deliverable-artifacts
+    widest_quote_touches: 1
+    quote_characters:
+    - 56
+  per_source:
+    request:
+      characters: 241
+      cited: 238
+      entries: 4
+    target:
+      characters: 4120
+      cited: 2311
+      entries: 31
+    model:
+      characters: 4841
+      cited: 487
+      entries: 4
+    machine:
+      characters: 1770
+      cited: 373
+      entries: 5
+    node-types:
+      characters: 48815
+      cited: 129
+      entries: 1
+  node_types_cited: {}
+C:
+  engine_description:
+    nodes:
+      items: 29
+      cited: 7
+      in_fields:
+      - in_scope
+      - preferences
+      - uncertainties
+      cited_by:
+        preparation:
+        - in_scope:is-nodes
+        startup-memory-sizing:
+        - in_scope:is-nodes
+        expert-router:
+        - uncertainties:unc-expert-routing-conflict
+        expert-cache:
+        - in_scope:is-nodes
+        http-front:
+        - in_scope:is-nodes
+        - uncertainties:unc-boundary-form
+        run-config-generator:
+        - preferences:pref-context-default
+        - uncertainties:unc-context-length
+        - uncertainties:unc-multi-card-and-ngram
+        launch-argument-resolver:
+        - uncertainties:unc-multi-card-and-ngram
+    system_flows:
+      items: 68
+      cited: 3
+    system_sections:
+      items: 15
+      cited: 8
+      cited_by:
+        summary:
+        - context:ctx-ssd0
+        - context:ctx-strata-ds4
+        - in_scope:is-system-design
+        - preferences:pref-reuse-strata-ds4
+        - uncertainties:unc-expert-arena
+        - uncertainties:unc-expert-routing-conflict
+        product:
+        - context:ctx-engine
+        targets:
+        - in_scope:is-text-io
+        - out_of_scope:oos-media
+        components:
+        - in_scope:is-components
+        declares:
+        - in_scope:is-components
+        flows:
+        - uncertainties:unc-drafting-residue
+        - uncertainties:unc-expert-arena
+        - uncertainties:unc-expert-routing-conflict
+        derived_from:
+        - preferences:pref-postponed
+        - uncertainties:unc-multi-card-and-ngram
+        coverage:
+        - constraints:con-no-retuned-numbers
+        - out_of_scope:oos-drafting
+        - out_of_scope:oos-media
+        - out_of_scope:oos-multi-conversation
+        - out_of_scope:oos-multi-machine
+        - uncertainties:unc-drafting-residue
+  query_bytes: 54585
+  schema_valid: true
+  quotes: 114
+  quotes_not_found: 0
+  readiness: needs_clarification
+  readiness_reason: 'Purpose and requested result are clear, but one required statement conflicts: the engine description
+    the user gives as what is wanted routes 10 of 512 experts, while the given model routes 8 of 256 (unc-expert-routing-conflict).
+    Contradictory required constraints are blocking. All other uncertainties are missing or ambiguous parameters that Requirements
+    can carry as unresolved items.'
+  entries:
+    context: 8
+    in_scope: 7
+    out_of_scope: 6
+    constraints: 7
+    preferences: 3
+    user_targets: 6
+    uncertainties: 13
+  uncertainties_blocking: 1
+  uncertainties:
+  - id: unc-expert-routing-conflict
+    kind: conflicting
+    blocking: true
+    description: The given model selects 8 of 256 experts per token per layer (model card, system summary, node startup
+      sizing), but the node-level expert router, which the user gives as part of what is wanted, turns the feed-forward
+      input into 512 logits and chooses 10 experts, and the system flow routed-experts carries 10 expert ids per token.
+      The engine description contradicts the given model on the routing it must implement.
+  - id: unc-context-length
+    kind: missing
+    blocking: false
+    description: The context length the engine must offer is not given; the target says the engine cannot be sized until
+      it is. The node-level run configuration recommends 131072, which the target does not adopt.
+  - id: unc-memory-budget-proposed
+    kind: ambiguous
+    blocking: false
+    description: The 80 GB memory budget, its decimal unit basis and its accounting boundary are proposals awaiting confirmation;
+      the scope page names three figures (128 GB, 12 GB, 80 GB).
+  - id: unc-quality-taskset-threshold
+    kind: missing
+    blocking: false
+    description: The held-out task set and the pass threshold for the quality score are not given.
+  - id: unc-allowed-transformations
+    kind: missing
+    blocking: false
+    description: Whether quantisation below NVFP4 or approximations that change output are allowed is not stated; this also
+      decides which quality comparison applies.
+  - id: unc-workload
+    kind: missing
+    blocking: false
+    description: The fixed workload (including prompt lengths) on which time to first token, decode rate and peak memory
+      are reported is not defined.
+  - id: unc-checkpoint
+    kind: missing
+    blocking: false
+    description: The model checkpoint is not chosen; the target notes the model card offers BF16 and NVFP4 and only NVFP4
+      is within reach.
+  - id: unc-boundary-form
+    kind: ambiguous
+    blocking: false
+    description: The engine's form (execution library, offline engine or online service) is unset in the target, while the
+      system and node descriptions include an HTTP front accepting OpenAI- and Anthropic-shaped requests.
+  - id: unc-streaming-environment
+    kind: missing
+    blocking: false
+    description: Whether output is streamed, and the software environment, are unset in the target.
+  - id: unc-drafting-residue
+    kind: conflicting
+    blocking: false
+    description: Drafting is excluded from the first version, but some system flows still describe drafts (token lines per
+      verify window when drafts are accepted; drafts counted in end-of-request figures).
+  - id: unc-multi-card-and-ngram
+    kind: ambiguous
+    blocking: false
+    description: Node and flow descriptions refer to several cards and to an n-gram table, while the machine has one GPU
+      and the model card names no lookup table.
+  - id: unc-expert-arena
+    kind: ambiguous
+    blocking: false
+    description: The system summary keeps all experts on storage and reads missed experts on demand, but the flow expert-bytes-from-files
+      describes every routed expert read into an arena at startup, with a file-source mode as the alternative.
+  - id: unc-model-unknowns
+    kind: missing
+    blocking: false
+    description: 'Model facts the engine depends on are not in the sources: per-token attention key/value size (config.json
+      not read), separate sizes of expert and other weights (derived under an assumption), whether the output head is tied
+      to the embedding; SSD read bandwidth of the machine is not given.'
+  interpretation:
+    problem:
+      id: int-problem
+      text: No inference engine exists for Meta Muse Spark Open on NVIDIA DGX Spark. The supplied description states that
+        the model's expert weights are about three times the machine's memory.
+      source_spans:
+      - source_ref:
+          id: request
+          sha256: 0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2
+        start: 0
+        end: 87
+      - source_ref:
+          id: system
+          sha256: 929bf8cf48b79129a9ede51b899442a3bf2067fba9ba81088291a1073143889a
+        start: 189
+        end: 302
+      - source_ref:
+          id: system
+          sha256: 929bf8cf48b79129a9ede51b899442a3bf2067fba9ba81088291a1073143889a
+        start: 957
+        end: 1040
+    desired_change:
+      id: int-change
+      text: A custom inference engine for Meta Muse Spark Open is built and runs on NVIDIA DGX Spark, as described by the
+        attached System Ontology files (system level and node level), which the user gives as the statement of what is wanted.
+      source_spans:
+      - source_ref:
+          id: request
+          sha256: 0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2
+        start: 0
+        end: 87
+      - source_ref:
+          id: request
+          sha256: 0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2
+        start: 266
+        end: 311
+    requested_result:
+      id: int-result
+      text: A built engine, judged on the target description, delivered as a reproducible container, a clean rebuild, a
+        benchmark report and replayable run artifacts.
+      source_spans:
+      - source_ref:
+          id: request
+          sha256: 0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2
+        start: 156
+        end: 190
+      - source_ref:
+          id: target
+          sha256: c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346
+        start: 3888
+        end: 3940
+      - source_ref:
+          id: target
+          sha256: c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346
+        start: 3948
+        end: 3967
+      - source_ref:
+          id: target
+          sha256: c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346
+        start: 4007
+        end: 4029
+      - source_ref:
+          id: target
+          sha256: c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346
+        start: 4066
+        end: 4096
+  target_spec:
+    requirement:
+      items: 6
+      cited: 6
+      cited_specifically: 6
+      touched_only_by_quotes_spanning_several: []
+      cited_by_an_uncertainty: 3
+      not_cited: []
+    stated:
+      items: 9
+      cited: 9
+      cited_specifically: 9
+      touched_only_by_quotes_spanning_several: []
+      cited_by_an_uncertainty: 0
+      not_cited: []
+    left_open:
+      items: 5
+      cited: 1
+      cited_specifically: 1
+      touched_only_by_quotes_spanning_several: []
+      cited_by_an_uncertainty: 0
+      not_cited:
+      - state
+      - composition
+      - policy
+      - binding
+    not_set:
+      items: 12
+      cited: 8
+      cited_specifically: 8
+      touched_only_by_quotes_spanning_several: []
+      cited_by_an_uncertainty: 8
+      not_cited:
+      - c-context.value
+      - c-ttft.workload
+      - c-decode.workload
+      - c-peak.workload
+  target_items:
+  - item: model
+    kind: stated
+    start: 517
+    end: 548
+    cited_by:
+    - constraints:con-model
+    - context:ctx-model
+    by_uncertainty: false
+    cited_specifically_by:
+    - constraints:con-model
+    - context:ctx-model
+    widest_quote_touches: 1
+    quote_characters:
+    - 28
+  - item: hardware
+    kind: stated
+    start: 548
+    end: 573
+    cited_by:
+    - constraints:con-hardware
+    - context:ctx-machine
+    by_uncertainty: false
+    cited_specifically_by:
+    - constraints:con-hardware
+    - context:ctx-machine
+    widest_quote_touches: 1
+    quote_characters:
+    - 22
+  - item: environment
+    kind: not_set
+    start: 573
+    end: 594
+    cited_by:
+    - uncertainties:unc-streaming-environment
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-streaming-environment
+    widest_quote_touches: 1
+    quote_characters:
+    - 18
+  - item: form
+    kind: not_set
+    start: 605
+    end: 692
+    cited_by:
+    - uncertainties:unc-boundary-form
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-boundary-form
+    widest_quote_touches: 1
+    quote_characters:
+    - 53
+  - item: packaging
+    kind: stated
+    start: 692
+    end: 783
+    cited_by:
+    - constraints:con-container
+    by_uncertainty: false
+    cited_specifically_by:
+    - constraints:con-container
+    widest_quote_touches: 1
+    quote_characters:
+    - 50
+  - item: input
+    kind: stated
+    start: 795
+    end: 881
+    cited_by:
+    - constraints:con-text-in
+    - in_scope:is-text-io
+    by_uncertainty: false
+    cited_specifically_by:
+    - constraints:con-text-in
+    - in_scope:is-text-io
+    widest_quote_touches: 1
+    quote_characters:
+    - 45
+  - item: output
+    kind: stated
+    start: 881
+    end: 967
+    cited_by:
+    - constraints:con-text-out
+    - in_scope:is-text-io
+    by_uncertainty: false
+    cited_specifically_by:
+    - constraints:con-text-out
+    - in_scope:is-text-io
+    widest_quote_touches: 1
+    quote_characters:
+    - 45
+  - item: streaming
+    kind: not_set
+    start: 967
+    end: 986
+    cited_by:
+    - uncertainties:unc-streaming-environment
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-streaming-environment
+    widest_quote_touches: 1
+    quote_characters:
+    - 16
+  - item: execution
+    kind: left_open
+    start: 987
+    end: 1003
+    cited_by:
+    - in_scope:is-factory-open
+    by_uncertainty: false
+    cited_specifically_by:
+    - in_scope:is-factory-open
+    widest_quote_touches: 1
+    quote_characters:
+    - 15
+  - item: state
+    kind: left_open
+    start: 1003
+    end: 1015
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: composition
+    kind: left_open
+    start: 1015
+    end: 1033
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: policy
+    kind: left_open
+    start: 1033
+    end: 1046
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: binding
+    kind: left_open
+    start: 1046
+    end: 1060
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: c-mem
+    kind: requirement
+    start: 1087
+    end: 1981
+    unset: false
+    cited_by:
+    - constraints:con-memory-budget
+    - context:ctx-mem0
+    - context:ctx-scope-page
+    - out_of_scope:oos-memory-outside
+    - uncertainties:unc-memory-budget-proposed
+    - user_targets:tgt-memory-budget
+    by_uncertainty: true
+    cited_specifically_by:
+    - constraints:con-memory-budget
+    - context:ctx-mem0
+    - context:ctx-scope-page
+    - out_of_scope:oos-memory-outside
+    - uncertainties:unc-memory-budget-proposed
+    - user_targets:tgt-memory-budget
+    widest_quote_touches: 1
+    quote_characters:
+    - 10
+    - 23
+    - 53
+    - 54
+    - 73
+    - 85
+  - item: c-context
+    kind: requirement
+    start: 1981
+    end: 2319
+    unset: true
+    cited_by:
+    - uncertainties:unc-context-length
+    - user_targets:tgt-context-length
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-context-length
+    - user_targets:tgt-context-length
+    widest_quote_touches: 1
+    quote_characters:
+    - 24
+    - 80
+  - item: c-context.value
+    kind: not_set
+    start: 2054
+    end: 2073
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: c-quality
+    kind: requirement
+    start: 2319
+    end: 2907
+    unset: true
+    cited_by:
+    - context:ctx-baseline
+    - uncertainties:unc-quality-taskset-threshold
+    - user_targets:tgt-quality
+    by_uncertainty: true
+    cited_specifically_by:
+    - context:ctx-baseline
+    - uncertainties:unc-quality-taskset-threshold
+    - user_targets:tgt-quality
+    widest_quote_touches: 1
+    quote_characters:
+    - 23
+    - 42
+    - 107
+    - 132
+  - item: c-quality.taskset
+    kind: not_set
+    start: 2693
+    end: 2769
+    cited_by:
+    - uncertainties:unc-quality-taskset-threshold
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-quality-taskset-threshold
+    widest_quote_touches: 1
+    quote_characters:
+    - 42
+  - item: c-quality.threshold
+    kind: not_set
+    start: 2769
+    end: 2845
+    cited_by:
+    - uncertainties:unc-quality-taskset-threshold
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-quality-taskset-threshold
+    widest_quote_touches: 1
+    quote_characters:
+    - 42
+  - item: c-ttft
+    kind: requirement
+    start: 2907
+    end: 3156
+    unset: true
+    cited_by:
+    - out_of_scope:oos-model-load-ttft
+    - user_targets:tgt-ttft
+    by_uncertainty: false
+    cited_specifically_by:
+    - out_of_scope:oos-model-load-ttft
+    - user_targets:tgt-ttft
+    widest_quote_touches: 1
+    quote_characters:
+    - 14
+    - 49
+    - 54
+  - item: c-ttft.workload
+    kind: not_set
+    start: 3134
+    end: 3156
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: c-decode
+    kind: requirement
+    start: 3156
+    end: 3301
+    unset: true
+    cited_by:
+    - user_targets:tgt-decode-rate
+    by_uncertainty: false
+    cited_specifically_by:
+    - user_targets:tgt-decode-rate
+    widest_quote_touches: 1
+    quote_characters:
+    - 21
+    - 27
+  - item: c-decode.workload
+    kind: not_set
+    start: 3279
+    end: 3301
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: c-peak
+    kind: requirement
+    start: 3301
+    end: 3484
+    unset: true
+    cited_by:
+    - user_targets:tgt-peak-memory
+    by_uncertainty: false
+    cited_specifically_by:
+    - user_targets:tgt-peak-memory
+    widest_quote_touches: 1
+    quote_characters:
+    - 21
+    - 27
+  - item: c-peak.workload
+    kind: not_set
+    start: 3462
+    end: 3484
+    cited_by: []
+    by_uncertainty: false
+    cited_specifically_by: []
+    widest_quote_touches: 0
+    quote_characters: []
+  - item: allowed_transformations
+    kind: not_set
+    start: 3484
+    end: 3601
+    cited_by:
+    - uncertainties:unc-allowed-transformations
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-allowed-transformations
+    widest_quote_touches: 1
+    quote_characters:
+    - 83
+  - item: workload
+    kind: not_set
+    start: 3601
+    end: 3726
+    cited_by:
+    - uncertainties:unc-workload
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-workload
+    widest_quote_touches: 1
+    quote_characters:
+    - 91
+  - item: model_checkpoint
+    kind: not_set
+    start: 3737
+    end: 3866
+    cited_by:
+    - uncertainties:unc-checkpoint
+    by_uncertainty: true
+    cited_specifically_by:
+    - uncertainties:unc-checkpoint
+    widest_quote_touches: 1
+    quote_characters:
+    - 95
+  - item: deliverable reproducible_container
+    kind: stated
+    start: 3882
+    end: 3941
+    cited_by:
+    - in_scope:is-deliverables
+    by_uncertainty: false
+    cited_specifically_by:
+    - in_scope:is-deliverables
+    widest_quote_touches: 1
+    quote_characters:
+    - 52
+  - item: deliverable clean_rebuild
+    kind: stated
+    start: 3941
+    end: 4000
+    cited_by:
+    - in_scope:is-deliverables
+    by_uncertainty: false
+    cited_specifically_by:
+    - in_scope:is-deliverables
+    widest_quote_touches: 1
+    quote_characters:
+    - 19
+  - item: deliverable benchmark_report
+    kind: stated
+    start: 4000
+    end: 4059
+    cited_by:
+    - in_scope:is-deliverables
+    by_uncertainty: false
+    cited_specifically_by:
+    - in_scope:is-deliverables
+    widest_quote_touches: 1
+    quote_characters:
+    - 22
+  - item: deliverable replayable_run_artifacts
+    kind: stated
+    start: 4059
+    end: 4120
+    cited_by:
+    - in_scope:is-deliverables
+    by_uncertainty: false
+    cited_specifically_by:
+    - in_scope:is-deliverables
+    widest_quote_touches: 1
+    quote_characters:
+    - 30
+  per_source:
+    request:
+      characters: 312
+      cited: 155
+      entries: 3
+    target:
+      characters: 4120
+      cited: 1737
+      entries: 30
+    model:
+      characters: 4841
+      cited: 210
+      entries: 3
+    machine:
+      characters: 1770
+      cited: 164
+      entries: 5
+    system:
+      characters: 25327
+      cited: 1374
+      entries: 17
+    nodes:
+      characters: 17925
+      cited: 387
+      entries: 7
+  node_types_cited: {}
