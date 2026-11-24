@@ -1,0 +1,23 @@
+{
+ "format": "factory.prompt-manifest/1",
+ "tokenizer": "Muse-Spark-Open GGUF vocab (llama-tokenize, stock 9048bad8)",
+ "template": "chat_template.jinja (embedded in the GGUF; identical to the NVFP4 checkpoint chat_template.jinja)",
+ "template_parameters": {
+  "reasoning_effort": "low",
+  "current_date": "2026-11-30"
+ },
+ "how": "fit_prompts.py: binary search on word count until the rendered prompt is exactly the target token count",
+ "files": {
+  "2048.rendered.txt": "756ce9a8b2b1c1dd2985ca1aeda84669a237a514c8411dd7d25a56b312638f6b",
+  "2048.txt": "cdd5010713af776ea7711a30a490479b33781335a1c63672aa8547a096b2833d",
+  "512.rendered.txt": "a912e52f1618b6e398d0814200a80ae67615c3b94cdb3a6228d02ba1f156c6d4",
+  "512.txt": "980524e65ec3e2de160ada7210bbcb8b4af6cf2218a8eb4f09c2f4876012c575",
+  "calibration.jsonl": "713de85b047440f346faaeb3212e61622202308710ec7e79f08be2daa74d389a",
+  "chat_template.jinja": "2341a2d3b1f1b0ac92b6237d46e2fff495109bd3305cacdea54726f5e98411db",
+  "fit_prompts.py": "69c3ce080edf17e68f8cece09d386c639e77ece28463e40ac2449171fddb5b04"
+ },
+ "rendered_tokens": {
+  "512.txt": 512,
+  "2048.txt": 2048
+ }
+}
