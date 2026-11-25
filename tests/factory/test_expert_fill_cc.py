@@ -1,4 +1,4 @@
-"""engine.build_expert_fill 1.0.0 as the factory calls it.
+"""engine.build_expert_fill as the factory calls it.
 
 These tests seal the capsule in a CC v2 Host with the verifier grants of node_check and judge receipts with
 node_check.assess. Without a build and a tiny pack the verifier stops at the static stage, which must not
@@ -21,7 +21,7 @@ def test_declaration_fits_the_verifier_grants_and_stages():
     import yaml
     from jiuwenswarm.factory.node_check import STAGES, VERIFIER_GRANTS
     declaration = yaml.safe_load((CAPSULE / 'cc.yaml').read_text(encoding='utf-8'))
-    assert declaration['id'] == 'engine.build_expert_fill' and declaration['version'] == '1.0.0'
+    assert declaration['id'] == 'engine.build_expert_fill' and declaration['version'] == '1.0.1'
     verify = declaration['capabilities']['verify']
     assert set(verify['changes']) <= set(VERIFIER_GRANTS)
     assert {'checkout', 'diff_path', 'tiny_dir'} <= set(verify['takes'])
