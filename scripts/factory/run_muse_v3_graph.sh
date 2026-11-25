@@ -75,6 +75,7 @@ run)
   ;;
 _run)
   snapshot
+  (cd "$REPO" && "$PY" scripts/factory/import_prior_artifacts.py --host-reading $TASK)
   (while sleep 60; do snapshot; done) &
   ticker=$!
   cd "$REPO"

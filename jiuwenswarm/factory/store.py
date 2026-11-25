@@ -512,7 +512,7 @@ class ScopedStore:
     def append_observation(self, task_id, record):
         self._agent_id(record.get('obs_id'))
         if 'host_run' in record or record.get('kind') in {'build_result', 'lab_result', 'evaluation', 'admission', 'operator_intervention', 'taskgraph_patch', 'branch_workbench_operation', 'lab_request', 'lab_report', 'lab_answer', 'node_check',
-                                                                            'node_contract_final', 'node_contract_refusal', 'prior_artifact'}:
+                                                                            'node_contract_final', 'node_contract_refusal', 'prior_artifact', 'host_reading'}:
             raise ScopeDenied('Observation fields are reserved for the host')
         self._check(task_id, write=True)
         return self._store.append_observation(task_id, record)

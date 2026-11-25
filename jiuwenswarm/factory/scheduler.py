@@ -66,6 +66,16 @@ def _passed_output(host, task_id, node_id, output):
     return None
 
 
+def _contract_input(task, name):
+    from .contract import load
+    try:
+        declared = (load(task['contract_id']).get('inputs') or {}).get(name)
+    except (OSError, ValueError):
+        declared = None
+    label = f'input {name} of contract {task["contract_id"]}'
+    return dict(declared, input=label) if isinstance(declared, dict) else label
+
+
 def _resolve(host, task, contract_node, graph_nodes):
     """Inputs of a node, with producers named by node contract mapped to the planner's graph nodes."""
     by_contract = {}
@@ -78,7 +88,8 @@ def _resolve(host, task, contract_node, graph_nodes):
         if source.startswith('task:'):
             resolved[item['name']] = {'from': source, 'value': task.get(source[5:])}
         elif source.startswith('contract:'):
-            resolved[item['name']] = {'from': source, 'value': f'input {source[9:]} of contract {task["contract_id"]}'}
+            # The pinned declaration itself (digest, size, path), not just its name.
+            resolved[item['name']] = {'from': source, 'value': _contract_input(task, source[9:])}
         else:
             producer, _, output = source.partition('.')
             producers = sorted(by_contract.get(producer, []), key=lambda n: n['state'] != 'done')

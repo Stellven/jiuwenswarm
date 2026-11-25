@@ -65,5 +65,30 @@ def main(task_id):
         print(key, record['obs_id'], values['kind'], values['bytes'], values.get('sha256') or '')
 
 
+def host_reading(task_id):
+    """One operator record of kind host_reading: the machine state now (free disk, memory, what else runs)
+    and the memory cap policy every model load must run under. Recorded at each run start."""
+    store = Store(Path(os.environ['FACTORY_HOME']))
+    reading = json.loads(Path(os.environ['FACTORY_MACHINE_STATE']).read_text(encoding='utf-8'))
+    disk = os.statvfs(os.path.expanduser('~'))
+    reading['disk_home_free_bytes'] = disk.f_bavail * disk.f_frsize
+    for name in ('memory.max', 'memory.swap.max'):
+        try:
+            slice_ = Path('/proc/self/cgroup').read_text().strip().split('::')[-1]
+            reading.setdefault('cgroup_now', {})[name] = (Path('/sys/fs/cgroup') / slice_.lstrip('/') / name).read_text().strip()
+        except OSError:
+            pass
+    reading['memory_cap_policy'] = ('Every model load runs under systemd-run --user -p MemoryMax=96G -p MemorySwapMax=0 '
+                                    'with -lm mmap; this run loads no model.')
+    record = store.append_observation(task_id, dict(
+        kind='host_reading', values=reading,
+        host_run=dict(by='operator', script='scripts/factory/import_prior_artifacts.py --host-reading'),
+        limitations='A reading at run start; the scheduler brief carries a fresher one (machine).'))
+    print('host_reading', record['obs_id'], reading['disk_home_free_bytes'], reading['memory_mib'])
+
+
 if __name__ == '__main__':
-    main(sys.argv[1])
+    if sys.argv[1] == '--host-reading':
+        host_reading(sys.argv[2])
+    else:
+        main(sys.argv[1])
