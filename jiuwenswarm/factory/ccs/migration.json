@@ -390,6 +390,12 @@
       "old_release": "f703105049117a9449f73f7ce2d2e87e3dcacc866a04544ce1b15af46a35ad00",
       "new_release": "f703105049117a9449f73f7ce2d2e87e3dcacc866a04544ce1b15af46a35ad00",
       "initial_canonical_release": "f703105049117a9449f73f7ce2d2e87e3dcacc866a04544ce1b15af46a35ad00"
+    },
+    {
+      "path": "paired_accuracy/cc.yaml",
+      "old_release": "f0213809391a03757c5e40ac8c71c4ed6777aaf2d64605f0e01e0368c7362ab9",
+      "new_release": "f0213809391a03757c5e40ac8c71c4ed6777aaf2d64605f0e01e0368c7362ab9",
+      "initial_canonical_release": "f0213809391a03757c5e40ac8c71c4ed6777aaf2d64605f0e01e0368c7362ab9"
     }
   ],
   "new_packages": [
