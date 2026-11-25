@@ -43,6 +43,16 @@
    "title": "Write a precision recipe and requantize the NVFP4 pack to a 2-bit pack: routed experts to Q2_K, everything else kept at its source type."
   },
   {
+   "node_id": "measure_accuracy",
+   "node_contract": "measure_accuracy",
+   "depends_on": [
+    "requant_q2",
+    "build_base_engine",
+    "ingest_nvfp4"
+   ],
+   "title": "Measure how much accuracy the Q2 pack loses against the NVFP4 pack on MMLU, paired question by question, and stop at the first planned checkpoint where the interval of the loss decides it against the margin."
+  },
+  {
    "node_id": "record_profile",
    "node_contract": "record_profile",
    "depends_on": [
@@ -81,7 +91,8 @@
    "node_contract": "deliver_to_lab",
    "depends_on": [
     "build_candidate",
-    "size_prefill_batch"
+    "size_prefill_batch",
+    "measure_accuracy"
    ],
    "title": "Send E0, E1, both packs, the profile, the prefill batch plan and the lab task for arms A, B, C and D to the lab manager."
   }

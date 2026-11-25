@@ -1,7 +1,7 @@
 {
  "schema": "factory.contract/2",
  "contract_id": "muse-q2-ttft-v2",
- "version": 2,
+ "version": 3,
  "title": "Muse Spark Open on DGX Spark: NVFP4 to Q2 requantization, the seeded expert cache and prefill batch sizing",
  "purpose": "Starting from stock llama.cpp and the official Muse Spark Open NVFP4 checkpoint, how much do time to first token, decode rate and total request time change when the routed experts are requantized to Q2_K, again when the profile-seeded expert cache is added, and again when the prefill batch is sized so each prompt streams the experts once?",
  "scope": {
@@ -9,10 +9,11 @@
    "client time to first token, decode tokens per second and total request time at 512 and 2048 rendered prompt tokens, cold and warm",
    "the NVFP4 GGUF pack built from the official checkpoint, and a Q2_K requantization of it",
    "greedy output parity with the cache gate unset, and the activation marker with it set",
-   "the server prefill batch size chosen by the prefill batch sizing capsule"
+   "the server prefill batch size chosen by the prefill batch sizing capsule",
+   "paired MMLU accuracy of the Q2 pack against the NVFP4 pack: non-inferiority within 5 points"
   ],
   "excludes": [
-   "accuracy benchmarks; Q2 quality is a sanity check, not a claim",
+   "accuracy beyond the paired MMLU zero-shot gate (generation quality, reasoning, long contexts)",
    "image, audio and video inputs",
    "throughput under concurrent requests",
    "hardware other than one DGX Spark"
@@ -60,6 +61,12 @@
    "size": 10234,
    "description": "Fixed text that renders to 2048 tokens with the Muse no-thinking chat template.",
    "repo_path": "ops/spark/prompts/muse/2048.txt"
+  },
+  "mmlu_test": {
+   "media_type": "application/x-tar",
+   "sha256": "bec563ba4bac1d6aaf04141cd7d1605d7a5ca833e38f994051e818489592989b",
+   "size": 166184960,
+   "description": "MMLU (Hendrycks et al.) data.tar from https://people.eecs.berkeley.edu/~hendrycks/data.tar; the test split, 57 subjects, 14,042 questions."
   },
   "calibration_prompts": {
    "media_type": "application/jsonl",
@@ -303,6 +310,13 @@
     ]
    },
    {
+    "id": "q2_accuracy",
+    "does": "Paired MMLU zero-shot accuracy of the Q2 pack against the NVFP4 pack on E0: at the first decisive planned checkpoint the upper bound of the loss is below 5 points (eval.paired_accuracy).",
+    "applies_to": [
+     "B"
+    ]
+   },
+   {
     "id": "cold_smoke",
     "does": "One cold request under the memory cap returns coherent text.",
     "applies_to": [
@@ -316,7 +330,7 @@
  "acceptance": {
   "rules": [
    "A timed cell counts only when the machine is quiet: load below 1.0 and no builds running.",
-   "B and C differ from A in their weights, so their outputs are not expected to match A; correctness for B, C and D is the pack census, coherent text, for C parity with B when the gate is unset, and for D agreement with C.",
+   "B and C differ from A in their weights, so their outputs are not expected to match A; correctness for B, C and D is the pack census, coherent text, for B the paired MMLU accuracy gate against A, for C parity with B when the gate is unset, and for D agreement with C.",
    "Speed is reported as change against A, per prompt size, cold and warm separately.",
    "Failures and no-gain results are reported, not dropped."
   ]
@@ -337,7 +351,8 @@
   "notes": [
    "Task graph written by hand as the demo starting point (no intake).",
    "The seeded expert cache is the earlier change measured on DeepSeek V4.1 Flash (engine.build_expert_weight_cache).",
-   "Revision 2 adds arm D and node size_prefill_batch after a probe on the Spark: arm B with -b 2048 -ub 2048 cut cold 2047-token TTFT from 311 s to 120 s with decode unchanged."
+   "Revision 2 adds arm D and node size_prefill_batch after a probe on the Spark: arm B with -b 2048 -ub 2048 cut cold 2047-token TTFT from 311 s to 120 s with decode unchanged.",
+   "Revision 3 adds node measure_accuracy: the Q2 pack must lose less than 5 MMLU points against the NVFP4 pack (paired, planned checkpoints, eval.paired_accuracy) before the lab."
   ]
  },
  "extensions": {
@@ -724,6 +739,85 @@
      "hands_to": "record_profile"
     },
     {
+     "node_id": "measure_accuracy",
+     "kind": "measure",
+     "objective": "Measure how much accuracy the Q2 pack loses against the NVFP4 pack on MMLU, paired question by question, and stop at the first planned checkpoint where the interval of the loss decides it against the margin.",
+     "requirement_ids": [
+      "B",
+      "q2_accuracy"
+     ],
+     "predecessors": [
+      "requant_q2",
+      "build_base_engine",
+      "ingest_nvfp4"
+     ],
+     "inputs": [
+      {
+       "name": "q2_pack",
+       "from": "requant_q2.q2_pack"
+      },
+      {
+       "name": "nvfp4_pack",
+       "from": "ingest_nvfp4.nvfp4_pack"
+      },
+      {
+       "name": "base_engine",
+       "from": "build_base_engine.base_engine"
+      },
+      {
+       "name": "mmlu_test",
+       "from": "contract:mmlu_test"
+      }
+     ],
+     "outputs": [
+      {
+       "name": "accuracy",
+       "kind": "evidence",
+       "criteria": [
+        "A muse-paired-accuracy/1 state: both arms scored on the same canonical zero-shot prompts, in the seeded order of the full MMLU test set, on real capped server loads of E0.",
+        "The paired interval of the loss acc(NVFP4) - acc(Q2) at the first decisive planned checkpoint has its upper bound below 5 points."
+       ]
+      }
+     ],
+     "evidence_obligations": [
+      "captured_input_and_output",
+      "invocation_observation",
+      "mandatory_checks"
+     ],
+     "node_limits": {
+      "turns": 20,
+      "time_s": 21600,
+      "gpu_launches": 6
+     },
+     "authority_ceiling": {
+      "effects": [
+       "workspace.read",
+       "process.exec"
+      ],
+      "workspace": "read"
+     },
+     "work": {
+      "helpful_ccs": [
+       "eval.paired_accuracy",
+       "factory.lab_manager"
+      ],
+      "capability": "eval.paired_accuracy.verify"
+     },
+     "verifiers": [
+      {
+       "output": "accuracy",
+       "verifier": "eval.paired_accuracy.verify",
+       "stage": "runtime acceptance",
+       "review": true,
+       "inputs": {
+        "margin_pts": 5,
+        "min_letter_mass": 0.5
+       }
+      }
+     ],
+     "hands_to": "deliver_to_lab"
+    },
+    {
      "node_id": "record_profile",
      "kind": "measure",
      "objective": "Record which experts the Q2 pack routes to on calibration prompts that do not overlap the lab prompts.",
@@ -1026,7 +1120,8 @@
      ],
      "predecessors": [
       "build_candidate",
-      "size_prefill_batch"
+      "size_prefill_batch",
+      "measure_accuracy"
      ],
      "inputs": [
       {
@@ -1036,6 +1131,10 @@
       {
        "name": "batch_plan",
        "from": "size_prefill_batch.batch_plan"
+      },
+      {
+       "name": "accuracy",
+       "from": "measure_accuracy.accuracy"
       }
      ],
      "outputs": [
