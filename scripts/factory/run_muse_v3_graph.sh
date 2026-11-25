@@ -68,11 +68,17 @@ setup)
   "$PY" -m jiuwenswarm.factory.cli init jiuwenswarm/factory/tasks/muse-q2-ttft-v3.json
   ;;
 run)
+  # The tmux server keeps its own environment: the session calls back into this script, which sets ours.
+  tmux new-session -d -s muse-graph "bash '$(readlink -f "$0")' _run"
+  echo "controller in tmux muse-graph; log $FACTORY_HOME/controller.log"
+  ;;
+_run)
   snapshot
-  log=$FACTORY_HOME/controller.log
-  tmux new-session -d -s muse-graph "cd '$REPO'; (while sleep 60; do bash '$0' snapshot; done) & \
-     '$PY' scripts/factory/muse_v3_controller.py $TASK ${GRANTS[*]} 2>&1 | tee -a '$log'; kill %1"
-  echo "controller in tmux muse-graph; log $log"
+  (while sleep 60; do snapshot; done) &
+  ticker=$!
+  cd "$REPO"
+  "$PY" scripts/factory/muse_v3_controller.py $TASK "${GRANTS[@]}" 2>&1 | tee -a "$FACTORY_HOME/controller.log" || true
+  kill $ticker
   ;;
 snapshot)
   snapshot
