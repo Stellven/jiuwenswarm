@@ -1,0 +1,15 @@
+{
+  "capabilities": {
+    "plan": "tool",
+    "verify": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "method": "method",
+    "ontology": "reference",
+    "sample_baseline_log": "reference",
+    "sample_planned_log": "reference",
+    "sample_rows": "reference",
+    "validation": "method"
+  }
+}

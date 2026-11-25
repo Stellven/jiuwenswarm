@@ -1,0 +1,33 @@
+id: satay.expert-fill-ontology
+version: '0.1'
+status: provisional
+entities:
+  component: Expert fill (atlas engine.expert_streaming, subcomponent expert_fill) - engine code that, after the router of a layer selects its experts, reads the selected experts' non-resident mmap byte ranges with a pool of parallel buffered reads before the expert matmuls touch them.
+  parts:
+    router_hook: The point where the selected expert ids are known and the expert matmuls have not yet run (stock 9048bad8 - the scheduler eval callback on node ffn_moe_topk-<il>).
+    read_pool: Worker threads issuing pread of page-aligned chunks of the non-resident ranges (queue depth = threads).
+    residency_probe: mincore over the selected ranges; resident pages are skipped.
+    gate: LLAMA_EXPERT_FILL (default 0) and its tuning knobs; unset means the stock path.
+    fill_stats: The teardown line expert_fill stats calls, bytes_read, reads, fill_us and friends.
+  engine_revision: Pinned llama.cpp revision and candidate patch identity.
+  tiny_pack: A tiny MoE GGUF whose expert tensors stay mmap-backed (tiny-q2exps.gguf from the Muse tiny fixtures).
+  observation_point: Field of a capability result.
+  quantity: Value with a unit, phase and region.
+  regions:
+    L4.expert_matmul: expert_matmul
+    M.expert_residency: expert_residency
+relations:
+  modifies_region: component -> engine region
+  reads: component -> router_hook
+  measures: observation_point -> quantity
+observation_points:
+  verify_checks: 'verify.checks'
+quantities:
+  fill.calls: {unit: count, phase: decode, source: {line: 'verify.checks', field: fill_stats}, region: M.expert_residency, distinct_from: [fill.bytes_read]}
+  fill.bytes_read: {unit: bytes, phase: decode, source: {line: 'verify.checks', field: fill_stats}, region: M.expert_residency, distinct_from: [fill.calls]}
+  fill.wall_us: {unit: us, phase: decode, source: {line: 'verify.checks', field: fill_stats}, region: M.expert_residency}
+slices:
+  demand_fill:
+    purpose: Turn the serial page faults of the selected experts into parallel reads issued between routing and the expert matmuls, without changing what is computed.
+    regions: [M.expert_residency, L4.expert_matmul]
+    quantities: [fill.calls, fill.bytes_read, fill.wall_us]

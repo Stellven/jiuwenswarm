@@ -1,0 +1,64 @@
+kind: builder_spec
+component: Expert fill
+atlas_subcomponent: engine.expert_streaming.expert_fill
+title: Expert fill builder
+base:
+  repo: https://github.com/ggml-org/llama.cpp
+  commit: 9048bad8d6e3a0f9f1726e238e451181c7e02613
+  pre_integration_commit: 9048bad8d6e3a0f9f1726e238e451181c7e02613
+change:
+  touches:
+    - src/llama-context.cpp
+    - src/llama-context.h
+    - src/llama-expert-fill.h
+  may_touch:
+    - src/llama-expert-fill.cpp
+    - src/CMakeLists.txt
+    - src/llama-cparams.h
+    - src/llama-mmap.cpp
+    - src/llama-mmap.h
+    - src/llama-model.cpp
+    - src/llama-model.h
+    - src/llama-model-loader.cpp
+    - src/llama-model-loader.h
+    - ggml/include/ggml-backend.h
+    - ggml/src/ggml-backend.cpp
+  protected:
+    - ggml/src/ggml-cpu/
+    - ggml/src/ggml-cuda/
+    - src/models/
+    - src/llama-graph.cpp
+    - src/llama-graph.h
+    - gguf-py/
+    - conversion/
+    - include/llama.h
+  kind: runtime
+supported:
+  host: {name: dgx-spark-gb10, arch: aarch64, os: linux}
+  models: Any MoE whose graph names the router output ffn_moe_topk-<il> (build_moe_ffn) with mmap-backed host experts (-lm mmap, --cpu-moe or CPU-only); Muse Spark Open is the target.
+  dtype: any; repacked (CPU_REPACK) or device-resident experts are skipped and counted as unmapped
+configuration:
+  env:
+    LLAMA_EXPERT_FILL: {default: '0', values: ['0', '1']}
+    LLAMA_EXPERT_FILL_THREADS: {default: '8', range: [1, 64]}
+    LLAMA_EXPERT_FILL_CHUNK_KIB: {default: '1024', range: [64, 65536]}
+    LLAMA_EXPERT_FILL_MAX_TOKENS: {default: '1', note: 'fill only ubatches with at most this many tokens (decode); 0 = every ubatch'}
+    LLAMA_EXPERT_FILL_SKIP_RESIDENT: {default: '1', note: '0 reads every selected range (calibration)'}
+  source: >-
+    Build the fill in the owned checkout as GUIDE.md and METHOD.md direct. The env names and the marker and stats
+    line formats are the contract the verifier reads; the knobs other than LLAMA_EXPERT_FILL and
+    LLAMA_EXPERT_FILL_SKIP_RESIDENT and LLAMA_EXPERT_FILL_MAX_TOKENS are free.
+engagement_checks:
+  - 'one "expert_fill: active ..." line per context with LLAMA_EXPERT_FILL=1, none without'
+  - '"expert_fill: stats calls=N ... bytes_read=N reads=N ... fill_us=N" at context teardown (llama-server: -lv 4)'
+correctness_obligations:
+  - Greedy output byte-identical to stock with the gate unset and set.
+  - Prefill ubatches are not filled with the default knobs.
+  - No NaN; perplexity with the fill on every ubatch equals stock.
+rollback:
+  source: Unset LLAMA_EXPERT_FILL (runtime), or revert the change in the owned checkout.
+  image: Restore the previously admitted base engine image.
+acceptance:
+  type: correctness
+  performance: Decode tok/s on the full pack is a separate lab A/B (stock-as-documented vs gate set), not part of verify.
+modifies_region: [M.expert_residency, L4.expert_matmul]

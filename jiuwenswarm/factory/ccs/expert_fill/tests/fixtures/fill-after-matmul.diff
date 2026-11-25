@@ -1,0 +1,456 @@
+diff --git a/src/llama-context.cpp b/src/llama-context.cpp
+index 969989ab5..dafa31ca9 100644
+--- a/src/llama-context.cpp
++++ b/src/llama-context.cpp
+@@ -230,6 +230,21 @@ llama_context::llama_context(
+     cparams.cb_eval           = params.cb_eval;
+     cparams.cb_eval_user_data = params.cb_eval_user_data;
+ 
++    {
++        const auto fill_cfg = llama_expert_fill_config::from_env();
++        if (fill_cfg.enabled && LLAMA_EXPERT_FILL_SUPPORTED) {
++            expert_fill           = std::make_unique<llama_expert_fill>(fill_cfg);
++            expert_fill_user_cb   = cparams.cb_eval;
++            expert_fill_user_data = cparams.cb_eval_user_data;
++            cparams.cb_eval           = expert_fill_eval;
++            cparams.cb_eval_user_data = this;
++            LLAMA_LOG_INFO("expert_fill: active threads=%d chunk_kib=%zu max_tokens=%u skip_resident=%d\n",
++                    fill_cfg.threads, fill_cfg.chunk/1024, fill_cfg.max_tokens, fill_cfg.skip_resident ? 1 : 0);
++        } else if (fill_cfg.enabled) {
++            LLAMA_LOG_WARN("expert_fill: inactive (needs Linux /proc/self/maps, mincore and pread)\n");
++        }
++    }
++
+     cparams.ctx_other = nullptr;
+ 
+     // TODO: more generic
+@@ -634,6 +649,16 @@ llama_context::~llama_context() {
+     // wait for any pending asynchronous copies into the output buffers before they are freed
+     synchronize();
+ 
++    if (expert_fill) {
++        const auto & s = expert_fill->stats;
++        LLAMA_LOG_INFO("expert_fill: stats calls=%llu ranges=%llu bytes_requested=%llu bytes_resident=%llu "
++                "bytes_read=%llu reads=%llu read_errors=%llu unmapped=%llu fill_us=%llu max_fill_us=%llu\n",
++                (unsigned long long) s.calls, (unsigned long long) s.ranges, (unsigned long long) s.bytes_requested,
++                (unsigned long long) s.bytes_resident, (unsigned long long) s.bytes_read, (unsigned long long) s.reads,
++                (unsigned long long) s.read_errors, (unsigned long long) s.unmapped,
++                (unsigned long long) (s.fill_ns/1000), (unsigned long long) (s.max_fill_ns/1000));
++    }
++
+     // when training, ggml_opt allocates extra buffers through the scheduler, so the sizes no longer match the expectation
+     if (!model.no_alloc() && !opt_ctx) {
+         for (size_t i = 0; i < backend_ptrs.size(); ++i) {
+@@ -1824,6 +1849,10 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
+     auto * res = get_gf_res_prev();
+     auto * gf  = res->get_gf();
+ 
++    // the fill serves decode by default: prefill ubatches (more than max_tokens tokens) are not filled
++    expert_fill_this_ubatch = expert_fill &&
++        (expert_fill->cfg.max_tokens == 0 || ubatch.n_tokens <= expert_fill->cfg.max_tokens);
++
+     // the new graph parameters
+     // in order to correctly reuse a graph, it's full topology has to be uniquely determined by these parameters
+     const auto gparams = graph_params(res, ubatch, mctx, gtype);
+@@ -3156,6 +3185,60 @@ ggml_status llama_context::graph_compute(
+     return status;
+ }
+ 
++bool llama_context::expert_fill_eval(ggml_tensor * t, bool ask, void * user_data) {
++    auto * lctx = static_cast<llama_context *>(user_data);
++    static const char prefix[] = "ffn_moe_down-";
++    const bool ours = lctx->expert_fill_this_ubatch && std::strncmp(ggml_get_name(t), prefix, sizeof(prefix) - 1) == 0;
++    auto * user = lctx->expert_fill_user_cb;
++    if (ask) {
++        return ours || (user && user(t, true, lctx->expert_fill_user_data));
++    }
++    if (ours) {
++        lctx->expert_fill_layer(t);
++    }
++    if (user && user(t, true, lctx->expert_fill_user_data)) {
++        return user(t, false, lctx->expert_fill_user_data);
++    }
++    return true;
++}
++
++void llama_context::expert_fill_layer(const ggml_tensor * topk) {
++    const int il = std::atoi(ggml_get_name(topk) + std::strlen("ffn_moe_down-"));
++    if (il < 0 || il >= (int) model.layers.size() || topk->type != GGML_TYPE_I32 || topk->buffer == nullptr) {
++        return;
++    }
++    // the router output: [n_expert_used, n_tokens] I32, possibly a strided view
++    std::vector<uint8_t> raw(ggml_nbytes(topk));
++    ggml_backend_tensor_get(topk, raw.data(), 0, raw.size());
++
++    const auto & layer = model.layers[il];
++    const ggml_tensor * exps[] = { layer.ffn_up_exps, layer.ffn_gate_exps, layer.ffn_down_exps, layer.ffn_gate_up_exps };
++
++    std::vector<int32_t> ids;
++    for (int64_t i1 = 0; i1 < topk->ne[1]; ++i1) {
++        for (int64_t i0 = 0; i0 < topk->ne[0]; ++i0) {
++            int32_t id;
++            std::memcpy(&id, raw.data() + i1*topk->nb[1] + i0*topk->nb[0], sizeof(id));
++            ids.push_back(id);
++        }
++    }
++    std::sort(ids.begin(), ids.end());
++    ids.erase(std::unique(ids.begin(), ids.end()), ids.end());
++
++    std::vector<std::pair<const uint8_t *, size_t>> ranges;
++    for (const ggml_tensor * w : exps) {
++        if (w == nullptr || w->data == nullptr || w->buffer == nullptr || !ggml_backend_buffer_is_host(w->buffer)) {
++            continue;
++        }
++        for (const int32_t id : ids) {
++            if (id >= 0 && id < w->ne[2]) {
++                ranges.emplace_back((const uint8_t *) w->data + (size_t) id*w->nb[2], (size_t) w->nb[2]);
++            }
++        }
++    }
++    expert_fill->fill(ranges);
++}
++
+ bool llama_context::sched_copy_experts(ggml_backend_t backend, const ggml_tensor * src, ggml_tensor * dst, ggml_cgraph * graph, void * user_data) {
+     auto * lctx = static_cast<llama_context *>(user_data);
+ 
+diff --git a/src/llama-context.h b/src/llama-context.h
+index 3e3921c7d..3d7a2978f 100644
+--- a/src/llama-context.h
++++ b/src/llama-context.h
+@@ -8,6 +8,7 @@
+ #include "llama-impl.h"
+ #include "llama-memory.h"
+ #include "llama-moe-cache.h"
++#include "llama-expert-fill.h"
+ 
+ #include "ggml-cpp.h"
+ #include "ggml-opt.h"
+@@ -426,6 +427,16 @@ private:
+ 
+     copy_experts_info copy_experts;
+ 
++    // demand-driven parallel expert fill (LLAMA_EXPERT_FILL=1), see llama-expert-fill.h
++    std::unique_ptr<llama_expert_fill> expert_fill;
++    ggml_backend_sched_eval_callback   expert_fill_user_cb      = nullptr;
++    void *                             expert_fill_user_data    = nullptr;
++    bool                               expert_fill_this_ubatch  = false;
++
++    // eval callback: after the router node ffn_moe_topk-<il>, before the expert matmuls, fill the selected experts
++    static bool expert_fill_eval(ggml_tensor * t, bool ask, void * user_data);
++    void expert_fill_layer(const ggml_tensor * topk);
++
+     // graph reallocations during inference where the backend assignments did not change, split by whether the
+     // graph size is the same as the previously scheduled one (unexpected) or different
+     int32_t n_reallocs_same = 0;
+diff --git a/src/llama-expert-fill.h b/src/llama-expert-fill.h
+new file mode 100644
+index 000000000..13210351a
+--- /dev/null
++++ b/src/llama-expert-fill.h
+@@ -0,0 +1,306 @@
++#pragma once
++
++// Demand-driven parallel expert fill (off by default; LLAMA_EXPERT_FILL=1 turns it on).
++//
++// After the router of a layer has selected its experts (the ffn_moe_topk-<il> node) and before the expert
++// matmuls run, the selected experts' byte ranges that are mmap-backed and not resident in the page cache are
++// read with a pool of parallel buffered preads, so the matmuls take minor faults instead of serial major faults.
++// The fill only warms the page cache: it never writes tensor data and never changes the graph.
++//
++// Environment (read once per context):
++//   LLAMA_EXPERT_FILL=0|1                 default 0 (off)
++//   LLAMA_EXPERT_FILL_THREADS=1..64       default 8 (read queue depth)
++//   LLAMA_EXPERT_FILL_CHUNK_KIB=64..65536 default 1024 (bytes per pread)
++//   LLAMA_EXPERT_FILL_MAX_TOKENS=0..      default 1 (fill only ubatches of at most this many tokens: decode;
++//                                         0 = every ubatch, prefill included)
++//   LLAMA_EXPERT_FILL_SKIP_RESIDENT=0|1   default 1 (mincore first; 0 reads every selected range, for calibration)
++
++#include "ggml.h"
++
++#include <algorithm>
++#include <chrono>
++#include <condition_variable>
++#include <cstdint>
++#include <cstdio>
++#include <cstdlib>
++#include <cstring>
++#include <map>
++#include <mutex>
++#include <string>
++#include <thread>
++#include <utility>
++#include <vector>
++
++#if defined(__linux__)
++#include <fcntl.h>
++#include <sys/mman.h>
++#include <unistd.h>
++#define LLAMA_EXPERT_FILL_SUPPORTED 1
++#else
++#define LLAMA_EXPERT_FILL_SUPPORTED 0
++#endif
++
++struct llama_expert_fill_config {
++    bool     enabled       = false;
++    int      threads       = 8;
++    size_t   chunk         = 1u << 20;
++    uint32_t max_tokens    = 1;
++    bool     skip_resident = true;
++
++    static long env_long(const char * name, long def, long lo, long hi) {
++        const char * v = std::getenv(name);
++        if (v == nullptr || *v == '\0') {
++            return def;
++        }
++        char * end = nullptr;
++        const long x = std::strtol(v, &end, 10);
++        if (end == v || *end != '\0' || x < lo || x > hi) {
++            return def;
++        }
++        return x;
++    }
++
++    static llama_expert_fill_config from_env() {
++        llama_expert_fill_config c;
++        c.enabled       = env_long("LLAMA_EXPERT_FILL", 0, 0, 1) == 1;
++        c.threads       = (int) env_long("LLAMA_EXPERT_FILL_THREADS", 8, 1, 64);
++        c.chunk         = (size_t) env_long("LLAMA_EXPERT_FILL_CHUNK_KIB", 1024, 64, 65536) * 1024;
++        c.max_tokens    = (uint32_t) env_long("LLAMA_EXPERT_FILL_MAX_TOKENS", 1, 0, 1L << 30);
++        c.skip_resident = env_long("LLAMA_EXPERT_FILL_SKIP_RESIDENT", 1, 0, 1) == 1;
++        return c;
++    }
++};
++
++struct llama_expert_fill_stats {
++    uint64_t calls           = 0; // layers filled
++    uint64_t ranges          = 0; // expert ranges considered
++    uint64_t bytes_requested = 0; // bytes of the selected experts
++    uint64_t bytes_resident  = 0; // already in the page cache (skipped)
++    uint64_t bytes_read      = 0;
++    uint64_t reads           = 0; // pread calls
++    uint64_t read_errors     = 0;
++    uint64_t unmapped        = 0; // ranges not backed by a file mapping (skipped)
++    uint64_t fill_ns         = 0;
++    uint64_t max_fill_ns     = 0;
++};
++
++class llama_expert_fill {
++public:
++    explicit llama_expert_fill(const llama_expert_fill_config & cfg) : cfg(cfg) {
++        for (int i = 0; i < cfg.threads; ++i) {
++            workers.emplace_back([this] { work(); });
++        }
++    }
++
++    ~llama_expert_fill() {
++        {
++            std::lock_guard<std::mutex> lk(mtx);
++            stop = true;
++        }
++        cv_work.notify_all();
++        for (auto & w : workers) {
++            w.join();
++        }
++#if LLAMA_EXPERT_FILL_SUPPORTED
++        for (auto & kv : fds) {
++            if (kv.second >= 0) {
++                close(kv.second);
++            }
++        }
++#endif
++    }
++
++    const llama_expert_fill_config cfg;
++    llama_expert_fill_stats        stats;
++
++    // read the non-resident parts of [addr, addr + len) for each range; returns when every read finished
++    void fill(const std::vector<std::pair<const uint8_t *, size_t>> & ranges) {
++        const auto t0 = std::chrono::steady_clock::now();
++        std::vector<task> todo;
++        for (const auto & r : ranges) {
++            stats.ranges++;
++            stats.bytes_requested += r.second;
++            plan(r.first, r.second, todo);
++        }
++        if (!todo.empty()) {
++            {
++                std::lock_guard<std::mutex> lk(mtx);
++                tasks   = std::move(todo);
++                next    = 0;
++                pending = tasks.size();
++            }
++            cv_work.notify_all();
++            std::unique_lock<std::mutex> lk(mtx);
++            cv_done.wait(lk, [this] { return pending == 0; });
++            tasks.clear();
++        }
++        const uint64_t ns = (uint64_t) std::chrono::duration_cast<std::chrono::nanoseconds>(
++                std::chrono::steady_clock::now() - t0).count();
++        stats.calls++;
++        stats.fill_ns    += ns;
++        stats.max_fill_ns = std::max(stats.max_fill_ns, ns);
++    }
++
++private:
++    struct task {
++        int      fd;
++        uint64_t off;
++        size_t   len;
++    };
++
++    struct region {
++        uintptr_t   start;
++        uintptr_t   end;
++        uint64_t    pgoff;
++        std::string path;
++    };
++
++    std::vector<region>        regions;
++    std::map<std::string, int> fds;
++
++    std::mutex              mtx;
++    std::condition_variable cv_work;
++    std::condition_variable cv_done;
++    std::vector<task>       tasks;
++    size_t                  next    = 0;
++    size_t                  pending = 0;
++    bool                    stop    = false;
++    std::vector<std::thread> workers;
++
++    void load_maps() {
++        regions.clear();
++        FILE * f = std::fopen("/proc/self/maps", "r");
++        if (f == nullptr) {
++            return;
++        }
++        char line[4096];
++        while (std::fgets(line, sizeof(line), f)) {
++            unsigned long long s = 0, e = 0, off = 0;
++            char perms[8] = {0};
++            int  n = 0;
++            if (std::sscanf(line, "%llx-%llx %7s %llx %*s %*s %n", &s, &e, perms, &off, &n) < 4 || n <= 0) {
++                continue;
++            }
++            std::string path(line + n);
++            while (!path.empty() && (path.back() == '\n' || path.back() == ' ')) {
++                path.pop_back();
++            }
++            if (path.empty() || path[0] != '/') {
++                continue;
++            }
++            regions.push_back({ (uintptr_t) s, (uintptr_t) e, (uint64_t) off, path });
++        }
++        std::fclose(f);
++    }
++
++    const region * find(uintptr_t a, size_t len, bool retry = true) {
++        for (const auto & r : regions) {
++            if (a >= r.start && a + len <= r.end) {
++                return &r;
++            }
++        }
++        if (retry) {
++            load_maps();
++            return find(a, len, false);
++        }
++        return nullptr;
++    }
++
++    int fd_of(const std::string & path) {
++#if LLAMA_EXPERT_FILL_SUPPORTED
++        auto it = fds.find(path);
++        if (it == fds.end()) {
++            it = fds.emplace(path, open(path.c_str(), O_RDONLY | O_CLOEXEC)).first;
++        }
++        return it->second;
++#else
++        (void) path;
++        return -1;
++#endif
++    }
++
++    // split the non-resident pages of one range into pread tasks
++    void plan(const uint8_t * addr, size_t len, std::vector<task> & out) {
++#if LLAMA_EXPERT_FILL_SUPPORTED
++        if (len == 0) {
++            return;
++        }
++        const region * r = find((uintptr_t) addr, len);
++        const int fd = r ? fd_of(r->path) : -1;
++        if (r == nullptr || fd < 0) {
++            stats.unmapped++;
++            return;
++        }
++        const size_t    page  = (size_t) sysconf(_SC_PAGESIZE);
++        const uintptr_t first = (uintptr_t) addr & ~(uintptr_t) (page - 1);
++        const uintptr_t last  = ((uintptr_t) addr + len + page - 1) & ~(uintptr_t) (page - 1);
++        const size_t    npage = (last - first) / page;
++        std::vector<unsigned char> res(npage, 0);
++        if (cfg.skip_resident && mincore((void *) first, last - first, res.data()) != 0) {
++            std::fill(res.begin(), res.end(), 0);
++        }
++        size_t p = 0;
++        while (p < npage) {
++            if (res[p] & 1) {
++                stats.bytes_resident += page;
++                p++;
++                continue;
++            }
++            size_t q = p;
++            while (q < npage && !(res[q] & 1)) {
++                q++;
++            }
++            uint64_t off = r->pgoff + (first + p*page - r->start);
++            size_t   n   = (q - p)*page;
++            while (n > 0) {
++                const size_t c = std::min(n, cfg.chunk);
++                out.push_back({ fd, off, c });
++                off += c;
++                n   -= c;
++            }
++            p = q;
++        }
++#else
++        (void) addr;
++        (void) len;
++        (void) out;
++        stats.unmapped++;
++#endif
++    }
++
++    void work() {
++        std::vector<uint8_t> buf(cfg.chunk);
++        for (;;) {
++            task t;
++            {
++                std::unique_lock<std::mutex> lk(mtx);
++                cv_work.wait(lk, [this] { return stop || next < tasks.size(); });
++                if (stop) {
++                    return;
++                }
++                t = tasks[next++];
++            }
++            uint64_t got = 0, nread = 0, errs = 0;
++#if LLAMA_EXPERT_FILL_SUPPORTED
++            while (got < t.len) {
++                const ssize_t r = pread(t.fd, buf.data(), std::min(buf.size(), (size_t) (t.len - got)), (off_t) (t.off + got));
++                nread++;
++                if (r <= 0) {
++                    errs++;
++                    break;
++                }
++                got += (uint64_t) r;
++            }
++#endif
++            {
++                std::lock_guard<std::mutex> lk(mtx);
++                stats.bytes_read  += got;
++                stats.reads       += nread;
++                stats.read_errors += errs;
++                if (--pending == 0) {
++                    cv_done.notify_all();
++                }
++            }
++        }
++    }
++};

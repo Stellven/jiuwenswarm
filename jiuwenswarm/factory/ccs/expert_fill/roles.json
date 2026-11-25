@@ -1,0 +1,20 @@
+{
+  "capabilities": {
+    "verify": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "expert_fill": "component",
+    "fill_verifier": "reference",
+    "guide": "skill",
+    "helper_fill_runs": "reference",
+    "helpers": "reference",
+    "method": "method",
+    "ontology": "reference",
+    "sample_acceptance_run": "reference",
+    "sample_read_pool": "reference",
+    "sample_router_hook": "reference",
+    "source_map": "reference",
+    "validation": "method"
+  }
+}

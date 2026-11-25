@@ -1,0 +1,117 @@
+{
+ "source": "DGX Spark lab 2026-11-24/25: Muse Spark Open Q2_K pack on stock+wiring E0, -lm mmap --cpu-moe --moe-cache-mib 61440 -c 4096 -np 1; baseline = default batch, candidate = -b 2048 -ub 2048",
+ "baseline": [
+  {
+   "request": "p512",
+   "state": "cold",
+   "repeat": 0,
+   "client_ttft_ms": 135322.0,
+   "prompt_tokens": 511,
+   "decode_tokens_per_second": 0.6724131767399173,
+   "output_sha256": "a08e3a81bb8ba98837ccf6ea0ff180bc406b30b5b59ae79c951befb1c0b2944c",
+   "text_head": " to=self<|message|>We need to read field notebook and explain recurring themes in detailed paragraph. Continue for at least 100 words.\n\nThe user provided a list of words repeated: river stone market l"
+  },
+  {
+   "request": "p512",
+   "state": "warm",
+   "repeat": 1,
+   "client_ttft_ms": 99281.0,
+   "prompt_tokens": 511,
+   "decode_tokens_per_second": 0.7906803023282559,
+   "output_sha256": "a08e3a81bb8ba98837ccf6ea0ff180bc406b30b5b59ae79c951befb1c0b2944c",
+   "text_head": " to=self<|message|>We need to read field notebook and explain recurring themes in detailed paragraph. Continue for at least 100 words.\n\nThe user provided a list of words repeated: river stone market l"
+  },
+  {
+   "request": "p512",
+   "state": "warm",
+   "repeat": 2,
+   "client_ttft_ms": 100974.0,
+   "prompt_tokens": 511,
+   "decode_tokens_per_second": 0.7927120822529042,
+   "output_sha256": "a08e3a81bb8ba98837ccf6ea0ff180bc406b30b5b59ae79c951befb1c0b2944c",
+   "text_head": " to=self<|message|>We need to read field notebook and explain recurring themes in detailed paragraph. Continue for at least 100 words.\n\nThe user provided a list of words repeated: river stone market l"
+  },
+  {
+   "request": "p2048",
+   "state": "cold",
+   "repeat": 0,
+   "client_ttft_ms": 310851.6,
+   "prompt_tokens": 2047,
+   "decode_tokens_per_second": 0.8143358243353231,
+   "output_sha256": "c96465a80eac73b61a337ed6bb21cab3c31f8063f86a210c89c77b5f20275924",
+   "text_head": " to=self<|message|>We need to read field notebook and explain recurring themes in detailed paragraph. Continue for at least 100 words.\n\nBut the notebook is just repeated words: river stone market lant"
+  },
+  {
+   "request": "p2048",
+   "state": "warm",
+   "repeat": 1,
+   "client_ttft_ms": 294119.8,
+   "prompt_tokens": 2047,
+   "decode_tokens_per_second": 0.8346313054982172,
+   "output_sha256": "c96465a80eac73b61a337ed6bb21cab3c31f8063f86a210c89c77b5f20275924",
+   "text_head": " to=self<|message|>We need to read field notebook and explain recurring themes in detailed paragraph. Continue for at least 100 words.\n\nBut the notebook is just repeated words: river stone market lant"
+  },
+  {
+   "request": "p2048",
+   "state": "warm",
+   "repeat": 2,
+   "client_ttft_ms": 295810.2,
+   "prompt_tokens": 2047,
+   "decode_tokens_per_second": 0.8470255344451003,
+   "output_sha256": "c96465a80eac73b61a337ed6bb21cab3c31f8063f86a210c89c77b5f20275924",
+   "text_head": " to=self<|message|>We need to read field notebook and explain recurring themes in detailed paragraph. Continue for at least 100 words.\n\nBut the notebook is just repeated words: river stone market lant"
+  }
+ ],
+ "candidate": [
+  {
+   "request": "p512",
+   "state": "cold",
+   "repeat": 0,
+   "client_ttft_ms": 134321.5,
+   "prompt_tokens": 511,
+   "decode_tokens_per_second": 0.7131258179504,
+   "output_sha256": "a08e3a81bb8ba98837ccf6ea0ff180bc406b30b5b59ae79c951befb1c0b2944c",
+   "text_head": " to=self<|message|>We need to read field notebook and explain recurring themes in detailed paragraph. Continue for at least 100 words.\n\nThe user provided a list of words repeated: river stone market l"
+  },
+  {
+   "request": "p512",
+   "state": "warm",
+   "repeat": 1,
+   "client_ttft_ms": 94378.3,
+   "prompt_tokens": 511,
+   "decode_tokens_per_second": 0.833449945230854,
+   "output_sha256": "a08e3a81bb8ba98837ccf6ea0ff180bc406b30b5b59ae79c951befb1c0b2944c",
+   "text_head": " to=self<|message|>We need to read field notebook and explain recurring themes in detailed paragraph. Continue for at least 100 words.\n\nThe user provided a list of words repeated: river stone market l"
+  },
+  {
+   "request": "p512",
+   "state": "warm",
+   "repeat": 2,
+   "client_ttft_ms": 96802.4,
+   "prompt_tokens": 511,
+   "decode_tokens_per_second": 0.833979234928332,
+   "output_sha256": "a08e3a81bb8ba98837ccf6ea0ff180bc406b30b5b59ae79c951befb1c0b2944c",
+   "text_head": " to=self<|message|>We need to read field notebook and explain recurring themes in detailed paragraph. Continue for at least 100 words.\n\nThe user provided a list of words repeated: river stone market l"
+  },
+  {
+   "request": "p2048",
+   "state": "cold",
+   "repeat": 0,
+   "client_ttft_ms": 119635.4,
+   "prompt_tokens": 2047,
+   "decode_tokens_per_second": 0.837191357210857,
+   "output_sha256": "e871513db0cb74d04c5fc317bbf92c10c158805a9979cb655435c855e7242fd4",
+   "text_head": " to=self<|message|>We need to read field notebook and explain recurring themes in detailed paragraph. Continue for at least 100 words.\n\nThe user provided a huge list of words repeated. This looks like"
+  },
+  {
+   "request": "p2048",
+   "state": "warm",
+   "repeat": 1,
+   "client_ttft_ms": 112028.6,
+   "prompt_tokens": 2047,
+   "decode_tokens_per_second": 0.8502540130516535,
+   "output_sha256": "e871513db0cb74d04c5fc317bbf92c10c158805a9979cb655435c855e7242fd4",
+   "text_head": " to=self<|message|>We need to read field notebook and explain recurring themes in detailed paragraph. Continue for at least 100 words.\n\nThe user provided a huge list of words repeated. This looks like"
+  }
+ ]
+}

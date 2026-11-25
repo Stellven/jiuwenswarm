@@ -1,0 +1,22 @@
+0.00.350.014 I cmn  common_param: system_info: n_threads = 20 (n_threads_batch = 20) / 20 | CUDA : ARCHS = 1210 | USE_GRAPHS = 1 | FA_QUANTS = q4_0-q4_0,q8_0-q8_0,f16-f16,bf16-bf16,f8_e4m3-f8_e4m3 | NATIVE_FP8 = 1 | BLACKWELL_NATIVE_FP4 = 1 | CPU : NEON = 1 | ARM_FMA = 1 | LLAMAFILE = 1 | OPENMP = 1 | REPACK = 1 | 
+2.28.750.359 I load_tensors:   CPU_Mapped model buffer size = 26880.04 MiB
+2.28.750.360 I load_tensors:   CPU_Mapped model buffer size = 26880.04 MiB
+2.28.750.360 I load_tensors:   CPU_Mapped model buffer size = 26880.04 MiB
+2.28.750.361 I load_tensors:   CPU_Mapped model buffer size = 26880.04 MiB
+2.28.750.361 I load_tensors:   CPU_Mapped model buffer size = 26880.04 MiB
+2.28.750.361 I load_tensors:   CPU_Mapped model buffer size = 26880.04 MiB
+2.28.750.362 I load_tensors:   CPU_Mapped model buffer size = 26880.04 MiB
+2.28.750.362 I load_tensors:   CPU_Mapped model buffer size = 26880.04 MiB
+2.28.750.363 I load_tensors:   CPU_Mapped model buffer size = 26880.04 MiB
+2.28.750.363 I load_tensors:   CPU_Mapped model buffer size =  3157.00 MiB
+2.28.750.364 I load_tensors:   CPU_Mapped model buffer size =  4032.00 MiB
+2.28.750.364 I load_tensors:   CPU_Mapped model buffer size =  4032.00 MiB
+2.28.750.366 I load_tensors:        CUDA0 model buffer size = 37396.62 MiB
+2.39.501.170 I llama_context: n_ctx                 = 4096
+2.39.501.171 I llama_context: n_batch               = 2048
+2.39.501.171 I llama_context: n_ubatch              = 512
+2.39.516.195 I llama_kv_cache:      CUDA0 KV buffer size =   256.00 MiB
+2.39.541.778 I llama_kv_cache:      CUDA0 KV buffer size =   460.00 MiB
+2.47.175.961 I impl:      CUDA0 MoE cache size = 61425.00 MiB for 249984.00 MiB of host experts, 0% of the misses on the CPU
+2.47.326.515 I sched_reserve:      CUDA0 compute buffer size =  1538.51 MiB
+2.47.326.524 I sched_reserve:  CUDA_Host compute buffer size =    70.53 MiB

@@ -1,0 +1,181 @@
+cc: '2'
+id: engine.build_expert_fill
+version: 1.0.0
+materials:
+  guide:
+    path: GUIDE.md
+  method:
+    path: METHOD.md
+  validation:
+    path: VALIDATION.md
+  ontology:
+    path: ONTOLOGY.yaml
+  source_map:
+    path: SOURCE-MAP.md
+  expert_fill:
+    path: components/expert_fill/component.yaml
+  sample_read_pool:
+    path: samples/read_pool.h
+  sample_router_hook:
+    path: samples/router_hook.cpp
+  sample_acceptance_run:
+    path: samples/acceptance_run.sh
+  helpers:
+    path: helpers/README.md
+  helper_fill_runs:
+    path: helpers/fill_runs.py
+  fill_verifier:
+    path: helpers/fill_rules.py
+  roles:
+    path: roles.json
+    media_type: application/json
+defs:
+  done:
+    kind: json
+    description: True when at least one check ran, none failed, the required stage was reached with no check it
+      needs skipped, and any inconclusive check was settled by a passing runtime acceptance stage.
+    schema:
+      type: boolean
+  stage_reached:
+    kind: json
+    description: Highest stage with a passing check where no check of it or of a lower stage failed or was skipped.
+    schema:
+      type:
+      - string
+      - 'null'
+  not_done_because:
+    kind: json
+    description: Why done is false (empty when done).
+    schema:
+      type: array
+      items:
+        type: string
+  checks:
+    kind: json
+    schema:
+      type: array
+      items:
+        type: object
+        required:
+        - name
+        - status
+        - stage
+        - detail
+        properties:
+          name:
+            type: string
+          status:
+            enum:
+            - pass
+            - fail
+            - skipped
+            - inconclusive
+            - info
+          stage:
+            enum:
+            - fixture
+            - native CC execution
+            - compile
+            - runtime acceptance
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  verify:
+    does: Gate a change that adds demand-driven parallel expert fill to llama.cpp (after routing, read the selected
+      experts' non-resident mmap ranges with a pool of parallel preads before the expert matmuls fault them in).
+      Fixture stage - the bundled good diff passes and each planted fault fails its rule on this base. Static -
+      only SOURCE-MAP paths touched (no kernel, graph builder or model graph edit); the change reads
+      LLAMA_EXPERT_FILL and its unset value is off; the fill is keyed on the router output, not on an expert
+      matmul output; no write into tensor data or the mapping; no new graph op. Compile - CPU build of
+      llama-simple and llama-perplexity from base plus the change in a scratch directory. Runtime acceptance (with
+      tiny_dir) - greedy llama-simple byte-identical to stock with the gate unset and set (resident skip on and
+      off), exactly one activation marker with the gate set and no expert_fill line without it, fill stats with
+      calls > 0 and, with the resident skip off, reads and bytes_read > 0, a prompt-only run not filled, and
+      perplexity with the fill on every ubatch finite and equal to stock; reached only when all six ran and
+      passed. Only the change under review is judged (base, diff_path, carried_diff); done needs require_stage
+      (default runtime acceptance).
+    takes:
+      checkout:
+        kind: text
+        description: Root of the owned llama.cpp Git checkout.
+      diff_path:
+        kind: text
+        optional: true
+        description: Patch of this node's change against base; omit to check working changes against base.
+      base:
+        kind: text
+        optional: true
+        description: Commit the change is judged against (default HEAD). Commit an earlier node's change (the
+          Muse scale wiring), then base HEAD keeps it out of the review.
+      carried_diff:
+        kind: text
+        optional: true
+        description: Patch of an earlier node's uncommitted change in the same checkout; working files equal to
+          base plus that patch are carried (exported and built, not reviewed).
+      require_stage:
+        kind: text
+        optional: true
+        description: Stage done requires - fixture, native CC execution, compile or runtime acceptance (default).
+      tiny_dir:
+        kind: text
+        optional: true
+        description: Directory holding a tiny MoE GGUF pack with mmap-backed experts (default name
+          tiny-q2exps.gguf); without it runtime acceptance fails when required.
+      pack:
+        kind: text
+        optional: true
+        description: File name in tiny_dir of the pack to run (default tiny-q2exps.gguf). Never a full-size model.
+      stock_bin:
+        kind: text
+        optional: true
+        description: bin directory of a stock build of the same base with llama-simple and llama-perplexity;
+          otherwise stock is built and cached in work_dir.
+      work_dir:
+        kind: text
+        optional: true
+        description: Scratch parent directory outside the checkout (default the system temp directory).
+      jobs:
+        kind: json
+        optional: true
+        schema:
+          type: integer
+          minimum: 1
+      text:
+        kind: text
+        optional: true
+        description: Text file for the perplexity run (default README.md of the exported tree).
+      mem_cap:
+        kind: text
+        optional: true
+        description: cgroup MemoryMax for every run (default 16G; none to disable).
+      build:
+        kind: json
+        optional: true
+        description: false skips compile and runtime (static stages only).
+        schema:
+          type: boolean
+      keep_work:
+        kind: json
+        optional: true
+        schema:
+          type: boolean
+      runtime_even_if_static_fails:
+        kind: json
+        optional: true
+        description: Build and run even when a static gate failed (calibration of the runtime checks).
+        schema:
+          type: boolean
+    gives:
+      done: $done
+      checks: $checks
+      stage_reached: $stage_reached
+      not_done_because: $not_done_because
+    needs:
+    - python
+    changes:
+    - workspace.read
+    - process.exec

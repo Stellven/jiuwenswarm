@@ -71,5 +71,5 @@ def test_every_capsule_seals_to_its_recorded_release(tmp_path):
     from jiuwenswarm.ccv2.ccv2 import Host
     host, pins = Host(tmp_path, session_grants=[]), CapsuleCatalog().release_pins()
     sealed = {path.parent.name: host.seal(path.parent) for path in sorted(CCS.glob('*/cc.yaml'))}
-    assert len(sealed) == 56
+    assert len(sealed) == 58
     assert {name: digest for name, digest in sealed.items() if pins[f'{name}/cc.yaml']['new_release'] != digest} == {}

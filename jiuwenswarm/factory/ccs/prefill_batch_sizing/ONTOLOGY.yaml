@@ -1,0 +1,27 @@
+id: satay.prefill-batch-sizing-ontology
+version: '0.1'
+status: provisional
+entities:
+  component: Prefill batch sizing (server batch settings for CPU-resident experts).
+  parts:
+    micro_batch_planner: plan - picks n_batch/n_ubatch under a device budget.
+    load_checker: verify - reads the capped load log and the lab rows.
+  server_log: llama-server -lv 4 load log (n_batch, n_ubatch, device buffers).
+  plan: factory.prefill-batch-plan/1 document.
+  lab_rows: Lab rows of the same requests at the default and the planned batch.
+  contract: Device budget and prompt sizes of the node.
+  observation_point: Field of a capability result.
+  quantity: Value with a unit, phase and region.
+  regions:
+    S.prefill_batching: prefill_batching
+    M.device_budget: device_budget
+relations:
+  configures: component -> server (batch settings)
+  measures: observation_point -> quantity
+  evaluates_under: observation -> contract
+observation_points:
+  plan: 'plan.plan'
+  measured: 'verify.measured'
+quantities:
+  prefill.micro_batches: {unit: count, phase: prefill, source: {line: 'plan.plan', field: micro_batches}, region: S.prefill_batching, distinct_from: []}
+  device.buffers: {unit: MiB, phase: load, source: {line: 'verify.measured', field: device_mib}, region: M.device_budget, distinct_from: []}
