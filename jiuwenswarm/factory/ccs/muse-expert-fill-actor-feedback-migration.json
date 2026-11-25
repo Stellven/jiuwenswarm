@@ -1,0 +1,21 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "expert_fill/cc.yaml",
+      "from_version": "1.0.0",
+      "from_release": "f703105049117a9449f73f7ce2d2e87e3dcacc866a04544ce1b15af46a35ad00",
+      "from_commit": "7d39fe81b1da662af432f55a297a7161208e7c72",
+      "to_version": "1.0.1",
+      "to_release": "c870f0053c8b0ccdd8f804f2fd155d352106e8778efaf56da54b71bba1906504",
+      "changed_files": [
+        "METHOD.md",
+        "VALIDATION.md",
+        "cc.yaml",
+        "samples/router_hook.cpp"
+      ],
+      "unrecorded_versions": [],
+      "reason": "Expert fill capsule 1.0.1: CC v2 envelope of the verify answer, memory-fit contexts, eval-callback synchronization and GPU MoE cache costs, why the sample re-asks the user callback (feedback of the first worker built from the capsule)."
+    }
+  ]
+}
