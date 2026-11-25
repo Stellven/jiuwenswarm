@@ -65,15 +65,25 @@
    "depends_on": [
     "port_ttft_cache"
    ],
-   "title": "Build candidate engine E1 (E0 plus the seeded cache) and package the three lab arms."
+   "title": "Build candidate engine E1 (E0 plus the seeded cache) and package it for the lab arms."
+  },
+  {
+   "node_id": "size_prefill_batch",
+   "node_contract": "size_prefill_batch",
+   "depends_on": [
+    "build_candidate",
+    "requant_q2"
+   ],
+   "title": "Size the server prefill batch for the lab prompts so each prompt is prefilled in as few micro-batches as the device memory budget allows (with CPU-resident experts every micro-batch streams the routed experts again), and check it on one capped load of E1 with the Q2 pack."
   },
   {
    "node_id": "deliver_to_lab",
    "node_contract": "deliver_to_lab",
    "depends_on": [
-    "build_candidate"
+    "build_candidate",
+    "size_prefill_batch"
    ],
-   "title": "Send E0, E1, both packs, the profile and the lab task for arms A, B and C to the lab manager."
+   "title": "Send E0, E1, both packs, the profile, the prefill batch plan and the lab task for arms A, B, C and D to the lab manager."
   }
  ]
 }

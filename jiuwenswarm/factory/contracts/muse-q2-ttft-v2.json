@@ -1,14 +1,15 @@
 {
  "schema": "factory.contract/2",
  "contract_id": "muse-q2-ttft-v2",
- "version": 1,
- "title": "Muse Spark Open on DGX Spark: NVFP4 to Q2 requantization plus the seeded expert cache",
- "purpose": "Starting from stock llama.cpp and the official Muse Spark Open NVFP4 checkpoint, how much do time to first token, decode rate and total request time change when the routed experts are requantized to Q2_K, and again when the profile-seeded expert cache is added?",
+ "version": 2,
+ "title": "Muse Spark Open on DGX Spark: NVFP4 to Q2 requantization, the seeded expert cache and prefill batch sizing",
+ "purpose": "Starting from stock llama.cpp and the official Muse Spark Open NVFP4 checkpoint, how much do time to first token, decode rate and total request time change when the routed experts are requantized to Q2_K, again when the profile-seeded expert cache is added, and again when the prefill batch is sized so each prompt streams the experts once?",
  "scope": {
   "covers": [
    "client time to first token, decode tokens per second and total request time at 512 and 2048 rendered prompt tokens, cold and warm",
    "the NVFP4 GGUF pack built from the official checkpoint, and a Q2_K requantization of it",
-   "greedy output parity with the cache gate unset, and the activation marker with it set"
+   "greedy output parity with the cache gate unset, and the activation marker with it set",
+   "the server prefill batch size chosen by the prefill batch sizing capsule"
   ],
   "excludes": [
    "accuracy benchmarks; Q2 quality is a sanity check, not a claim",
@@ -148,6 +149,17 @@
     "Routed experts Q2_K instead of NVFP4",
     "LLAMA_EXPERT_CACHE_NATIVE_PROFILE=1 with the recorded profile"
    ]
+  },
+  {
+   "id": "D",
+   "role": "combined",
+   "from": "C",
+   "summary": "Arm C plus the planned prefill batch (-b/-ub from the batch plan), so a 2048-token prompt is prefilled in one micro-batch.",
+   "deviations": [
+    "Routed experts Q2_K instead of NVFP4",
+    "LLAMA_EXPERT_CACHE_NATIVE_PROFILE=1 with the recorded profile",
+    "Server batch and micro-batch from the size_prefill_batch plan"
+   ]
   }
  ],
  "measurement": {
@@ -219,7 +231,7 @@
     "max_load": 1.0,
     "no_builds": true
    },
-   "notes": "One server load per arm (A, B, C in that order). Per prompt size: one cold request (pack pages evicted with posix_fadvise DONTNEED before it, reported separately) then two warm repeats. The NVFP4 arm runs from the SSD at well under one token per second, so the protocol is sized to fit one night; differences smaller than the warm-repeat spread are reported as no change."
+   "notes": "One server load per arm (A, B, C, D in that order). Per prompt size: one cold request (pack pages evicted with posix_fadvise DONTNEED before it, reported separately) then two warm repeats. The NVFP4 arm runs from the SSD at well under one token per second, so the protocol is sized to fit one night; differences smaller than the warm-repeat spread are reported as no change."
   }
  },
  "correctness": {
@@ -284,6 +296,13 @@
     ]
    },
    {
+    "id": "prefill_batch_applied",
+    "does": "The arm D server prints the planned n_batch and n_ubatch, its device buffers fit the plan budget, and its greedy outputs agree with arm C (byte-identical or a common prefix of at least 64 characters, since a different micro-batch split changes the float summation order).",
+    "applies_to": [
+     "D"
+    ]
+   },
+   {
     "id": "cold_smoke",
     "does": "One cold request under the memory cap returns coherent text.",
     "applies_to": [
@@ -297,7 +316,7 @@
  "acceptance": {
   "rules": [
    "A timed cell counts only when the machine is quiet: load below 1.0 and no builds running.",
-   "B and C differ from A in their weights, so their outputs are not expected to match A; correctness for B and C is the pack census, coherent text and, for C, parity with B when the gate is unset.",
+   "B and C differ from A in their weights, so their outputs are not expected to match A; correctness for B, C and D is the pack census, coherent text, for C parity with B when the gate is unset, and for D agreement with C.",
    "Speed is reported as change against A, per prompt size, cold and warm separately.",
    "Failures and no-gain results are reported, not dropped."
   ]
@@ -317,7 +336,8 @@
  "provenance": {
   "notes": [
    "Task graph written by hand as the demo starting point (no intake).",
-   "The seeded expert cache is the earlier change measured on DeepSeek V4.1 Flash (engine.build_expert_weight_cache)."
+   "The seeded expert cache is the earlier change measured on DeepSeek V4.1 Flash (engine.build_expert_weight_cache).",
+   "Revision 2 adds arm D and node size_prefill_batch after a probe on the Spark: arm B with -b 2048 -ub 2048 cut cold 2047-token TTFT from 311 s to 120 s with decode unchanged."
   ]
  },
  "extensions": {
@@ -452,14 +472,23 @@
       {
        "output": "converter",
        "verifier": "weights.build_muse_nvfp4_reader.verify",
-       "stage": "fixture",
-       "review": true
+       "stage": "runtime acceptance",
+       "review": true,
+       "inputs": {
+        "require_stage": "runtime acceptance"
+       }
       },
       {
        "output": "nvfp4_pack",
        "verifier": "weights.build_muse_nvfp4_reader.verify_pack",
        "stage": "native CC execution",
-       "review": true
+       "review": true,
+       "inputs": {
+        "expect_bytes_range": [
+         480000000000,
+         560000000000
+        ]
+       }
       }
      ],
      "hands_to": "wire_expert_scales"
@@ -673,13 +702,23 @@
        "output": "recipe",
        "verifier": "weights.build_weight_pack_compiler.verify_recipe",
        "stage": "fixture",
-       "review": true
+       "review": true,
+       "inputs": {
+        "target": "q2_k"
+       }
       },
       {
        "output": "q2_pack",
        "verifier": "weights.build_weight_pack_compiler.verify_pack",
        "stage": "native CC execution",
-       "review": true
+       "review": true,
+       "inputs": {
+        "target": "q2_k",
+        "expect_bytes_range": [
+         250000000000,
+         320000000000
+        ]
+       }
       }
      ],
      "hands_to": "record_profile"
@@ -818,7 +857,7 @@
     {
      "node_id": "build_candidate",
      "kind": "build",
-     "objective": "Build candidate engine E1 (E0 plus the seeded cache) and package the three lab arms.",
+     "objective": "Build candidate engine E1 (E0 plus the seeded cache) and package it for the lab arms.",
      "requirement_ids": [
       "A",
       "B",
@@ -881,19 +920,103 @@
        "review": true
       }
      ],
+     "hands_to": "size_prefill_batch"
+    },
+    {
+     "node_id": "size_prefill_batch",
+     "kind": "tune",
+     "objective": "Size the server prefill batch for the lab prompts so each prompt is prefilled in as few micro-batches as the device memory budget allows (with CPU-resident experts every micro-batch streams the routed experts again), and check it on one capped load of E1 with the Q2 pack.",
+     "requirement_ids": [
+      "D",
+      "prefill_batch_applied",
+      "cold_smoke"
+     ],
+     "predecessors": [
+      "build_candidate",
+      "requant_q2"
+     ],
+     "inputs": [
+      {
+       "name": "sources",
+       "from": "build_candidate.sources"
+      },
+      {
+       "name": "q2_pack",
+       "from": "requant_q2.q2_pack"
+      },
+      {
+       "name": "prompt_512",
+       "from": "contract:prompt_512"
+      },
+      {
+       "name": "prompt_2048",
+       "from": "contract:prompt_2048"
+      }
+     ],
+     "outputs": [
+      {
+       "name": "batch_plan",
+       "kind": "evidence",
+       "criteria": [
+        "A factory.prefill-batch-plan/1 from a -lv 4 load log of the arm C server at the default batch: the batch and micro-batch sizes, the device estimate against the budget, and micro-batches per lab prompt before and after.",
+        "One capped load of the arm C server with the planned arguments: the server applied them, its device buffers fit the budget, and greedy outputs of the lab requests agree with the default batch (byte-identical or a long common prefix)."
+       ]
+      }
+     ],
+     "evidence_obligations": [
+      "captured_input_and_output",
+      "invocation_observation",
+      "mandatory_checks"
+     ],
+     "node_limits": {
+      "turns": 20,
+      "gpu_launches": 3
+     },
+     "authority_ceiling": {
+      "effects": [
+       "workspace.read",
+       "process.exec"
+      ],
+      "workspace": "read"
+     },
+     "work": {
+      "helpful_ccs": [
+       "engine.size_prefill_batch",
+       "factory.lab_manager"
+      ],
+      "capability": "engine.size_prefill_batch.verify"
+     },
+     "verifiers": [
+      {
+       "output": "batch_plan",
+       "verifier": "engine.size_prefill_batch.verify",
+       "stage": "runtime acceptance",
+       "review": true,
+       "inputs": {
+        "device_budget_mib": 110000,
+        "prompt_tokens": [
+         511,
+         2047
+        ],
+        "min_agree_chars": 64
+       }
+      }
+     ],
      "hands_to": "deliver_to_lab"
     },
     {
      "node_id": "deliver_to_lab",
      "kind": "deliver",
-     "objective": "Send E0, E1, both packs, the profile and the lab task for arms A, B and C to the lab manager.",
+     "objective": "Send E0, E1, both packs, the profile, the prefill batch plan and the lab task for arms A, B, C and D to the lab manager.",
      "requirement_ids": [
       "A",
       "B",
       "C",
+      "D",
       "server_token_count",
       "gate_unset_parity",
       "gate_set_activation",
+      "prefill_batch_applied",
       "client_ttft_ms",
       "decode_tokens_per_second",
       "request_total_ms",
@@ -902,12 +1025,17 @@
       "load_seconds"
      ],
      "predecessors": [
-      "build_candidate"
+      "build_candidate",
+      "size_prefill_batch"
      ],
      "inputs": [
       {
        "name": "sources",
        "from": "build_candidate.sources"
+      },
+      {
+       "name": "batch_plan",
+       "from": "size_prefill_batch.batch_plan"
       }
      ],
      "outputs": [
@@ -915,7 +1043,7 @@
        "name": "lab_request",
        "kind": "lab_request",
        "criteria": [
-        "The lab task fills arms A, B and C with shipped subjects and runs every check and metric, cold and warm, at 512 and 2048 tokens."
+        "The lab task fills arms A, B, C and D with shipped subjects and runs every check and metric, cold and warm, at 512 and 2048 tokens."
        ]
       }
      ],
