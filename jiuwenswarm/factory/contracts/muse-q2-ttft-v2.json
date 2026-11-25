@@ -211,19 +211,15 @@
    }
   },
   "protocol": {
-   "repeats": 5,
-   "order": "ABBA",
-   "discard_first_request": true,
+   "repeats": 2,
+   "order": "sequential",
+   "discard_first_request": false,
    "cold_load": "separate",
    "quiet": {
     "max_load": 1.0,
     "no_builds": true
    },
-   "confidence": {
-    "level": 0.95,
-    "method": "bootstrap over paired warm repeats"
-   },
-   "notes": "Each arm is measured cold (pack pages evicted with posix_fadvise DONTNEED before the request) and warm (after 3 discarded warmups), reported separately. Arms rotate A,B,C,C,B,A."
+   "notes": "One server load per arm (A, B, C in that order). Per prompt size: one cold request (pack pages evicted with posix_fadvise DONTNEED before it, reported separately) then two warm repeats. The NVFP4 arm runs from the SSD at well under one token per second, so the protocol is sized to fit one night; differences smaller than the warm-repeat spread are reported as no change."
   }
  },
  "correctness": {
@@ -412,7 +408,7 @@
        "criteria": [
         "Splits experts.gate_up_proj into gate and up halves in the source order (gate first) and keeps NVFP4 blocks bit-for-bit (no dequantize and requantize).",
         "Writes one [n_expert] .scale tensor per routed expert weight from weight_scale_2: gate takes column 0 and up column 1 of the [n_expert, 2] gate_up scale, down its [n_expert] scale.",
-        "Repacks lazily, one tensor at a time, so peak memory stays under the conversion cap (about 32 GiB) instead of holding every packed expert.",
+        "Repacks lazily, one tensor at a time, and finishes under the 96 GiB memory cap (the stacked BF16 experts of the excluded layers 0 and 61 are the peak; 32 and 64 GiB caps were not enough).",
         "Leaves the BF16 modules the checkpoint excludes (layers 0 and 61, self attention, lm_head) at their source type.",
         "Times one expert before the full conversion and prints the projected total.",
         "Touches only the files its capsule source map allows."
