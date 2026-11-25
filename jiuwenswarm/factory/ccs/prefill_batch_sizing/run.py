@@ -84,12 +84,13 @@ def _budget(inputs):
 
 # ---- plan ------------------------------------------------------------------------------------
 def estimate(base, ubatch):
-    """Device MiB at ``ubatch`` scaled from a load at the reference ubatch. The ubatch-dependent buffers
-    (compute, host compute, KV padding) are scaled linearly, which overestimates them: measured on Muse,
-    the CUDA0 compute buffer was 1538.5 MiB at 512 and 2128.1 MiB at 2048."""
+    """Device MiB at ``ubatch`` scaled from a load at the reference ubatch and the same context. Model, MoE cache
+    and KV buffers do not depend on the ubatch (KV is sized by n_ctx) and are taken as measured; the compute
+    buffers (CUDA0 and host) are scaled linearly, which overestimates them: measured on Muse, the CUDA0 compute
+    buffer was 1538.5 MiB at 512 and 2128.1 MiB at 2048."""
     d, scale = base['device_mib'], ubatch / base['n_ubatch']
-    fixed = d.get('model', 0) + d.get('moe_cache', 0)
-    scaled = sum(d.get(k, 0) for k in ('kv', 'compute', 'host_compute')) * max(1.0, scale)
+    fixed = d.get('model', 0) + d.get('moe_cache', 0) + d.get('kv', 0)
+    scaled = sum(d.get(k, 0) for k in ('compute', 'host_compute')) * max(1.0, scale)
     return round(fixed + scaled, 1)
 
 
@@ -99,6 +100,9 @@ def plan(inputs):
         raise ValueError('baseline_log lacks n_ubatch or the CUDA0 compute buffer line (run the server at -lv 4)')
     prompts, budget = _prompts(inputs), _budget(inputs)
     n_ctx = inputs.get('n_ctx') or base['n_ctx']
+    # KV and the attention part of the compute buffer grow with the context; a log at a smaller context cannot
+    # bound them. The estimate is only trusted from a baseline at (at least) the target context.
+    ctx_ok = not base['n_ctx'] or n_ctx <= base['n_ctx']
     want = min(n_ctx, 2 ** math.ceil(math.log2(max(prompts))))
     ubatch, tried = max(want, MIN_UBATCH), []
     while True:
@@ -118,6 +122,8 @@ def plan(inputs):
                           + ', '.join(f'{p} tokens in {v["after"]} (was {v["before"]})' for p, v in passes.items())
                           + f' micro-batch(es); estimated device {tried[-1]["estimate_mib"]:.0f} MiB of {budget:.0f}.'))
     checks = [check('baseline_log', 'pass', f"ubatch {base['n_ubatch']}, device {sum(base['device_mib'].values()):.0f} MiB", NATIVE),
+              check('baseline_context', 'pass' if ctx_ok else 'fail',
+                    f"baseline n_ctx {base['n_ctx']}, target {n_ctx}" + ('' if ctx_ok else ': load the baseline at the target context'), NATIVE),
               check('fits_budget', 'pass' if fits else 'fail',
                     f"{tried[-1]['estimate_mib']:.0f} MiB estimated vs {budget:.0f} MiB budget at ubatch {ubatch}", NATIVE),
               check('fewer_micro_batches', 'pass' if any(v['after'] < v['before'] for v in passes.values()) else 'info',

@@ -13,7 +13,11 @@ Stages, weakest first: `native CC execution` (the plan document and the arithmet
 | estimate_safe | runtime | measured buffers exceed the plan's estimate by more than 2% |
 | output_agreement:<request> | runtime | no baseline row, or outputs differ within the first `min_agree_chars` characters |
 
-`verify` is done only at runtime acceptance with no failure. `plan` is done when its estimate fits the budget.
+`verify` is done only at runtime acceptance with no failure. `plan` is done when the baseline log is at (at
+least) the target context (`baseline_context`) and its estimate fits the budget (`fits_budget`).
+
+1.1.0: 1.0.0 also scaled the KV buffer with the ubatch. At a 4096 context that overestimated by about 3 GiB; at a
+32k context (KV about 8 GiB) it would have rejected every ubatch above 512. KV is now taken as measured.
 
 Planted faults (tests/test_prefill_batch_capabilities.py, real Spark logs and rows): server ran the default
 batch; budget below the measured buffers; a prompt longer than the micro-batch; outputs diverging before the

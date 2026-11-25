@@ -1,6 +1,6 @@
 cc: '2'
 id: engine.size_prefill_batch
-version: 1.0.0
+version: 1.1.0
 materials:
   method:
     path: METHOD.md
@@ -88,8 +88,9 @@ capabilities:
     does: Pick -b/-ub for llama-server so each expected prompt is prefilled in as few micro-batches as the device
       budget allows, from one -lv 4 load log at the current batch. With CPU-resident experts (mmap, --cpu-moe)
       every micro-batch streams the routed experts again, so fewer micro-batches is the lever on time to first
-      token. Device buffers are estimated by scaling the ubatch-dependent ones linearly (an overestimate);
-      steps down by halves to 512 when the estimate exceeds the budget.
+      token. Model, MoE cache and KV buffers are taken from the log; the compute buffers are scaled linearly with
+      the ubatch (an overestimate); steps down by halves to 512 when the estimate exceeds the budget. The log must
+      be at the target context (baseline_context fails otherwise).
     takes:
       baseline_log:
         kind: text
@@ -100,7 +101,7 @@ capabilities:
       n_ctx:
         kind: json
         optional: true
-        description: Context size when it differs from the log's.
+        description: Target context size; must not exceed the log's (load the baseline at the target context).
         schema:
           type: integer
           minimum: 1

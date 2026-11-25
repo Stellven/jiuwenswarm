@@ -40,6 +40,7 @@ def test_plan_picks_one_micro_batch_for_the_longest_prompt(tmp_path):
     assert out['done'] and doc['args'] == ['-b', '2048', '-ub', '2048']
     assert doc['micro_batches'] == {'511': dict(before=1, after=1), '2047': dict(before=4, after=1)}
     assert doc['estimate_mib'] >= 102229  # the linear estimate is above what the probe measured
+    assert doc['estimate_mib'] < 108000  # KV is sized by n_ctx, not scaled with the ubatch (1.0.0 did)
     assert json.loads((tmp_path / 'plan.json').read_text()) == doc
 
 
@@ -48,6 +49,14 @@ def test_plan_steps_down_under_a_tight_budget(tmp_path):
     assert out['done'] and out['plan']['ubatch'] == 1024 and [t['ubatch'] for t in out['plan']['tried']] == [2048, 1024]
     out = planned(tmp_path, device_budget_mib=90000)
     assert not out['done'] and out['plan']['ubatch'] == 512 and any(c['name'] == 'fits_budget' and c['status'] == 'fail' for c in out['checks'])
+
+
+def test_plan_refuses_a_baseline_at_a_smaller_context(tmp_path):
+    # KV and attention compute grow with n_ctx; a 4096-context log cannot bound a 32k-context load
+    out = planned(tmp_path, n_ctx=33792, prompt_tokens=[4095, 32767])
+    status = {c['name']: c for c in out['checks']}
+    assert not out['done'] and status['baseline_context']['status'] == 'fail'
+    assert planned(tmp_path, n_ctx=4096)['done']
 
 
 def test_real_probe_passes(tmp_path):

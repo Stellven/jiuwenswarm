@@ -26,8 +26,11 @@ Decode speed is unchanged (single-token batches).
    `-lv 4`, under the memory cap. Keep its log (it prints `n_batch`, `n_ubatch` and every device buffer).
 2. Call `plan` with that log, the prompt sizes the workload sends and the device budget. It picks the
    smallest power of two that covers the longest prompt (capped by `n_ctx`) and halves it while the estimate
-   exceeds the budget. The estimate scales the ubatch-dependent buffers (compute, host compute, KV padding)
-   linearly, which overestimates them. Measured: compute buffer 1538.5 MiB at 512, 2128.1 MiB at 2048.
+   exceeds the budget. Model, MoE cache and KV buffers are taken as measured (KV is sized by `n_ctx`, not by
+   the ubatch); the compute buffers are scaled linearly, which overestimates them. Measured: compute buffer
+   1538.5 MiB at 512, 2128.1 MiB at 2048.
+   The baseline load must use the target context: KV and the attention part of the compute buffer grow with
+   `n_ctx`, so `plan` fails `baseline_context` when the target is larger than the log's.
 3. Load the server with the plan's `args` added (same everything else, same cap) and run the same requests
    the baseline ran: one cold and at least one warm per prompt size, greedy, a fixed seed.
 4. Call `verify` with the plan, the new log and the two sets of rows.
