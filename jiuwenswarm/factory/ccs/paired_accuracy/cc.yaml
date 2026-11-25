@@ -1,0 +1,137 @@
+cc: '2'
+id: eval.paired_accuracy
+version: 1.0.0
+materials:
+  method:
+    path: METHOD.md
+  validation:
+    path: VALIDATION.md
+  ontology:
+    path: ONTOLOGY.yaml
+  statistics:
+    path: paired.py
+  roles:
+    path: roles.json
+    media_type: application/json
+defs:
+  done:
+    kind: json
+    description: True when at least one check ran, none failed and the stage the capability needs was reached.
+    schema:
+      type: boolean
+  stage_reached:
+    kind: json
+    schema:
+      type:
+      - string
+      - 'null'
+  not_done_because:
+    kind: json
+    schema:
+      type: array
+      items:
+        type: string
+  checks:
+    kind: json
+    schema:
+      type: array
+      items:
+        type: object
+        required:
+        - name
+        - status
+        - stage
+        - detail
+        properties:
+          name:
+            type: string
+          status:
+            enum:
+            - pass
+            - fail
+            - skipped
+            - inconclusive
+            - info
+          stage:
+            type: string
+          detail:
+            type: string
+  dataset:
+    kind: text
+    description: Absolute path of the MMLU test directory (the Hendrycks CSVs, one <subject>_test.csv each).
+  margin:
+    kind: json
+    description: Non-inferiority margin in accuracy points (reference minus candidate). The contract pins it.
+    schema:
+      type: number
+      exclusiveMinimum: 0
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  order:
+    does: Fix the question order for a paired accuracy run - every MMLU test question in one seeded random order
+      - and report its digest, the planned checkpoints and the critical value, so both arms and any extension
+      of the run answer the same questions in the same order.
+    takes:
+      dataset_dir: $dataset
+      seed:
+        kind: json
+        optional: true
+        description: Shuffle seed (default 20261125).
+        schema:
+          type: integer
+      order_out:
+        kind: text
+        optional: true
+        description: Absolute path to write the ordered question ids.
+    gives:
+      done: $done
+      checks: $checks
+      stage_reached: $stage_reached
+      not_done_because: $not_done_because
+      order:
+        kind: json
+        description: count, order_sha256, seed, looks, z and the first ids.
+    needs:
+    - python
+    changes:
+    - workspace.read
+  verify:
+    does: Recompute a paired accuracy run from its per-question rows - the order is the fixed one, each arm's rows
+      are a prefix of it, both arms saw byte-identical canonical prompts, the answer keys match the dataset, the
+      run looked only at the planned checkpoints with the planned critical value and stopped at the first
+      decision, and the recomputed paired interval of the accuracy loss gives the claimed decision. Done needs
+      runtime acceptance - both arms scored on real server loads with the answer letters carrying the
+      probability mass - and a pass against the pinned margin.
+    takes:
+      state:
+        kind: text
+        description: The muse-paired-accuracy/1 state document or a path to it.
+      dataset_dir: $dataset
+      margin_pts: $margin
+      server_logs:
+        kind: json
+        optional: true
+        description: '{"A": path, "B": path} of the -lv 4 server logs of the two loads.'
+      min_letter_mass:
+        kind: json
+        optional: true
+        description: Mean probability on the answer letters each arm must reach (default 0.5).
+        schema:
+          type: number
+    gives:
+      done: $done
+      checks: $checks
+      stage_reached: $stage_reached
+      not_done_because: $not_done_because
+      looks:
+        kind: json
+        description: The recomputed checkpoints (counts, accuracies, loss and interval in points, decision).
+    needs:
+    - python
+    changes:
+    - workspace.read

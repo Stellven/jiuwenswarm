@@ -604,6 +604,15 @@
       "target": "llama.cpp",
       "summary": "Offline byte-budget placement plan and the loader readback that applies it."
     },
+    "paired_accuracy": {
+      "capsule_id": "eval.paired_accuracy",
+      "title": "Paired accuracy gate",
+      "kind": "tool",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": "llama.cpp",
+      "summary": "Fixes a seeded MMLU question order and checks a paired reference-vs-candidate accuracy run: identical prompts, planned checkpoints, and the paired interval of the loss against a pinned margin."
+    },
     "prefill_batch_sizing": {
       "capsule_id": "engine.size_prefill_batch",
       "title": "Prefill batch sizing",

@@ -1,0 +1,24 @@
+id: satay.paired-accuracy-ontology
+version: '0.1'
+status: provisional
+entities:
+  component: Paired accuracy gate (reference vs candidate on one benchmark, planned checkpoints).
+  parts:
+    question_order: order - the seeded order of every benchmark question.
+    run_checker: verify - recomputes checkpoints and the decision from per-question rows.
+  state: muse-paired-accuracy/1 document (per-arm rows, checkpoints, decision).
+  rows: One row per question and arm (canonical prompt digest, A-D probabilities, pick, correct).
+  contract: Margin in accuracy points, reference and candidate packs of the node.
+  observation_point: Field of a capability result.
+  quantity: Value with a unit, phase and region.
+  regions:
+    Q.accuracy: accuracy
+relations:
+  compares: component -> reference, candidate
+  measures: observation_point -> quantity
+  evaluates_under: observation -> contract
+observation_points:
+  looks: 'verify.looks'
+quantities:
+  accuracy.loss: {unit: points, phase: evaluation, source: {line: 'verify.looks', field: loss_pts}, region: Q.accuracy, distinct_from: []}
+  accuracy.flip_rate: {unit: fraction, phase: evaluation, source: {line: 'verify.looks', field: flip_rate}, region: Q.accuracy, distinct_from: []}
