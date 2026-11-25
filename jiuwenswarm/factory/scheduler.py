@@ -198,6 +198,9 @@ def next_work(host, task_id):
             continue
         if node['state'] in {'cancelled', 'superseded'}:
             continue
+        if node.get('hold'):
+            waiting[key] = 'held by operator: ' + node['hold']
+            continue
         unfinished = [d for d in node['depends_on'] if nodes[d]['state'] != 'done']
         if unfinished:
             waiting[key] = 'waiting for ' + ', '.join(unfinished)
@@ -229,7 +232,8 @@ def next_work(host, task_id):
         delivered = bool(nodes) and all(n['state'] in {'done', 'cancelled', 'superseded'} for n in nodes.values())
     return dict(schema='factory.next-work/1', task_id=task_id, graph_rev=graph['rev'],
                 planner=next((h.get('planner') for h in graph['history'] if h.get('origin') == 'seed'), None),
-                runnable=runnable, waiting=waiting, done=done, delivered=delivered)
+                runnable=runnable, waiting=waiting, done=done, delivered=delivered,
+                held=[n['node_id'] for n in graph['nodes'] if n.get('hold')])
 
 
 def brief(work):

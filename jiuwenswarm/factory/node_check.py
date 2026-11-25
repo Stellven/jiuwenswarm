@@ -50,7 +50,7 @@ import yaml
 KIND = 'node_check'
 FORMAT = 'factory.node-check/2'
 SHORT_FIELDS = {'verifier', 'stage', 'review'}
-OUTPUT_FIELDS = {'name', 'kind', 'required', 'verifier', 'stage', 'review', 'criteria'}
+OUTPUT_FIELDS = {'name', 'kind', 'required', 'verifier', 'stage', 'review', 'criteria', 'inputs'}
 OUTPUT_KINDS = ('diff', 'source_bundle', 'image', 'lab_request', 'evidence')
 # Evidence ladder used by the capsule verifiers (see each VALIDATION.md), weakest first.
 STAGES = ('fixture', 'native CC execution', 'compile', 'runtime acceptance', 'hardware measurement')
@@ -102,8 +102,25 @@ def _check_output(entry):
     if entry.get('review') and entry['kind'] not in ('diff', 'evidence'):
         raise ValueError(f'Check output {entry["name"]}: reviews read diffs and evidence; '
                          f'{entry["kind"]} outputs are checked by the host')
+    if 'inputs' in entry and (not isinstance(entry['inputs'], dict) or not entry['inputs'] or not entry.get('verifier')
+                              or set(entry['inputs']) & {'checkout', 'diff_path'}):
+        raise ValueError(f'Check output {entry["name"]}: pinned inputs are a nonempty object for its verifier '
+                         '(checkout and diff_path are set by the host)')
     if 'criteria' in entry and (not isinstance(entry['criteria'], list) or not all(isinstance(c, str) and c for c in entry['criteria'])):
         raise ValueError('Check criteria are a list of sentences')
+
+
+def pin_inputs(entry, given):
+    """The verifier inputs used: the agent's, with the contract's pinned values (targets, tolerances,
+    expected ranges) on top. An agent value that differs from a pinned one is refused, so the
+    worker cannot loosen its own gate."""
+    pinned = entry.get('inputs') or {}
+    merged = dict(given or {})
+    loosened = sorted(k for k in pinned if k in merged and merged[k] != pinned[k])
+    if loosened:
+        raise CheckError(f'Output {entry["name"]}: the contract pins verifier inputs {", ".join(loosened)}; '
+                         'omit them or pass the pinned values')
+    return merged | pinned or None
 
 
 def validate_spec(spec):
@@ -153,6 +170,17 @@ def checks_for(host, task_id, node_id, output=None):
     return found
 
 
+def current_checks(host, task_id, node, output):
+    """The node checks that count: after an operator reopen, only those recorded after it."""
+    checks = checks_for(host, task_id, node['node_id'], output)
+    if node.get('checks_after'):
+        later = {r[0] for r in host._db.execute(
+            'SELECT obs_id FROM observations WHERE task_id=? AND kind=? AND rowid > '
+            '(SELECT rowid FROM observations WHERE obs_id=?)', (task_id, KIND, node['checks_after']))}
+        checks = [c for c in checks if c['obs_id'] in later]
+    return checks
+
+
 def pending(host, task, node):
     """Why this node cannot be done yet, or None. Called inside the plan transaction."""
     spec = effective_spec(task, node)
@@ -162,7 +190,7 @@ def pending(host, task, node):
     for entry in outputs_of(spec):
         if not entry.get('required', True):
             continue
-        checks = checks_for(host, task['task_id'], node['node_id'], entry['name'])
+        checks = current_checks(host, task['task_id'], node, entry['name'])
         name = entry['name']
         if not checks:
             reasons.append(f'output {name} needs a passing node check (node_check.start)')
@@ -453,6 +481,9 @@ class NodeChecks:
         task = self.store.get_task(task_id)
         node = self._node(task_id, node_id)
         entry = self._entry(task, node, output)
+        if verifier_inputs and not entry.get('verifier'):
+            raise CheckError(f'Output {entry["name"]} has no capsule verifier to take verifier_inputs')
+        verifier_inputs = pin_inputs(entry, verifier_inputs)
         if entry['kind'] != 'diff':
             if checkout or diff_path:
                 raise CheckError(f'Output {entry["name"]} is a {entry["kind"]}; pass refs, not a checkout')
@@ -565,9 +596,11 @@ class NodeChecks:
         same = [c for c in checks if c.get('key') == key and c.get('state') == 'finished']
         if not same:
             return None
-        if checks[-1]['obs_id'] == same[-1]['obs_id']:
+        counted = current_checks(self.store, task_id, self._node(task_id, node_id), output)
+        if checks[-1]['obs_id'] == same[-1]['obs_id'] and counted and counted[-1]['obs_id'] == same[-1]['obs_id']:
             return same[-1]
-        # The same work was checked before a different one; record it again so it is the latest.
+        # The same work was checked before a different one or before an operator reopen; record it
+        # again so it is the latest check that counts.
         values = {k: v for k, v in same[-1].items() if k not in ('obs_id', 'source_artifacts')} | dict(reused_from=same[-1]['obs_id'])
         return self._record(task_id, node_id, values, same[-1]['source_artifacts'])
 

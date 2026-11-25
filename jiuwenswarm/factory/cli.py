@@ -182,6 +182,13 @@ def main(argv=None):
     note = sub.add_parser('note', help='operator: queue an instruction for the agent\'s next turn')
     note.add_argument('task_id')
     note.add_argument('text')
+    for op, text in (('hold', 'operator: pause the run at a plan node (it will not start or close until released)'),
+                     ('release', 'operator: lift a hold'),
+                     ('reopen', 'operator: rerun a failed or finished node and its descendants, keeping upstream outputs')):
+        command = sub.add_parser(op, help=text)
+        command.add_argument('task_id')
+        command.add_argument('node_id')
+        command.add_argument('reason')
     plan = sub.add_parser('plan', help='show revisable task graph and decision-linked history')
     plan.add_argument('task_id')
     plan.add_argument('--rev', type=int)
@@ -292,6 +299,9 @@ def main(argv=None):
             print(format_status(scrub(result), args.plain, controller._snapshot(args.task_id)))
         elif args.command == 'note':
             controller.add_note(args.task_id, args.text)
+        elif args.command in {'hold', 'release', 'reopen'}:
+            from .taskgraph import render_text
+            print(render_text(controller.operator(args.task_id, args.command, args.node_id, args.reason)))
         elif args.command == 'baseline-import':
             print(json.dumps(controller.import_baseline(args.task_id, args.from_task, args.attempt), indent=2))
         elif args.command == 'show':

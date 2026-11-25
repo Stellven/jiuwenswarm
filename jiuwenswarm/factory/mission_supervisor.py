@@ -21,7 +21,7 @@ from .contract import atomic_json
 from .store import Store
 
 ACTIVE = {'queued', 'running', 'cancel_requested', 'unknown'}
-FINAL = {'accept', 'reject', 'report_inconclusive', 'stop_missing_prerequisite', 'partial', 'cancelled'}
+FINAL = {'accept', 'reject', 'report_inconclusive', 'stop_missing_prerequisite', 'partial', 'cancelled', 'paused'}
 
 
 def boot_id():
@@ -296,7 +296,7 @@ class Supervisor:
                 state_path = self.home / 'sessions' / (self.task + '.state.json')
                 state = json.loads(state_path.read_text()) if state_path.exists() else {}
                 from .operator_notes import pending
-                reopen = bool(state.get('operator_notes') or pending(self.home, self.task, state)) and state.get('outcome') in {'partial','report_inconclusive','stop_missing_prerequisite'}
+                reopen = bool(state.get('operator_notes') or pending(self.home, self.task, state)) and state.get('outcome') in {'partial','paused','report_inconclusive','stop_missing_prerequisite'}
                 if state.get('outcome') in FINAL and not reopen:
                     result = dict(task_id=self.task, outcome=state['outcome'], generations=generation,
                                   elapsed_s=time.monotonic() - started)

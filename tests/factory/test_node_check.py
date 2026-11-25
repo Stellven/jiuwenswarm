@@ -220,3 +220,35 @@ def test_codex_reviewer_runs_a_fresh_read_only_session(tmp_path, monkeypatch):
     reply = node_check.CodexReviewer(model='small', codex=str(fake))('review this')
     args = parse_review(reply)['summary']
     assert all(flag in args for flag in ('exec --ephemeral', '-s read-only', '--output-schema', '-m small'))
+
+
+def test_contract_pinned_verifier_inputs():
+    entry = dict(name='q2_pack', kind='evidence', verifier='weights.build_x.verify_pack',
+                 inputs={'target': 'q2_k', 'expect_bytes_range': [250, 320]})
+    validate_spec({'outputs': [entry]})
+    assert node_check.pin_inputs(entry, {'pack': 'p'}) == {'pack': 'p', 'target': 'q2_k', 'expect_bytes_range': [250, 320]}
+    assert node_check.pin_inputs(entry, {'target': 'q2_k'})['target'] == 'q2_k'  # the same value is fine
+    with pytest.raises(node_check.CheckError, match='pins verifier inputs expect_bytes_range, target'):
+        node_check.pin_inputs(entry, {'target': 'nvfp4', 'expect_bytes_range': [0, 10 ** 15]})
+    assert node_check.pin_inputs(dict(name='x', kind='diff', verifier='a.b.c'), None) is None
+    for bad in ({'checkout': '/x'}, {}, 'q2_k'):
+        with pytest.raises(ValueError, match='pinned inputs'):
+            validate_spec({'outputs': [dict(entry, inputs=bad)]})
+    with pytest.raises(ValueError, match='pinned inputs'):
+        validate_spec({'outputs': [dict(name='d', kind='diff', review=True, inputs={'t': 1})]})
+
+
+def test_reopen_needs_a_check_recorded_after_it(setup):
+    from jiuwenswarm.factory.taskgraph import operator_patch
+    store, ccs, checkout = setup
+    (checkout / 'a.c').write_text('int a = 1; /* COMPILES */\n')
+    passed = checks(store, ccs, Reviewer(PASS)).start('t', 'integrate', checkout=checkout, background=False)
+    graph = done(store, [passed['obs_id']], 1)
+    graph = operator_patch(store, 't', 'reopen', 'integrate', 'rerun after the driver fix')
+    node = next(n for n in graph['nodes'] if n['node_id'] == 'integrate')
+    assert node['state'] == 'proposed' and node['checks_after'] == f"t:plan:{graph['rev']}" and node['evidence_ids'] == []
+    with pytest.raises(ValueError, match='needs a passing node check'):  # the pass before the reopen no longer counts
+        done(store, [passed['obs_id']], graph['rev'])
+    again = checks(store, ccs, Reviewer(PASS)).start('t', 'integrate', checkout=checkout, background=False)
+    assert again['passed'] and again['obs_id'] != passed['obs_id']
+    assert next(n for n in done(store, [again['obs_id']], graph['rev'])['nodes'] if n['node_id'] == 'integrate')['state'] == 'done'

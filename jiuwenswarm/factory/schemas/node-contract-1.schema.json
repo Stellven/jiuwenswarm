@@ -95,7 +95,7 @@
               "output": {"$ref": "#/$defs/id"},
               "verifier": {"$ref": "#/$defs/capability"},
               "stage": {"enum": ["fixture", "native CC execution", "compile", "runtime acceptance", "hardware measurement"]},
-              "review": {"type": "boolean", "default": false}
+              "review": {"type": "boolean", "default": false}, "inputs": {"type": "object", "minProperties": 1, "maxProperties": 32, "description": "Verifier inputs the contract fixes (targets, tolerances, expected ranges); merged over the agent verifier_inputs, a different agent value is refused."}
             }
           }
         },

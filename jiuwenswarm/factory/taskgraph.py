@@ -17,7 +17,8 @@ TERMINAL = {'cancelled', 'superseded'}
 NODE_FIELDS = {'node_id', 'kind', 'title', 'capability', 'inputs', 'depends_on', 'state',
                'attempt_ids', 'evidence_ids', 'created_by_decision_rev', 'reason',
                'outcome', 'entities', 'requires_evidence', 'resources', 'engine_slice', 'branch', 'check',
-               'node_contract'}
+               'node_contract', 'hold', 'retry_from', 'checks_after'}
+OPERATOR_OPS = ('hold', 'release', 'reopen')  # host-recorded operator patches; agents cannot issue them
 
 
 def initialize(db):
@@ -80,6 +81,10 @@ def _validate(nodes, component_cc=None):
             validate_spec(node['check'])
         if 'node_contract' in node and (not isinstance(node['node_contract'], str) or not node['node_contract']):
             raise ValueError('node_contract names a node contract of the task contract')
+        if 'hold' in node and (not isinstance(node['hold'], str) or not node['hold'].strip()):
+            raise ValueError('A node hold carries a nonempty reason')
+        if 'retry_from' in node and (type(node['retry_from']) is not int or not 0 <= node['retry_from'] <= len(node['attempt_ids'])):
+            raise ValueError('retry_from must index the node attempt list')
         if 'entities' in node:
             _ids(node['entities'])
         if 'requires_evidence' in node:
@@ -120,8 +125,71 @@ def _validate(nodes, component_cc=None):
         raise ValueError('Plan dependency cycle')
 
 
-def _apply(nodes, patch, decision_rev, component_cc=None):
+def _descendants(nodes, key):
+    out, frontier = [], [key]
+    while frontier:
+        parent = frontier.pop()
+        for child, node in nodes.items():
+            if parent in node['depends_on'] and child not in out:
+                out.append(child)
+                frontier.append(child)
+    return out
+
+
+def _restart(node, reason, since=None):
+    """Back to proposed for a fresh attempt/check; earlier attempts and node checks stay recorded but no
+    longer count (node checks recorded before the ``since`` plan record are ignored by the done gate)."""
+    node.update(state='proposed', reason=reason, evidence_ids=[], retry_from=len(node['attempt_ids']))
+    if since:
+        node['checks_after'] = since
+
+
+def _apply_operator(nodes, patch, component_cc=None):
+    """Operator pause/resume. hold stops a node from starting or closing, release lifts it, and reopen
+    sends a failed (or finished) node and its descendants back to proposed. Upstream done nodes, their
+    outputs and passed checks are untouched, so a run continues from the node instead of restarting."""
+    _object(patch, set(OPERATOR_OPS))
+    if not patch or not any(patch.values()):
+        raise ValueError('Operator patch must contain an operation')
+    for op, changes in patch.items():
+        if not isinstance(changes, list):
+            raise ValueError('Plan operations must be lists')
+        for change in changes:
+            _object(change, {'node_id', 'reason', 'since'}, {'node_id', 'reason'})
+            key = identifier(change['node_id'])
+            reason = change['reason']
+            if not isinstance(reason, str) or not reason.strip():
+                raise ValueError('Operator patches need a reason')
+            if key not in nodes:
+                raise ValueError('Unknown plan node: ' + key)
+            node = nodes[key]
+            if node['state'] in TERMINAL:
+                raise ValueError('Cancelled/superseded nodes are terminal')
+            if op == 'hold':
+                if node['state'] == 'done':
+                    raise ValueError(f'Node {key} is done; reopen it to run it again')
+                node['hold'] = reason
+            elif op == 'release':
+                if 'hold' not in node:
+                    raise ValueError(f'Node {key} is not held')
+                del node['hold']
+            else:
+                affected = [key] + _descendants(nodes, key)
+                running = [k for k in affected if nodes[k]['state'] == 'running']
+                if running:
+                    raise ValueError('Cancel the running attempts first: ' + ', '.join(running))
+                since = change.get('since')
+                _restart(node, 'reopened by operator: ' + reason, since)
+                for child in affected[1:]:
+                    if nodes[child]['state'] not in TERMINAL | {'proposed'}:
+                        _restart(nodes[child], f'upstream {key} reopened by operator', since)
+    _validate(nodes, component_cc)
+
+
+def _apply(nodes, patch, decision_rev, component_cc=None, operator=False):
     """Pure patch application. Caller owns the detached node map."""
+    if operator:
+        return _apply_operator(nodes, patch, component_cc)
     _object(patch, {'add', 'update', 'cancel', 'supersede'})
     if not patch or not any(patch.values()):
         raise ValueError('Plan patch must contain an operation')
@@ -153,6 +221,8 @@ def _apply(nodes, patch, decision_rev, component_cc=None):
             if operation == 'update':
                 if change.get('state') in TERMINAL:
                     raise ValueError('Use cancel/supersede operations with a reason')
+                if node.get('hold') and change.get('state') in {'ready', 'running', 'done'}:
+                    raise ValueError(f"Node {key} is held by the operator: {node['hold']}")
                 for field, value in change.items():
                     if field in {'attempt_ids', 'evidence_ids'}:
                         _ids(value)
@@ -182,6 +252,8 @@ def _view(task_id, rev, nodes, history):
         if node['state'] in TERMINAL | {'done'}:
             continue
         reasons = [f"dependency {dep} is {nodes[dep]['state']}" for dep in node['depends_on'] if nodes[dep]['state'] != 'done']
+        if node.get('hold'):
+            reasons.append('held by operator: ' + node['hold'])
         if node['state'] in {'blocked', 'failed'}:
             reasons.append(node['reason'] or node['state'])
         if reasons:
@@ -207,7 +279,7 @@ def replay(task_id, history, rev=None, *, component_cc=None):
             break
         if entry['parent_rev'] != len(applied) or entry['rev'] != len(applied) + 1:
             raise ValueError('Noncontiguous plan history')
-        _apply(nodes, entry['patch'], entry['decision_rev'], component_cc)
+        _apply(nodes, entry['patch'], entry['decision_rev'], component_cc, operator=entry.get('origin') == 'operator')
         applied.append(entry)
     return _view(task_id, rev, nodes, applied)
 
@@ -245,19 +317,24 @@ def dispatch_precondition(store, task_id, node_id):
     node = nodes[node_id]
     if node['state'] in {'superseded', 'cancelled', 'done', 'failed'}:
         raise ValueError(f"Dispatch node {node_id} is {node['state']}")
+    if node.get('hold'):
+        raise ValueError(f"Dispatch node {node_id} is held by the operator: {node['hold']}")
     unfinished = [f"{dep} is {nodes[dep]['state']}" for dep in node['depends_on'] if nodes[dep]['state'] != 'done']
     if unfinished:
         raise ValueError('Dispatch dependencies not done: ' + ', '.join(unfinished))
 
 
-def _apply_patch(host, task_id, patch, expected_graph_rev, decision_rev, *, readable=(), seed=False, planner=None):
+def _apply_patch(host, task_id, patch, expected_graph_rev, decision_rev, *, readable=(), seed=False, planner=None, operator=False):
     """Inside an existing Store transaction (also used by decision publication)."""
     _revision(expected_graph_rev)
     _revision(decision_rev)
     graph = plan_get(host, task_id)
     if graph['rev'] != expected_graph_rev:
         raise StaleRevision('Current plan revision differs from expected_graph_rev')
-    if not seed:
+    if operator:
+        if seed or decision_rev != 0:
+            raise ValueError('Operator patches cite no decision')
+    elif not seed:
         if decision_rev == 0 or not host._db.execute('SELECT 1 FROM decisions WHERE task_id=? AND rev=?', (task_id, decision_rev)).fetchone():
             raise ValueError('Plan patch must cite an existing decision revision in this task')
     elif decision_rev != 0 or graph['rev'] != 0:
@@ -265,10 +342,10 @@ def _apply_patch(host, task_id, patch, expected_graph_rev, decision_rev, *, read
     patch = json.loads(encoded(patch))
     nodes = {n['node_id']: n for n in graph['nodes']}
     before = {key: dict(node) for key, node in nodes.items()}
-    _apply(nodes, patch, decision_rev, host.get_task(task_id).get('component_cc'))
+    _apply(nodes, patch, decision_rev, host.get_task(task_id).get('component_cc'), operator=operator)
     from .planner import contract_gate
     contract_gate(host, task_id, nodes)  # contracted work stays covered, with its checks
-    if not seed:  # a checked node is done only with its latest passing node check
+    if not seed and not operator:  # a checked node is done only with its latest passing node check
         from .node_check import gate
         gate(host, task_id, before, nodes)
     if any('branch' in n for n in nodes.values()):
@@ -280,7 +357,7 @@ def _apply_patch(host, task_id, patch, expected_graph_rev, decision_rev, *, read
             host._get('attempts', task_id, aid)
     rev = expected_graph_rev + 1
     record = dict(task_id=task_id, rev=rev, parent_rev=expected_graph_rev,
-                  decision_rev=decision_rev, patch=patch, origin='seed' if seed else 'decision', created=time.time())
+                  decision_rev=decision_rev, patch=patch, origin='seed' if seed else 'operator' if operator else 'decision', created=time.time())
     if planner:
         record['planner'] = planner
     host._insert('observations', dict(obs_id=f'{task_id}:plan:{rev}', task_id=task_id,
@@ -295,6 +372,20 @@ def plan_patch(store, task_id, patch, expected_graph_rev, decision_rev):
     with host._transaction():
         return _apply_patch(host, task_id, patch, expected_graph_rev, decision_rev,
                             readable=getattr(store, 'readable', ()))
+
+
+def operator_patch(store, task_id, op, node_id, reason, expected_graph_rev=None):
+    """Record one operator hold, release or reopen (see _apply_operator) as a new graph revision."""
+    if op not in OPERATOR_OPS:
+        raise ValueError('Operator operation must be one of ' + ', '.join(OPERATOR_OPS))
+    host = _host(store, task_id, write=True)
+    with host._transaction():
+        rev = plan_get(host, task_id)['rev'] if expected_graph_rev is None else expected_graph_rev
+        change = dict(node_id=node_id, reason=reason)
+        if op == 'reopen':  # this patch's own record: node checks before it no longer count
+            change['since'] = f'{task_id}:plan:{rev + 1}'
+        return _apply_patch(host, task_id, {op: [change]}, rev, 0,
+                            readable=getattr(store, 'readable', ()), operator=True)
 
 
 def apply_decision_patch(store, task_id, decision, readable=()):
@@ -393,16 +484,17 @@ def reconcile_patch(graph, attempts):
         pending.difference_update(ready)
     for key in ordered:
         node = nodes[key]
-        if node['state'] in TERMINAL:
-            continue
+        if node['state'] in TERMINAL or node.get('hold'):
+            continue  # a held node changes only by operator release
         deps_done = all(nodes[d]['state'] == 'done' for d in node['depends_on'])
-        if not node['attempt_ids']:
+        current = node['attempt_ids'][node.get('retry_from', 0):]  # attempts before a reopen no longer count
+        if not current:
             if node['state'] in {'ready', 'running', 'done'} and not deps_done:
                 reason = 'Dependencies no longer done after job reconciliation'
                 updates.append(dict(node_id=key, state='blocked', reason=reason))
                 node.update(state='blocked', reason=reason)
             continue
-        aid = node['attempt_ids'][-1]
+        aid = current[-1]
         attempt = attempts.get(aid, {})
         status = attempt.get('state', 'unknown')
         result_refs = attempt.get('result_refs', [])

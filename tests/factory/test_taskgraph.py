@@ -264,3 +264,44 @@ def test_methodology_task_suggestions_do_not_force_component_integration():
     kinds=[node['kind'] for node in proposal['add']]
     assert 'integrate' not in kinds and 'measure' in kinds
     assert any(node['capability']=='factory.methodology_followup.followup' for node in proposal['add'])
+
+
+def test_operator_hold_release_and_reopen_keep_upstream(graph_store):
+    from jiuwenswarm.factory.scheduler import next_work
+    from jiuwenswarm.factory.taskgraph import dispatch_precondition, operator_patch
+    store = graph_store
+    job = store.create_attempt('t', dict(attempt_id='job', kind='build', idem_key='j', fingerprint='j', request={}))
+    graph = patch(store, {'add': [node('a'), node('b', kind='build', depends_on=['a'], attempt_ids=['job']),
+                                  node('c', depends_on=['b'])]})
+    graph = patch(store, {'update': [{'node_id': 'a', 'state': 'done', 'evidence_ids': ['t']}]}, 1)
+    # Hold: the node cannot start, be dispatched or close; the scheduler and view say why.
+    graph = operator_patch(store, 't', 'hold', 'b', 'inspect the recipe first')
+    assert graph['history'][-1]['origin'] == 'operator' and 'b' not in graph['ready_frontier']
+    assert graph['blocked_reasons']['b'] == ['held by operator: inspect the recipe first']
+    assert next_work(store, 't')['waiting']['b'].startswith('held by operator') and next_work(store, 't')['held'] == ['b']
+    with pytest.raises(ValueError, match='held by the operator'):
+        dispatch_precondition(store, 't', 'b')
+    with pytest.raises(ValueError, match='held by the operator'):
+        patch(store, {'update': [{'node_id': 'b', 'state': 'running'}]}, graph['rev'])
+    with pytest.raises(ValueError, match='cite no decision|Invalid'):
+        patch(store, {'release': [{'node_id': 'b', 'reason': 'agent cannot'}]}, graph['rev'])
+    with pytest.raises(ValueError, match='done'):
+        operator_patch(store, 't', 'hold', 'a', 'too late')
+    assert reconcile_patch(graph, {'job': dict(job, state='failed')}) == {}  # held: jobs do not move it
+    graph = operator_patch(store, 't', 'release', 'b', 'recipe looks right')
+    assert 'hold' not in next(n for n in graph['nodes'] if n['node_id'] == 'b') and 'b' in graph['ready_frontier']
+    # The attempt fails; reopen restarts b and its descendant only, keeping a done with its evidence.
+    store.transition_attempt('t', 'job', 'running')
+    store.transition_attempt('t', 'job', 'failed')
+    graph = reconcile(store, 't', graph['rev'], 1)
+    assert next(n for n in graph['nodes'] if n['node_id'] == 'b')['state'] == 'failed'
+    graph = operator_patch(store, 't', 'reopen', 'b', 'fixed the driver')
+    nodes = {n['node_id']: n for n in graph['nodes']}
+    assert nodes['a']['state'] == 'done' and nodes['a']['evidence_ids'] == ['t']
+    assert nodes['b']['state'] == 'proposed' and nodes['b']['retry_from'] == 1 and nodes['b']['attempt_ids'] == ['job']
+    assert 'b' in graph['ready_frontier']
+    assert reconcile(store, 't', graph['rev'], 1) == graph  # the old failed attempt no longer counts
+    retry = store.create_attempt('t', dict(attempt_id='retry', kind='build', idem_key='r', fingerprint='r', request={}))
+    graph = patch(store, {'update': [{'node_id': 'b', 'state': 'ready', 'attempt_ids': ['retry']}]}, graph['rev'])
+    assert reconcile_patch(graph, {'job': dict(job, state='failed'), 'retry': dict(retry, state='running')})['update'][0]['state'] == 'running'
+    assert replay('t', graph['history']) == graph == plan_get(graph_store, 't')

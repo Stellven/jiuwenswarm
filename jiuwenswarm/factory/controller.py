@@ -574,6 +574,12 @@ class Controller:
                         self._reconcile(task_id)
                         self._save(task_id, state)
                         continue
+                    paused = self._paused_at(task_id)
+                    if paused:
+                        # Nothing can run and the frontier is held or failed: stop without spending turns.
+                        # Upstream nodes keep their outputs; release/reopen then resume continues from here.
+                        state['stop_reason'] = 'paused at ' + '; '.join(f'{k} ({v})' for k, v in paused.items())
+                        return self._finish(task_id, state, 'paused')
                     query = self._message(task, state)
                     before = self.store.get_task(task_id)['current_decision_rev']
                     state['turns'] += 1
@@ -602,6 +608,21 @@ class Controller:
                 if self.facade is None:
                     from jiuwenswarm.server.runtime.codex_subscription.service import get_service
                     await get_service().transport.close()
+
+    def _paused_at(self, task_id):
+        from .scheduler import next_work
+        work = next_work(self.store, task_id)
+        stops = {k: v for k, v in work['waiting'].items() if v.startswith(('held by operator', 'failed:'))}
+        return stops if stops and not work['runnable'] and not work['delivered'] else {}
+
+    def operator(self, task_id, op, node_id, reason):
+        """Operator hold/release/reopen of one plan node (taskgraph.operator_patch), noted for the agent."""
+        from .taskgraph import operator_patch
+        graph = operator_patch(self.store, task_id, op, node_id, reason)
+        from .operator_notes import publish
+        publish(self.home, task_id, f'Operator {op} on plan node {node_id}: {reason}. Graph revision {graph["rev"]}.'
+                + (' Earlier attempts and checks of the reopened nodes no longer count; start fresh ones.' if op == 'reopen' else ''))
+        return graph
 
     def import_baseline(self, task_id, source_task='operator-bare-build', source_attempt=None):
         """Link the existing plain-engine build receipt into a task and tell the agent on its next turn."""

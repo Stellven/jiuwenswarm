@@ -103,6 +103,10 @@ def problems(document, contract=None):
             kind = next((o['kind'] for o in node['outputs'] if o['name'] == verifier['output']), None)
             if verifier.get('stage') and not verifier.get('verifier'):
                 found.append(f'{key}/verifiers/{verifier["output"]}: a stage needs a verifier capability')
+            if verifier.get('inputs') and not verifier.get('verifier'):
+                found.append(f'{key}/verifiers/{verifier["output"]}: pinned inputs need a verifier capability')
+            if set(verifier.get('inputs') or {}) & {'checkout', 'diff_path'}:
+                found.append(f'{key}/verifiers/{verifier["output"]}: checkout and diff_path are set by the host')
             if kind == 'diff' and not verifier.get('verifier') and not verifier.get('review'):
                 found.append(f'{key}/verifiers/{verifier["output"]}: a diff needs a capsule verifier, a review or both')
             if kind not in ('diff', 'evidence') and verifier.get('verifier'):
@@ -163,7 +167,7 @@ def check_spec(node_contract):
     for verifier in node_contract['verifiers']:
         output = kinds[verifier['output']]
         entry = dict(name=output['name'], kind=output['kind'], required=output.get('required', True))
-        for field in ('verifier', 'stage'):
+        for field in ('verifier', 'stage', 'inputs'):
             if verifier.get(field):
                 entry[field] = verifier[field]
         if verifier.get('review'):
