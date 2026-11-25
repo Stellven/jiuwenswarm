@@ -10,11 +10,13 @@ never stands in for a pass.
 
 | Check | Halts when |
 | --- | --- |
+| `target_given` | No `target` input (required; a call without it is refused as `verification_input`). |
 | `recipe_format` | Not `factory.pack-recipe/1`, or `source`, `target`, `tensors`, `argv` or `estimate` is missing. |
+| `target_matches` | The recipe's target differs from the requested `target`. |
 | `source_digests` | A source file has no sha256 (a header digest is not enough to name the source pack). |
-| `source_matches_recipe` | With `pack_manifest`: the source headers' tensor names, types, shapes or file sizes differ from the recipe. |
-| `expert_targets` | A routed expert weight does not target the requested type, or none was found. |
-| `non_expert_kept` | Any other tensor changes type. |
+| `source_matches_recipe` | The source headers (`pack_manifest`, required) differ from the recipe in tensor names, types, shapes or file sizes. |
+| `expert_targets` | A routed expert weight does not target the requested type, is already that type in the source headers (pinning experts to their source type is not a requantization), or none was found. |
+| `non_expert_kept` | Any other tensor's target differs from its type in the source headers (not the recipe's claim). |
 | `gb10_kernel_types` | A converted type is outside the admitted GB10 list: q2_k q3_k q4_k q5_k q6_k q8_0 q4_0 q4_1 q5_0 q5_1 iq2_xxs iq2_xs iq2_s iq3_xxs iq3_s iq4_xs iq4_nl mxfp4 nvfp4 f16 bf16 f32 (all have stock CUDA kernels at 9048bad8). |
 | `block_divisibility` | A converted tensor's `ne[0]` is not a multiple of the target block (stock would silently fall back). |
 | `argv_parses` | Stock would print usage: unknown flag, flag after a positional, malformed `--tensor-type`, bad ftype, `--include-weights` with `--exclude-weights`. |
@@ -31,13 +33,15 @@ never stands in for a pass.
 | Check | Halts when |
 | --- | --- |
 | `pack_readable` | A shard is missing, a header is unreadable or truncated, a type id is unknown, or a tensor runs past its file. Fails closed: nothing else is judged. |
-| `expert_types` | A routed expert weight is not the target type (for example left NVFP4). |
-| `non_expert_types` | A non-expert tensor differs from the recipe target (or the source type without a recipe). Fails closed without either reference. |
-| `tensor_set` | A tensor was dropped, added or reshaped. |
+| `source_readable`, `target_given` | `source_pack` or `target` missing or unreadable (both required). |
+| `target_matches` | With a recipe: its target differs from the requested `target`. |
+| `expert_types` | A routed expert weight is not the target type, or still has its source type (for example left NVFP4). |
+| `non_expert_types` | A non-expert tensor differs from its type in the source pack headers (never from the recipe). Fails closed without `source_pack` and `target`. |
+| `tensor_set` | A tensor was dropped, added or reshaped against the source headers. |
 | `scale_tensors_present` | An `ffn_*_exps.scale` / `.input_scale` tensor of the source is absent. Fails closed without `source_pack`. |
 | `scale_tensors_identical` | Its bytes or type differ from the source. |
 | `source_is_recipe_source` | `source_pack` is not the pack the recipe was planned from. |
-| `total_bytes` | Total size is outside `expect_bytes_range` (contract: 250-320 GB). |
+| `total_bytes` | Total size is outside `expect_bytes_range` (required; contract: 250-320 GB). Fails without the range. |
 | `recipe_size` | Total size is off the recipe estimate by more than the header allowance. |
 | `shard_layout` | With `--keep-split` the shard count differs from the source. |
 | `imatrix_recorded` | The recipe names an imatrix but the output lacks `quantize.imatrix.file` with that name (the tool writes it when it used the file). |
@@ -47,9 +51,11 @@ never stands in for a pass.
 `tests/test_wpc_capabilities.py` builds tiny GGUF v3 packs and plants one fault per case. Recipe: missing
 `--allow-requantize`, an expert retargeted, an attention tensor retargeted, a dropped pin, no imatrix, no
 sha256, an unknown flag, `--prune-layers` in the full run, a forged byte estimate, a type without a GB10 kernel,
-a disk grant overrun, a different source pack. Pack: attention requantized, a dropped `.scale`, changed
-`.scale` bytes, an expert left NVFP4, a missing shard, a truncated header, size outside the range, no imatrix
-record, no reference. Each fault must fail its named check and the clean case must pass.
+a disk grant overrun, a different source pack, a recipe target other than the requested one, experts pinned
+to their source type, a recipe lying about `output.weight`'s source type. Pack: attention requantized, a dropped
+`.scale`, changed `.scale` bytes, an expert left NVFP4, experts left at the source type with target = source,
+`output.weight` requantized under a recipe that claims it, a missing shard, a truncated header, size outside the
+range, no imatrix record, no reference, no target or range. Each fault must fail its named check and the clean case must pass.
 
 ```sh
 python -m pytest jiuwenswarm/factory/ccs/weight_pack_compiler/tests -o addopts="" -q

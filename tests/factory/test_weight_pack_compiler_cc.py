@@ -1,4 +1,4 @@
-"""weights.build_weight_pack_compiler 2.0.0 as the factory calls it for node requant_q2.
+"""weights.build_weight_pack_compiler 2.1.0 as the factory calls it for node requant_q2.
 
 The contract muse-q2-ttft-v2 names verify_recipe and verify_pack as the verifiers of the node's two evidence
 outputs. These tests call the capsule the two ways the factory does: the native ccv2 packet on stdin, and the
@@ -48,28 +48,33 @@ def packs(tmp_path):
 def test_contract_names_capabilities_the_capsule_declares():
     import yaml
     declaration = yaml.safe_load((CAPSULE / 'cc.yaml').read_text(encoding='utf-8'))
-    assert declaration['id'] == 'weights.build_weight_pack_compiler' and declaration['version'] == '2.0.0'
+    assert declaration['id'] == 'weights.build_weight_pack_compiler' and declaration['version'] == '2.1.0'
     contract = json.loads(CONTRACT.read_text(encoding='utf-8'))
     text = json.dumps(contract)
     for capability in ('verify_recipe', 'verify_pack'):
         assert f'weights.build_weight_pack_compiler.{capability}' in text
         assert declaration['capabilities'][capability]['changes'] == ['workspace.read']
+    required = {c: {k for k, v in declaration['capabilities'][c]['takes'].items() if not v.get('optional')}
+                for c in ('verify_recipe', 'verify_pack')}
+    assert {'target', 'pack_manifest'} <= required['verify_recipe']
+    assert {'target', 'source_pack', 'expect_bytes_range'} <= required['verify_pack']
 
 
 def test_native_packet_clean_and_faulted(packs):
     fx.make_q2(packs['out'])
     first = str(packs['out'] / 'muse-nvfp4-Q2_K-00001-of-00002.gguf')
     recipe = native('verify_recipe', recipe=str(packs['recipe']), pack_manifest=str(packs['source'][0]),
-                    disk_grant_bytes=1 << 30)
+                    disk_grant_bytes=1 << 30, target='q2_k')
     assert recipe['done'] and not failed(recipe)
     pack = native('verify_pack', pack=first, recipe=str(packs['recipe']), source_pack=str(packs['source'][0]),
-                  expect_bytes_range=[1, 1 << 30])
+                  expect_bytes_range=[1, 1 << 30], target='q2_k')
     assert pack['done'] and pack['manifest']['census']['routed_expert'] == {'q2_k': 9}
 
     faulted = packs['out'].parent / 'faulted'
     faulted.mkdir()
     fx.make_q2(faulted, drop=('blk.1.ffn_gate_exps.scale',), overrides={'blk.2.attn_q.weight': 'q4_k'})
-    bad = native('verify_pack', pack=str(faulted), recipe=str(packs['recipe']), source_pack=str(packs['source'][0]))
+    bad = native('verify_pack', pack=str(faulted), recipe=str(packs['recipe']), source_pack=str(packs['source'][0]),
+                 expect_bytes_range=[1, 1 << 30], target='q2_k')
     assert not bad['done'] and {'scale_tensors_present', 'non_expert_types', 'tensor_set'} <= failed(bad)
 
 
@@ -87,11 +92,14 @@ def test_host_call_with_node_check_grants_and_assess(packs, tmp_path):
         assert receipt['state'] == 'succeeded', receipt
         return node_check.assess(receipt, stage)
 
-    ok, reached, reason = verify('verify_recipe', {'recipe': str(packs['recipe']),
+    ok, reached, reason = verify('verify_recipe', {'recipe': str(packs['recipe']), 'target': 'q2_k',
                                                    'pack_manifest': str(packs['source'][0])}, 'fixture')
     assert ok and reached == 'native CC execution', reason
+    ok, _, reason = verify('verify_recipe', {'recipe': str(packs['recipe']), 'target': 'q4_k',
+                                             'pack_manifest': str(packs['source'][0])}, 'fixture')
+    assert not ok and 'target_matches' in reason
     inputs = {'pack': str(packs['out']), 'recipe': str(packs['recipe']), 'source_pack': str(packs['source'][0]),
-              'expect_bytes_range': [1, 1 << 30]}
+              'expect_bytes_range': [1, 1 << 30], 'target': 'q2_k'}
     ok, reached, reason = verify('verify_pack', inputs, 'native CC execution')
     assert ok, reason
     (packs['out'] / 'muse-nvfp4-Q2_K-00002-of-00002.gguf').unlink()

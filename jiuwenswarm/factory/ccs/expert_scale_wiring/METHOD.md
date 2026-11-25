@@ -42,8 +42,13 @@ Build stock HEAD the same way (or reuse a stock build of the same commit) for pa
 ## 6. Parity on a scale-free pack
 
 `helpers/parity.sh STOCK/bin CAND/bin tiny/tiny-bf16.gguf`: greedy stdout must be byte-identical. Check first
-that the pack really has no `_exps.scale` tensor. The tiny packs come from the reader capsule
-(`weights.build_muse_nvfp4_reader`: `helpers/make_tiny_packs.sh`).
+that the pack really has no `_exps.scale` tensor.
+
+The three tiny packs come from the reader capsule (`weights.build_muse_nvfp4_reader`:
+`helpers/make_tiny_packs.sh TREE PY REF CONFIG OUT`, run on a tree with the reader's converter change). It also
+writes `OUT/tiny-packs.sha256.json`, the sha256 of each pack; pass it to `verify` as `tiny_packs_manifest` so
+the packs that are judged are the ones that were made, pinned by digest. The verifier refuses a reference pack
+that is the NVFP4 pack (same path or same bytes): a pack compared with itself passes every numeric check.
 
 ## 7. Numerics on the NVFP4 tiny pack
 
@@ -62,6 +67,12 @@ from KLD). If you also measure on CUDA, record the MMQ activation path: default 
 ## 8. verify
 
 Call `verify` with `tiny_dir` (holding `tiny-bf16.gguf`, `tiny-nvfp4-f32.gguf`, `tiny-deqref-f32.gguf`),
-`work_dir` outside the checkout, `jobs`, and `stock_bin` if you already built stock (else the verifier builds
-and caches stock HEAD in `work_dir`). It reaches `runtime acceptance` only when parity, KLD, no-NaN and the
-layer slice all ran and passed.
+`tiny_packs_manifest`, `work_dir` outside the checkout, `jobs`, and `stock_bin` if you already built stock (else
+the verifier builds and caches stock HEAD in `work_dir`). It reaches `runtime acceptance` only when parity, KLD,
+no-NaN and the layer slice all ran and passed; a skipped compile or runtime leaves `done` false.
+
+**Shared checkout.** `verify` judges only this node's change: `src/models/muse-spark.cpp`. The reader node's
+converter change (`conversion/*.py`) is carried, not reviewed, one of these ways: it is committed before this
+node (it is then in `base`, default HEAD), or you pass `diff_path` with only the graph change, or you pass the
+reader's patch as `carried_diff` (working files equal to base plus that patch are exported with your change but
+not judged). Otherwise its paths fail `allowed_paths`.

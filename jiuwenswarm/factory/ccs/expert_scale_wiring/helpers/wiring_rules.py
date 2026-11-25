@@ -4,6 +4,8 @@ Input: the patch, the pre- and post-image of src/models/muse-spark.cpp and the t
 (all from the checkout's HEAD, or stock copies in the capsule tests). The rules map each argument of the
 Muse `build_moe_ffn(...)` call to the parameter it binds in the declaration the call resolves to, then check
 that up_exps_s, gate_exps_s and down_exps_s bind the layer's own loaded scale tensors and nothing else moved.
+Each scale argument must be the member expression `model.layers[il].ffn_{up,gate,down}_exps_s` itself (whitespace
+aside); a local alias would be new code outside the call and fails edits_confined_to_call anyway.
 """
 import re
 
@@ -109,7 +111,9 @@ def wiring_checks(patch_files, pre_text, post_text, header_text, stage=STAGE):
     for param, tensor in SCALES.items():
         want = f"model.layers[il].{tensor}"
         got = bound.get(param, "<default nullptr>")
-        if got != want:
+        # the member expression itself, spelled exactly (whitespace aside): an alias would be new code outside
+        # the call, which edits_confined_to_call rejects
+        if re.sub(r"\s+", "", got) != want:
             hint = ""
             for other, t in SCALES.items():
                 if other != param and got.endswith("." + t):

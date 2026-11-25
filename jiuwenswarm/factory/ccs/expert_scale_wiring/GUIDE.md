@@ -23,7 +23,9 @@ Nothing else: no new ops, no new switches (absent tensors are the off switch), n
 ## Rules of thumb
 
 1. Bind by parameter name, not by position you remember: the function has overloads and long default tails.
-   Read the declaration in `src/llama-graph.h` and count.
+   Read the declaration in `src/llama-graph.h` and count. Pass the member expressions themselves,
+   `model.layers[il].ffn_up_exps_s` and so on: the static `scale_args` rule accepts exactly those (whitespace
+   aside), and a local alias would be new code outside the call, which `edits_confined_to_call` rejects.
 2. Up, gate and down each take their **own** scale. Muse RMS-normalizes each expert's output, so a wrong up or
    down scale barely moves the logits; only the per-matmul comparison (expert slice) shows it. Do not rely on
    perplexity alone.

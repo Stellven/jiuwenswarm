@@ -1,4 +1,4 @@
-"""weights.build_expert_scale_wiring 1.0.0 as the factory calls it for node wire_expert_scales.
+"""weights.build_expert_scale_wiring 1.1.0 as the factory calls it for node wire_expert_scales.
 
 The contract muse-q2-ttft-v2 names verify for the `change` diff at stage runtime acceptance. These tests seal
 the capsule in a CC v2 Host with the verifier grants of node_check and judge receipts with node_check.assess.
@@ -28,7 +28,7 @@ def test_contract_names_the_capability_the_capsule_declares():
     import yaml
     from jiuwenswarm.factory.node_check import STAGES, VERIFIER_GRANTS
     declaration = yaml.safe_load((CAPSULE / 'cc.yaml').read_text(encoding='utf-8'))
-    assert declaration['id'] == 'weights.build_expert_scale_wiring' and declaration['version'] == '1.0.0'
+    assert declaration['id'] == 'weights.build_expert_scale_wiring' and declaration['version'] == '1.1.0'
     entry = contract_entry()
     assert entry['verifier'] == 'weights.build_expert_scale_wiring.verify' and entry['stage'] in STAGES
     verify = declaration['capabilities']['verify']
@@ -66,8 +66,10 @@ def test_static_pass_does_not_reach_runtime_acceptance(tmp_path, checkout):
         return node_check.assess(receipt, stage), node_check.assess(receipt, 'fixture')
 
     (ok, reached, reason), (ok_fixture, _, _) = verify('good.diff', build=False)
-    assert not ok and reached == 'native CC execution' and 'needs runtime acceptance' in reason
-    assert ok_fixture
+    assert not ok and reached == 'native CC execution', reason
+    assert not ok_fixture  # a skipped compile and runtime leave done false: runtime acceptance is the default bar
+    (ok, reached, reason), (ok_fixture, _, _) = verify('good.diff', build=False, require_stage='native CC execution')
+    assert not ok and 'needs runtime acceptance' in reason and ok_fixture
     for diff in ('up-gets-gate-scale.diff', 'down-scale-missing.diff', 'touches-ggml.diff'):
         (ok, _, reason), (ok_fixture, _, _) = verify(diff)
         assert not ok and not ok_fixture and 'verifier checks failed' in reason

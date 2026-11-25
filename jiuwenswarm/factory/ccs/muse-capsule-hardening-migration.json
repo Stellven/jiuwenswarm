@@ -1,0 +1,72 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "muse_nvfp4_reader/cc.yaml",
+      "from_version": "1.0.0",
+      "from_release": "d8e8d138caf0301fbd5a176a95feb6281556c85748bad1b9fbe5a1ccec8b759e",
+      "from_commit": "b8cf6e45853312b7b73950082721eccb771e1cb6",
+      "to_version": "1.1.0",
+      "to_release": "076ad3bfc866041e3aec298eadca9b09cbd92f022807d3c79a8f359e30daed0f",
+      "changed_files": [
+        "METHOD.md",
+        "VALIDATION.md",
+        "cc.yaml",
+        "helpers/README.md",
+        "helpers/checkout.py",
+        "helpers/converter_rules.py",
+        "helpers/make_tiny_packs.sh",
+        "helpers/pack_census.py",
+        "run.py",
+        "tests/fixtures/eager-loader.diff",
+        "tests/fixtures/mapping-inconclusive.diff",
+        "tests/muse_pack_fixture.py",
+        "tests/test_reader_capabilities.py"
+      ],
+      "unrecorded_versions": [],
+      "reason": "Reader, scale wiring and pack compiler verifiers: runtime acceptance is the bar (inconclusive/skipped never done), stage_reached; reader verify_pack plans from the checkpoint index and checks .scale against _weight_scale_2 columns; lazy_repack catches eager loads; tiny packs distinct and digest-pinned; only the change under review is judged (base, carried_diff); pack compiler takes target and byte range from the caller and judges types against the source headers."
+    },
+    {
+      "path": "expert_scale_wiring/cc.yaml",
+      "from_version": "1.0.0",
+      "from_release": "c120191d31b41f92daf00a579a0b18454b822b0845dccc8339c736674dd8bdae",
+      "from_commit": "b8cf6e45853312b7b73950082721eccb771e1cb6",
+      "to_version": "1.1.0",
+      "to_release": "b634323529f86d90a13d62e6eba6792f82e61d4c6ad9a280aecf41a2c7f3f6ce",
+      "changed_files": [
+        "GUIDE.md",
+        "METHOD.md",
+        "VALIDATION.md",
+        "cc.yaml",
+        "helpers/README.md",
+        "helpers/checkout.py",
+        "helpers/llama_runs.py",
+        "helpers/wiring_rules.py",
+        "run.py",
+        "tests/test_wiring_capabilities.py"
+      ],
+      "unrecorded_versions": [],
+      "reason": "Reader, scale wiring and pack compiler verifiers: runtime acceptance is the bar (inconclusive/skipped never done), stage_reached; reader verify_pack plans from the checkpoint index and checks .scale against _weight_scale_2 columns; lazy_repack catches eager loads; tiny packs distinct and digest-pinned; only the change under review is judged (base, carried_diff); pack compiler takes target and byte range from the caller and judges types against the source headers."
+    },
+    {
+      "path": "weight_pack_compiler/cc.yaml",
+      "from_version": "2.0.0",
+      "from_release": "b2180d443c78dd8fd1f2d95aa212e42863b57d9da04881c238737e835ce811e0",
+      "from_commit": "d475bb7584ce9e0c5ba5260a3b1489cedbf43c9d",
+      "to_version": "2.1.0",
+      "to_release": "d36acf81afd09c21bca4c420d29aaa32298a025fe6341dd4c96756bd3ca13a31",
+      "changed_files": [
+        "METHOD.md",
+        "SOURCE-MAP.md",
+        "VALIDATION.md",
+        "cc.yaml",
+        "helpers/pack_check.py",
+        "helpers/recipe_check.py",
+        "run.py",
+        "tests/test_wpc_capabilities.py"
+      ],
+      "unrecorded_versions": [],
+      "reason": "Reader, scale wiring and pack compiler verifiers: runtime acceptance is the bar (inconclusive/skipped never done), stage_reached; reader verify_pack plans from the checkpoint index and checks .scale against _weight_scale_2 columns; lazy_repack catches eager loads; tiny packs distinct and digest-pinned; only the change under review is judged (base, carried_diff); pack compiler takes target and byte range from the caller and judges types against the source headers."
+    }
+  ]
+}

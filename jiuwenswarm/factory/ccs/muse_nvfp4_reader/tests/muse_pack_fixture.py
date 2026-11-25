@@ -1,8 +1,10 @@
 """Tiny synthetic Muse NVFP4 GGUF packs for verify_pack (standard library only).
 
 Four layers, eight experts: layers 1 and 2 quantized (NVFP4 experts with [E] .scale and .input_scale),
-layers 0 and 3 excluded (BF16 experts, no scales), like the checkpoint's layers 0 and 61. Faults are planted
-by keyword so each test names what it breaks.
+layers 0 and 3 excluded (BF16 experts, no scales), like the checkpoint's layers 0 and 61. `make_checkpoint`
+writes the matching ModelOpt-style safetensors checkpoint (index + one shard per layer, stacked experts with
+_weight_scale_2 [E, 2] / [E]) that verify_pack reads as its reference. Faults are planted by keyword so each
+test names what it breaks.
 """
 import json
 import struct
@@ -54,7 +56,13 @@ def floats(*values):
     return struct.pack(f"<{len(values)}f", *values)
 
 
-def rows(overrides=None, drop=(), bad_scale=None):
+def scale_values(layer, kind):
+    """The per-expert scale_2 values of one projection: distinct for gate, up and down so a swap shows."""
+    step = {"gate": 0.001, "up": 0.002, "down": 0.003}[kind]
+    return [step * (layer + e + 1) for e in range(E)]
+
+
+def rows(overrides=None, drop=(), bad_scale=None, swap_columns=False):
     overrides = overrides or {}
     out = [("token_embd.weight", [EMBD, 16], "bf16", None), ("output.weight", [EMBD, 16], "bf16", None)]
     for l in range(LAYERS):
@@ -64,7 +72,7 @@ def rows(overrides=None, drop=(), bad_scale=None):
         for kind, shape in (("gate", [EMBD, FF, E]), ("up", [EMBD, FF, E]), ("down", [FF, EMBD, E])):
             if l in QUANTIZED:
                 out.append((p + f"ffn_{kind}_exps.weight", shape, "nvfp4", None))
-                vals = [0.001 * (l + e + 1) for e in range(E)]
+                vals = scale_values(l, {"gate": "up", "up": "gate"}.get(kind, kind) if swap_columns else kind)
                 out.append((p + f"ffn_{kind}_exps.scale", [E], "f32", floats(*vals)))
                 out.append((p + f"ffn_{kind}_exps.input_scale", [E], "f32", floats(*([0.01] * E))))
             else:
@@ -109,3 +117,46 @@ def make_inventory(path):
            "excluded_layers": [l for l in range(LAYERS) if l not in QUANTIZED], "n_layers": LAYERS, "experts": experts}
     Path(path).write_text(json.dumps(inv))
     return path
+
+
+def write_safetensors(path, tensors):
+    """tensors: [(name, dtype, shape, data bytes)]."""
+    header, blobs, offset = {}, [], 0
+    for name, dtype, shape, data in tensors:
+        header[name] = {"dtype": dtype, "shape": shape, "data_offsets": [offset, offset + len(data)]}
+        blobs.append(data)
+        offset += len(data)
+    raw = json.dumps(header).encode()
+    raw += b" " * ((-len(raw)) % 8)
+    Path(path).write_bytes(struct.pack("<Q", len(raw)) + raw + b"".join(blobs))
+
+
+def make_checkpoint(directory, quantized=QUANTIZED, swap_source_columns=False):
+    """Tiny ModelOpt NVFP4 checkpoint matching make_pack: returns the index path."""
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    weight_map = {}
+    for l in range(LAYERS):
+        shard = f"model-{l + 1:05d}-of-{LAYERS:05d}.safetensors"
+        p = f"model.language_model.layers.{l}.mlp.experts."
+        if l in quantized:
+            gate, up = scale_values(l, "gate"), scale_values(l, "up")
+            if swap_source_columns:
+                gate, up = up, gate
+            pairs = [v for e in range(E) for v in (gate[e], up[e])]
+            tensors = [(p + "gate_up_proj", "U8", [E, 2 * FF, EMBD // 2], bytes(E * 2 * FF * EMBD // 2)),
+                       (p + "gate_up_proj_weight_scale", "F8_E4M3", [E, 2 * FF, EMBD // 16], bytes(E * 2 * FF * EMBD // 16)),
+                       (p + "gate_up_proj_weight_scale_2", "F32", [E, 2], floats(*pairs)),
+                       (p + "gate_up_proj_input_scale", "F32", [E, 2], floats(*([0.01] * 2 * E))),
+                       (p + "down_proj", "U8", [E, EMBD, FF // 2], bytes(E * EMBD * FF // 2)),
+                       (p + "down_proj_weight_scale", "F8_E4M3", [E, EMBD, FF // 16], bytes(E * EMBD * FF // 16)),
+                       (p + "down_proj_weight_scale_2", "F32", [E], floats(*scale_values(l, "down"))),
+                       (p + "down_proj_input_scale", "F32", [E], floats(*([0.01] * E)))]
+        else:
+            tensors = [(p + "gate_up_proj", "BF16", [E, 2 * FF, EMBD], bytes(E * 2 * FF * EMBD * 2)),
+                       (p + "down_proj", "BF16", [E, EMBD, FF], bytes(E * EMBD * FF * 2))]
+        write_safetensors(directory / shard, tensors)
+        weight_map.update({name: shard for name, _, _, _ in tensors})
+    index = directory / "model.safetensors.index.json"
+    index.write_text(json.dumps({"metadata": {}, "weight_map": weight_map}))
+    return index

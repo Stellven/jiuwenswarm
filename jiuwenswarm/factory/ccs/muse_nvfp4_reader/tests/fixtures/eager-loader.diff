@@ -1,0 +1,66 @@
+diff --git a/conversion/muse_spark.py b/conversion/muse_spark.py
+index 5378b43..559f63d 100644
+--- a/conversion/muse_spark.py
++++ b/conversion/muse_spark.py
+@@ -1,13 +1,15 @@
+ from __future__ import annotations
+ 
++import re
+ from typing import Any, Iterable, TYPE_CHECKING
+ 
++import numpy as np
+ import torch
+ 
+ if TYPE_CHECKING:
+     from torch import Tensor
+ 
+-from .base import ModelBase, MmprojModel, TextModel, gguf
++from .base import LazyTorchTensor, ModelBase, MmprojModel, TextModel, gguf
+ from .muse_glimmer import MuseGlimmerVisionModel
+ 
+ 
+@@ -79,6 +81,44 @@ class MuseSparkModel(TextModel):
+         # the config carries no score function, the reference hardcodes sigmoid
+         self.gguf_writer.add_expert_gating_func(gguf.ExpertGatingFuncType.SIGMOID)
+ 
++    def _generate_nvfp4_tensors(self):
++        # ModelOpt NVFP4 stores Muse experts stacked: experts.{gate_up,down}_proj U8 [E, out, in/2],
++        # _weight_scale F8_E4M3 [E, out, in/16], _weight_scale_2 F32 [E, 2] (gate, up) or [E], _input_scale alike.
++        # Repack each expert into ggml NVFP4 and keep scale_2 as a per-expert .scale applied at runtime.
++        # The repack is lazy: gguf_writer holds added tensors until the final write.
++        for name in [n for n in self.model_tensors if n.endswith((".experts.gate_up_proj", ".experts.down_proj"))]:
++            if name + "_weight_scale" not in self.model_tensors:
++                continue  # excluded layer, plain BF16
++            m = re.search(r"\.layers\.(\d+)\.", name)
++            assert m is not None
++            bid = int(m.group(1))
++            w_fn, s_fn = self.model_tensors.pop(name), self.model_tensors.pop(name + "_weight_scale")
++            s2 = LazyTorchTensor.to_eager(self.model_tensors.pop(name + "_weight_scale_2")()).float()
++            ins = self.model_tensors.pop(name + "_input_scale", None)
++            ins = LazyTorchTensor.to_eager(ins()).float() if ins is not None else None
++            w_all = LazyTorchTensor.to_eager(w_fn())
++            s_all = LazyTorchTensor.to_eager(s_fn())
++            n_exp, n_out, n_packed = w_all.shape
++            if name.endswith("gate_up_proj"):  # gate first along the output dim, each half has its own scale_2
++                parts = [(gguf.MODEL_TENSOR.FFN_GATE_EXP, 0, n_out // 2, 0),
++                         (gguf.MODEL_TENSOR.FFN_UP_EXP, n_out // 2, n_out, 1)]
++            else:
++                parts = [(gguf.MODEL_TENSOR.FFN_DOWN_EXP, 0, n_out, 0)]
++            for t, r0, r1, col in parts:
++                def load(fns, r0=r0, r1=r1):
++                    w, s = fns
++                    return np.stack([self._nvfp4_pack(w[e, r0:r1], s[e, r0:r1])[0] for e in range(w.shape[0])])
++                raw = gguf.LazyNumpyTensor(
++                    meta=gguf.LazyNumpyTensor.meta_with_dtype_and_shape(np.uint8, (n_exp, r1 - r0, n_packed * 2 // 64 * 36)),
++                    args=((w_all, s_all),), func=load)
++                new_name = self.format_tensor_name(t, bid)
++                self.gguf_writer.add_tensor(new_name, raw, raw_dtype=gguf.GGMLQuantizationType.NVFP4)
++                self._tag_prec_a4(name, new_name)
++                self._write_scales_tensor(new_name.replace(".weight", ".scale"), s2.reshape(n_exp, -1)[:, col].tolist())
++                if ins is not None:
++                    self._write_scales_tensor(new_name.replace(".weight", ".input_scale"), ins.reshape(n_exp, -1)[:, col].tolist())
++        super()._generate_nvfp4_tensors()
++
+     def modify_tensors(self, data_torch: Tensor, name: str, bid: int | None) -> Iterable[tuple[str, Tensor]]:
+         if name.endswith(OFFSET_NORM_SUFFIXES):
+             data_torch = data_torch + 1.0

@@ -37,9 +37,11 @@ argv against every tensor).
 
 ## 3. verify_recipe
 
-Call `verify_recipe` with the recipe, `target: q2_k` (otherwise the recipe's own target is the one checked), the
-source manifest and the disk grant. Any failing check is a gate:
-do not start the conversion (VALIDATION.md).
+Call `verify_recipe` with the recipe, `target` (required; the contract pins it, `q2_k` here), `pack_manifest`
+(required: the source manifest or first shard) and the disk grant. The verifier takes neither the target nor the
+source types from the recipe: the recipe's target must equal the requested one, its tensor table must equal the
+source headers, and the routed experts must actually change from their source type to the target. Any failing
+check is a gate: do not start the conversion (VALIDATION.md).
 
 ## 4. Time one layer first
 
@@ -66,13 +68,17 @@ any `falling back to` warning (there must be none). Never load the result while 
 
 ## 6. verify_pack
 
-Call `verify_pack` with the first output shard, the recipe, the source pack and the contract's byte range
-(250-320 GB for the Muse Q2 pack). Then `publish_manifest` (hash on) writes the manifest with per-file sha256;
+Call `verify_pack` with the first output shard, `source_pack`, `target` and `expect_bytes_range` (all three
+required; the contract pins the target and the range, 250-320 GB for the Muse Q2 pack) and the recipe. Every
+tensor type is judged against the source pack headers; the recipe is used only for its target (it must agree),
+the shard layout, the size estimate and the imatrix record. Then `publish_manifest` (hash on) writes the manifest with per-file sha256;
 hashing ~300 GB takes a while, so do it once, after `verify_pack` passes.
 
 ## 7. Coherence smoke
 
-Load the Q2 pack with the stock base engine under the memory cap (never uncapped on the shared Spark) and run
-the eight held-out prompts greedily. Report coherent text and the top-1 token agreement with the NVFP4 pack as
-measured numbers, not as a claim. At 9048bad8 the Muse graph does not apply the per-expert `.scale` tensors
-(SOURCE-MAP.md); if the NVFP4 pack is incoherent too, report that rather than blaming the requantization.
+Load the Q2 pack with the wired base engine E0 (stock plus the expert scale wiring, the `wire_expert_scales`
+node's build; the stock 9048bad8 graph passes `nullptr` for the per-expert `.scale` tensors, SOURCE-MAP.md, so
+it cannot judge a pack that carries them) under the memory cap (never uncapped on the shared Spark) and run the
+eight held-out prompts greedily. Report coherent text and the top-1 token agreement with the NVFP4 pack on the
+same E0 build as measured numbers, not as a claim. If the NVFP4 pack is incoherent on E0 too, report that rather
+than blaming the requantization.

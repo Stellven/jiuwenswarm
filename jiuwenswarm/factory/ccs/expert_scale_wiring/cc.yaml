@@ -1,6 +1,6 @@
 cc: '2'
 id: weights.build_expert_scale_wiring
-version: 1.0.0
+version: 1.1.0
 materials:
   guide:
     path: GUIDE.md
@@ -28,6 +28,8 @@ materials:
     path: helpers/kld_compare.py
   helper_slice_compare:
     path: helpers/slice_compare.py
+  helper_llama_runs:
+    path: helpers/llama_runs.py
   wiring_verifier:
     path: helpers/wiring_rules.py
   roles:
@@ -36,9 +38,24 @@ materials:
 defs:
   done:
     kind: json
-    description: True when at least one check ran and no check failed.
+    description: True when at least one check ran, none failed, the required stage was reached with no check it
+      needs skipped, and any inconclusive check was settled by a passing runtime acceptance stage.
     schema:
       type: boolean
+  stage_reached:
+    kind: json
+    description: Highest stage with a passing check where no check of it or of a lower stage failed or was skipped.
+    schema:
+      type:
+      - string
+      - 'null'
+  not_done_because:
+    kind: json
+    description: Why done is false (empty when done).
+    schema:
+      type: array
+      items:
+        type: string
   checks:
     kind: json
     schema:
@@ -81,7 +98,10 @@ capabilities:
       llama-perplexity and llama-eval-callback from HEAD plus the change in a scratch directory. Runtime
       acceptance (with tiny_dir) - scale-free pack byte-identical to stock, NVFP4 pack mean KLD vs the
       dequantized reference within kld_max, no NaN, and the first quantized layer's expert matmuls and block
-      output within slice_tol of the reference; reached only when all four ran and passed.
+      output within slice_tol of the reference; reached only when all four ran and passed. The tiny packs are
+      judged first - present, pairwise distinct (path and sha256), matching tiny_packs_manifest when given,
+      parity pack scale-free, NVFP4 pack scaled, reference pack dequantized. Only the change under review is
+      judged (base, diff_path, carried_diff); done needs require_stage (default runtime acceptance).
     takes:
       checkout:
         kind: text
@@ -89,12 +109,32 @@ capabilities:
       diff_path:
         kind: text
         optional: true
-        description: Patch against the checkout's HEAD; omit to check working changes against HEAD.
+        description: Patch of this node's change against base; omit to check working changes against base.
+      base:
+        kind: text
+        optional: true
+        description: Commit the change is judged against (default HEAD). Commit an earlier node's change, then
+          base HEAD keeps it out of the review.
+      carried_diff:
+        kind: text
+        optional: true
+        description: Patch of an earlier node's uncommitted change in the same checkout (the reader's converter
+          change); working files equal to base plus that patch are carried (exported, not reviewed).
+      require_stage:
+        kind: text
+        optional: true
+        description: Stage done requires - fixture, native CC execution, compile or runtime acceptance (default).
       tiny_dir:
         kind: text
         optional: true
-        description: Directory holding the tiny packs (default names tiny-bf16.gguf, tiny-nvfp4-f32.gguf,
-          tiny-deqref-f32.gguf); without it runtime acceptance is not reached.
+        description: Directory holding the tiny packs from the reader capsule's make_tiny_packs.sh (default names
+          tiny-bf16.gguf, tiny-nvfp4-f32.gguf, tiny-deqref-f32.gguf); without it runtime acceptance fails when
+          required.
+      tiny_packs_manifest:
+        kind: text
+        optional: true
+        description: JSON of sha256 per tiny pack file name (make_tiny_packs.sh writes tiny-packs.sha256.json);
+          when given every pack must match it.
       bf16_pack:
         kind: text
         optional: true
@@ -106,7 +146,8 @@ capabilities:
       ref_pack:
         kind: text
         optional: true
-        description: File name in tiny_dir of the dequantized reference pack.
+        description: File name in tiny_dir of the dequantized reference pack (never the NVFP4 pack - same path or
+          same sha256 is refused).
       stock_bin:
         kind: text
         optional: true
@@ -161,6 +202,8 @@ capabilities:
     gives:
       done: $done
       checks: $checks
+      stage_reached: $stage_reached
+      not_done_because: $not_done_because
     needs:
     - python
     changes:

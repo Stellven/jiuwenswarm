@@ -1,6 +1,6 @@
 cc: '2'
 id: weights.build_weight_pack_compiler
-version: 2.0.0
+version: 2.1.0
 materials:
   guide:
     path: GUIDE.md
@@ -145,22 +145,24 @@ capabilities:
     - workspace.read
     - workspace.write
   verify_recipe:
-    does: Gate a pack recipe before any conversion - source sha256 present, routed experts at the requested type,
-      every other tensor at its source type, GB10 kernel types only, whole-block rows, imatrix named below 3.5
-      bpw, --allow-requantize present, the argv replayed through a model of stock type selection realizing every
-      target, byte estimate consistent and the temporary peak inside the disk grant.
+    does: Gate a pack recipe before any conversion against the caller's target and the source headers (never
+      the recipe's own claims) - recipe target equal to the requested target, the recipe's tensor table equal to
+      the source headers, source sha256 present, routed experts changed from their source type to the target,
+      every other tensor at its source header type, GB10 kernel types only, whole-block rows, imatrix named below
+      3.5 bpw, --allow-requantize present, the argv replayed through a model of stock type selection realizing
+      every target, byte estimate consistent and the temporary peak inside the disk grant.
     takes:
       recipe:
         kind: text
         description: Absolute path to the recipe JSON.
       pack_manifest:
         kind: text
-        optional: true
-        description: Source manifest or first shard; when given the recipe's tensor table is compared with the headers.
+        description: Source manifest (factory.pack-manifest/1 with files) or first shard; the recipe's tensor
+          table and source types are judged against these headers.
       target:
         kind: text
-        optional: true
-        description: Requested type for routed experts; default the recipe's target.
+        description: Requested ggml type for routed experts (the contract pins it, e.g. q2_k); the recipe must
+          agree.
       disk_grant_bytes:
         kind: json
         optional: true
@@ -183,10 +185,12 @@ capabilities:
     changes:
     - workspace.read
   verify_pack:
-    does: Gate a written pack - every shard present and readable, routed experts at the target type, every other
-      tensor at its recipe or source type, the same tensor set, every expert .scale and .input_scale byte-identical
-      to the source, total bytes in range and near the recipe estimate, imatrix recorded. Fails closed. Returns
-      the pack manifest (size, mtime, header digest; sha256 with hash).
+    does: Gate a written pack against the source pack headers and the caller's target - every shard present
+      and readable, routed experts at the target type and changed from their source type, every other tensor at
+      its source header type, the same tensor set and shapes, every expert .scale and .input_scale byte-identical
+      to the source, total bytes inside expect_bytes_range; with a recipe also its target equal to the requested
+      one, its source the source_pack, size near its estimate, its shard layout and imatrix recorded. Fails
+      closed. Returns the pack manifest (size, mtime, header digest; sha256 with hash).
     takes:
       pack:
         kind: text
@@ -194,13 +198,14 @@ capabilities:
       recipe:
         kind: text
         optional: true
+        description: The recipe JSON; used for its target, shard layout, size estimate and imatrix only.
       source_pack:
         kind: text
-        optional: true
-        description: First shard of the source pack, for the census and the carried scale bytes.
+        description: First shard of the source pack - the reference for every tensor type and the carried scale
+          bytes.
       expect_bytes_range:
         kind: json
-        optional: true
+        description: Inclusive [min, max] total bytes of the pack (the contract pins it).
         schema:
           type: array
           items:
@@ -210,7 +215,7 @@ capabilities:
           maxItems: 2
       target:
         kind: text
-        optional: true
+        description: Requested ggml type for routed experts (the contract pins it, e.g. q2_k).
       hash:
         kind: json
         optional: true
@@ -240,10 +245,8 @@ capabilities:
         optional: true
       source_pack:
         kind: text
-        optional: true
       expect_bytes_range:
         kind: json
-        optional: true
         schema:
           type: array
           items:
@@ -252,7 +255,6 @@ capabilities:
           maxItems: 2
       target:
         kind: text
-        optional: true
       hash:
         kind: json
         optional: true

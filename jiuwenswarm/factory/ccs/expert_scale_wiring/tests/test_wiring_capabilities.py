@@ -4,10 +4,12 @@ Standard library + pytest (+ git for the checkout cases). The full build-and-run
 MUSE_SPIKE_TREE (llama.cpp at 9048bad8) and MUSE_TINY_DIR (tiny-bf16.gguf, tiny-nvfp4-f32.gguf,
 tiny-deqref-f32.gguf), and optionally MUSE_STOCK_BIN.
 """
+import hashlib
 import json
 import os
 from pathlib import Path
 import shutil
+import struct
 import subprocess
 import sys
 
@@ -26,6 +28,7 @@ import wiring_rules  # noqa: E402
 FAULTS = {"up-gets-gate-scale.diff": {"scale_args"}, "down-scale-missing.diff": {"scale_args"},
           "touches-ggml.diff": {"allowed_paths", "protected_paths"}}
 MODEL = "src/models/muse-spark.cpp"
+STATIC = "native CC execution"
 
 
 def call(**inputs):
@@ -102,9 +105,9 @@ def checkout(tmp_path):
 
 
 def test_verify_good_static_only(checkout):
-    out = call(checkout=str(checkout), diff_path=str(FIXTURES / "good.diff"), build=False)
+    out = call(checkout=str(checkout), diff_path=str(FIXTURES / "good.diff"), build=False, require_stage=STATIC)
     st = {c["name"]: (c["status"], c["stage"]) for c in out["checks"]}
-    assert out["done"], out["checks"]
+    assert out["done"] and out["stage_reached"] == STATIC, out["checks"]
     assert st["fixture_calibration"] == ("pass", "fixture") and st["scale_args"][0] == "pass"
     assert st["compile"][0] == "skipped" and st["runtime_acceptance"][0] == "skipped"
     assert not any(c["status"] == "pass" and c["stage"] in ("compile", "runtime acceptance") for c in out["checks"])
@@ -121,8 +124,108 @@ def test_verify_working_tree_change(checkout):
     files = patchlib.parse_patch((FIXTURES / "good.diff").read_text(encoding="utf-8"))
     post = patchlib.post_images(files, lambda p: (STOCK / p).read_text(encoding="utf-8"))
     (checkout / MODEL).write_text(post[MODEL], encoding="utf-8", newline="\n")
-    out = call(checkout=str(checkout), build=False)
+    out = call(checkout=str(checkout), build=False, require_stage=STATIC)
     assert out["done"], out["checks"]
+
+
+def test_skipped_compile_and_runtime_are_not_done_at_runtime_acceptance(checkout):
+    out = call(checkout=str(checkout), diff_path=str(FIXTURES / "good.diff"), build=False)
+    assert not out["done"] and out["stage_reached"] == STATIC
+    assert any("skipped but needed" in w for w in out["not_done_because"]), out["not_done_because"]
+
+
+def test_scale_args_tolerate_whitespace_inside_the_member_expression():
+    good = (FIXTURES / "good.diff").read_text(encoding="utf-8")
+    spaced = good.replace("+                model.layers[il].ffn_up_exps_s,", "+                model.layers[il] .ffn_up_exps_s,")
+    assert {c["name"]: c["status"] for c in static(spaced)}["scale_args"] == "pass"
+
+
+def test_an_earlier_nodes_change_is_carried_not_reviewed(checkout, tmp_path):
+    # the reader node's converter change sits uncommitted in the same checkout
+    (checkout / "conversion").mkdir()
+    (checkout / "conversion/muse_spark.py").write_text("# converter change of the earlier node\n", encoding="utf-8",
+                                                      newline="\n")
+    carried = tmp_path / "reader.diff"
+    carried.write_bytes(subprocess.run(["git", "-C", str(checkout), "diff", "--no-index", "--", "/dev/null",
+                                        "conversion/muse_spark.py"], capture_output=True).stdout)
+    files = patchlib.parse_patch((FIXTURES / "good.diff").read_text(encoding="utf-8"))
+    post = patchlib.post_images(files, lambda p: (STOCK / p).read_text(encoding="utf-8"))
+    (checkout / MODEL).write_text(post[MODEL], encoding="utf-8", newline="\n")
+    out = call(checkout=str(checkout), build=False, require_stage=STATIC)
+    assert not out["done"] and "allowed_paths" in failed(out)
+    out = call(checkout=str(checkout), build=False, require_stage=STATIC, carried_diff=str(carried))
+    assert out["done"], out["checks"]
+
+
+# ---- tiny pack inputs -------------------------------------------------------------------------------------
+GGML = {"f32": (0, 1, 4), "nvfp4": (40, 64, 36)}
+
+
+def write_gguf(path, tensors):
+    """Minimal GGUF v3: tensors [(name, shape, type)], zero data."""
+    def string(x):
+        return struct.pack("<Q", len(x.encode())) + x.encode()
+    meta = {"general.architecture": "muse-spark", "general.alignment": 32}
+    head = b"GGUF" + struct.pack("<IQQ", 3, len(tensors), len(meta))
+    head += string("general.architecture") + struct.pack("<I", 8) + string("muse-spark")
+    head += string("general.alignment") + struct.pack("<II", 4, 32)
+    blobs, offset = [], 0
+    for name, shape, type_ in tensors:
+        tid, block, size = GGML[type_]
+        n = 1
+        for d in shape:
+            n *= d
+        nbytes = n // block * size
+        head += string(name) + struct.pack("<I", len(shape)) + b"".join(struct.pack("<Q", d) for d in shape)
+        head += struct.pack("<IQ", tid, offset)
+        pad = (-nbytes) % 32
+        blobs.append(bytes(nbytes + pad))
+        offset += nbytes + pad
+    head += bytes((-len(head)) % 32)
+    Path(path).write_bytes(head + b"".join(blobs))
+
+
+@pytest.fixture
+def tiny(tmp_path):
+    d = tmp_path / "tiny"
+    d.mkdir()
+    write_gguf(d / "tiny-bf16.gguf", [("blk.1.ffn_up_exps.weight", [64, 8, 4], "f32")])
+    write_gguf(d / "tiny-nvfp4-f32.gguf", [("blk.1.ffn_up_exps.weight", [64, 8, 4], "nvfp4"),
+                                           ("blk.1.ffn_up_exps.scale", [4], "f32")])
+    write_gguf(d / "tiny-deqref-f32.gguf", [("blk.1.ffn_up_exps.weight", [64, 8, 4], "f32"),
+                                            ("blk.1.attn_q.weight", [64, 8], "f32")])
+    return d
+
+
+def digests(d):
+    return {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(Path(d).glob("*.gguf"))}
+
+
+def test_tiny_packs_pinned_by_digest(checkout, tiny, tmp_path):
+    manifest = tmp_path / "tiny-packs.sha256.json"
+    manifest.write_text(json.dumps({"format": "factory.tiny-packs/1", "files": digests(tiny)}))
+    base = dict(checkout=str(checkout), diff_path=str(FIXTURES / "good.diff"), build=False, require_stage=STATIC,
+                tiny_dir=str(tiny))
+    out = call(**base, tiny_packs_manifest=str(manifest))
+    st = {c["name"]: c["status"] for c in out["checks"]}
+    assert out["done"] and st["tiny_packs_pinned"] == "pass" and st["tiny_packs_distinct"] == "pass", out["checks"]
+    pinned = digests(tiny)
+    pinned["tiny-nvfp4-f32.gguf"] = "0" * 64
+    manifest.write_text(json.dumps({"files": [{"name": k, "sha256": v} for k, v in pinned.items()]}))
+    out = call(**base, tiny_packs_manifest=str(manifest))
+    assert not out["done"] and "tiny_packs_pinned" in failed(out)
+
+
+def test_reference_pack_must_not_be_the_nvfp4_pack(checkout, tiny):
+    base = dict(checkout=str(checkout), diff_path=str(FIXTURES / "good.diff"), build=False, require_stage=STATIC,
+                tiny_dir=str(tiny))
+    out = call(**base, ref_pack="tiny-nvfp4-f32.gguf")
+    assert not out["done"] and {"tiny_packs_distinct", "reference_pack_dequantized"} <= failed(out)
+    shutil.copyfile(tiny / "tiny-nvfp4-f32.gguf", tiny / "copy.gguf")  # same bytes under another name
+    out = call(**base, ref_pack="copy.gguf")
+    assert "tiny_packs_distinct" in failed(out)
+    st = {c["name"]: c["status"] for c in out["checks"]}
+    assert st["compile"] == "skipped" and st["runtime_acceptance"] == "skipped"
 
 
 # ---- runtime parsers ---------------------------------------------------------------------------------------

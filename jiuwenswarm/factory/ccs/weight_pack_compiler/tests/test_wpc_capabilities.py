@@ -96,11 +96,55 @@ def test_plan_recipe_from_ingest_manifest_and_without_imatrix(tmp_path):
 
 
 # ---- verify_recipe -----------------------------------------------------------------------------------------
+def recipe_check(world, recipe=None, **inputs):
+    inputs.setdefault("target", "q2_k")
+    inputs.setdefault("pack_manifest", str(world["src"][0]))
+    return call("verify_recipe", recipe=str(recipe or world["recipe"]), **inputs)
+
+
 def test_verify_recipe_clean(world):
-    out = call("verify_recipe", recipe=str(world["recipe"]), pack_manifest=str(world["src"][0]),
-               disk_grant_bytes=1 << 30)
+    out = recipe_check(world, disk_grant_bytes=1 << 30)
     assert out["done"], out["checks"]
-    assert status(out)["argv_realizes_targets"] == "pass"
+    assert status(out)["argv_realizes_targets"] == "pass" and status(out)["target_matches"] == "pass"
+
+
+def test_verify_recipe_needs_target_and_source_from_the_caller(world):
+    for missing in ("target", "pack_manifest"):
+        inputs = {"recipe": str(world["recipe"]), "target": "q2_k", "pack_manifest": str(world["src"][0])}
+        del inputs[missing]
+        out = call("verify_recipe", **inputs)
+        assert not out["done"] and failed(out) == ["verification_input"], (missing, out["checks"])
+    out = recipe_check(world, target="q4_k")
+    assert not out["done"] and "target_matches" in failed(out)
+
+
+def _experts_to(type_, target=None):
+    def change(r):
+        for t in r["tensors"]:
+            if t["role"] == "routed_expert":
+                t["target_type"] = type_
+        if target:
+            r["target"] = target
+    return change
+
+
+def test_verify_recipe_requires_experts_to_change_type(world):
+    # pinning the routed experts to their source type is not a requantization
+    out = recipe_check(world, edit(world, _experts_to("nvfp4", "nvfp4")), target="nvfp4")
+    assert not out["done"] and "expert_targets" in failed(out)
+    assert "must change" in next(c["detail"] for c in out["checks"] if c["name"] == "expert_targets")
+    out = recipe_check(world, edit(world, _experts_to("nvfp4")))
+    assert not out["done"] and "expert_targets" in failed(out)
+
+
+def _lie_about_output(r):
+    t = next(t for t in r["tensors"] if t["name"] == "output.weight")
+    t["source_type"] = t["target_type"] = "q4_k"  # the source header says q8_0
+
+
+def test_verify_recipe_does_not_take_the_recipes_word_for_source_types(world):
+    out = recipe_check(world, edit(world, _lie_about_output))
+    assert not out["done"] and {"source_matches_recipe", "non_expert_kept"} <= set(failed(out)), out["checks"]
 
 
 def _drop_flag(flag):
@@ -138,7 +182,7 @@ def _no_imatrix(r):
     (lambda r: r["estimate"].__setitem__("output_data_bytes", 1), "estimate_consistent"),
 ])
 def test_verify_recipe_planted_faults(world, change, check):
-    out = call("verify_recipe", recipe=edit(world, change), pack_manifest=str(world["src"][0]))
+    out = recipe_check(world, edit(world, change))
     assert not out["done"] and check in failed(out), out["checks"]
 
 
@@ -147,9 +191,9 @@ def test_verify_recipe_rejects_types_without_gb10_kernel_and_disk_over_grant(wor
         for t in r["tensors"]:
             if t["role"] == "routed_expert":
                 t["target_type"] = "iq1_s"
-    out = call("verify_recipe", recipe=edit(world, to_iq1), target="iq1_s")
+    out = recipe_check(world, edit(world, to_iq1), target="iq1_s")
     assert "gb10_kernel_types" in failed(out)
-    out = call("verify_recipe", recipe=str(world["recipe"]), disk_grant_bytes=1000)
+    out = recipe_check(world, disk_grant_bytes=1000)
     assert failed(out) == ["disk_grant"]
 
 
@@ -157,28 +201,35 @@ def test_verify_recipe_notices_a_different_source(world, tmp_path):
     other = tmp_path / "other"
     other.mkdir()
     src = fx.make_source(other, drop=("blk.1.ffn_up_exps.scale",))
-    out = call("verify_recipe", recipe=str(world["recipe"]), pack_manifest=str(src[0]))
+    out = recipe_check(world, pack_manifest=str(src[0]))
     assert "source_matches_recipe" in failed(out)
 
 
 # ---- verify_pack -------------------------------------------------------------------------------------------
 def verify(world, out_dir, **inputs):
-    return call("verify_pack", pack=str(Path(out_dir) / "muse-nvfp4-Q2_K-00001-of-00002.gguf"),
-                recipe=str(world["recipe"]), source_pack=str(world["src"][0]), **inputs)
+    inputs.setdefault("target", "q2_k")
+    inputs.setdefault("expect_bytes_range", [1, 1 << 30])
+    inputs.setdefault("recipe", str(world["recipe"]))
+    inputs.setdefault("source_pack", str(world["src"][0]))
+    return call("verify_pack", pack=str(Path(out_dir) / "muse-nvfp4-Q2_K-00001-of-00002.gguf"), **inputs)
 
 
 def test_verify_pack_clean_and_manifest(world, tmp_path):
     out_dir = tmp_path / "q2"
     out_dir.mkdir()
     fx.make_q2(out_dir)
-    out = verify(world, out_dir, expect_bytes_range=[1, 1 << 30])
+    out = verify(world, out_dir)
     assert out["done"], out["checks"]
     manifest = out["manifest"]
     assert manifest["format"] == "factory.pack-manifest/1" and not manifest["hashed"]
     assert manifest["census"]["routed_expert"] == {"q2_k": 9}
     assert all("header_sha256" in f and "mtime" in f for f in manifest["files"])
     # a directory works as well as the first shard
-    assert call("verify_pack", pack=str(out_dir), recipe=str(world["recipe"]), source_pack=str(world["src"][0]))["done"]
+    assert call("verify_pack", pack=str(out_dir), recipe=str(world["recipe"]), source_pack=str(world["src"][0]),
+                target="q2_k", expect_bytes_range=[1, 1 << 30])["done"]
+    # without a recipe the source headers and the caller's target are the whole reference
+    assert call("verify_pack", pack=str(out_dir), source_pack=str(world["src"][0]), target="q2_k",
+                expect_bytes_range=[1, 1 << 30])["done"]
 
 
 @pytest.mark.parametrize("plant,check", [
@@ -210,8 +261,33 @@ def test_verify_pack_size_range_and_no_reference(world, tmp_path):
     out_dir.mkdir()
     fx.make_q2(out_dir)
     assert "total_bytes" in failed(verify(world, out_dir, expect_bytes_range=[250 * 10**9, 320 * 10**9]))
-    bare = call("verify_pack", pack=str(out_dir / "muse-nvfp4-Q2_K-00001-of-00002.gguf"))
-    assert {"non_expert_types", "scale_tensors_present"} <= set(failed(bare))
+    first = str(out_dir / "muse-nvfp4-Q2_K-00001-of-00002.gguf")
+    bare = call("verify_pack", pack=first)  # source_pack, target and expect_bytes_range missing: each fails
+    assert not bare["done"] and {"source_readable", "target_given", "total_bytes", "expert_types", "non_expert_types",
+                                 "scale_tensors_present"} <= set(failed(bare))
+
+
+def test_verify_pack_judges_types_against_the_source_not_the_recipe(world, tmp_path):
+    out_dir = tmp_path / "q2"
+    out_dir.mkdir()
+    fx.make_q2(out_dir, overrides={"output.weight": "q4_k"})
+    out = verify(world, out_dir, recipe=edit(world, _lie_about_output))
+    assert not out["done"] and "non_expert_types" in failed(out), out["checks"]
+    assert "output.weight" in next(c["detail"] for c in out["checks"] if c["name"] == "non_expert_types")
+
+
+def test_verify_pack_target_from_the_caller(world, tmp_path):
+    out_dir = tmp_path / "q2"
+    out_dir.mkdir()
+    fx.make_q2(out_dir)
+    out = verify(world, out_dir, target="q4_k")
+    assert not out["done"] and {"target_matches", "expert_types"} <= set(failed(out))
+    same = tmp_path / "same"
+    same.mkdir()
+    fx.make_q2(same, expert_type="nvfp4")  # experts left at the source type
+    out = verify(world, same, target="nvfp4", recipe=edit(world, _experts_to("nvfp4", "nvfp4")))
+    assert not out["done"] and "expert_types" in failed(out)
+    assert "not converted" in next(c["detail"] for c in out["checks"] if c["name"] == "expert_types")
 
 
 def test_verify_pack_rejects_a_corrupt_header(world, tmp_path):
@@ -228,11 +304,12 @@ def test_publish_manifest_writes_hashed_manifest(world, tmp_path):
     fx.make_q2(out_dir)
     target = tmp_path / "q2-manifest.json"
     out = call("publish_manifest", pack=str(out_dir), source_pack=str(world["src"][0]),
-               recipe=str(world["recipe"]), out=str(target))
+               recipe=str(world["recipe"]), out=str(target), target="q2_k", expect_bytes_range=[1, 1 << 30])
     assert out["done"] and json.loads(target.read_text())["hashed"] is True
     target.unlink()
     (out_dir / "muse-nvfp4-Q2_K-00002-of-00002.gguf").unlink()
-    out = call("publish_manifest", pack=str(out_dir), source_pack=str(world["src"][0]), out=str(target))
+    out = call("publish_manifest", pack=str(out_dir), source_pack=str(world["src"][0]), out=str(target),
+               target="q2_k", expect_bytes_range=[1, 1 << 30])
     assert not out["done"] and not target.exists()
 
 

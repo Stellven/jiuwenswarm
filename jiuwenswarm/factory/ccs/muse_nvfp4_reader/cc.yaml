@@ -1,6 +1,6 @@
 cc: '2'
 id: weights.build_muse_nvfp4_reader
-version: 1.0.0
+version: 1.1.0
 materials:
   guide:
     path: GUIDE.md
@@ -42,9 +42,24 @@ materials:
 defs:
   done:
     kind: json
-    description: True when at least one check ran and no check failed.
+    description: True when at least one check ran, none failed, the required stage was reached with no check it
+      needs skipped, and any inconclusive check was settled by a passing runtime acceptance stage.
     schema:
       type: boolean
+  stage_reached:
+    kind: json
+    description: Highest stage with a passing check where no check of it or of a lower stage failed or was skipped.
+    schema:
+      type:
+      - string
+      - 'null'
+  not_done_because:
+    kind: json
+    description: Why done is false (empty when done).
+    schema:
+      type: array
+      items:
+        type: string
   checks:
     kind: json
     schema:
@@ -81,8 +96,8 @@ capabilities:
   scale_inventory:
     does: Read a ModelOpt NVFP4 checkpoint's index and shard headers (never tensor data) and return the
       role-by-role scale inventory - packed weight, block scale, global scale_2 and input scale with dtypes and
-      shapes, quantized and excluded layers, layout problems and findings. A helper for the worker; the JSON it
-      writes is also the reference verify_pack reads.
+      shapes, quantized and excluded layers, layout problems and findings. A helper for the worker; verify_pack
+      only cross-checks it against the checkpoint.
     takes:
       index:
         kind: text
@@ -102,6 +117,8 @@ capabilities:
     gives:
       done: $done
       checks: $checks
+      stage_reached: $stage_reached
+      not_done_because: $not_done_because
       inventory:
         kind: json
         optional: true
@@ -113,12 +130,17 @@ capabilities:
     - workspace.write
   verify:
     does: Gate a converter change that reads the stacked Muse NVFP4 experts. Fixture stage - the bundled good
-      diff passes and each planted fault fails its rule on this HEAD. Static - only conversion/*.py touched, the
-      stacked reader reuses the stock _nvfp4_pack inside a lazy tensor, gate rows first with scale_2 column 0,
-      up column 1, .scale and .input_scale written, nothing requantized. Runtime (with a python env and a tiny
-      checkpoint) - the tree's converter on the tiny NVFP4 checkpoint, then every NVFP4 block bit-exact against
-      the source, every .scale equal to its scale_2 column, dequantized weights equal to the checkpoint's own
-      dequantization, excluded layers kept. Writes only to a scratch directory outside the checkout.
+      diff passes, each planted fault fails its rule and each undecidable one is not passed on this base
+      (inconclusive when the fixtures do not apply). Static - only conversion/*.py touched by the change under
+      review (an earlier node's change is carried by committing it, by base, by diff_path or by carried_diff),
+      the stacked reader reuses the stock _nvfp4_pack inside a lazy tensor and loads no packed weight or block
+      scale outside deferred code, gate rows first with scale_2 column 0, up column 1, .scale and .input_scale
+      written, nothing requantized. Runtime acceptance (the bar for correctness, required by default) - the
+      tree's converter on the tiny NVFP4 checkpoint, then every NVFP4 block bit-exact against the source, every
+      .scale equal to its scale_2 column, dequantized weights equal to the checkpoint's own dequantization,
+      excluded layers kept. Without a python env or tiny checkpoint that stage fails when required. An
+      inconclusive static rule is never a pass without it. Writes only to a scratch directory outside the
+      checkout.
     takes:
       checkout:
         kind: text
@@ -126,12 +148,26 @@ capabilities:
       diff_path:
         kind: text
         optional: true
-        description: Patch against the checkout's HEAD; omit to check working changes against HEAD.
+        description: Patch of this node's change against base; omit to check working changes against base.
+      base:
+        kind: text
+        optional: true
+        description: Commit the change is judged against (default HEAD). Commit an earlier node's change, then
+          base HEAD keeps it out of the review.
+      carried_diff:
+        kind: text
+        optional: true
+        description: Patch of an earlier node's uncommitted change in the same checkout; working files equal to
+          base plus that patch are carried (exported, not reviewed).
+      require_stage:
+        kind: text
+        optional: true
+        description: Stage done requires - fixture, native CC execution or runtime acceptance (default).
       python:
         kind: text
         optional: true
-        description: Python of a venv with torch, safetensors, numpy and transformers; without it the runtime
-          checks are skipped.
+        description: Python of a venv with torch, safetensors, numpy and transformers (default the controller
+          interpreter when it has them); without one runtime acceptance fails when required.
       tiny_checkpoint:
         kind: text
         optional: true
@@ -167,32 +203,38 @@ capabilities:
     gives:
       done: $done
       checks: $checks
+      stage_reached: $stage_reached
+      not_done_because: $not_done_because
     needs:
     - python
     changes:
     - workspace.read
     - process.exec
   verify_pack:
-    does: Gate a written Muse NVFP4 GGUF pack from its headers and [E] scale vectors - every shard readable,
-      every routed expert weight of a quantized layer NVFP4 (type 40) with an F32 [n_expert] .scale (and
-      .input_scale where the checkpoint has one), excluded layers at their checkpoint type without .scale, NVFP4
-      nowhere else, no unexpected type, total bytes in range. Fails closed without a layer plan. Returns the pack
+    does: Gate a written Muse NVFP4 GGUF pack against the checkpoint itself - the layer plan from the
+      checkpoint's safetensors index (an inventory or quantized_layers is only cross-checked; a plan with no
+      quantized layer fails), every shard readable, every routed expert weight of a quantized layer NVFP4 (type
+      40) with an F32 [n_expert] .scale (and .input_scale where the checkpoint has one), each .scale and
+      .input_scale equal value for value to the checkpoint's _weight_scale_2 / _input_scale column (gate 0, up 1,
+      down the vector; header plus a small range read), excluded layers at their checkpoint dtype without
+      .scale, NVFP4 nowhere else, no unexpected type, total bytes in range. Fails closed. Returns the pack
       manifest (factory.pack-manifest/1; per-file sha256 with hash).
     takes:
       pack:
         kind: text
         description: Absolute path to the first shard or the directory holding the pack.
+      source_index:
+        kind: text
+        description: The checkpoint's model.safetensors.index.json, with its shards beside it (the reference
+          for the layer plan, excluded dtypes and scale_2 values).
       inventory:
         kind: text
         optional: true
-        description: Scale inventory JSON (scale_inventory out), the preferred layer plan.
-      source_index:
-        kind: text
-        optional: true
-        description: The checkpoint's model.safetensors.index.json (layer plan without dtypes).
+        description: Scale inventory JSON (scale_inventory out); cross-checked against source_index.
       quantized_layers:
         kind: json
         optional: true
+        description: Expected quantized layers; cross-checked against source_index.
         schema:
           type: array
           items:
@@ -215,6 +257,15 @@ capabilities:
           type: array
           items:
             type: string
+      scale_sample_layers:
+        kind: json
+        optional: true
+        description: Quantized layers whose scale vectors are compared with the checkpoint (default all).
+        schema:
+          type: array
+          items:
+            type: integer
+            minimum: 0
       hash:
         kind: json
         optional: true
@@ -224,6 +275,8 @@ capabilities:
     gives:
       done: $done
       checks: $checks
+      stage_reached: $stage_reached
+      not_done_because: $not_done_because
       manifest:
         kind: json
         optional: true

@@ -38,20 +38,25 @@ def do_plan_recipe(inputs):
 
 
 def do_verify_recipe(inputs):
+    # target and pack_manifest are required: the recipe never supplies its own reference
     recipe = load_recipe(inputs["recipe"])
-    return result(verify_recipe(recipe, inputs.get("target"), inputs.get("pack_manifest"),
+    return result(verify_recipe(recipe, inputs["target"], inputs["pack_manifest"],
                                 inputs.get("disk_grant_bytes"), inputs.get("gb10_types")))
 
 
+def checked_pack(inputs, hash_default):
+    # source_pack, target and expect_bytes_range are required (missing: a failing check, never a pass)
+    return verify_pack(inputs["pack"], load_recipe(inputs.get("recipe")), inputs.get("source_pack"),
+                       inputs.get("expect_bytes_range"), inputs.get("target"), bool(inputs.get("hash", hash_default)))
+
+
 def do_verify_pack(inputs):
-    checks, manifest = verify_pack(inputs["pack"], load_recipe(inputs.get("recipe")), inputs.get("source_pack"),
-                                   inputs.get("expect_bytes_range"), inputs.get("target"), bool(inputs.get("hash", False)))
+    checks, manifest = checked_pack(inputs, False)
     return result(checks, manifest=manifest)
 
 
 def do_publish_manifest(inputs):
-    checks, manifest = verify_pack(inputs["pack"], load_recipe(inputs.get("recipe")), inputs.get("source_pack"),
-                                   inputs.get("expect_bytes_range"), inputs.get("target"), bool(inputs.get("hash", True)))
+    checks, manifest = checked_pack(inputs, True)
     if manifest is not None and all(c["status"] != "fail" for c in checks):
         Path(inputs["out"]).write_text(json.dumps(manifest, indent=1) + "\n", encoding="utf-8")
         checks.append({"name": "manifest_written", "status": "pass", "stage": STAGE, "detail": inputs["out"]})

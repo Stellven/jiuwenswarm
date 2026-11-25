@@ -18,8 +18,8 @@ python helpers/scale_inventory.py /models/muse-nvfp4/model.safetensors.index.jso
 
 or call the `scale_inventory` capability. Read `roles` and `findings` and write down, per role: packed weight
 (dtype, shape), block scale, global scale (`_weight_scale_2`: `[E, 2]` or `[E]`?), input scale; which layers are
-quantized and which excluded (`hf_quant_config.json` `exclude_modules`). The `pin_inputs` node records this;
-the inventory JSON is also the reference `verify_pack` reads later.
+quantized and which excluded (`hf_quant_config.json` `exclude_modules`). The `pin_inputs` node records this.
+`verify_pack` later reads the checkpoint itself (index, headers, scale_2 values), not this JSON.
 
 ## 2. Read the stock reader in your tree
 
@@ -52,10 +52,19 @@ $PY helpers/tiny_checkpoint.py --out /work/tiny/ckpt --tokenizer-dir /models/mus
 $PY TREE/convert_hf_to_gguf.py /work/tiny/ckpt/nvfp4 --outfile /work/tiny/tiny-nvfp4.gguf --outtype bf16
 ```
 
-Then call `verify` on your diff with `python` and `tiny_checkpoint` (or `tiny_base`). The runtime checks
-compare every NVFP4 block with the source bits, every `.scale` with its scale_2 column, and the dequantized
-weights with the checkpoint's own dequantization. `helpers/make_tiny_packs.sh` also writes the three tiny
-packs the next node (`wire_expert_scales`) needs.
+Then call `verify` on your diff with `python` and `tiny_checkpoint` (or `tiny_base`). Runtime acceptance is
+the bar: without `python` or a tiny checkpoint, `verify` fails at that stage, and a static rule that is
+`inconclusive` (a split it cannot read) is never a pass on its own. The runtime checks compare every NVFP4
+block with the source bits, every `.scale` with its scale_2 column, and the dequantized weights with the
+checkpoint's own dequantization. `helpers/make_tiny_packs.sh` also writes the three tiny packs the next node
+(`wire_expert_scales`) needs and `tiny-packs.sha256.json` (sha256 per pack) that pins them for its verifier.
+
+**Shared checkout.** `verify` judges only this node's change: `conversion/*.py`. If the checkout also holds
+another node's uncommitted change (for example the graph edit in `src/models/muse-spark.cpp`), carry it one of
+these ways, or `allowed_paths` fails: commit it first (then it is in `base`, default HEAD); or pass
+`diff_path` with only your change; or pass `carried_diff` with the other node's patch (files equal to base plus
+that patch are exported but not reviewed). Hand your own change on the same way: commit it, or give the next
+node its patch as `carried_diff`.
 
 ## 5. Time one expert, project
 
@@ -70,18 +79,28 @@ the projection before the full run; if it does not fit the node's time limit, st
 ## 6. Full conversion: lazy, capped, niced, split
 
 ```sh
-systemd-run --user --scope -p MemoryMax=32G -p MemorySwapMax=0 \
+systemd-run --user --scope -p MemoryMax=96G -p MemorySwapMax=0 \
   nice -n 10 ionice -c3 $PY TREE/convert_hf_to_gguf.py /models/muse-nvfp4 \
     --outfile /packs/muse-nvfp4/muse-nvfp4.gguf --outtype bf16 --split-max-size 50G 2>&1 | tee /work/convert.log
 ```
 
-Watch RSS (`systemctl --user status`) and disk; a lazy writer stays near one stacked tensor plus overhead. If
-the cgroup kills the run, the writer is not lazy: fix the change, do not raise the cap. The log must show
+96 GiB is the cap the real conversion needed, and your reader does not set that peak: the excluded layers 0
+and 61 go through the stock BF16 path, which holds a whole stacked `gate_up_proj` (BF16 [256, 8192, 4096],
+16 GiB, more while it is split and cast). The real runs capped at 32 and 64 GiB were OOM-killed there, at
+layer 0's experts. So a kill at a lower cap does not by itself say your writer is eager. Laziness is shown by
+the one-expert timing probe (step 5: one expert read through a slice, never the stacked tensor) and by RSS
+growth during the run: across the NVFP4 layers (1-60) RSS stays flat from layer to layer, near one stacked
+tensor plus overhead. If RSS climbs layer by layer there, the writer is holding repacked experts: stop and fix
+the change (the `lazy_repack` rule names eager loads), do not raise the cap. Watch RSS
+(`systemctl --user status`) and disk. The log must show
 every quantized layer's `ffn_{gate,up,down}_exps` repacked as NVFP4 with `+ ... (per-expert scale, shape [256])`
 lines, and no `uint8 --> BF16` line.
 
 ## 7. verify_pack, then hand off
 
-Call `verify_pack` with the first shard, the inventory from step 1 (or `source_index`) and `hash: true` (allow
-for hashing ~450 GB; or hash once in a separate step). It returns the pack manifest (`factory.pack-manifest/1`)
+Call `verify_pack` with the first shard, `source_index` (the checkpoint's `model.safetensors.index.json`, with
+the shards beside it), the byte range and `hash: true` (allow for hashing ~450 GB; or hash once in a separate
+step). The layer plan, the excluded layers' dtypes and the expected `.scale` values all come from the
+checkpoint: the index, the shard headers and one small range read per `_weight_scale_2`. Your inventory, if
+passed, is only cross-checked. It returns the pack manifest (`factory.pack-manifest/1`)
 that `requant_q2` and the evidence record name. Hand the pack and the three tiny packs to `wire_expert_scales`.

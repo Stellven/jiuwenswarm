@@ -1,6 +1,8 @@
 """Verifier for a pack recipe (`factory.pack-recipe/1`). Reads the recipe and, when given, the source headers.
 
 Each failed check is a gate: the worker must not start the requantization. See VALIDATION.md.
+The requested target type and the source pack come from the caller (the contract), never from the recipe: the
+recipe must agree with them, and every type it plans is judged against the source headers, not its own table.
 """
 import json
 import re
@@ -8,7 +10,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from gguf_pack import TYPE_ID, block_of, load_pack, nbytes, padded, role_of  # noqa: E402
+from gguf_pack import TYPE_ID, block_of, load_pack, nbytes, padded, role_of, type_name  # noqa: E402
 from stock_quantize import parse_argv, predict  # noqa: E402
 
 STAGE = "native CC execution"
@@ -44,12 +46,21 @@ def bpw(type_):
     return 8.0 * size / block
 
 
-def verify_recipe(recipe, target=None, pack_manifest=None, disk_grant_bytes=None, gb10_types=None):
+def verify_recipe(recipe, target, pack_manifest, disk_grant_bytes=None, gb10_types=None):
     checks = []
 
     def add(name, ok, detail, status=None):
         checks.append({"name": name, "status": status or ("pass" if ok else "fail"), "stage": STAGE,
                        "detail": detail})
+
+    if not target:
+        add("target_given", False, "no target: the requested routed-expert type must come from the caller, "
+            "not from the recipe (fails closed)")
+        return checks
+    if not pack_manifest:
+        add("source_matches_recipe", False, "no pack_manifest: the recipe cannot vouch for its own source types "
+            "(fails closed)")
+        return checks
 
     required = ("format", "source", "target", "tensors", "argv", "estimate")
     missing = [k for k in required if k not in recipe]
@@ -57,7 +68,10 @@ def verify_recipe(recipe, target=None, pack_manifest=None, disk_grant_bytes=None
         f"format={recipe.get('format')!r}" + (f"; missing {missing}" if missing else ""))
     if missing:
         return checks
-    target = (target or recipe["target"]).lower()
+    target = type_name(target)
+    planned_target = str(recipe["target"]).lower()
+    add("target_matches", planned_target == target,
+        f"recipe target {planned_target}, requested {target}" if planned_target != target else f"recipe targets {target}")
     tensors = recipe["tensors"]
     admitted = set(gb10_types or GB10_TYPES)
 
@@ -66,37 +80,44 @@ def verify_recipe(recipe, target=None, pack_manifest=None, disk_grant_bytes=None
     add("source_digests", bool(files) and not bad and bool(recipe["source"].get("digest")),
         f"{len(files)} source file(s)" + (f"; no sha256 for {bad[:10]}" if bad else ", each with sha256"))
 
-    if pack_manifest:
-        try:
-            pack, problems = source_pack(pack_manifest)
-            live = {n: (r["type"], r["shape"]) for n, r in pack["tensors"].items()}
-            planned = {t["name"]: (t["source_type"], t["shape"]) for t in tensors}
-            sizes = {f["name"]: f["bytes"] for f in pack["files"]}
-            diff = sorted(set(live) ^ set(planned)) + [n for n in live if n in planned and live[n] != planned[n]]
-            diff += [f"{f['name']} size" for f in files if sizes.get(f.get("name")) != f.get("bytes")]
-            add("source_matches_recipe", not diff and not problems,
-                "; ".join(problems + diff[:20]) or f"{len(live)} tensors and file sizes match the source headers")
-        except (OSError, ValueError) as exc:
-            add("source_matches_recipe", False, f"source unreadable: {exc}")
+    live = {}
+    try:
+        pack, problems = source_pack(pack_manifest)
+        live = {n: (r["type"], r["shape"]) for n, r in pack["tensors"].items()}
+        planned = {t["name"]: (t["source_type"], t["shape"]) for t in tensors}
+        sizes = {f["name"]: f["bytes"] for f in pack["files"]}
+        diff = sorted(set(live) ^ set(planned)) + [n for n in live if n in planned and live[n] != planned[n]]
+        diff += [f"{f['name']} size" for f in files if sizes.get(f.get("name")) != f.get("bytes")]
+        add("source_matches_recipe", not diff and not problems,
+            "; ".join(problems + diff[:20]) or f"{len(live)} tensors and file sizes match the source headers")
+    except (OSError, ValueError) as exc:
+        add("source_matches_recipe", False, f"source unreadable: {exc}")
+
+    def source_type(t):  # the header's type; the recipe's own claim only when the header lacks the tensor
+        return live[t["name"]][0] if t["name"] in live else t["source_type"]
 
     routed = [t for t in tensors if role_of(t["name"]) == "routed_expert"]
-    wrong = [t["name"] for t in routed if t["target_type"] != target]
-    add("expert_targets", bool(routed) and not wrong,
-        f"{len(routed)} routed expert weights -> {target}" + (f"; not {target}: {wrong[:10]}" if wrong else ""))
-    moved = [f"{t['name']} {t['source_type']}->{t['target_type']}" for t in tensors
-             if role_of(t["name"]) != "routed_expert" and t["target_type"] != t["source_type"]]
+    wrong = [f"{t['name']}={t['target_type']}" for t in routed if t["target_type"] != target]
+    unchanged = [f"{t['name']} is already {source_type(t)}" for t in routed if source_type(t) == target]
+    add("expert_targets", bool(routed) and not wrong and not unchanged,
+        f"{len(routed)} routed expert weights {sorted({source_type(t) for t in routed})} -> {target}" if routed and not (wrong or unchanged)
+        else "no routed expert weights" if not routed else
+        "; ".join(([f"not {target}: {wrong[:10]}"] if wrong else []) +
+                  ([f"routed experts must change to the target type: {unchanged[:5]}"] if unchanged else [])))
+    moved = [f"{t['name']} {source_type(t)}->{t['target_type']}" for t in tensors
+             if role_of(t["name"]) != "routed_expert" and t["target_type"] != source_type(t)]
     add("non_expert_kept", not moved, "; ".join(moved[:10]) or
-        f"{len(tensors) - len(routed)} non-expert tensors keep their source type")
+        f"{len(tensors) - len(routed)} non-expert tensors keep their source type (source headers)")
     off_list = sorted({t["target_type"] for t in tensors if t["target_type"] not in admitted
-                       and t["target_type"] != t["source_type"]})
+                       and t["target_type"] != source_type(t)})
     kept_off = sorted({t["target_type"] for t in tensors if t["target_type"] not in admitted
-                       and t["target_type"] == t["source_type"] and len(t["shape"]) >= 2})
+                       and t["target_type"] == source_type(t) and len(t["shape"]) >= 2})
     add("gb10_kernel_types", not off_list, (f"no GB10 kernel for {off_list}" if off_list else
         "every converted type has a stock CUDA kernel") + (f"; kept source types outside the list: {kept_off}"
                                                            if kept_off else ""))
     split = []
     for t in tensors:
-        if t["target_type"] != t["source_type"]:
+        if t["target_type"] != source_type(t):
             if t["target_type"] not in TYPE_ID:
                 split.append(f"{t['name']}: unknown type {t['target_type']}")
             elif t["shape"][0] % block_of(t["target_type"])[0]:
@@ -116,7 +137,7 @@ def verify_recipe(recipe, target=None, pack_manifest=None, disk_grant_bytes=None
         add("argv_scope", not stray, f"full-run argv carries {stray}" if stray else "no pruning, dry-run or pure flag")
         mismatch, unpinned = [], []
         for t in tensors:
-            got, how = predict(call, t["name"], t["shape"], t["source_type"])
+            got, how = predict(call, t["name"], t["shape"], source_type(t))
             if got is None:
                 unpinned.append(t["name"])
             elif got != t["target_type"]:

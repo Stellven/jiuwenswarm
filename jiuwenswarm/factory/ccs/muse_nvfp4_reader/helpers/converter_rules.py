@@ -64,12 +64,93 @@ def enclosing_deferred(fn):
     return deferred
 
 
+SMALL_KEYS = ("_weight_scale_2", "_input_scale")  # [E] / [E, 2] vectors: may be loaded when the method runs
+EAGER_CALLS = {"to_eager", "numpy", "tolist", "asarray", "array", "ascontiguousarray", "frombuffer", "contiguous",
+               "clone", "copy", "cpu", "float", "to", "view", "item", "tobytes"}
+META_ATTRS = {"shape", "dtype", "ndim", "size", "nbytes"}
+
+
+def _model_tensor_access(node):
+    """The key expression when node reads self.model_tensors (subscript, pop, get), else None."""
+    if isinstance(node, ast.Subscript) and isinstance(node.value, ast.Attribute) and node.value.attr == "model_tensors":
+        return node.slice
+    if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr in ("pop", "get")
+            and isinstance(node.func.value, ast.Attribute) and node.func.value.attr == "model_tensors" and node.args):
+        return node.args[0]
+    return None
+
+
+def _is_small_key(text, key):
+    return any(k in source_of(text, key) for k in SMALL_KEYS)
+
+
+def heavy_loaders(text, fn):
+    """Names bound to the loader of a packed weight or block scale (model_tensors entries that are not a small
+    _weight_scale_2 / _input_scale vector), and the model_tensors reads themselves."""
+    heavy, reads = set(), []
+    for node in ast.walk(fn):
+        key = _model_tensor_access(node)
+        if key is not None and not _is_small_key(text, key):
+            reads.append(node)
+    for node in ast.walk(fn):
+        if not isinstance(node, ast.Assign):
+            continue
+        for target in node.targets:
+            pairs = []
+            if isinstance(target, ast.Tuple) and isinstance(node.value, ast.Tuple) and len(target.elts) == len(node.value.elts):
+                pairs = list(zip(target.elts, node.value.elts))
+            else:
+                pairs = [(target, node.value)]
+            for t, v in pairs:
+                if isinstance(t, ast.Name) and any(r is n for n in ast.walk(v) for r in reads):
+                    heavy.add(t.id)
+    return heavy, reads
+
+
+def eager_loads(text, fn):
+    """Places where the method body (not deferred code) loads a packed weight or block scale: a heavy loader
+    called for anything but its metadata (.shape, .dtype), or to_eager / .numpy() / np.asarray ... of it."""
+    deferred = enclosing_deferred(fn)
+    heavy, reads = heavy_loaders(text, fn)
+    parents = {}
+    for node in ast.walk(fn):
+        for child in ast.iter_child_nodes(node):
+            parents[id(child)] = node
+
+    def mentions_heavy(node):
+        return any((isinstance(n, ast.Name) and n.id in heavy) or any(n is r for r in reads) for n in ast.walk(node))
+
+    found = []
+    for node in ast.walk(fn):
+        if not isinstance(node, ast.Call) or deferred.get(id(node)):
+            continue
+        callee = node.func
+        # calling a heavy loader: w_fn() or self.model_tensors[name]()
+        if (isinstance(callee, ast.Name) and callee.id in heavy) or any(callee is r for r in reads):
+            parent = parents.get(id(node))
+            if not (isinstance(parent, ast.Attribute) and parent.attr in META_ATTRS):
+                found.append(f"line {node.lineno}: {source_of(text, node)} loads it when the method runs")
+            continue
+        name = call_name(node)
+        if name in EAGER_CALLS:
+            subject = list(node.args) + ([callee.value] if isinstance(callee, ast.Attribute) else [])
+            if any(mentions_heavy(s) for s in subject) and not (
+                    isinstance(parents.get(id(node)), ast.Attribute) and parents[id(node)].attr in META_ATTRS):
+                found.append(f"line {node.lineno}: {source_of(text, node)[:80]}")
+    return found
+
+
 def lazy_rule(text, fn):
     deferred = enclosing_deferred(fn)
     calls = [n for n in ast.walk(fn) if isinstance(n, ast.Call)]
     eager_writes = [call_name(c) for c in calls if call_name(c) in EAGER_WRITERS]
     if eager_writes:
         return "fail", f"calls {sorted(set(eager_writes))} for stacked experts: those write an eager array per call"
+    loads = eager_loads(text, fn)
+    if loads:
+        return "fail", ("the method body loads a packed weight or block scale outside deferred code ("
+                        + "; ".join(loads[:3]) + "): only the small _weight_scale_2 / _input_scale vectors may be "
+                        "loaded eagerly; read the weights inside the function handed to the lazy tensor")
     packs = [c for c in calls if call_name(c) in PACK_CALLS]
     eager = [c for c in packs if not deferred.get(id(c))]
     if eager:
