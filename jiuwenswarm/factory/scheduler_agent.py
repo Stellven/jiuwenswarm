@@ -75,6 +75,9 @@ def configure(home, task_id):
     os.environ.update(env | {'JIUWENSWARM_DATA_DIR': str(data), 'JIUWENSWARM_AGENT_SDK': 'codex_subscription',
                              'JIUWENSWARM_CODEX_AGENT': '1', 'JIUWENSWARM_CODEX_AGENT_MCP': str(mcp),
                              'JIUWENSWARM_CODEX_AGENT_CWD': str(workspace), 'JIUWENSWARM_SKIP_DOTENV': '1'})
+    # The bundled Codex (0.163.0) does not list gpt-6.2-sol; FACTORY_SCHEDULER_CODEX_BIN names a newer one.
+    if os.environ.get('FACTORY_SCHEDULER_CODEX_BIN'):
+        os.environ['JIUWENSWARM_CODEX_BIN'] = os.environ['FACTORY_SCHEDULER_CODEX_BIN']
     return mcp
 
 

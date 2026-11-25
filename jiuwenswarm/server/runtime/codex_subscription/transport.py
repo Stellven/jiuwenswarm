@@ -118,9 +118,19 @@ class AppServerTransport:
             if self.process is not None:
                 await self.close()
             try:
-                from codex_cli_bin import bundled_codex_path
-                if version("openai-codex-cli-bin") != "0.163.0":
-                    raise CodexError("RUNTIME_VERSION_MISMATCH")
+                override = os.environ.get("JIUWENSWARM_CODEX_BIN")
+                if override:
+                    # Operator opt-in: a newer Codex whose model catalog the pinned 0.163.0 lacks
+                    # (gpt-6.2-sol for the factory scheduler agent). The app-server protocol is not
+                    # pinned for it; the operator who sets this owns that check.
+                    codex_path = Path(override).expanduser()
+                    if not codex_path.is_file():
+                        raise CodexError("RUNTIME_VERSION_MISMATCH")
+                else:
+                    from codex_cli_bin import bundled_codex_path
+                    if version("openai-codex-cli-bin") != "0.163.0":
+                        raise CodexError("RUNTIME_VERSION_MISMATCH")
+                    codex_path = bundled_codex_path()
                 self.home.mkdir(parents=True, exist_ok=True)
                 self.cwd.mkdir(parents=True, exist_ok=True)
                 self._claim_profile()
@@ -164,7 +174,7 @@ class AppServerTransport:
                 config_path.write_text(config, encoding="utf-8")
                 kwargs = {"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}
                 self.process = await asyncio.create_subprocess_exec(
-                    str(bundled_codex_path()), "app-server", "--listen", "stdio://",
+                    str(codex_path), "app-server", "--listen", "stdio://",
                     cwd=self.cwd, env=child_environment(self.home),
                     stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.DEVNULL, limit=4 * 1024 * 1024, **kwargs,
