@@ -25,6 +25,9 @@ static bool fill_eval(ggml_tensor * t, bool ask, void * ud) {
     if (ours) {
         ctx->fill_layer(t);                       // blocks until the reads finished
     }
+    // Forward to the user's callback only for nodes it asked for. The scheduler asked once (ask=true) for the
+    // union of both callbacks; re-asking here tells which one wanted this node. A callback without side effects
+    // on ask=true can be re-asked safely; keep the answer from the ask pass instead if yours has them.
     if (ctx->saved_cb && ctx->saved_cb(t, true, ctx->saved_ud)) {
         return ctx->saved_cb(t, false, ctx->saved_ud);
     }

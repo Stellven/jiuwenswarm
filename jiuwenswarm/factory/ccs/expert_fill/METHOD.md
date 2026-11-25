@@ -14,10 +14,21 @@ These names are fixed; everything else (structure, file names, defaults of the o
 | Gate | `LLAMA_EXPERT_FILL=1` turns the fill on; unset or `0` is the stock path. |
 | Read-all knob | `LLAMA_EXPERT_FILL_SKIP_RESIDENT=0` reads every selected range even when resident (default 1). The tiny pack is always resident, so this is how verify sees the read pool work. |
 | Phase knob | `LLAMA_EXPERT_FILL_MAX_TOKENS=N` fills ubatches of at most N tokens (default 1 = decode only), `0` every ubatch. |
-| Marker | exactly one line containing `expert_fill: active` per context when the gate is set; no line containing `expert_fill` when unset. |
+| Marker | exactly one line containing `expert_fill: active` per context when the gate is set; no line containing `expert_fill` when unset. llama-server and common also create throw-away memory-fit contexts (`common/fit.cpp`, model `no_alloc=true`): give those no fill and no marker. |
 | Stats | at context teardown, one line `expert_fill: stats k=v ...` with at least `calls` (layers filled), `bytes_read`, `reads` (pread calls), `fill_us`; `read_errors` is checked when present. |
 
 Log them with `LLAMA_LOG_INFO`: llama-simple shows them by default, llama-server and llama-perplexity at `-lv 4`.
+
+Costs to expect (seen by the first worker that built from this capsule; verify cannot measure them):
+
+- **Synchronization.** Installing an eval callback makes `ggml_backend_sched_compute_splits` compute each split in
+  segments and synchronize after every node the callback asks for. On CUDA it also cuts each split at every MoE
+  layer's router node. Ask only while the fill is on for the ubatch (`fill_this_ubatch`), so prefill keeps the
+  stock schedule; the decode cost is one synchronize per layer.
+- **GPU MoE cache hits.** With `--moe-cache-mib`, experts already in the GPU cache are not read from the mapping,
+  but stock `llama_moe_cache` has no public "is cached" query (its slot maps are private to
+  `src/llama-moe-cache.cpp`, outside the allowed paths). A fill that reads every selected expert therefore also
+  reads cache hits that are not in the page cache. Report it; the lab A/B decides whether the fill still pays.
 
 ## 1. Read the tree
 

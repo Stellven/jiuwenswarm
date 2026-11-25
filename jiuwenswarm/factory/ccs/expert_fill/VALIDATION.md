@@ -1,6 +1,7 @@
 # Validation and gate rules
 
-The verifier half is `verify`. It returns `{"done": bool, "checks": [{name, status, stage, detail}],
+The verifier half is `verify`. Like every CC v2 native capability it answers one JSON line
+`{"outcome": "ok", "outputs": {...}}` (or `{"outcome": "error", "error": {...}}`); the outputs are `{"done": bool, "checks": [{name, status, stage, detail}],
 "stage_reached", "not_done_because"}`; `done` is false whenever a check fails, when `require_stage` (default
 `runtime acceptance`) was not reached, when a check that stage needs was `skipped` (compile, runtime), and when
 an `inconclusive` check (an unrecognized static form, an uncalibrated `fixture_calibration`) was not settled by
