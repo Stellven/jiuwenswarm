@@ -18,6 +18,9 @@ import type { GraphLink, GraphModel, GraphNode, GraphReplay } from './graphModel
 import { collapsibleNodes, graphChildren, graphProgress, hiddenUnder, visibleGraphNodes } from './graphModel';
 import type { KeyFile } from './storyModel.ts';
 import { MembershipEdge } from './MembershipEdge';
+import { checkBadge, nodeHold, primaryCapsule, type CheckBadge } from './checkModel';
+import { NodeChecks } from './NodeChecks';
+import { atlasTitle } from '../cc/atlasNames';
 import { layoutOntologyGroups, type GraphPlacement } from './ontologyLayout';
 import '@xyflow/react/dist/style.css';
 import './graphViewer.css';
@@ -152,6 +155,9 @@ type FlowNode = Node<
     member?: boolean;
     childCount: number;
     hiddenCount: number;
+    check?: CheckBadge;
+    cc?: string;
+    held?: boolean;
     collapsed: boolean;
     select: (id: string) => void;
     toggle: (id: string) => void;
@@ -172,7 +178,7 @@ function linkText(link: GraphLink, text: ReturnType<typeof useLabels>) {
 
 function GraphCard({ data, selected }: NodeProps<FlowNode>) {
   const text = useLabels();
-  const { node, state, phase, grouped, member, select, toggle, childCount, hiddenCount, collapsed } = data;
+  const { node, state, phase, grouped, member, select, toggle, childCount, hiddenCount, collapsed, check, cc, held } = data;
   const Icon = icons[node.kind];
   const status = statusText(state, phase, text);
   return (
@@ -186,6 +192,8 @@ function GraphCard({ data, selected }: NodeProps<FlowNode>) {
         data-kind={node.kind}
         data-phase={phase}
         data-node-state={state}
+        data-held={held || undefined}
+        data-check={check?.tone}
         aria-pressed={selected}
         aria-expanded={childCount ? !collapsed : undefined}
         onClick={() => {
@@ -198,12 +206,22 @@ function GraphCard({ data, selected }: NodeProps<FlowNode>) {
         <span className="factory-graph-node-copy">
           <span className="factory-graph-node-kind">
             {typeof node.details.label_kind === 'string' ? node.details.label_kind : text.kind[node.kind]}
+            {cc && (
+              <span className="factory-graph-node-cc" data-testid="factory-runs-graph-node-cc" title={cc}>
+                {atlasTitle(cc) ?? cc.split('.').pop()}
+              </span>
+            )}
           </span>
           <strong>{node.label}</strong>
         </span>
-        {status && (
+        {(status || check) && (
           <span className="factory-graph-node-state" data-testid="factory-runs-graph-node-status">
             {status}
+            {check && (
+              <span className="factory-graph-check-badge" data-tone={check.tone} data-testid="factory-runs-graph-check-badge">
+                {check.text}
+              </span>
+            )}
           </span>
         )}
         {childCount > 0 && (
@@ -392,6 +410,15 @@ function NodeDetails({
               </p>
             )}
           </section>
+          {node.kind === 'step' && node.planId && (replay?.checks || replay?.operator) && (
+            <NodeChecks
+              view={replay?.checks?.[node.planId]}
+              node={node.details}
+              files={replay?.files}
+              onOpenFile={replay?.onOpenFile}
+              operator={replay?.operator}
+            />
+          )}
           {keys.length > 0 && (
             <section data-testid="factory-runs-graph-key-files">
               <h5>★ {text.keyFiles}</h5>
@@ -552,6 +579,8 @@ export function GraphViewer({ graph: fullGraph, replay }: { graph: GraphModel; r
         const mark = progress?.get(node.id);
         const state =
           mark?.phase === 'upcoming' ? undefined : String(mark?.details?.state ?? node.state ?? '') || undefined;
+        const checks = node.planId ? replay?.checks?.[node.planId] : undefined;
+        const shown = node.kind === 'step' && mark?.phase !== 'upcoming';
         return {
           id: node.id,
           type: 'factoryNode',
@@ -571,10 +600,13 @@ export function GraphViewer({ graph: fullGraph, replay }: { graph: GraphModel; r
             childCount: collapsible ? (children.get(node.id)?.length ?? 0) : 0,
             hiddenCount: collapsed.has(node.id) ? hiddenUnder(fullGraph, node.id, visibleIds) : 0,
             collapsed: collapsed.has(node.id),
+            check: shown ? checkBadge(checks, node.details) : undefined,
+            cc: shown ? primaryCapsule(checks, node.details.capability) : undefined,
+            held: shown && Boolean(nodeHold(node.details)),
           },
         };
       }),
-    [geometry, progress, selectedId, toggle, collapsible, children, collapsed, fullGraph, visibleIds],
+    [geometry, progress, selectedId, toggle, collapsible, children, collapsed, fullGraph, visibleIds, replay?.checks],
   );
   const visibleLinks = useMemo(
     () =>

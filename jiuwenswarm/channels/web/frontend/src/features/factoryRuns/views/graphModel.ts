@@ -1,6 +1,7 @@
 import type { EvidenceFile, StoryEvent } from '../api';
 import type { CuratedReplay } from './storyModel.ts';
 import { atlasTitle } from '../cc/atlasNames.ts';
+import type { NodeCheckIndex, NodeOperator } from './checkModel.ts';
 
 type Fields = Record<string, unknown>;
 type NodeKind = 'contract' | 'task' | 'step' | 'capsule' | 'entity' | 'group';
@@ -34,6 +35,10 @@ export type GraphReplay = {
   files?: readonly EvidenceFile[];
   curated?: CuratedReplay | null;
   onOpenFile?: (path: string) => void;
+  /** Live and exported runs: per plan node checking records (GET /runs/{id} node_checks). */
+  checks?: NodeCheckIndex;
+  /** Live homes only: hold, release and reopen. */
+  operator?: NodeOperator;
 };
 type NodeProgress = { phase: 'upcoming' | 'seen' | 'current'; details?: Fields };
 

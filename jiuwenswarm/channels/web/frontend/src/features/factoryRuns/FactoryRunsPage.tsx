@@ -14,6 +14,10 @@ import {
 import { Measurements, MeasurementSummary } from './Measurements';
 import { FinalHeadlines, useFinalHeadlines } from './FinalHeadlines';
 import { RunOverview } from './RunOverview';
+import { LabResults } from './LabResults';
+import { isContractV2 } from './labModel';
+import { nodeActions, operatorEnabled, pauseStatement, resumeEnabled, type NodeOperator, type PlanNode } from './views/checkModel';
+import './labResults.css';
 import { Iterations } from './Iterations';
 import { FactoryReport } from './FactoryReport';
 import { reportFiles } from './reportModel';
@@ -107,6 +111,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
   const [launchOpen, setLaunchOpen] = useState(false);
   const [session, setSession] = useState<SessionSnapshot | null>(null);
   const [sessionStale, setSessionStale] = useState(false);
+  const [resumeState, setResumeState] = useState<{ busy: boolean; error: string; note: string }>({ busy: false, error: '', note: '' });
   // Demo build: light theme only. The scoped dark palette had unreadable
   // text on several surfaces, so the page no longer follows the OS setting.
   const appearance = 'light';
@@ -135,6 +140,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
     setFile(null);
     setSession(null);
     setSessionStale(false);
+    setResumeState({ busy: false, error: '', note: '' });
     setError('');
     setPlaying(false);
     factoryApi
@@ -160,6 +166,44 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
     };
   }, [selected, refreshVersion]);
   const isLiveHome = detail?.run.id === selected && detail.run.kind === 'live';
+  // Operator actions change the graph: reload the run in place, keeping the open panel and selection.
+  const reloadDetail = useCallback(async () => {
+    const current = await factoryApi.detail(selected);
+    observedStory.current = storyVersion(current.events);
+    setDetail(current);
+    setEvents(current.events);
+    setPosition(current.events.length);
+    if (current.session) setSession(current.session);
+  }, [selected]);
+  const runKind = detail ? { kind: detail.run.kind, curated: Boolean(detail.curated) } : undefined;
+  const operator = useMemo<NodeOperator | undefined>(() => {
+    const kind = detail ? { kind: detail.run.kind, curated: Boolean(detail.curated) } : undefined;
+    if (!detail || !kind || !operatorEnabled(kind, detail.controls)) return undefined;
+    return {
+      actions: (node: PlanNode) => nodeActions(kind, detail.controls, node),
+      run: async (nodeId, op, reason) => {
+        await factoryApi.operator(selected, nodeId, op, reason);
+        await reloadDetail();
+      },
+    };
+  }, [detail, selected, reloadDetail]);
+  const planNodes = useMemo(
+    () => (Array.isArray(detail?.graph?.nodes) && !detail?.curated ? (detail.graph.nodes as PlanNode[]) : []),
+    [detail],
+  );
+  const pause = detail && !detail.curated ? pauseStatement(planNodes, detail.controls) : undefined;
+  const canResume = Boolean(detail && runKind && resumeEnabled(runKind, detail.controls));
+  const resume = async () => {
+    setResumeState({ busy: true, error: '', note: '' });
+    try {
+      const started = await factoryApi.resume(selected);
+      setResumeState({ busy: false, error: '', note: `Resumed: controller process ${started.pid} started.` });
+      setLive(true);
+      await reloadDetail();
+    } catch (err) {
+      setResumeState({ busy: false, error: String(err instanceof Error ? err.message : err), note: '' });
+    }
+  };
   useEffect(() => {
     if (!isLiveHome) return;
     let stopped = false;
@@ -349,6 +393,10 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
   const headline = finalHeadlines &&
     <FinalHeadlines publication={finalHeadlines} onOpen={openIterationChild} />;
   let measurementSummary: ReactNode;
+  // The campaign measurement panel reads the DeepSeek OPS ledger; other contract/2 runs use their lab reports.
+  const deepseekCampaign = [detail?.contract.contract_id, detail?.records.tasks?.[0]?.contract_id].some(
+    (id) => typeof id === 'string' && id.startsWith('star-deepseek-'),
+  );
   if (
     detail &&
     (detail.contract.contract_id === 'star-deepseek-v1' ||
@@ -439,6 +487,33 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                 </label>
               )}
             </header>
+            {(pause || canResume || resumeState.note || resumeState.error) && (
+              <section
+                className="factory-run-pause"
+                data-testid="factory-runs-pause"
+                data-paused={pause?.paused || undefined}
+              >
+                {pause && <p data-testid="factory-runs-pause-statement">{pause.paused ? 'Run ' : ''}{pause.text}</p>}
+                {!pause && detail.controls?.outcome && <p>Run outcome: {detail.controls.outcome}</p>}
+                {canResume && (
+                  <button
+                    type="button"
+                    data-testid="factory-runs-resume"
+                    disabled={resumeState.busy}
+                    title="Start jiuwenswarm-factory resume for this task; upstream outputs and passed checks are kept"
+                    onClick={() => void resume()}
+                  >
+                    {resumeState.busy ? 'Resuming…' : 'Resume'}
+                  </button>
+                )}
+                {resumeState.note && <p className="factory-muted">{resumeState.note}</p>}
+                {resumeState.error && (
+                  <p className="factory-lab-problem" role="alert">
+                    {resumeState.error}
+                  </p>
+                )}
+              </section>
+            )}
             {isLiveHome && (live || panel === 'overview' || panel === 'terminal') && (
               <LiveSession session={session} stale={sessionStale} />
             )}
@@ -570,7 +645,15 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                   name={t('factoryRuns.graph')}
                   value={detail.graph}
                   graph={graph}
-                  replay={{ events, position, files: detail.files, curated: detail.curated, onOpenFile: (path: string) => selectPanel('artifacts', path) }}
+                  replay={{
+                    events,
+                    position,
+                    files: detail.files,
+                    curated: detail.curated,
+                    onOpenFile: (path: string) => selectPanel('artifacts', path),
+                    checks: detail.node_checks,
+                    operator,
+                  }}
                   initialMode="graph"
                 />
               )}
@@ -614,7 +697,15 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                   <a href={capsuleHref()} data-testid="factory-runs-capsule-browse">{copy('catalog')} →</a>
                 </div>
               )}
-              {panel === 'measurements' && (
+              {panel === 'measurements' && isContractV2(detail.contract) && (
+                <LabResults
+                  contract={detail.contract}
+                  observations={records.observations}
+                  files={detail.files}
+                  onOpenFile={(path) => selectPanel('artifacts', path)}
+                />
+              )}
+              {panel === 'measurements' && (!isContractV2(detail.contract) || deepseekCampaign) && (
                 <Measurements
                   detail={detail}
                   headline={headline}

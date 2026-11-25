@@ -1,0 +1,259 @@
+/* Node inspector: how a node is checked, and operator controls. Uses the page tokens of graphViewer.css. */
+.factory-graph-inspector:has(.factory-node-checks) {
+  width: min(420px, calc(100% - 24px));
+}
+
+.factory-node-checks,
+.factory-node-operator {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border-default);
+}
+
+.factory-node-checks p {
+  margin: 4px 0;
+}
+
+.factory-check-gate {
+  padding: 6px 8px;
+  border-radius: 7px;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-muted);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.factory-check-gate[data-kind='closed'] {
+  border-color: var(--color-feedback-success-text);
+  color: var(--color-feedback-success-text);
+}
+
+.factory-check-gate[data-kind='open'] {
+  border-color: var(--color-feedback-warning);
+}
+
+.factory-check-gate[data-kind='held'] {
+  border-color: var(--color-feedback-warning);
+  border-style: dashed;
+}
+
+.factory-check-how code,
+.factory-check-meta code {
+  margin-inline-end: 4px;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.factory-check-how small,
+.factory-check-stage small,
+.factory-check-review small {
+  margin-inline-end: 4px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.factory-graph-inspector ul.factory-check-outputs {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.factory-check-output {
+  margin-top: 6px;
+  padding: 7px 8px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+}
+
+.factory-check-output[data-status='failed'] {
+  border-color: var(--color-feedback-danger);
+}
+
+.factory-check-output-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.factory-check-output-head strong {
+  overflow-wrap: anywhere;
+}
+
+.factory-check-pill {
+  margin-inline-start: auto;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  font-size: 10px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.factory-check-pill[data-status='passed'] {
+  color: var(--color-feedback-success-text);
+}
+
+.factory-check-pill[data-status='failed'] {
+  color: var(--color-feedback-danger);
+}
+
+.factory-check-pill[data-status='running'],
+.factory-check-pill[data-status='stale'] {
+  color: var(--color-feedback-warning);
+}
+
+.factory-check-stage[data-met='false'] b:first-of-type {
+  color: var(--color-feedback-danger);
+}
+
+.factory-check-reason {
+  color: var(--color-feedback-danger);
+  overflow-wrap: anywhere;
+}
+
+.factory-graph-inspector ul.factory-check-list {
+  margin: 4px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.factory-check-list li {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 6px;
+  padding: 2px 0;
+  overflow-wrap: anywhere;
+}
+
+.factory-check-mark {
+  font-size: 10px;
+  font-weight: 650;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.factory-check-list li:is([data-status='fail'], [data-status='failed'], [data-status='error']) .factory-check-mark {
+  color: var(--color-feedback-danger);
+}
+
+.factory-check-list li:is([data-status='pass'], [data-status='passed']) .factory-check-mark {
+  color: var(--color-feedback-success-text);
+}
+
+.factory-check-list li[data-status='major'] .factory-check-mark {
+  color: var(--color-feedback-warning);
+}
+
+.factory-check-detail {
+  color: var(--color-text-secondary);
+}
+
+.factory-check-review {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--color-border-default);
+}
+
+.factory-check-meta {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+
+.factory-check-meta .factory-graph-file-link {
+  margin-inline-end: 8px;
+}
+
+.factory-check-older summary {
+  cursor: pointer;
+  color: var(--color-text-secondary);
+}
+
+.factory-check-older li[data-superseded] {
+  color: var(--color-text-secondary);
+  text-decoration: line-through;
+}
+
+.factory-node-operator-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.factory-graph-inspector button.factory-node-operator-button {
+  display: inline-block;
+  width: auto;
+  height: auto;
+  padding: 4px 10px;
+  border: 1px solid var(--color-border-hover);
+  border-radius: 7px;
+  background: var(--color-surface-card);
+  font: inherit;
+  font-weight: 600;
+}
+
+.factory-graph-inspector button.factory-node-operator-button[aria-pressed='true'],
+.factory-graph-inspector button.factory-node-operator-button[data-variant='confirm'] {
+  border-color: var(--color-action-primary);
+  background: var(--color-action-primary-subtle);
+}
+
+.factory-graph-inspector button.factory-node-operator-button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.factory-node-operator-form {
+  display: grid;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.factory-node-operator-form input {
+  padding: 5px 7px;
+  border: 1px solid var(--color-border-hover);
+  border-radius: 6px;
+  background: var(--color-surface-page);
+  color: var(--color-text-primary);
+  font: inherit;
+}
+
+/* Graph card: compact capsule chip and check badge. */
+.factory-graph-node-cc {
+  margin-inline-start: 4px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-link);
+  font-weight: 600;
+}
+
+.factory-graph-check-badge {
+  margin-inline-start: 6px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-secondary);
+}
+
+.factory-graph-check-badge[data-tone='passed'] {
+  color: var(--color-feedback-success-text);
+}
+
+.factory-graph-check-badge[data-tone='failed'] {
+  color: var(--color-feedback-danger);
+}
+
+.factory-graph-check-badge:is([data-tone='held'], [data-tone='running']) {
+  color: var(--color-feedback-warning);
+}
+
+.factory-graph-node-button[data-held='true'] {
+  border-style: dashed;
+  border-color: var(--color-feedback-warning);
+}
+
+.factory-graph-node-button[data-check='failed'] {
+  border-color: var(--color-feedback-danger);
+}

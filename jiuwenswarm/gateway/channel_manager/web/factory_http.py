@@ -4,6 +4,7 @@ The operator supplies roots through FACTORY_RUN_ROOTS (os.pathsep separated).
 Campaign measurements read FACTORY_MEASUREMENT_ROOT (default ~/predemo-spark/OPS).
 Launching is opt-in: FACTORY_LAUNCH_ROOT contains reviewed task JSON templates;
 FACTORY_LAUNCH_HOME_ROOT is a dedicated directory for new session homes.
+Operator controls (hold, release, reopen, resume) act on live homes only.
 """
 from __future__ import annotations
 
@@ -40,6 +41,10 @@ PREFIX = '/api/factory'
 MAX_FILE = 16 * 1024 * 1024
 SAFE_ID = re.compile(r'^[A-Za-z0-9][A-Za-z0-9_.-]{0,199}$')
 HEADLINE_ID = re.compile(r'^source:OPS/final-headlines\.json@sha256:([a-f0-9]{64})$')
+OPERATOR_OPS = ('hold', 'release', 'reopen')
+# Controller outcomes after which a resume continues the same task (see Controller._paused_at).
+RESUMABLE = ('paused', 'partial')
+MAX_CHECKS = 8  # node checks kept per output in the compact view, newest last
 
 
 def _hash(data):
@@ -151,6 +156,125 @@ def _contains_symlink(root):
                 if entry.is_dir(follow_symlinks=False):
                     pending.append(entry.path)
     return False
+
+
+def _compact_verifier(value):
+    if not isinstance(value, dict):
+        return None
+    keep = {k: value.get(k) for k in ('cc', 'capability', 'release', 'state', 'passed', 'stage_reached', 'reason')
+            if value.get(k) is not None}
+    keep['checks'] = [{k: c.get(k) for k in ('name', 'status', 'stage', 'detail')}
+                      for c in value.get('checks') or [] if isinstance(c, dict)]
+    return keep
+
+
+def _compact_review(value):
+    if not isinstance(value, dict):
+        return None
+    keep = {k: value.get(k) for k in ('verdict', 'summary', 'passed', 'reason', 'reviewer', 'packet_artifact', 'reply_artifact')
+            if value.get(k) is not None}
+    keep['findings'] = [{k: f.get(k) for k in ('severity', 'file', 'line', 'problem')}
+                        for f in value.get('findings') or [] if isinstance(f, dict)]
+    return keep
+
+
+def _check_entries(task, node, contract_node):
+    """The node's checked outputs as the host sees them (node_check.effective_spec), else its node contract's."""
+    from jiuwenswarm.factory.node_check import outputs_of
+    spec = node.get('check')
+    if not spec:
+        constraints = task.get('constraints')
+        defaults = constraints.get('node_checks') if isinstance(constraints, dict) else None
+        spec = defaults.get(node.get('kind')) if isinstance(defaults, dict) else None
+    if spec:
+        return outputs_of(spec)
+    if contract_node:
+        from jiuwenswarm.factory.node_contract import check_spec
+        return check_spec(contract_node)['outputs']
+    return []
+
+
+def _reopened_at(graph):
+    """Per node, when an operator last reopened it or an ancestor: only later attempts and checks count."""
+    nodes = {n['node_id']: n for n in graph.get('nodes', [])}
+    children = {}
+    for key, node in nodes.items():
+        for dep in node.get('depends_on', []):
+            children.setdefault(dep, []).append(key)
+    result = {}
+    for entry in graph.get('history', []):
+        if entry.get('origin') != 'operator':
+            continue
+        for change in (entry.get('patch') or {}).get('reopen', []):
+            frontier = [change.get('node_id')]
+            while frontier:
+                key = frontier.pop()
+                if key in nodes and result.get(key, -1) < entry.get('created', 0):
+                    result[key] = entry.get('created', 0)
+                    frontier.extend(children.get(key, []))
+    return result
+
+
+def node_check_view(data, graph):
+    """Compact per-node checking record: the node contract's work (CCs, capability), the verified
+    outputs and their node_check observations, newest last. Only host records; nothing is inferred."""
+    from jiuwenswarm.factory.node_contract import from_contract
+    task = data['tasks'][0]
+    tid = task['task_id']
+    document = from_contract(data.get('_contract') or {}) or {}
+    contract_nodes = {n.get('node_id'): n for n in document.get('nodes', []) if isinstance(n, dict)}
+    rows = {}
+    for row in data.get('observations', []):
+        values = row.get('values') if isinstance(row.get('values'), dict) else {}
+        if row.get('kind') == 'node_check' and row.get('task_id', tid) == tid and values.get('node_id'):
+            rows.setdefault(values['node_id'], []).append(row)
+    reopened = _reopened_at(graph)
+    view = {}
+    for node in graph.get('nodes', []):
+        key = node['node_id']
+        contract_node = contract_nodes.get(node.get('node_contract'))
+        try:
+            entries = _check_entries(task, node, contract_node)
+        except (ValueError, KeyError, TypeError):
+            entries = []
+        if not entries and not contract_node and key not in rows:
+            continue
+        verifiers = {v.get('output'): v for v in (contract_node or {}).get('verifiers', []) if isinstance(v, dict)}
+        names = [e['name'] for e in entries]
+        for row in rows.get(key, []):
+            name = row['values'].get('output', 'change')
+            if name not in names:
+                names.append(name)  # checked under settings the node no longer declares
+        outputs = []
+        for name in names:
+            entry = next((e for e in entries if e['name'] == name), None)
+            checks = []
+            for row in [r for r in rows.get(key, []) if r['values'].get('output', 'change') == name][-MAX_CHECKS:]:
+                values = row['values']
+                checks.append(dict(
+                    obs_id=row['obs_id'], created=row.get('created'), state=values.get('state'),
+                    passed=bool(values.get('passed')), reason=values.get('reason'), kind=values.get('kind'),
+                    same_settings=entry is not None and values.get('entry') == entry,
+                    superseded=key in reopened and (row.get('created') or 0) < reopened[key],
+                    cited=row['obs_id'] in node.get('evidence_ids', []), reused_from=values.get('reused_from'),
+                    seconds=(values.get('seconds') or {}).get('total'),
+                    verifier=_compact_verifier(values.get('verifier')), review=_compact_review(values.get('review')),
+                    found=sorted(values['found']) if isinstance(values.get('found'), dict) else None,
+                    artifacts=row.get('source_artifacts') or []))
+            spec = entry or {}
+            pinned = spec.get('inputs') or (verifiers.get(name) or {}).get('inputs')
+            outputs.append(dict(
+                name=name, kind=spec.get('kind') or (checks[-1]['kind'] if checks else None),
+                required=spec.get('required', True) if entry else False, declared=entry is not None,
+                verifier=spec.get('verifier'), stage=spec.get('stage'), review=bool(spec.get('review')),
+                inputs=pinned or None, criteria=list(spec.get('criteria') or []), checks=checks))
+        work = (contract_node or {}).get('work') or {}
+        view[key] = dict(
+            node_contract=node.get('node_contract'), objective=(contract_node or {}).get('objective'),
+            helpful_ccs=list(work.get('helpful_ccs') or []), capability=work.get('capability') or node.get('capability'),
+            requirement_ids=list((contract_node or {}).get('requirement_ids') or []),
+            outputs=outputs, reopened_at=reopened.get(key))
+    return view
 
 
 class FactoryHttpService:
@@ -431,14 +555,68 @@ class FactoryHttpService:
         else:
             trace_path = _inside(path, 'telemetry.jsonl')
             trace = [json.loads(line) for line in trace_path.read_text().splitlines() if line.strip()] if trace_path.is_file() else []
+        plan = taskgraph.from_records(data)
         return sanitize(dict(run=item, records=data, contract=data.get('_contract', {}),
-                             graph=curated_graph(replay, item['task_id']) if replay else taskgraph.from_records(data),
-                             recorded_plan=taskgraph.from_records(data) if replay else None,
+                             graph=curated_graph(replay, item['task_id']) if replay else plan,
+                             recorded_plan=plan if replay else None,
+                             node_checks={} if replay else node_check_view(data, plan),
+                             controls=self._controls(path, data) if item['kind'] == 'live' else None,
                              stack=monitor.engine_stack(data),
                              telemetry=trace, files=self.files(item, path, data), events=events,
                              summary=dict(meta=data.get('_meta', {}), telemetry=telemetry.summary(trace)),
                              session=self._session(item, path, data) if item['kind'] == 'live' else None,
                              curated=replay))
+
+    @staticmethod
+    def _running(path):
+        return controller_is_locked(_inside(path, 'controller.lock'))
+
+    def _controls(self, path, data):
+        """What an operator may do to this live home now. Bundles and curated replays have no controls."""
+        state = data['_meta']['controller_state']
+        running = self._running(path)
+        outcome = state.get('outcome')
+        return dict(operator=True, running=running, outcome=outcome, stop_reason=state.get('stop_reason'),
+                    resume=not running and outcome in RESUMABLE)
+
+    def _live(self, run_id):
+        item, path = self.resolve(run_id)
+        if item['kind'] != 'live':
+            raise HTTPException(403, 'Operator controls apply to live factory homes only, not exported bundles or replays')
+        return item, path
+
+    def operator(self, run_id, op, node_id, reason):
+        """Hold, release or reopen one plan node through the controller, which also notes it for the agent."""
+        if op not in OPERATOR_OPS:
+            raise HTTPException(404, 'Unknown operator action')
+        if not SAFE_ID.fullmatch(node_id):
+            raise HTTPException(400, 'Invalid plan node')
+        item, path = self._live(run_id)
+        graph = operator_controller(path).operator(item['task_id'], op, node_id, reason)
+        return sanitize(dict(run_id=run_id, task_id=item['task_id'], op=op, node_id=node_id, graph_rev=graph.get('rev'),
+                             held=[n['node_id'] for n in graph.get('nodes', []) if n.get('hold')]))
+
+    def resume(self, run_id):
+        """Start `jiuwenswarm-factory resume <task>` detached, the way launch starts a run."""
+        item, path = self._live(run_id)
+        data = self.load(item, path)
+        if self._running(path):
+            raise HTTPException(409, 'A controller is already running in this factory home')
+        outcome = data['_meta']['controller_state'].get('outcome')
+        if outcome not in RESUMABLE:
+            raise HTTPException(409, f'Resume continues a paused or partial run; this run is {outcome or "not stopped"}')
+        tid = item['task_id']
+        command = [sys.executable, '-m', 'jiuwenswarm.factory.cli', '--home', str(path), 'resume', tid, '--plain']
+        for effect in data['tasks'][0].get('allowed_effects') or []:
+            command.extend(('--grant', effect))
+        if os.environ.get('FACTORY_LAUNCH_SYSTEMD') == '1':
+            command = ['systemd-run', '--user', '--scope', f'--unit=factory-{tid}-resume-{uuid.uuid4().hex[:6]}', *command]
+        with _inside(path, 'launch.log').open('ab') as log:
+            process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=log, stderr=log,
+                                       start_new_session=True, close_fds=True)
+        metadata = dict(id=run_id, task_id=tid, pid=process.pid, resumed_from=outcome)
+        _inside(path, 'resume.json').write_text(json.dumps(dict(metadata, command=command, started=time.time())) + '\n')
+        return metadata
 
     def _session(self, item, path, data):
         state = data['_meta']['controller_state']
@@ -580,6 +758,34 @@ class FactoryHttpService:
         return metadata
 
 
+def operator_controller(home):
+    """The home's controller: imported lazily (Linux-only locking), replaceable in tests."""
+    from jiuwenswarm.factory.controller import Controller
+    return Controller(home)
+
+
+def same_origin(request):
+    origin = request.headers.get('origin')
+    # Browser mutations require an exact same-origin host. CLI callers can
+    # omit Origin; this is a trusted-operator service bound behind localhost.
+    if origin and urlsplit(origin).netloc != request.headers.get('host'):
+        raise HTTPException(403, 'Factory controls require a same-origin request')
+
+
+async def json_body(request, limit=4096):
+    body = bytearray()
+    async for chunk in request.stream():
+        body.extend(chunk)
+        if len(body) > limit:
+            raise HTTPException(413, 'Request exceeds limit')
+    if not body:
+        return None
+    try:
+        return json.loads(body)
+    except ValueError:
+        raise HTTPException(400, 'Expected a JSON request') from None
+
+
 def attach_factory_routes(app: FastAPI, channel=None, *, service=None):
     service = service or FactoryHttpService()
 
@@ -637,20 +843,26 @@ def attach_factory_routes(app: FastAPI, channel=None, *, service=None):
 
     @app.post(PREFIX + '/launch', status_code=202)
     async def launch(request: Request):
-        origin = request.headers.get('origin')
-        # Browser mutations require an exact same-origin host. CLI callers can
-        # omit Origin; this is a trusted-operator service bound behind localhost.
-        if origin and urlsplit(origin).netloc != request.headers.get('host'):
-            raise HTTPException(403, 'Factory launch requires a same-origin request')
-        body = bytearray()
-        async for chunk in request.stream():
-            body.extend(chunk)
-            if len(body) > 4096:
-                raise HTTPException(413, 'Launch request exceeds limit')
-        try:
-            payload = json.loads(body)
-        except ValueError:
-            raise HTTPException(400, 'Expected a JSON launch request') from None
+        same_origin(request)
+        payload = await json_body(request)
         if not isinstance(payload, dict) or set(payload) != {'template_id'} or not isinstance(payload['template_id'], str):
             raise HTTPException(400, 'Expected template_id only')
         return await call(service.launch, payload['template_id'])
+
+    @app.post(PREFIX + '/runs/{run_id}/nodes/{node_id}/{op}')
+    async def operator(run_id: str, node_id: str, op: str, request: Request):
+        same_origin(request)
+        if op not in OPERATOR_OPS:
+            raise HTTPException(404, 'Unknown operator action')
+        payload = await json_body(request)
+        if (not isinstance(payload, dict) or set(payload) != {'reason'} or not isinstance(payload['reason'], str)
+                or not payload['reason'].strip() or len(payload['reason']) > 500):
+            raise HTTPException(400, 'Expected {"reason": "..."} with a nonempty reason of at most 500 characters')
+        return await call(service.operator, run_id, op, node_id, payload['reason'].strip())
+
+    @app.post(PREFIX + '/runs/{run_id}/resume', status_code=202)
+    async def resume(run_id: str, request: Request):
+        same_origin(request)
+        if await json_body(request) not in (None, {}):
+            raise HTTPException(400, 'Resume takes no parameters')
+        return await call(service.resume, run_id)

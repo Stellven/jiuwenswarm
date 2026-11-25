@@ -3,7 +3,8 @@
 The web channel mounts `/api/factory`. Reads reuse the factory's story, graph,
 monitor, telemetry and redaction helpers. They do not initialize a controller.
 Live SQLite and WAL are copied with stable size/mtime checks; the story reads the
-same validated snapshot. No source database is opened for writes.
+same validated snapshot. No read opens a source database for writes; only the
+operator POSTs below write, through the controller.
 
 Operator configuration:
 
@@ -30,6 +31,50 @@ Endpoints:
   `jiuwenswarm-factory run`. The template's allowed effects become the explicit
   CLI grants; the HTTP request cannot choose commands, effects or paths. Launch
   returns the new run ID, task ID and PID. Logs survive gateway/browser restarts.
+- `POST /runs/{id}/nodes/{node}/hold|release|reopen` with exactly
+  `{"reason": "..."}` (nonempty, at most 500 characters): calls
+  `Controller(home).operator(task_id, op, node, reason)`, which records an
+  operator graph revision (`taskgraph.operator_patch`) and queues an operator note
+  for the agent's next turn. Graph refusals (node not held, node done, running
+  descendants) return 422 with the controller's reason. Returns the new graph
+  revision and the held node IDs.
+- `POST /runs/{id}/resume` with no body or `{}`: starts a detached
+  `jiuwenswarm-factory resume <task>` with the task's recorded allowed effects
+  as grants, the way launch starts a run (systemd scope under
+  `FACTORY_LAUNCH_SYSTEMD=1`), appending to `launch.log` and writing
+  `resume.json`. Refused with 409 while a controller holds the home lock or when
+  the controller outcome is not `paused` or `partial`.
+
+Operator controls apply to live factory homes only. Exported bundles and
+curated replays answer 403 and carry `controls: null`. All three use the same
+same-origin guard as launch.
+
+`GET /runs/{id}` also carries:
+
+- `node_checks`: per plan node, the node contract's `helpful_ccs`, capability,
+  requirement IDs and, per checked output (`node_check.effective_spec`, else the
+  node contract's `check_spec`), its verifier capability, required stage,
+  review flag, pinned verifier inputs, criteria and up to eight latest
+  `node_check` observations in compact form (state, passed, reason, verifier
+  checks `{name,status,stage,detail}` and `stage_reached`, reviewer verdict,
+  summary and findings, whether the node cites it, whether the check used the
+  node's current settings, and `superseded` when an operator reopened the node
+  or an ancestor after it). The full records stay in `records.observations`.
+  Empty for curated replays.
+- `controls` (live homes): `operator`, `running` (controller lock held),
+  `outcome`, `stop_reason` and `resume` (allowed now).
+
+The UI derives the gate statement from these records with the host's done rule
+(`node_check.pending`): closed when every required output's latest check passed;
+open with the first output that has no check, a running or failed check, a
+check under other settings, a check from before a reopen, or an uncited pass;
+held when the node carries an operator hold. Lab results for `factory.contract/2`
+runs come from `lab_report` observations recorded by the lab manager; arms,
+metrics, metric direction (`measurement.metrics.*.better`) and the reference arm
+(`comparison`, else `correctness.reference.arm`, else the `baseline` role, else
+the first arm) are read from the contract. factory.lab-report/1 has no cold/warm
+field, so the lab names it in the test or request ID (`speed-cold`,
+`p512:warm`); without either token the test ID is the condition.
 
 Missing/mismatched manifest files remain visible. `MANIFEST.json` itself and
 unlisted files have `untracked` status; that status does not assert provenance.

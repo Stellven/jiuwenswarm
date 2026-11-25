@@ -1,5 +1,6 @@
 import { getApiBase } from '../../utils/env';
 import type { CuratedReplay } from './views/storyModel.ts';
+import type { Controls, NodeCheckIndex, OperatorOp } from './views/checkModel.ts';
 
 export type JsonRecord = Record<string, unknown>;
 export type Run = {
@@ -48,6 +49,10 @@ export type RunDetail = {
   summary: unknown;
   session?: SessionSnapshot | null;
   curated?: CuratedReplay | null;
+  /** Per plan node: node contract CCs, verified outputs and their host node_check records. */
+  node_checks?: NodeCheckIndex;
+  /** Live homes only: what an operator may do now. */
+  controls?: Controls;
 };
 export type SessionSnapshot = {
   status: 'running' | 'waiting' | 'finished' | 'idle' | 'unknown';
@@ -89,5 +94,16 @@ export const factoryApi = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ template_id }),
+    }),
+  operator: (id: string, node: string, op: OperatorOp, reason: string) =>
+    request<{ graph_rev: number; held: string[] }>(
+      `/runs/${encodeURIComponent(id)}/nodes/${encodeURIComponent(node)}/${op}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason }) },
+    ),
+  resume: (id: string) =>
+    request<{ id: string; task_id: string; pid: number }>(`/runs/${encodeURIComponent(id)}/resume`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
     }),
 };
