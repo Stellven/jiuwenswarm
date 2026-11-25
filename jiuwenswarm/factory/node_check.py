@@ -707,15 +707,18 @@ class NodeChecks:
         step['output'] = entry['name']
         contract_node = None
         if node.get('node_contract'):
-            from .node_contract import for_task, node as contract_node_of
-            try:
-                contract_node = contract_node_of(for_task(task), node['node_contract'])
+            from .node_contract import for_task
+            from .scheduler import effective_contract
+            try:  # the final node contract when the scheduler finalized a preliminary one
+                contract_node = effective_contract(getattr(self.store, '_store', self.store), request['task_id'],
+                                                   node, for_task(task))[0]
             except (ValueError, OSError):
                 contract_node = None
         if contract_node:
             step['objective'] = contract_node['objective']
             step['requirement_ids'] = contract_node.get('requirement_ids', [])
         ccs = [_split(entry['verifier'])[0]] if entry.get('verifier') else []
+        ccs += (contract_node or {}).get('work', {}).get('bound_ccs', [])
         ccs += (contract_node or {}).get('work', {}).get('helpful_ccs', [])
         if not ccs and node.get('capability'):
             ccs = [_split(node['capability'])[0]]
@@ -829,8 +832,10 @@ class NodeChecks:
         if node.get('node_contract'):
             from .contract import load
             from .contract_v2 import arm_ids, check_ids, metric_ids
-            from .node_contract import for_task, node as contract_node_of
-            contract_node = contract_node_of(for_task(task), node['node_contract']) or {}
+            from .node_contract import for_task
+            from .scheduler import effective_contract
+            contract_node = effective_contract(getattr(self.store, '_store', self.store), task['task_id'],
+                                               node, for_task(task))[0] or {}
             contract = load(task['contract_id'])
             kinds = {**{a: 'arm' for a in arm_ids(contract)}, **{c: 'check' for c in check_ids(contract)},
                      **{m: 'metric' for m in metric_ids(contract)}}

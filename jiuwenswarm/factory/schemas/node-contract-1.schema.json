@@ -83,7 +83,11 @@
           "properties": {
             "helpful_ccs": {"type": "array", "maxItems": 12, "uniqueItems": true, "items": {"$ref": "#/$defs/capsule"},
                             "description": "Capsules whose methods help with this node. Advice to the worker and the reviewer, not a requirement."},
-            "capability": {"$ref": "#/$defs/capability"}
+            "capability": {"$ref": "#/$defs/capability"},
+            "eligible_ccs": {"type": "array", "minItems": 1, "maxItems": 24, "uniqueItems": true, "items": {"$ref": "#/$defs/capsule"},
+                             "description": "Preliminary contracts: the capsules the scheduler may bind. Absent: any capsule in the catalog."},
+            "bound_ccs": {"type": "array", "minItems": 1, "maxItems": 12, "uniqueItems": true, "items": {"$ref": "#/$defs/capsule"},
+                          "description": "Final contracts: the capsules the scheduler bound to this node at run time."}
           }
         },
         "verifiers": {
@@ -100,7 +104,30 @@
           }
         },
         "hands_to": {"type": "string", "pattern": "^([a-z][a-z0-9_]{0,31}|lab_manager)$",
-                     "description": "The node that uses this node's outputs next, or lab_manager for the delivery node."}
+                     "description": "The node that uses this node's outputs next, or lab_manager for the delivery node."},
+        "stage": {"enum": ["preliminary", "final"],
+                  "description": "preliminary: written by the planner, finalized by the scheduler just before the node runs (node_finalize.py). final, or absent: ready to run as written."},
+        "slots": {
+          "type": "array", "maxItems": 16,
+          "description": "Preliminary contracts: what the scheduler fills at run time.",
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["id", "at", "kind", "from"],
+            "properties": {
+              "id": {"$ref": "#/$defs/id"},
+              "at": {"type": "string", "pattern": "^(verifiers[.][a-z][a-z0-9_]{0,31}[.]inputs[.][a-z][a-z0-9_]{0,63}|outputs[.][a-z][a-z0-9_]{0,31}[.]criteria|node_limits[.][a-z_]+|work[.](bound_ccs|capability))$",
+                     "description": "Where the value goes in the final contract."},
+              "kind": {"enum": ["range", "number", "integer", "text", "ccs", "criteria"]},
+              "within": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"},
+                         "description": "Allowed [low, high] for a number, or the outer limit of a range."},
+              "from": {"$ref": "#/$defs/text", "description": "Where the scheduler gets the value: a predecessor output, a measurement, the machine state."}
+            }
+          }
+        },
+        "bounds": {
+          "type": "object", "maxProperties": 16,
+          "description": "Preliminary contracts: pinned verifier inputs the scheduler may tighten, keyed verifiers.<output>.inputs.<key>. inside: a range may only narrow; lower/higher: the value may only go down/up. Inputs not listed stay equal.",
+          "additionalProperties": {"enum": ["inside", "lower", "higher"]}
+        }
       }
     }
   }

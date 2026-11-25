@@ -1,0 +1,100 @@
+{
+ "format": "factory.plan/1",
+ "planner": "hand-written demo plan (muse-q2-ttft, preliminary node contracts)",
+ "nodes": [
+  {
+   "node_id": "pin_inputs",
+   "node_contract": "pin_inputs",
+   "depends_on": [],
+   "title": "Pin the stock llama.cpp tree, the official Muse NVFP4 checkpoint, the imatrix and the prompts by digest, and record the disk grant and memory cap."
+  },
+  {
+   "node_id": "ingest_nvfp4",
+   "node_contract": "ingest_nvfp4",
+   "depends_on": [
+    "pin_inputs"
+   ],
+   "title": "Extend the stock converter so it reads the stacked Muse NVFP4 experts and their scale planes, then write the NVFP4 GGUF pack."
+  },
+  {
+   "node_id": "wire_expert_scales",
+   "node_contract": "wire_expert_scales",
+   "depends_on": [
+    "ingest_nvfp4"
+   ],
+   "title": "Apply the per-expert NVFP4 scale tensors in the Muse graph so the NVFP4 pack computes the same values as the checkpoint."
+  },
+  {
+   "node_id": "build_base_engine",
+   "node_contract": "build_base_engine",
+   "depends_on": [
+    "wire_expert_scales"
+   ],
+   "title": "Build the base engine E0 (stock plus scale wiring) and run one cold, capped NVFP4 inference."
+  },
+  {
+   "node_id": "requant_q2",
+   "node_contract": "requant_q2",
+   "depends_on": [
+    "build_base_engine",
+    "ingest_nvfp4",
+    "pin_inputs"
+   ],
+   "title": "Write a precision recipe and requantize the NVFP4 pack to a 2-bit pack: routed experts to Q2_K, everything else kept at its source type."
+  },
+  {
+   "node_id": "measure_accuracy",
+   "node_contract": "measure_accuracy",
+   "depends_on": [
+    "requant_q2",
+    "build_base_engine",
+    "ingest_nvfp4"
+   ],
+   "title": "Measure how much accuracy the Q2 pack loses against the NVFP4 pack on MMLU, paired question by question, and stop at the first planned checkpoint where the interval of the loss decides it against the margin."
+  },
+  {
+   "node_id": "record_profile",
+   "node_contract": "record_profile",
+   "depends_on": [
+    "requant_q2"
+   ],
+   "title": "Record which experts the Q2 pack routes to on calibration prompts that do not overlap the lab prompts."
+  },
+  {
+   "node_id": "port_ttft_cache",
+   "node_contract": "port_ttft_cache",
+   "depends_on": [
+    "record_profile",
+    "build_base_engine"
+   ],
+   "title": "Port the profile-seeded expert weight cache (the earlier time-to-first-token change) onto E0 for the Muse layer and expert shapes, off by default."
+  },
+  {
+   "node_id": "build_candidate",
+   "node_contract": "build_candidate",
+   "depends_on": [
+    "port_ttft_cache"
+   ],
+   "title": "Build candidate engine E1 (E0 plus the seeded cache) and package it for the lab arms."
+  },
+  {
+   "node_id": "size_prefill_batch",
+   "node_contract": "size_prefill_batch",
+   "depends_on": [
+    "build_candidate",
+    "requant_q2"
+   ],
+   "title": "Size the server prefill batch for the lab prompts so each prompt is prefilled in as few micro-batches as the device memory budget allows (with CPU-resident experts every micro-batch streams the routed experts again), and check it on one capped load of E1 with the Q2 pack."
+  },
+  {
+   "node_id": "deliver_to_lab",
+   "node_contract": "deliver_to_lab",
+   "depends_on": [
+    "build_candidate",
+    "size_prefill_batch",
+    "measure_accuracy"
+   ],
+   "title": "Send E0, E1, both packs, the profile, the prefill batch plan and the lab task for arms A, B, C and D to the lab manager."
+  }
+ ]
+}

@@ -22,6 +22,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 import json
 import os
+import time
 
 LIMIT_KINDS = {'build_attempts': ('build',), 'gpu_launches': ('lab',)}
 # API capabilities that may name a node: (capsule, capsule capability, attempt kind charged).
@@ -30,6 +31,9 @@ NODE_CAPABILITIES = {'builder.submit': ('builder', 'submit', 'build'),
                      'lab.ab_submit': ('lab_client', 'ab_submit', 'lab'),
                      'lab_manager.compose': ('lab_manager', 'compose', None)}
 WORKSPACE_EFFECTS = {'none': set(), 'read': {'workspace.read'}, 'write': {'workspace.read', 'workspace.write'}}
+
+
+FINAL_KIND, REFUSAL_KIND = 'node_contract_final', 'node_contract_refusal'
 
 
 def _contracts(host, task):
@@ -103,12 +107,11 @@ def charge(host, task_id, node_id, kind, idem_key=None):
     """Refuse a new job for a node that has used up its contract limit for that kind of job."""
     if _existing_attempt(host, task_id, idem_key):
         return  # an idempotent retry of a job already admitted
-    from .node_contract import node as contract_node_of
     task = host.get_task(task_id)
     graph_node = next((n for n in _graph(host, task_id)['nodes'] if n['node_id'] == node_id), None)
     if not graph_node or not graph_node.get('node_contract'):
         return
-    contract_node = contract_node_of(_contracts(host, task), graph_node['node_contract']) or {}
+    contract_node = effective_contract(host, task_id, graph_node, _contracts(host, task))[0] or {}
     limits = contract_node.get('node_limits', {})
     for limit, used_by in LIMIT_KINDS.items():
         if kind in used_by and limit in limits and remaining_limits(host, task_id, node_id, limits)[limit] <= 0:
@@ -156,7 +159,6 @@ def admitted(store, task_id, capability, inputs):
     if capability not in NODE_CAPABILITIES:
         yield
         return
-    from .node_contract import node as contract_node_of
     from .taskgraph import dispatch_precondition
     host = getattr(store, '_store', store)
     task = host.get_task(task_id)
@@ -170,7 +172,9 @@ def admitted(store, task_id, capability, inputs):
         return
     with _node_lock(host.home, task_id, node_id):
         graph_node = next((n for n in _graph(host, task_id)['nodes'] if n['node_id'] == node_id), {})
-        contract_node = contract_node_of(contracts, graph_node.get('node_contract')) if contracts else None
+        contract_node, needs_final = effective_contract(host, task_id, graph_node, contracts)
+        if needs_final:
+            raise ValueError(f'Node {node_id} has a preliminary node contract; the scheduler finalizes it before work starts')
         if contracts is not None and capability == 'lab_manager.compose' and (
                 not contract_node or contract_node['kind'] != 'deliver' or graph_node.get('kind') != 'deliver'):
             raise ValueError(f'Node {node_id} is not the contracted deliver node; only it hands the engine to the lab manager')
@@ -185,12 +189,11 @@ def admitted(store, task_id, capability, inputs):
 def next_work(host, task_id):
     """The nodes that can run now and why the others cannot. Pure read."""
     from .node_check import effective_spec, outputs_of, pending
-    from .node_contract import node as contract_node_of
     task = host.get_task(task_id)
     graph = _graph(host, task_id)
     contracts = _contracts(host, task)
     nodes = {n['node_id']: n for n in graph['nodes']}
-    runnable, waiting, done = [], {}, []
+    runnable, waiting, done, to_finalize = [], {}, [], []
     for node in graph['nodes']:  # planner order
         key = node['node_id']
         if node['state'] == 'done':
@@ -205,7 +208,12 @@ def next_work(host, task_id):
         if unfinished:
             waiting[key] = 'waiting for ' + ', '.join(unfinished)
             continue
-        contract_node = contract_node_of(contracts, node.get('node_contract')) if node.get('node_contract') else None
+        contract_node, needs_final = effective_contract(host, task_id, node, contracts)
+        if needs_final and node['state'] != 'failed':
+            waiting[key] = 'waiting for the scheduler to finalize its node contract'
+            to_finalize.append(dict(node_id=key, node_contract=node['node_contract'], objective=contract_node['objective'],
+                                    slots=[s['id'] for s in contract_node.get('slots', [])]))
+            continue
         spec = effective_spec(task, node)
         item = dict(node_id=key, kind=node['kind'], state=node['state'], title=node['title'],
                     objective=(contract_node or {}).get('objective', node['title']),
@@ -217,6 +225,8 @@ def next_work(host, task_id):
             item.update(node_contract=node['node_contract'],
                         requirement_ids=contract_node.get('requirement_ids', []),
                         helpful_ccs=(contract_node.get('work') or {}).get('helpful_ccs', []),
+                        **({'bound_ccs': contract_node['work']['bound_ccs'], 'final_contract': node['final_contract']}
+                           if (contract_node.get('work') or {}).get('bound_ccs') else {}),
                         inputs=_resolve(host, task, contract_node, graph['nodes']),
                         limits_left=remaining_limits(host, task_id, key, contract_node.get('node_limits', {})),
                         authority_ceiling=contract_node.get('authority_ceiling', {}),
@@ -232,13 +242,203 @@ def next_work(host, task_id):
         delivered = bool(nodes) and all(n['state'] in {'done', 'cancelled', 'superseded'} for n in nodes.values())
     return dict(schema='factory.next-work/1', task_id=task_id, graph_rev=graph['rev'],
                 planner=next((h.get('planner') for h in graph['history'] if h.get('origin') == 'seed'), None),
-                runnable=runnable, waiting=waiting, done=done, delivered=delivered,
+                runnable=runnable, waiting=waiting, done=done, delivered=delivered, to_finalize=to_finalize,
                 held=[n['node_id'] for n in graph['nodes'] if n.get('hold')])
 
 
 def brief(work):
     """A compact form for the agent's turn message."""
     return dict(graph_rev=work['graph_rev'], done=work['done'], waiting=work['waiting'],
-                runnable=[{k: item[k] for k in ('node_id', 'kind', 'objective', 'outputs', 'done_blocked_by', 'helpful_ccs',
-                                                 'inputs', 'limits_left', 'hands_to') if k in item}
-                          for item in work['runnable']])
+                runnable=[{k: item[k] for k in ('node_id', 'kind', 'objective', 'outputs', 'done_blocked_by', 'bound_ccs',
+                                                 'helpful_ccs', 'inputs', 'limits_left', 'hands_to') if k in item}
+                          for item in work['runnable']],
+                **({'to_finalize': [i['node_id'] for i in work['to_finalize']]} if work.get('to_finalize') else {}))
+
+
+# -- preliminary -> final node contracts ------------------------------------------------------------
+
+def recorded_finals(host, task_id):
+    """Every admitted final node contract of the task, oldest first."""
+    rows = host._db.execute('SELECT "values" FROM observations WHERE task_id=? AND kind=? ORDER BY created, rowid',
+                            (task_id, FINAL_KIND))
+    return [json.loads(r[0]) for r in rows]
+
+
+def effective_contract(host, task_id, graph_node, contracts):
+    """(the node contract work runs under, whether it still needs finalizing).
+
+    A contract without ``stage: preliminary`` runs as written. A preliminary one runs under the final
+    contract the scheduler admitted for this graph node, and until then nothing runs.
+    """
+    from .node_contract import node as contract_node_of
+    from .node_finalize import is_preliminary
+    name = (graph_node or {}).get('node_contract')
+    contract = contract_node_of(contracts, name) if contracts and name else None
+    if not is_preliminary(contract):
+        return contract, False
+    digest = graph_node.get('final_contract')
+    if digest:
+        for record in recorded_finals(host, task_id):
+            if record['digest'] == digest and record['node_id'] == graph_node['node_id']:
+                return record['final'], False
+    return contract, True
+
+
+def catalog():
+    """Capsule id -> version, folder, purpose and capabilities, from the factory capsule folders."""
+    import yaml
+    from pathlib import Path
+    found = {}
+    for path in sorted(Path(__file__).with_name('ccs').glob('*/cc.yaml')):
+        try:
+            declaration = yaml.safe_load(path.read_text(encoding='utf-8'))
+        except (OSError, yaml.YAMLError):
+            continue
+        if isinstance(declaration, dict) and declaration.get('id'):
+            purpose = declaration.get('purpose') or declaration.get('does') or declaration.get('summary') or ''
+            found[declaration['id']] = dict(version=str(declaration.get('version', '')), folder=path.parent.name,
+                                            purpose=str(purpose)[:300],
+                                            capabilities=sorted((declaration.get('capabilities') or {}).keys()))
+    return found
+
+
+def _failures(host, task_id, graph, name):
+    """What went wrong before for this node contract: failed or reopened nodes, and earlier finals."""
+    finals = [r for r in recorded_finals(host, task_id) if r['node_contract'] == name]
+    history = []
+    for node in graph['nodes']:
+        if node.get('node_contract') != name:
+            continue
+        if node['state'] in {'failed', 'superseded', 'cancelled'} or node.get('retry_from'):
+            history.append(dict(node_id=node['node_id'], state=node['state'], reason=node.get('reason', ''),
+                                attempts=len(node['attempt_ids']), outcome=node.get('outcome')))
+    return history, [dict(node_id=r['node_id'], digest=r['digest'], diff=r['diff'], rationale=r['rationale'])
+                     for r in finals]
+
+
+def finalize_brief(store, task_id, node_id):
+    """What the scheduler agent reads before it finalizes one node. Pure read."""
+    from .node_contract import node as contract_node_of
+    from .node_finalize import draft_final, is_preliminary
+    host = getattr(store, '_store', store)
+    if hasattr(store, '_check'):
+        store._check(task_id)
+    task = host.get_task(task_id)
+    graph = _graph(host, task_id)
+    node = next((n for n in graph['nodes'] if n['node_id'] == node_id), None)
+    if node is None:
+        raise ValueError('Unknown plan node: ' + node_id)
+    contracts = _contracts(host, task)
+    prelim = contract_node_of(contracts, node.get('node_contract')) if contracts and node.get('node_contract') else None
+    if not is_preliminary(prelim):
+        raise ValueError(f'Node {node_id} has no preliminary node contract')
+    failures, earlier_finals = _failures(host, task_id, graph, node['node_contract'])
+    upstream = {}
+    for item in graph['nodes']:
+        if item['state'] == 'done' and item.get('node_contract'):
+            final, _ = effective_contract(host, task_id, item, contracts)
+            upstream[item['node_id']] = dict(node_contract=item['node_contract'], evidence_ids=item['evidence_ids'],
+                                             outcome=item.get('outcome'), final_contract=item.get('final_contract'),
+                                             bound_ccs=((final or {}).get('work') or {}).get('bound_ccs'))
+    known = catalog()
+    eligible = (prelim.get('work') or {}).get('eligible_ccs')
+    machine = None
+    state_file = os.environ.get('FACTORY_MACHINE_STATE')
+    if state_file:
+        try:
+            with open(state_file, encoding='utf-8') as handle:
+                machine = json.load(handle)
+        except (OSError, ValueError) as exc:
+            machine = {'unavailable': str(exc)}
+    refusals = [json.loads(r[0]) for r in host._db.execute(
+        'SELECT "values" FROM observations WHERE task_id=? AND kind=? ORDER BY created, rowid', (task_id, REFUSAL_KIND))]
+    refusals = [dict(problems=r['problems'], rationale=r['rationale']) for r in refusals if r['node_id'] == node_id]
+    return dict(schema='factory.finalize-brief/1', task_id=task_id, node_id=node_id, state=node['state'],
+                refusals=refusals,
+                preliminary=prelim, draft_final=draft_final(prelim),
+                inputs=_resolve(host, task, prelim, graph['nodes']), upstream=upstream,
+                failures=failures, earlier_finals=earlier_finals,
+                capsules={k: v for k, v in known.items() if not eligible or k in eligible},
+                machine=machine,
+                rule='The final contract may be more concrete or stricter than the preliminary one, never weaker. '
+                     'Fill every slot, keep every criterion word for word, keep limits at or under the ceiling, '
+                     'bind capsules in work.bound_ccs. If the preliminary contract cannot be met as written, do not '
+                     'propose; report it as a spec gap.')
+
+
+def finalize(store, task_id, node_id, final, rationale, by='scheduler-agent'):
+    """Admit or refuse a proposed final node contract. Control code: it never edits the proposal.
+
+    Admitted: the final contract is recorded (with its digest and its change from the preliminary
+    one) and the graph node is marked finalized with the checks it implies. Refused: the reasons are
+    recorded and returned; nothing else changes. An exact repeat of an earlier final for the same
+    node contract (same contract, inputs and capsule versions) is refused: something must change.
+    """
+    from .contract import load
+    from .node_contract import check_spec, node as contract_node_of, problems as document_problems
+    from .node_finalize import check_final, diff, digest, is_preliminary
+    from .taskgraph import _apply_patch
+    if not isinstance(rationale, str) or not rationale.strip():
+        raise ValueError('A final node contract needs a rationale')
+    if hasattr(store, '_check'):
+        store._check(task_id, write=True)
+    host = getattr(store, '_store', store)
+    with host._transaction():
+        task = host.get_task(task_id)
+        graph = _graph(host, task_id)
+        nodes = {n['node_id']: n for n in graph['nodes']}
+        node = nodes.get(node_id)
+        if node is None:
+            raise ValueError('Unknown plan node: ' + node_id)
+        contracts = _contracts(host, task)
+        prelim = contract_node_of(contracts, node.get('node_contract')) if contracts and node.get('node_contract') else None
+        if not is_preliminary(prelim):
+            raise ValueError(f'Node {node_id} has no preliminary node contract')
+        if node.get('final_contract'):
+            raise ValueError(f'Node {node_id} already has a final node contract')
+        if node.get('hold'):
+            raise ValueError(f'Node {node_id} is held by the operator: {node["hold"]}')
+        if node['state'] not in {'proposed', 'ready'}:
+            raise ValueError(f'Node {node_id} is {node["state"]}; only a node about to run is finalized')
+        unfinished = [d for d in node['depends_on'] if nodes[d]['state'] != 'done']
+        if unfinished:
+            raise ValueError('Finalize a node when it can run; waiting for ' + ', '.join(unfinished))
+        known = catalog()
+        found = check_final(prelim, final, known_ccs=set(known))
+        if not found:
+            document = dict(contracts, nodes=[final if n['node_id'] == prelim['node_id'] else n for n in contracts['nodes']])
+            found = document_problems(document, load(task['contract_id']))
+        inputs = _resolve(host, task, prelim, graph['nodes'])
+        bound = ((final.get('work') or {}).get('bound_ccs') or []) if isinstance(final, dict) else []
+        versions = {cc: known.get(cc, {}).get('version') for cc in bound if isinstance(cc, str)}
+        final_digest = digest(final) if isinstance(final, dict) else None
+        repeat_key = digest(dict(final=final_digest, inputs=inputs, ccs=versions, source=task.get('source')))
+        earlier = [r for r in recorded_finals(host, task_id) if r['node_contract'] == node['node_contract']]
+        if not found and any(r['repeat_key'] == repeat_key for r in earlier):
+            found = ['an identical final contract (same contract, inputs and capsule versions) already ran for '
+                     f'{node["node_contract"]} without completing; something must change']
+        now = time.time()
+        if found:
+            refusals = host._db.execute('SELECT COUNT(*) FROM observations WHERE task_id=? AND kind=?',
+                                        (task_id, REFUSAL_KIND)).fetchone()[0]
+            host._insert('observations', dict(
+                obs_id=f'{task_id}:final-refused:{node_id}:{refusals + 1}', task_id=task_id, source_artifacts=[],
+                kind=REFUSAL_KIND, values=dict(node_id=node_id, node_contract=node['node_contract'], by=by,
+                                               problems=found, proposal_digest=final_digest, rationale=rationale,
+                                               created=now),
+                error={}, host_run={}, confidence=None,
+                limitations='A refused final node contract proposal; nothing ran.', created=now))
+            return dict(admitted=False, node_id=node_id, problems=found)
+        changes = diff(prelim, final)
+        record = dict(node_id=node_id, node_contract=node['node_contract'], digest=final_digest,
+                      preliminary_digest=digest(prelim), final=final, diff=changes, rationale=rationale, by=by,
+                      inputs=inputs, cc_versions=versions, repeat_key=repeat_key, created=now)
+        host._insert('observations', dict(
+            obs_id=f'{task_id}:final:{node_id}:{len(earlier) + 1}:{final_digest[:12]}', task_id=task_id,
+            source_artifacts=[], kind=FINAL_KIND, values=record, error={}, host_run={}, confidence=None,
+            limitations='Admitted final node contract; it starts no work and accepts no output.', created=now))
+        view = _apply_patch(host, task_id, {'finalize': [dict(node_id=node_id, digest=final_digest,
+                                                                check=check_spec(final))]},
+                            graph['rev'], 0, scheduler=True)
+    return dict(admitted=True, node_id=node_id, digest=final_digest, diff=changes, graph_rev=view['rev'],
+                bound_ccs=bound)

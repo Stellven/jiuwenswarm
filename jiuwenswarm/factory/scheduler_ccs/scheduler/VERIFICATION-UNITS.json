@@ -1,0 +1,7 @@
+{
+  "scope": "Control-code checks of preliminary and final node contracts; no model run",
+  "units": [
+    {"id": "final-contract-admission", "command": "pytest -o addopts= tests/factory/test_node_finalize.py"}
+  ],
+  "limitations": ["The scheduler agent's choices are judged by the node's verifier and gate, not here."]
+}

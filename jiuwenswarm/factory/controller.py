@@ -155,11 +155,12 @@ def configure_agent(task, grants=(), home=None):
 
 
 STALL_TURNS = 3
+SCHEDULER_TRIES = 3  # scheduler agent proposals per node before the run pauses on it
 ENGINE_CONTRACTS = {'qwen36-bare-greedy-v1', 'qwen36-quick-v1'}
 
 class Controller:
     def __init__(self, home=None, *, store=None, jobs=None, grants=(), facade=None,
-                 sleep=asyncio.sleep, clock=time.time):
+                 sleep=asyncio.sleep, clock=time.time, scheduler=None):
         self.home = Path(home or (store.home if store else factory_home())).resolve()
         self.store = store or Store(self.home)
         if store is not None:
@@ -174,6 +175,7 @@ class Controller:
         self.jobs = jobs or Jobs(self.store)
         self.grants = list(grants)
         self.facade = facade
+        self.scheduler = scheduler  # injectable for offline tests; default: the scheduler agent subprocess
         self._live_facade = None
         self.sleep, self.clock = sleep, clock
         (self.home / 'sessions').mkdir(parents=True, exist_ok=True)
@@ -574,6 +576,11 @@ class Controller:
                         self._reconcile(task_id)
                         self._save(task_id, state)
                         continue
+                    stuck = self._finalize_pending(task_id, state)
+                    if stuck:
+                        state['stop_reason'] = ('paused: the scheduler could not finalize the node contract of '
+                                                + ', '.join(stuck) + ' (see node_contract_refusal records)')
+                        return self._finish(task_id, state, 'paused')
                     paused = self._paused_at(task_id)
                     if paused:
                         # Nothing can run and the frontier is held or failed: stop without spending turns.
@@ -613,7 +620,35 @@ class Controller:
         from .scheduler import next_work
         work = next_work(self.store, task_id)
         stops = {k: v for k, v in work['waiting'].items() if v.startswith(('held by operator', 'failed:'))}
-        return stops if stops and not work['runnable'] and not work['delivered'] else {}
+        return stops if stops and not work['runnable'] and not work.get('to_finalize') and not work['delivered'] else {}
+
+    def _finalize_pending(self, task_id, state):
+        """Run the scheduler agent for every node waiting on a final node contract (scheduler_agent.py).
+
+        Returns the nodes still unfinalized after their tries; the caller pauses on them.
+        """
+        from .scheduler import next_work
+        work = next_work(self.store, task_id)
+        if not work.get('to_finalize'):
+            return []
+        runner = self.scheduler
+        if runner is None:
+            from .scheduler_agent import run_subprocess as runner
+        tries = state.setdefault('finalize_tries', {})
+        stuck = []
+        for item in work['to_finalize']:
+            key = item['node_id']
+            while tries.get(key, 0) < SCHEDULER_TRIES:
+                tries[key] = tries.get(key, 0) + 1
+                self._save(task_id, state)
+                runner(self.home, task_id, key, attempt=tries[key])
+                if not any(i['node_id'] == key for i in next_work(self.store, task_id).get('to_finalize', [])):
+                    tries.pop(key, None)
+                    break
+            else:
+                stuck.append(key)
+        self._save(task_id, state)
+        return stuck
 
     def operator(self, task_id, op, node_id, reason):
         """Operator hold/release/reopen of one plan node (taskgraph.operator_patch), noted for the agent."""

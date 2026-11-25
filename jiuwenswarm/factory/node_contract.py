@@ -72,7 +72,9 @@ def problems(document, contract=None):
     if contract:
         from .contract_v2 import arm_ids, check_ids, metric_ids
         known_requirements = set(arm_ids(contract)) | set(check_ids(contract)) | set(metric_ids(contract))
+    from .node_finalize import preliminary_problems
     for node in nodes:
+        found += preliminary_problems(node)
         key = node['node_id']
         outputs = [o['name'] for o in node['outputs']]
         if len(set(outputs)) != len(outputs):

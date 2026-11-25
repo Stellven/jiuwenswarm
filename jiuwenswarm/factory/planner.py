@@ -163,6 +163,10 @@ def contract_gate(host, task_id, after):
             raise ValueError('node_contract needs a task contract with node contracts')
         return
     by_id = {c['node_id']: c for c in contracts['nodes']}
+    from .scheduler import recorded_finals
+    final_checks = {}  # a finalized node carries the checks of its admitted final node contract
+    for record in recorded_finals(host, task_id):
+        final_checks.setdefault(record['node_contract'], []).append(check_spec(record['final']))
     active = [n for n in after.values() if n['state'] not in {'cancelled', 'superseded'}]
     covering = {}
     for node in active:
@@ -174,7 +178,8 @@ def contract_gate(host, task_id, after):
         if name not in by_id:
             raise ValueError(f'Node {node["node_id"]}: no node contract {name}')
         contract = by_id[name]
-        if node['kind'] != contract['kind'] or node.get('check') != check_spec(contract):
+        if node['kind'] != contract['kind'] or (node.get('check') != check_spec(contract)
+                                                and node.get('check') not in final_checks.get(name, [])):
             raise ValueError(f'Node {node["node_id"]} must keep the kind and checks of node contract {name}')
         covering.setdefault(name, []).append(node)
     missing = [name for name in by_id if name not in covering]

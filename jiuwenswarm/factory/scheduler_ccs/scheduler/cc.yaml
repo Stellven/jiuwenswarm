@@ -1,0 +1,44 @@
+cc: '2'
+id: factory.scheduler
+version: 1.0.0
+materials:
+  skill:
+    path: SKILL.md
+  verification:
+    path: VERIFICATION-UNITS.json
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  brief:
+    does: What the scheduler reads before it finalizes one node - the preliminary node contract with its
+      slots and bounds, a draft final contract, accepted upstream outputs, earlier failures, finals and
+      refused proposals, the capsules it may bind and the machine state.
+    takes:
+      node_id: text
+    gives:
+      brief: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  propose:
+    does: Propose the final node contract for one node. Control code admits it only if it is more concrete
+      or stricter than the preliminary contract, never weaker, and returns the recorded change or the
+      reasons for refusal.
+    takes:
+      node_id: text
+      final: json
+      rationale: text
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec

@@ -17,8 +17,9 @@ TERMINAL = {'cancelled', 'superseded'}
 NODE_FIELDS = {'node_id', 'kind', 'title', 'capability', 'inputs', 'depends_on', 'state',
                'attempt_ids', 'evidence_ids', 'created_by_decision_rev', 'reason',
                'outcome', 'entities', 'requires_evidence', 'resources', 'engine_slice', 'branch', 'check',
-               'node_contract', 'hold', 'retry_from', 'checks_after'}
+               'node_contract', 'hold', 'retry_from', 'checks_after', 'final_contract'}
 OPERATOR_OPS = ('hold', 'release', 'reopen')  # host-recorded operator patches; agents cannot issue them
+SCHEDULER_OPS = ('finalize',)  # host-recorded after scheduler.finalize admits a final node contract
 
 
 def initialize(db):
@@ -140,6 +141,7 @@ def _restart(node, reason, since=None):
     """Back to proposed for a fresh attempt/check; earlier attempts and node checks stay recorded but no
     longer count (node checks recorded before the ``since`` plan record are ignored by the done gate)."""
     node.update(state='proposed', reason=reason, evidence_ids=[], retry_from=len(node['attempt_ids']))
+    node.pop('final_contract', None)  # a fresh attempt gets a fresh final node contract from the scheduler
     if since:
         node['checks_after'] = since
 
@@ -186,10 +188,29 @@ def _apply_operator(nodes, patch, component_cc=None):
     _validate(nodes, component_cc)
 
 
-def _apply(nodes, patch, decision_rev, component_cc=None, operator=False):
+def _apply_scheduler(nodes, patch, component_cc=None):
+    """Record an admitted final node contract on its graph node: its digest and the checks it implies."""
+    _object(patch, set(SCHEDULER_OPS), set(SCHEDULER_OPS))
+    for change in patch['finalize']:
+        _object(change, {'node_id', 'digest', 'check'}, {'node_id', 'digest', 'check'})
+        key = identifier(change['node_id'])
+        if key not in nodes:
+            raise ValueError('Unknown plan node: ' + key)
+        node = nodes[key]
+        if node['state'] not in {'proposed', 'ready'}:
+            raise ValueError(f"Node {key} is {node['state']}; only a node about to run is finalized")
+        if node.get('final_contract'):
+            raise ValueError(f'Node {key} already has a final node contract')
+        node.update(final_contract=change['digest'], check=change['check'])
+    _validate(nodes, component_cc)
+
+
+def _apply(nodes, patch, decision_rev, component_cc=None, operator=False, scheduler=False):
     """Pure patch application. Caller owns the detached node map."""
     if operator:
         return _apply_operator(nodes, patch, component_cc)
+    if scheduler:
+        return _apply_scheduler(nodes, patch, component_cc)
     _object(patch, {'add', 'update', 'cancel', 'supersede'})
     if not patch or not any(patch.values()):
         raise ValueError('Plan patch must contain an operation')
@@ -198,6 +219,8 @@ def _apply(nodes, patch, decision_rev, component_cc=None, operator=False):
             raise ValueError('Plan operations must be lists')
     touched = set()
     for value in patch.get('add', []):
+        if 'final_contract' in value:
+            raise ValueError('Only the scheduler finalizes a node contract')
         node = _node(value, decision_rev)
         key = node['node_id']
         if key in nodes:
@@ -279,7 +302,8 @@ def replay(task_id, history, rev=None, *, component_cc=None):
             break
         if entry['parent_rev'] != len(applied) or entry['rev'] != len(applied) + 1:
             raise ValueError('Noncontiguous plan history')
-        _apply(nodes, entry['patch'], entry['decision_rev'], component_cc, operator=entry.get('origin') == 'operator')
+        _apply(nodes, entry['patch'], entry['decision_rev'], component_cc, operator=entry.get('origin') == 'operator',
+               scheduler=entry.get('origin') == 'scheduler')
         applied.append(entry)
     return _view(task_id, rev, nodes, applied)
 
@@ -324,16 +348,17 @@ def dispatch_precondition(store, task_id, node_id):
         raise ValueError('Dispatch dependencies not done: ' + ', '.join(unfinished))
 
 
-def _apply_patch(host, task_id, patch, expected_graph_rev, decision_rev, *, readable=(), seed=False, planner=None, operator=False):
+def _apply_patch(host, task_id, patch, expected_graph_rev, decision_rev, *, readable=(), seed=False, planner=None, operator=False,
+                 scheduler=False):
     """Inside an existing Store transaction (also used by decision publication)."""
     _revision(expected_graph_rev)
     _revision(decision_rev)
     graph = plan_get(host, task_id)
     if graph['rev'] != expected_graph_rev:
         raise StaleRevision('Current plan revision differs from expected_graph_rev')
-    if operator:
-        if seed or decision_rev != 0:
-            raise ValueError('Operator patches cite no decision')
+    if operator or scheduler:
+        if seed or decision_rev != 0 or (operator and scheduler):
+            raise ValueError('Operator and scheduler patches cite no decision')
     elif not seed:
         if decision_rev == 0 or not host._db.execute('SELECT 1 FROM decisions WHERE task_id=? AND rev=?', (task_id, decision_rev)).fetchone():
             raise ValueError('Plan patch must cite an existing decision revision in this task')
@@ -342,10 +367,10 @@ def _apply_patch(host, task_id, patch, expected_graph_rev, decision_rev, *, read
     patch = json.loads(encoded(patch))
     nodes = {n['node_id']: n for n in graph['nodes']}
     before = {key: dict(node) for key, node in nodes.items()}
-    _apply(nodes, patch, decision_rev, host.get_task(task_id).get('component_cc'), operator=operator)
+    _apply(nodes, patch, decision_rev, host.get_task(task_id).get('component_cc'), operator=operator, scheduler=scheduler)
     from .planner import contract_gate
     contract_gate(host, task_id, nodes)  # contracted work stays covered, with its checks
-    if not seed and not operator:  # a checked node is done only with its latest passing node check
+    if not seed and not operator and not scheduler:  # a checked node is done only with its latest passing node check
         from .node_check import gate
         gate(host, task_id, before, nodes)
     if any('branch' in n for n in nodes.values()):
@@ -357,7 +382,8 @@ def _apply_patch(host, task_id, patch, expected_graph_rev, decision_rev, *, read
             host._get('attempts', task_id, aid)
     rev = expected_graph_rev + 1
     record = dict(task_id=task_id, rev=rev, parent_rev=expected_graph_rev,
-                  decision_rev=decision_rev, patch=patch, origin='seed' if seed else 'operator' if operator else 'decision', created=time.time())
+                  decision_rev=decision_rev, patch=patch,
+                  origin='seed' if seed else 'operator' if operator else 'scheduler' if scheduler else 'decision', created=time.time())
     if planner:
         record['planner'] = planner
     host._insert('observations', dict(obs_id=f'{task_id}:plan:{rev}', task_id=task_id,

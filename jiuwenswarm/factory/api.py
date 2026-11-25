@@ -124,6 +124,16 @@ def _route(store, task_id, capability, packet, inputs):
     if capability.startswith('expert_streaming.'):
         from .expert_streaming import dispatch as streaming_dispatch
         return streaming_dispatch(store, task_id, capability.removeprefix('expert_streaming.'), inputs)
+    if capability in {'scheduler.brief', 'scheduler.propose'}:
+        from .scheduler import finalize, finalize_brief
+        if capability == 'scheduler.brief':
+            fields(inputs, {'node_id'}, {'node_id'})
+            return {'brief': finalize_brief(store, task_id, inputs['node_id'])}
+        if os.environ.get('FACTORY_AGENT_ROLE') != 'scheduler':
+            raise ScopeDenied('Only the scheduler agent proposes final node contracts')
+        fields(inputs, {'node_id', 'final', 'rationale'}, {'node_id', 'final', 'rationale'})
+        return {'result': finalize(store, task_id, inputs['node_id'], inputs['final'], inputs['rationale'],
+                                   by='scheduler-agent')}
     if capability == 'evidence.plan_next':
         fields(inputs, set())
         from .scheduler import next_work

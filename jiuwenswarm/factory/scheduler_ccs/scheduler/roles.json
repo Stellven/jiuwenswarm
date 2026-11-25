@@ -1,0 +1,11 @@
+{
+  "capabilities": {
+    "brief": "tool",
+    "propose": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "skill": "skill",
+    "verification": "reference"
+  }
+}
