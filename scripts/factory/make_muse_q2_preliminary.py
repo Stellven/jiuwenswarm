@@ -17,12 +17,22 @@ REPO = Path(sys.argv[1])
 OUT = REPO / 'jiuwenswarm/factory/contracts'
 source = json.loads((OUT / 'muse-q2-ttft-v2.json').read_text(encoding='utf-8'))
 contract = copy.deepcopy(source)
-contract.update(contract_id='muse-q2-ttft-v3', version=4)
+contract.update(contract_id='muse-q2-ttft-v3', version=5)
 contract['provenance']['notes'].append(
     'Revision 4 (v3 file) makes every node contract preliminary: the scheduler agent finalizes each node just before it '
     'runs, binding capsules and filling slots from accepted upstream outputs, earlier failures and the machine state. '
     'A final contract may be more concrete or stricter than its preliminary one, never weaker.')
 
+contract['provenance']['notes'].append(
+    'Revision 5: the scheduler agent reported a spec gap on pin_inputs (2026-11-25): the free disk criterion asked for '
+    '1.4 TB, the room both packs need, while a run that reuses the packs writes almost nothing. The planner states it as '
+    'free disk covering what the run writes plus 100 GB.')
+# Planner revisions of v2 node criteria (a weakening is the planner's call, never the scheduler's).
+REVISED = {
+    ('pin_inputs', 'Records free disk at least 1.4 TB, the cgroup memory cap and the available memory before any load.'):
+        'Records free disk, the disk this run will write, the cgroup memory cap and the available memory before any load; '
+        'free disk covers what the run writes plus 100 GB (about 1.4 TB when the NVFP4 and Q2 packs are both written).',
+}
 BIND = dict(id='bind', at='work.bound_ccs', kind='ccs',
             **{'from': 'The capsule catalog, what the upstream nodes were built with and what failed before for this node.'})
 EXTRA_ELIGIBLE = {
@@ -49,6 +59,8 @@ BOUNDS = {
 }
 for node in contract['extensions']['factory.node-contracts']['nodes']:
     key = node['node_id']
+    for output in node['outputs']:
+        output['criteria'] = [REVISED.get((key, c), c) for c in output.get('criteria', [])]
     node['stage'] = 'preliminary'
     work = node.setdefault('work', {})
     work['eligible_ccs'] = list(dict.fromkeys(work.get('helpful_ccs', []) + EXTRA_ELIGIBLE.get(key, [])))
@@ -65,4 +77,5 @@ plan = {'format': 'factory.plan/1', 'planner': 'hand-written demo plan (muse-q2-
                    'title': n['objective']} for n in contract['extensions']['factory.node-contracts']['nodes']]}
 (OUT / 'muse-q2-ttft-v3.json').write_text(json.dumps(contract, indent=1) + '\n', encoding='utf-8')
 (OUT.parent / 'tasks/muse-q2-ttft-v3.plan.json').write_text(json.dumps(plan, indent=1) + '\n', encoding='utf-8')
+assert all(old not in json.dumps(contract) for _, old in REVISED), 'a revised criterion was not found'
 print('wrote', len(plan['nodes']), 'preliminary nodes')

@@ -187,6 +187,8 @@ def test_agents_cannot_set_a_final_contract(planned):
                                                 check=node['check'], final_contract='x')]}, rev, 1)
     with pytest.raises(ScopeDenied, match='reserved for the host'):
         planned.scoped('pf').append_observation('pf', dict(kind='node_contract_final', values={}))
+    with pytest.raises(ScopeDenied, match='reserved for the host'):  # only the operator imports prior artifacts
+        planned.scoped('pf').append_observation('pf', dict(kind='prior_artifact', values={'key': 'q2_pack'}))
 
 
 def test_a_reopened_node_needs_a_new_and_different_final(planned):

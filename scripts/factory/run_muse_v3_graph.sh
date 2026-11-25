@@ -56,7 +56,7 @@ EOF
 case "${1:-}" in
 setup)
   mkdir -p "$FACTORY_HOME/agent-workspace" "$FACTORY_HOME/agent-data/subscription/codex-home"
-  cp -n "$HOME/.codex/auth.json" "$FACTORY_HOME/agent-data/subscription/codex-home/auth.json"
+  cp --update=none "$HOME/.codex/auth.json" "$FACTORY_HOME/agent-data/subscription/codex-home/auth.json"
   chmod 600 "$FACTORY_HOME/agent-data/subscription/codex-home/auth.json"
   checkout=$FACTORY_HOME/agent-workspace/llama.cpp-muse
   if [ ! -d "$checkout/.git" ]; then
@@ -66,6 +66,7 @@ setup)
   snapshot
   cd "$REPO"
   "$PY" -m jiuwenswarm.factory.cli init jiuwenswarm/factory/tasks/muse-q2-ttft-v3.json
+  "$PY" scripts/factory/import_prior_artifacts.py $TASK
   ;;
 run)
   # The tmux server keeps its own environment: the session calls back into this script, which sets ours.

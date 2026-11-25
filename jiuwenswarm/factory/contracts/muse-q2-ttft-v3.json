@@ -1,7 +1,7 @@
 {
  "schema": "factory.contract/2",
  "contract_id": "muse-q2-ttft-v3",
- "version": 4,
+ "version": 5,
  "title": "Muse Spark Open on DGX Spark: NVFP4 to Q2 requantization, the seeded expert cache and prefill batch sizing",
  "purpose": "Starting from stock llama.cpp and the official Muse Spark Open NVFP4 checkpoint, how much do time to first token, decode rate and total request time change when the routed experts are requantized to Q2_K, again when the profile-seeded expert cache is added, and again when the prefill batch is sized so each prompt streams the experts once?",
  "scope": {
@@ -353,7 +353,8 @@
    "The seeded expert cache is the earlier change measured on DeepSeek V4.1 Flash (engine.build_expert_weight_cache).",
    "Revision 2 adds arm D and node size_prefill_batch after a probe on the Spark: arm B with -b 2048 -ub 2048 cut cold 2047-token TTFT from 311 s to 120 s with decode unchanged.",
    "Revision 3 adds node measure_accuracy: the Q2 pack must lose less than 5 MMLU points against the NVFP4 pack (paired, planned checkpoints, eval.paired_accuracy) before the lab.",
-   "Revision 4 (v3 file) makes every node contract preliminary: the scheduler agent finalizes each node just before it runs, binding capsules and filling slots from accepted upstream outputs, earlier failures and the machine state. A final contract may be more concrete or stricter than its preliminary one, never weaker."
+   "Revision 4 (v3 file) makes every node contract preliminary: the scheduler agent finalizes each node just before it runs, binding capsules and filling slots from accepted upstream outputs, earlier failures and the machine state. A final contract may be more concrete or stricter than its preliminary one, never weaker.",
+   "Revision 5: the scheduler agent reported a spec gap on pin_inputs (2026-11-25): the free disk criterion asked for 1.4 TB, the room both packs need, while a run that reuses the packs writes almost nothing. The planner states it as free disk covering what the run writes plus 100 GB."
   ]
  },
  "extensions": {
@@ -387,7 +388,7 @@
        "kind": "evidence",
        "criteria": [
         "Names the stock commit 9048bad8 and the sha256 of every checkpoint shard, the index, the imatrix and each prompt.",
-        "Records free disk at least 1.4 TB, the cgroup memory cap and the available memory before any load.",
+        "Records free disk, the disk this run will write, the cgroup memory cap and the available memory before any load; free disk covers what the run writes plus 100 GB (about 1.4 TB when the NVFP4 and Q2 packs are both written).",
         "Records the checkpoint scale-plane layout per tensor role: packed weight, block scale, global scale_2, input scale."
        ]
       }
