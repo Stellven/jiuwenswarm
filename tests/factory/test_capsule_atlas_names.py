@@ -27,8 +27,6 @@ ATLAS_MAP = {
     'weight_pack_compiler': ('weights.pack_compiler.builder', 'Pack compiler', 'tool'),
     'muse_nvfp4_reader': ('weights.checkpoint_reader.builder', 'Muse NVFP4 reader builder', 'builder'),
     'expert_scale_wiring': ('weights.format_toolkit.builder', 'Expert scale wiring builder', 'builder'),
-    'prefill_batch_sizing': (None, 'Prefill batch sizing', 'tool'),
-    'expert_fill': (None, 'Expert fill builder', 'builder'),
 }
 
 

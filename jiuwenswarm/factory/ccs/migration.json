@@ -378,6 +378,18 @@
       "old_release": "c120191d31b41f92daf00a579a0b18454b822b0845dccc8339c736674dd8bdae",
       "new_release": "c120191d31b41f92daf00a579a0b18454b822b0845dccc8339c736674dd8bdae",
       "initial_canonical_release": "c120191d31b41f92daf00a579a0b18454b822b0845dccc8339c736674dd8bdae"
+    },
+    {
+      "path": "prefill_batch_sizing/cc.yaml",
+      "old_release": "487f1e48540df080b9b1b0a588f0cd6bfb461c55e667db25b7482874a9a22f48",
+      "new_release": "487f1e48540df080b9b1b0a588f0cd6bfb461c55e667db25b7482874a9a22f48",
+      "initial_canonical_release": "487f1e48540df080b9b1b0a588f0cd6bfb461c55e667db25b7482874a9a22f48"
+    },
+    {
+      "path": "expert_fill/cc.yaml",
+      "old_release": "f703105049117a9449f73f7ce2d2e87e3dcacc866a04544ce1b15af46a35ad00",
+      "new_release": "f703105049117a9449f73f7ce2d2e87e3dcacc866a04544ce1b15af46a35ad00",
+      "initial_canonical_release": "f703105049117a9449f73f7ce2d2e87e3dcacc866a04544ce1b15af46a35ad00"
     }
   ],
   "new_packages": [

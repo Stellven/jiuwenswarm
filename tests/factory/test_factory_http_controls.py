@@ -63,7 +63,7 @@ def test_detail_serves_node_contract_work_and_compact_checks(home):
     assert 'weights.build_muse_nvfp4_reader' in view['helpful_ccs']
     assert view['capability'] == 'weights.build_muse_nvfp4_reader.verify'
     outputs = {o['name']: o for o in view['outputs']}
-    assert outputs['converter']['stage'] == 'fixture' and outputs['converter']['review'] is True
+    assert outputs['converter']['stage'] == 'runtime acceptance' and outputs['converter']['review'] is True
     converter = outputs['converter']['checks'][-1]
     assert converter['passed'] is False and converter['same_settings'] is True and converter['superseded'] is False
     assert [c['name'] for c in converter['verifier']['checks']] == ['source_map', 'split_order']

@@ -615,10 +615,10 @@
     },
     "expert_fill": {
       "capsule_id": "engine.build_expert_fill",
-      "title": "Expert fill builder",
+      "title": "Decode expert fill builder",
       "kind": "builder",
       "atlas_cc_id": null,
-      "component": "Expert fill",
+      "component": "Decode expert fill",
       "target": "llama.cpp",
       "summary": "Reads the router-selected experts' non-resident mmap ranges with parallel preads before the expert matmuls, decode only; off by default (LLAMA_EXPERT_FILL)."
     }
