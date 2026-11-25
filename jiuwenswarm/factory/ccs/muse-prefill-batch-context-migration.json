@@ -1,0 +1,22 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "prefill_batch_sizing/cc.yaml",
+      "from_version": "1.0.0",
+      "from_release": "487f1e48540df080b9b1b0a588f0cd6bfb461c55e667db25b7482874a9a22f48",
+      "from_commit": "7d39fe81b1da662af432f55a297a7161208e7c72",
+      "to_version": "1.1.0",
+      "to_release": "ef05626f3a6e042bda3a2f5daf0d63ad1e26c3b7b873d499f067d1144c3229c0",
+      "changed_files": [
+        "METHOD.md",
+        "VALIDATION.md",
+        "cc.yaml",
+        "run.py",
+        "tests/test_prefill_batch_capabilities.py"
+      ],
+      "unrecorded_versions": [],
+      "reason": "Prefill batch sizing 1.1.0: KV buffer taken as measured instead of scaled with the ubatch (1.0.0 would reject every ubatch above 512 at a 32k context); plan fails baseline_context when the target context exceeds the baseline log's."
+    }
+  ]
+}
