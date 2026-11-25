@@ -352,7 +352,8 @@ def finalize_brief(store, task_id, node_id):
             machine = {'unavailable': str(exc)}
     refusals = [json.loads(r[0]) for r in host._db.execute(
         'SELECT "values" FROM observations WHERE task_id=? AND kind=? ORDER BY created, rowid', (task_id, REFUSAL_KIND))]
-    refusals = [dict(problems=r['problems'], rationale=r['rationale']) for r in refusals if r['node_id'] == node_id]
+    refusals = [dict(problems=r['problems'], rationale=r['rationale'], by=r.get('by', 'scheduler-agent'))
+                for r in refusals if r['node_id'] == node_id]
     return dict(schema='factory.finalize-brief/1', task_id=task_id, node_id=node_id, state=node['state'],
                 refusals=refusals,
                 preliminary=prelim, draft_final=draft_final(prelim),
@@ -360,6 +361,9 @@ def finalize_brief(store, task_id, node_id):
                 failures=failures, earlier_finals=earlier_finals,
                 capsules={k: v for k, v in known.items() if not eligible or k in eligible},
                 machine=machine,
+                # Operator inputs only (never producer prose): constraints and resources such as prior
+                # artifacts and results the operator lists for this task.
+                constraints=task.get('constraints'), resources=task.get('resources') or {},
                 rule='The final contract may be more concrete or stricter than the preliminary one, never weaker. '
                      'Fill every slot, keep every criterion word for word, keep limits at or under the ceiling, '
                      'bind capsules in work.bound_ccs. If the preliminary contract cannot be met as written, do not '

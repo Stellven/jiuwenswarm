@@ -18,10 +18,12 @@ to fill. Call `factory.scheduler.brief` with `{"node_id": ...}` first. It return
 - `inputs` and `upstream`: the accepted outputs of the nodes this one depends on, with the
   checks that passed and the capsules they were built with;
 - `failures` and `earlier_finals`: what was tried for this node contract before and how it
-  ended; `refusals`: your own earlier proposals for this node that control code refused, with
-  the reasons;
+  ended; `refusals`: earlier proposals for this node that control code refused, with the
+  reasons and who made them (`by`: you, or an operator test);
 - `capsules`: the capsules you may bind (id, version, purpose, capabilities);
-- `machine`: the machine's state when one is available (memory, disk, queue).
+- `machine`: the machine's state when one is available (memory, disk, queue);
+- `constraints` and `resources`: the operator's task constraints and resources, for example
+  prior artifacts and results this run reuses (each says where it came from).
 
 ## What you do
 

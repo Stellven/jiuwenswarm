@@ -159,7 +159,9 @@ def test_refused_then_admitted(planned):
     weak['verifiers'][0]['inputs']['expect_range'] = [1, 1000]
     result = scheduler.finalize(planned, 'pf', 'integrate', weak, 'try a looser range')
     assert not result['admitted'] and any('may only narrow' in p for p in result['problems'])
-    assert scheduler.finalize_brief(planned, 'pf', 'integrate')['refusals'][0]['problems'] == result['problems']
+    brief = scheduler.finalize_brief(planned, 'pf', 'integrate')
+    assert brief['refusals'][0]['problems'] == result['problems'] and brief['refusals'][0]['by'] == 'scheduler-agent'
+    assert brief['resources'] == {} and brief['constraints'] == {}
     assert scheduler.next_work(planned, 'pf')['to_finalize']  # nothing changed
 
     final = good_final()
@@ -227,3 +229,19 @@ def test_the_controller_runs_the_scheduler_before_the_worker(planned, tmp_path):
 def test_the_controller_pauses_when_the_scheduler_cannot_finalize(planned):
     controller = Controller(store=planned, facade=object(), scheduler=lambda *a, **k: None)
     assert controller._finalize_pending('pf', {}) == ['integrate']
+
+
+def test_the_muse_v3_contract_refuses_a_looser_accuracy_margin():
+    """The operator test of the demo run (scripts/factory/muse_v3_controller.py) on the real contract."""
+    from pathlib import Path
+    path = Path(scheduler.__file__).with_name('contracts') / 'muse-q2-ttft-v3.json'
+    nodes = json.loads(path.read_text(encoding='utf-8'))['extensions']['factory.node-contracts']
+    assert node_contract.problems(nodes) == []
+    prelim = next(n for n in nodes['nodes'] if n['node_id'] == 'measure_accuracy')
+    final = draft_final(prelim)
+    final['work']['bound_ccs'] = ['eval.paired_accuracy']
+    final['outputs'][0]['criteria'].append('Checkpoints at 50, 100, 160, 250 and 430 questions.')
+    assert check_final(prelim, final) == []
+    final['verifiers'][0]['inputs']['margin_pts'] = 8
+    found = check_final(prelim, final)
+    assert found and all('margin_pts' in f for f in found), found

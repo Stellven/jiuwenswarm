@@ -1,0 +1,73 @@
+{
+  "task_id": "muse-q2-ttft-v3",
+  "objective": "Starting from stock llama.cpp 9048bad8 and the official Muse Spark Open NVFP4 checkpoint, work every node of contract muse-q2-ttft-v3: the converter change and NVFP4 pack, the expert scale wiring and base engine E0, the Q2 requant, the paired accuracy check, the routing profile, the seeded expert cache port and candidate E1, the prefill batch plan, and the hand-off of arms A to D to the lab. The planner's node contracts are preliminary: before each node runs, the scheduler agent finalizes its contract and binds its capsules. Every output is checked by its capsule verifier (and, for diffs, an independent reviewer) before the next node starts. This run reuses the heavy artifacts listed in resources.prior_artifacts instead of making them again: cite them, say they are reused, and run their verifiers on them.",
+  "constraints": {
+    "owned_checkout_only": true,
+    "contract_immutable": true,
+    "local_commits_in_owned_checkout": true,
+    "push_or_publish": false,
+    "model_execution": "No model loads in this run: the shared Spark is running another measurement. Do not convert the checkpoint, requantize, run inference or start a llama-server. The packs, smoke runs, accuracy run, routing profile and lab measurements already exist (resources.prior_artifacts); cite them as reused and run their verifiers on them. Verifiers that only read files or run tiny packs are allowed.",
+    "build_jobs": "Shared box: pass jobs of at most 4 to any verifier that compiles (weights.build_expert_scale_wiring.verify), and reuse its stock build in work_dir.",
+    "agent_tools": "Codex's own shell cannot start on this machine (its sandbox needs user namespaces the box does not allow). Read, edit and commit the owned checkout with factory.source_workbench (read, edit, write, localcommit); run checks with capsule capabilities. Do not retry the shell.",
+    "reuse_labelling": "Every evidence record that points at a prior artifact says reused: true and names the artifact key from resources.prior_artifacts and when it was made."
+  },
+  "allowed_effects": ["process.exec", "workspace.read", "workspace.write"],
+  "target": "spark-gb10",
+  "budget": {"max_turns": 160, "wall_clock_s": 64800},
+  "contract_id": "muse-q2-ttft-v3",
+  "initial_run_config": {"env": {}},
+  "component_cc": "weights.build_muse_nvfp4_reader",
+  "source": {
+    "subpath": "llama.cpp-muse",
+    "pre_integration_commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
+    "branch": "muse-q2-ttft"
+  },
+  "operator_labels": {
+    "run": "Recorded demo run of the factory graph with preliminary node contracts. Heavy outputs are reused from the Nov 24-25 runs, not remade."
+  },
+  "resources": {
+    "source": {
+      "checkout": "agent-workspace/llama.cpp-muse",
+      "base_commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
+      "upstream": "https://github.com/ggml-org/llama.cpp"
+    },
+    "capsules": [
+      "weights.build_muse_nvfp4_reader",
+      "weights.build_expert_scale_wiring",
+      "weights.build_weight_pack_compiler",
+      "eval.paired_accuracy",
+      "analysis.expert_routing_profile",
+      "engine.build_expert_weight_cache",
+      "engine.size_prefill_batch",
+      "factory.engine_inspector",
+      "factory.source_workbench",
+      "factory.lab_manager"
+    ],
+    "verifier_inputs": {
+      "note": "Inputs the earlier real checks used; tiny packs and checkpoints are small test fixtures, not the model.",
+      "reader_python": "${FACTORY_MUSE_SPIKES}/spike-muse-tiny/.venv/bin/python",
+      "reader_tiny_checkpoint": "${FACTORY_MUSE_CAPS}/tiny/ckpt/nvfp4",
+      "wiring_tiny_dir": "${FACTORY_MUSE_CAPS}/tiny",
+      "wiring_work_dir": "${FACTORY_MUSE_CAPS}/wwork",
+      "checkpoint_index": "${FACTORY_MODELS}/muse-spark-open/NVFP4-st/model.safetensors.index.json",
+      "imatrix": "${FACTORY_MODELS}/muse-spark-open/imatrix/imatrix-ggml-org.gguf",
+      "llama_quantize": "/tmp/wt-spike-llama/build-cpu/bin/llama-quantize",
+      "disk_grant_bytes": 400000000000,
+      "mmlu_test": "${FACTORY_MUSE_DEMO}/acc/data/data/test"
+    },
+    "prior_artifacts": {
+      "nvfp4_pack": {"path": "${FACTORY_MODELS}/muse-spark-open/NVFP4-gguf/Muse-Spark-Open-816B-A42B-NVFP4-00001-of-00011.gguf", "made": "2026-11-24", "how": "converter change of the reader capsule, 529 GB in 14.5 min under a 96 GiB cap", "reused": true},
+      "e0_smoke": {"path": "${FACTORY_MUSE_DEMO}/smoke/e0-nvfp4.json", "made": "2026-11-24", "how": "E0 (stock + scale wiring) on the NVFP4 pack, cold, capped; coherent answers at about 0.16 tok/s under contention", "reused": true},
+      "q2_recipe": {"path": "${FACTORY_MUSE_DEMO}/work/q2-recipe.json", "made": "2026-11-24", "how": "weights.build_weight_pack_compiler plan_recipe, target q2_k, imatrix", "reused": true},
+      "q2_pack": {"path": "${FACTORY_MODELS}/muse-spark-open/Q2-gguf", "made": "2026-11-24", "how": "llama-quantize --allow-requantize --imatrix from the NVFP4 pack, 76 min, 304.7 GB", "reused": true},
+      "accuracy_state": {"path": "${FACTORY_MUSE_DEMO}/acc/state.json", "logs": "${FACTORY_MUSE_DEMO}/lab/A-acc.stderr.log,${FACTORY_MUSE_DEMO}/lab/B-acc.stderr.log", "made": "2026-11-25", "how": "paired MMLU, NVFP4 vs Q2, seed 20261125, stopped at n = 250: loss +0.8 points, interval [-2.9, +4.7] against a 5 point margin", "reused": true},
+      "routing_profile": {"path": "${FACTORY_MUSE_DEMO}/work/muse-q2-profile-c3.json", "made": "2026-11-24", "how": "expert routing counts of the Q2 pack on calibration prompts that do not overlap the lab prompts", "reused": true},
+      "c3_port_reference": {"path": "${FACTORY_MUSE_SPIKES}/spike-muse-c3/port/c3-muse-full-vs-stock.diff", "made": "2026-11-24", "how": "an earlier hand port of the seeded expert cache to Muse; a reference to read, not a change to apply blindly", "reused": true},
+      "prefill_baseline_log": {"path": "${FACTORY_MUSE_DEMO}/lab/C.stderr.log", "made": "2026-11-25", "how": "arm C server log (Q2 on E1, default batch) from the overnight lab", "reused": true},
+      "prefill_candidate_log": {"path": "${FACTORY_MUSE_DEMO}/lab/D.stderr.log", "made": "2026-11-25", "how": "arm D server log (C with -b 2048 -ub 2048) from the overnight lab", "reused": true},
+      "lab_report": {"path": "${FACTORY_MUSE_DEMO}/lab/report-abcde.json", "made": "2026-11-25", "how": "overnight lab, arms A to E, warm medians", "reused": true,
+                     "results": "vs A (NVFP4 on E0): Q2 (B) halves time to first token and lifts decode from 0.33 to 0.86 tok/s; the seeded cache (C) adds only on cold p512; the prefill batch (D) cuts p2048 TTFT from 607 s to 114 s. Arm E (D plus the decode expert fill, engine.build_expert_fill) is NEGATIVE: decode 0.25 tok/s against about 0.80 on B, C and D, because the fill re-reads experts the GPU cache already serves (5.55 TB read)."}
+    }
+  },
+  "plan": "muse-q2-ttft-v3.plan.json"
+}
