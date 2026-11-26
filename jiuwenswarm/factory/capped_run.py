@@ -669,10 +669,12 @@ def server_error(log, tail_bytes=200_000):
             lines = handle.read().decode(errors='replace').splitlines()
     except OSError:
         return None
+    patterns = (r'send_error: .*?error: (.+)$', r'decode\(\) failed: (.+)$', r'E srv\s+\S+: (.+)$')
     for line in reversed(lines):
-        m = re.search(r'(?:send_error: .*?error: |decode\(\) failed: |E srv .*?: )(.+)$', line)
-        if m:
-            return m.group(1).strip()[:300]
+        for pattern in patterns:  # most specific first
+            m = re.search(pattern, line)
+            if m:
+                return m.group(1).strip()[:300]
     return None
 
 
