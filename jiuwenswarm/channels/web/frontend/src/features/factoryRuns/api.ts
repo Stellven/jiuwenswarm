@@ -50,6 +50,7 @@ export type RunDetail = {
   telemetry: unknown;
   files: EvidenceFile[];
   events: StoryEvent[];
+  engine_log?: StoryEvent[];
   summary: unknown;
   session?: SessionSnapshot | null;
   curated?: CuratedReplay | null;

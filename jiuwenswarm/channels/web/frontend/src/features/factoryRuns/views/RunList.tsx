@@ -9,10 +9,12 @@ export function FactoryRunList({
   runs,
   selected,
   onSelect,
+  engineViewer = false,
 }: {
   runs: Run[];
   selected: string;
   onSelect: (id: string) => void;
+  engineViewer?: boolean;
 }) {
   const { t } = useTranslation();
   const { label, lang } = useViewerLabels();
@@ -89,6 +91,22 @@ export function FactoryRunList({
           </Fragment>
         );
       });
+        if (engineViewer) {
+          return (
+            <>
+              <section className="factory-run-group" data-testid="factory-runs-demo-group" aria-label="Demo">
+                <h2 className="factory-run-group-title">Demo</h2>
+                {render([...groups.demo, ...groups.featured])}
+              </section>
+              {groups.history.length > 0 && (
+                <section className="factory-run-group" data-testid="factory-runs-history-group" aria-label="History">
+                  <h2 className="factory-run-group-title">History</h2>
+                  {render(groups.history)}
+                </section>
+              )}
+            </>
+          );
+        }
         if (!groups.featured.length && !groups.history.length && !groups.demo.length) return render(entries);
         const selectedInRest = groups.rest.some(({ run }) => run.id === selected);
         return (

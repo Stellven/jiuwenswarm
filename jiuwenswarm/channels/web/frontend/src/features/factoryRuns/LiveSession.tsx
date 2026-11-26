@@ -3,10 +3,14 @@ import { useSessionCopy } from './sessionLocale';
 import { sessionElapsed, sessionStatus } from './sessionPresentation';
 import './factorySession.css';
 
-export function LiveSession({ session, stale }: { session?: SessionSnapshot | null; stale?: boolean }) {
+export function LiveSession({ session, stale, engineViewer }: {
+  session?: SessionSnapshot | null;
+  stale?: boolean;
+  engineViewer?: boolean;
+}) {
   const copy = useSessionCopy();
   const status = sessionStatus(session, stale);
-  const step = session?.step;
+  const step = engineViewer && session?.step?.kind === 'tool' ? null : session?.step;
   const message = session?.latest_message;
   const elapsed = sessionElapsed(session?.elapsed_s);
 
@@ -33,14 +37,14 @@ export function LiveSession({ session, stale }: { session?: SessionSnapshot | nu
           <dd className="factory-session-time">{elapsed ?? '—'}</dd>
         </div>
       </dl>
-      <div
+      {!engineViewer && <div
         className="factory-session-message"
         data-testid="factory-runs-session-message"
         data-variant={message ? 'recorded' : 'empty'}
       >
         <h4>{copy.lastMessage}</h4>
         {message ? <blockquote>{message.text}</blockquote> : <p>{copy.noMessage}</p>}
-      </div>
+      </div>}
     </section>
   );
 }

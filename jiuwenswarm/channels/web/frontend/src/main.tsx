@@ -1,4 +1,4 @@
-import './i18n';
+import i18n from './i18n';
 import ReactDOM from 'react-dom/client';
 import { A2UIProvider } from '@a2ui/react';
 import type { A2UIClientEventMessage } from '@a2ui/react';
@@ -13,9 +13,6 @@ import './styles/foundation.css'
 import './styles/themes/default/light.css'
 import './index.css'
 import './features/a2ui/a2ui.css'
-
-// Durable desktop drop bridge — must exist before ChatPanel mounts / effect cleanup.
-installDesktopLocalFilesBridge();
 
 function flagA2UIIconFontAvailability() {
   if (typeof document === 'undefined' || !('fonts' in document)) {
@@ -33,10 +30,6 @@ function flagA2UIIconFontAvailability() {
   )
 }
 
-injectStyles();
-flagA2UIIconFontAvailability()
-void document.fonts?.ready.then(flagA2UIIconFontAvailability)
-
 function handleA2UIAction(message: A2UIClientEventMessage) {
   void dispatchA2UIAction(message);
 }
@@ -49,15 +42,30 @@ const runnerJobId = window.location.pathname === '/share-export-runner'
   ? new URLSearchParams(window.location.search).get('job_id')?.trim() || null
   : null
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <A2UIProvider onAction={handleA2UIAction}>
-    {runnerJobId ? (
-      <ShareImageExportRunner jobId={runnerJobId} />
-    ) : (
-      <App
-        settingsPageDefinition={openSourceSettingsPageDefinition}
-        resolveSettingsRequest={resolveOpenSourceSettingsRequest}
-      />
-    )}
-  </A2UIProvider>,
-)
+const root = ReactDOM.createRoot(document.getElementById('root')!);
+
+if (import.meta.env.VITE_ENGINE_FACTORY === '1') {
+  document.documentElement.lang = 'en';
+  document.title = 'Engine Factory';
+  void Promise.all([i18n.changeLanguage('en'), import('./features/factoryRuns/EngineSite')]).then(([, { EngineSite }]) => {
+    root.render(<EngineSite />);
+  });
+} else {
+  // Install the desktop drop bridge before ChatPanel mounts.
+  installDesktopLocalFilesBridge();
+  injectStyles();
+  flagA2UIIconFontAvailability();
+  void document.fonts?.ready.then(flagA2UIIconFontAvailability);
+  root.render(
+    <A2UIProvider onAction={handleA2UIAction}>
+      {runnerJobId ? (
+        <ShareImageExportRunner jobId={runnerJobId} />
+      ) : (
+        <App
+          settingsPageDefinition={openSourceSettingsPageDefinition}
+          resolveSettingsRequest={resolveOpenSourceSettingsRequest}
+        />
+      )}
+    </A2UIProvider>,
+  );
+}
