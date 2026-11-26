@@ -33,6 +33,8 @@ def test_llama_target_uses_embedded_ggml_and_server_binary(tmp_path):
     flags=spark_engine.build_flags('llama-server',tmp_path)
     assert '-DGGML_CUDA=ON' in flags
     assert '-DLLAMA_BUILD_SERVER=ON' in flags
+    assert '-DLLAMA_BUILD_UI=OFF' in flags
+    assert '-DLLAMA_USE_PREBUILT_UI=OFF' in flags
     assert not any('STRATA' in value for value in flags)
     assert any('STRATA_GGML_DIR' in value for value in spark_engine.build_flags('strata-dsv41',tmp_path))
     assert "'bin/'+target if target=='llama-server'" in spark_engine.NATIVE_COMPILE
