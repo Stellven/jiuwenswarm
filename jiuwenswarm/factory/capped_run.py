@@ -808,14 +808,14 @@ class Server:
         self.ready_s = time.time() - self.started
         run.log(f'ready in {self.ready_s:.0f} s')
 
-    def post(self, body, timeout=7200, *, consume=json.load):
+    def post(self, body, timeout=7200, *, consume=json.load, path='/completion'):
         """POST and wait, sampling memory every 2 s (a request can take many minutes on a streamed pack)."""
         import threading
         box = {}
 
         def call():
             try:
-                req = urllib.request.Request(f'http://127.0.0.1:{self.port}/completion', data=json.dumps(body).encode(),
+                req = urllib.request.Request(f'http://127.0.0.1:{self.port}{path}', data=json.dumps(body).encode(),
                                              headers={'Content-Type': 'application/json'})
                 with urllib.request.urlopen(req, timeout=timeout) as r:
                     box['out'] = consume(r)
