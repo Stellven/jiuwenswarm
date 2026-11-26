@@ -238,6 +238,22 @@ def admitted(store, task_id, capability, inputs):
     contracts = _contracts(host, task)
     capsule, cap, kind = NODE_CAPABILITIES[capability]
     node_id = inputs.get('node_id')
+    approved = (task.get('constraints') or {}).get('approved_model_packs')
+    if approved is not None and capability == 'capped_runner.start':
+        if not node_id:
+            raise ValueError('The model-load ledger requires a node on every capped run')
+        recipe = inputs.get('recipe')
+        args = inputs.get('args') or {}
+        if recipe in {'convert', 'quantize'} and not args.get('replay'):
+            raise ValueError('The model-load ledger requires a receipt replay for production')
+        if recipe == 'accuracy':
+            raise ValueError('Accuracy loads are outside the model-load ledger')
+        if recipe == 'serve':
+            from pathlib import Path
+            expected = approved.get(node_id)
+            actual = Path(os.path.expandvars(str(args.get('model', '')))).expanduser().resolve()
+            if not expected or actual != (host.home / 'packs' / expected).resolve():
+                raise ValueError('This server load does not match the node and pack in the model-load ledger')
     if contracts is not None and capability == 'lab_manager.compose' and not node_id:
         raise ValueError('This task has node contracts: compose the lab package from its deliver node (node_id)')
     if not node_id:

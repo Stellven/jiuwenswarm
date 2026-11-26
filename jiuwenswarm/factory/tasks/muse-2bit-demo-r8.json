@@ -18,6 +18,11 @@
    "failed_checks_in_a_row": 2,
    "failed_runs_in_a_row": 2,
    "step": true
+  },
+  "approved_model_packs": {
+   "build_base_engine": "muse-nvfp4-v4/Muse-Spark-Open-816B-A42B-muse-nvfp4-v4-00001-of-00011.gguf",
+   "requant_2bit": "muse-2bit-v4/Muse-Spark-Open-816B-A42B-muse-2bit-v4-00001-of-00011.gguf",
+   "size_prefill_batch": "muse-2bit-v4/Muse-Spark-Open-816B-A42B-muse-2bit-v4-00001-of-00011.gguf"
   }
  },
  "allowed_effects": [

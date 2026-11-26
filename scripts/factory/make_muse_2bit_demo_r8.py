@@ -71,6 +71,12 @@ def generate(root):
         dict(node_id=k, node_contract=k, depends_on=n.get('predecessors', []), title=n['objective'])
         for k, n in nodes.items()])
     task.update(task_id=TASK, contract_id=TASK, objective=contract['purpose'], plan=f'{TASK}.plan.json')
+    stem = task['resources']['pack_stem']
+    def first(pack):
+        return f'{pack}/{stem}-{pack}-00001-of-00011.gguf'
+    task['constraints']['approved_model_packs'] = {
+        'build_base_engine': first('muse-nvfp4-v4'),
+        'requant_2bit': first('muse-2bit-v4'), 'size_prefill_batch': first('muse-2bit-v4')}
     task['constraints']['halt_policy']['step'] = True
     task['constraints']['model_execution'] = ('Use capped_runner for production replays, builds and every model load. '
                                                'Every load requires the machine gate, 96 GiB cap and operator approval.')
