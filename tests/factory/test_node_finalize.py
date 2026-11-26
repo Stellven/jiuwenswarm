@@ -261,3 +261,12 @@ def test_the_brief_carries_what_accepted_upstream_checks_measured(planned):
     assert list(found) == ['pack'] and found['pack']['verifier'] == 'weights.x.verify_pack'
     assert found['pack']['checks'][0]['detail'].startswith('528942162176 bytes') and len(found['pack']['checks'][0]['detail']) == 300
     assert scheduler.accepted_checks(planned, 'pf', 'other') == {}
+
+
+def test_the_brief_lists_operator_inputs_recorded_on_the_run(planned):
+    planned.append_observation('pf', dict(kind='operator_input', host_run=dict(by='operator import'), values=dict(
+        key='earlier_accuracy_timing', path='/x/run.log', sha256='ab' * 32, bytes=10, how='an earlier run',
+        results='about 6.3 s per question' + ' x' * 500)))
+    brief = scheduler.finalize_brief(planned, 'pf', 'integrate')
+    item = brief['operator_inputs']['earlier_accuracy_timing']
+    assert item['how'] == 'an earlier run' and item['results'].startswith('about 6.3 s') and len(item['results']) == 600

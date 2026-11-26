@@ -88,6 +88,17 @@ def excuse(host, task_id, attempt_id, reason):
     return dict(attempt_id=attempt_id, node_id=node_id, excused=True)
 
 
+def operator_inputs(host, task_id, text_chars=600):
+    """The run's operator_input records: key, path, sha256, how it was made and its stated results."""
+    out = {}
+    for (values,) in host._db.execute('SELECT "values" FROM observations WHERE task_id=? AND kind=? ORDER BY created, rowid',
+                                      (task_id, 'operator_input')):
+        v = json.loads(values)
+        out[v.get('key', '?')] = {k: (str(v[k])[:text_chars] if k in {'how', 'results'} else v[k])
+                                  for k in ('path', 'sha256', 'bytes', 'how', 'results', 'artifact_id') if k in v}
+    return out
+
+
 def accepted_checks(host, task_id, node_id, limit=40, detail_chars=300):
     """What the accepted node checks of a finished node measured: per output, the latest passing check's verifier
     checks (name, status, a short detail). A scheduler finalizing a downstream node reads its slots' facts here
@@ -427,6 +438,9 @@ def finalize_brief(store, task_id, node_id):
                 # Operator inputs only (never producer prose): constraints and resources such as prior
                 # artifacts and results the operator lists for this task.
                 constraints=task.get('constraints'), resources=task.get('resources') or {},
+                # Operator inputs recorded on the run (host operator_input records), including ones added after
+                # the task was created: what each is, how it was made and what it says.
+                operator_inputs=operator_inputs(host, task_id),
                 rule='The final contract may be more concrete or stricter than the preliminary one, never weaker. '
                      'Fill every slot, keep every criterion word for word, keep limits at or under the ceiling, '
                      'bind capsules in work.bound_ccs. If the preliminary contract cannot be met as written, do not '
