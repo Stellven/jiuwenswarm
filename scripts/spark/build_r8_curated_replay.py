@@ -253,7 +253,7 @@ class R8Replay(Builder):
                                      'Original notes citing the producer, hash convention and evidence limits.',
                                      [dict(path=key['path'], sha256=self.files[key['path']]['sha256']) for key in note_files])
         count = sum(len((row['values'].get('review') or {}).get('findings') or []) for row in checks)
-        self.step('Verifiers are experimental: agents keep the graph going',
+        self.step('Agent help with the verifier role',
                   f'The reviewer recorded {count} findings. Agent help with the verifier role identified the v4 '
                   'producer pin, distinguished raw and canonical receipt hashes, and clarified what the replay '
                   'evidence covered. The repaired recipe passed the capsule check.',
