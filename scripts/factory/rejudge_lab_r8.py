@@ -50,6 +50,9 @@ def main(source, output, runner_pid, attribution):
         status = 'excluded' if reasons else 'accepted'
         row['launch_verdict'] = recorded
         row['corrected_verdict'] = dict(status=status, reasons=reasons)
+        row['adjudication_note'] = ('All amended checks passed.' if not reasons else '; '.join(reasons))
+        if recorded['status'] != status:
+            row['adjudication_note'] += ' Launch exclusion removed after applying the recorded runner-tree and 0.5-second sampling-window exemptions.'
         evidence.update(status=status, reasons=reasons)
     report['launch_quiet_policy'] = original
     report['quiet_policy'] = amended

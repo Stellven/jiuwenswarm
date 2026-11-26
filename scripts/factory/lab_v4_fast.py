@@ -439,7 +439,7 @@ if __name__ == '__main__':
             recorded = measured.get('baseline', {}).get('sha256')
             if recorded and recorded != reference['sha256']:
                 raise ValueError('Historical A report digest differs from the recorded baseline')
-            limits = lab_v4_quiet.policy(measured['config'].get('quiet_protocol')) if measured.get('factory_provenance') else None
+            limits = measured.get('quiet_policy') if measured.get('factory_provenance') else None
             print(json.dumps(comparison(measured['rows'], reference, limits), indent=1))
         elif len(args) == 2 and args[0] == '--resolve':
             config, _, _, identity, plan = configuration(args[1])

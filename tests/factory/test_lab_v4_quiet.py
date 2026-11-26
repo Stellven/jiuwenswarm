@@ -83,3 +83,18 @@ def test_revised_cpu_gate_keeps_raw_load_and_excludes_only_measured_tree(tmp_pat
     assert not quiet.load_decides(limits, 'during')
     assert not quiet.load_decides(limits, 'end')
     assert quiet.load_decides(quiet.policy(), 'during')
+
+
+def test_post_run_amendment_ignores_only_short_windows_and_runner_tree():
+    from scripts.factory.rejudge_lab_r8 import correct_sample
+    original = quiet.policy(quiet.REVISED)
+    amended = dict(original, min_cpu_window_s=0.5, exempt_runner_tree=True)
+    for interval, expected in [(0.499, []), (0.5, ['foreign PID 42 (apt) above 50% of one core'])]:
+        sample = dict(phase='end', ok=False, processes=[dict(pid=2, ppid=1), dict(pid=3, ppid=2)],
+                      cpu=dict(interval_s=interval, measured_pids=[4], active=[
+                          dict(pid=3, name='child', measured=False, percent_one_core=95),
+                          dict(pid=42, name='apt', measured=False, percent_one_core=60)]))
+        sample['reasons'] = quiet.cpu_issues(sample['cpu'], original) + ['foreign helper process present']
+        correct_sample(sample, 2, original, amended)
+        assert sample['reasons'] == ['foreign helper process present', *expected]
+        assert len(sample['launch_reasons']) == 3
