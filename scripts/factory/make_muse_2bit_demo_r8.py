@@ -51,6 +51,10 @@ def generate(root):
     for node_id, maximum in [('build_base_engine', 1), ('requant_2bit', 1), ('size_prefill_batch', 2)]:
         nodes[node_id]['node_limits']['gpu_launches'] = maximum
     prefill = nodes['size_prefill_batch']
+    prefill['outputs'][0]['criteria'].append(
+        'The planned load must cover the longest rendered prompt in one micro-batch. If 2048 cannot fit '
+        'or the calibration is incompatible, stop before the planned load and record why. A smaller '
+        'fallback cannot satisfy the one-pass criterion; ask the operator before using another load.')
     prefill['briefing']['pitfalls'].append(
         'Two loads are approved: default and planned. If the verified budget needs a retune, stop at the '
         'checkpoint and ask the operator before another load. Keep the failed measurement.')

@@ -882,7 +882,8 @@
        "criteria": [
         "A factory.prefill-batch-plan/1 from a -lv 4 load log of E0 on the 2-bit pack at the default batch: the batch and micro-batch sizes, the device estimate against the budget, and micro-batches per lab prompt before and after.",
         "One capped load of E0 on the 2-bit pack with the planned arguments: the server applied them, its device buffers fit the budget, and greedy outputs of the lab requests agree with the default batch (byte-identical or a long common prefix).",
-        "The plan sizes the MoE cache (--moe-cache-mib in its args) and the capped load with the planned arguments uses the device budget to within headroom plus 2 GiB; if the linear compute estimate left more, the plan is redone from that load's log and loaded again."
+        "The plan sizes the MoE cache (--moe-cache-mib in its args) and the capped load with the planned arguments uses the device budget to within headroom plus 2 GiB; if the linear compute estimate left more, the plan is redone from that load's log and loaded again.",
+        "The planned load must cover the longest rendered prompt in one micro-batch. If 2048 cannot fit or the calibration is incompatible, stop before the planned load and record why. A smaller fallback cannot satisfy the one-pass criterion; ask the operator before using another load."
        ]
       }
      ],
