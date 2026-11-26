@@ -5,7 +5,6 @@ are written as host observations by the test. Nothing runs a model or a controll
 """
 import json
 from pathlib import Path
-from types import SimpleNamespace
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -71,7 +70,8 @@ def test_detail_serves_node_contract_work_and_compact_checks(home):
     assert pack['review']['verdict'] == 'pass' and pack['review']['findings'][0]['severity'] == 'minor'
     assert 'entry' not in pack  # compact: the full settings stay in the record
     assert set(detail['node_checks']) >= {'pin_inputs', 'deliver_to_lab'}
-    assert detail['controls'] == dict(operator=True, running=False, outcome=None, stop_reason=None, resume=False)
+    assert detail['controls'] == dict(operator=True, running=False, outcome=None, stop_reason=None,
+                                      pause=True, resume=False, revise=True, revise_apply=True)
 
 
 def test_operator_routes_guard_origin_body_and_live_homes(home, monkeypatch):
@@ -121,36 +121,61 @@ def test_operator_controls_refuse_exported_bundles(tmp_path, monkeypatch):
     api = client(service)
     assert service.detail(rid)['controls'] is None
     assert api.post(f'/api/factory/runs/{rid}/nodes/a/hold', json={'reason': 'x'}).status_code == 403
-    assert api.post(f'/api/factory/runs/{rid}/resume').status_code == 403
+    assert api.post(f'/api/factory/runs/{rid}/resume', json=dict(confirm=True, reason='resume')).status_code == 403
 
 
-def test_resume_starts_detached_cli_only_for_paused_or_partial_runs(home, monkeypatch):
+def test_run_controls_execute_confirmed_native_commands_without_running_controller(home, monkeypatch):
     root, path = home
     service = FactoryHttpService(roots=[root])
     rid = service.listing()['runs'][0]['id']
     api = client(service)
-    started = []
-    monkeypatch.setattr(factory_http.subprocess, 'Popen',
-                        lambda command, **kwargs: started.append((command, kwargs)) or SimpleNamespace(pid=4321))
-    state = path / 'sessions' / f'{TID}.state.json'
-    state.parent.mkdir(exist_ok=True)
-    state.write_text(json.dumps(dict(turns=3, started=1.0, finished=2.0, tick=None, outcome='accept')))
-    assert api.post(f'/api/factory/runs/{rid}/resume').status_code == 409
-    assert api.post(f'/api/factory/runs/{rid}/resume', json={'command': 'rm'}).status_code == 400
-    assert api.post(f'/api/factory/runs/{rid}/resume', headers={'origin': 'http://evil.invalid'}).status_code == 403
-    assert started == []
-    state.write_text(json.dumps(dict(turns=3, started=1.0, finished=2.0, tick=None, outcome='paused',
-                                     stop_reason='paused at requant_q2 (held by operator: x)')))
-    controls = service.detail(rid)['controls']
-    assert controls['resume'] is True and controls['stop_reason'].startswith('paused at requant_q2')
+    url = f'/api/factory/runs/{rid}'
+    confirmed = dict(confirm=True, reason='inspect evidence')
+    assert api.post(url + '/resume', json=confirmed).status_code == 409
+    assert api.post(url + '/pause', json=dict(confirmed, confirm=False)).status_code == 400
+    assert api.post(url + '/pause', json=confirmed, headers={'origin': 'http://evil.invalid'}).status_code == 403
+    paused = api.post(url + '/pause', json=confirmed)
+    assert paused.status_code == 200, paused.text
+    state = api.get(url + '/state').json()
+    assert state['controls']['resume'] is True
+    assert state['run_state']['state'] == 'paused'
+    assert state['run_state']['reason'] == confirmed['reason']
+    assert (path / 'PAUSE.md').is_file()
+    assert api.get(url + '/nodes/ingest_nvfp4').status_code == 200
+    assert api.get(url + '/nodes/fake').status_code == 404
+    assert api.get(url + '/nodes/ingest_nvfp4/diff?output=converter').status_code == 404
+    graph_before = service.detail(rid)['graph']['rev']
+    before = {p.name: p.read_bytes() for p in path.glob('factory.sqlite*')}
+    preview = api.post(url + '/revise', json=dict(confirmed, dry_run=True))
+    assert preview.status_code == 200, preview.text
+    assert preview.json()['dry_run'] is True and preview.json()['applied'] is False
+    assert service.detail(rid)['graph']['rev'] == graph_before
+    assert {p.name: p.read_bytes() for p in path.glob('factory.sqlite*')} == before
     monkeypatch.setattr(service, '_running', lambda at: True)
-    assert api.post(f'/api/factory/runs/{rid}/resume').status_code == 409
+    assert api.post(url + '/revise', json=dict(confirmed, dry_run=False)).status_code == 409
     monkeypatch.setattr(service, '_running', lambda at: False)
-    response = api.post(f'/api/factory/runs/{rid}/resume', json={})
-    assert response.status_code == 202, response.text
-    assert response.json() == dict(id=rid, task_id=TID, pid=4321, resumed_from='paused')
-    command, options = started[-1]
-    assert command[command.index('--home'):] == ['--home', str(path.resolve()), 'resume', TID, '--plain',
-                                                 '--grant', 'process.exec', '--grant', 'workspace.read']
-    assert options['start_new_session'] is True and options['stdin'] is factory_http.subprocess.DEVNULL
-    assert json.loads((path / 'resume.json').read_text())['pid'] == 4321
+    applied = api.post(url + '/revise', json=dict(confirmed, dry_run=False))
+    assert applied.status_code == 200, applied.text
+    assert applied.json()['dry_run'] is False
+    resumed = api.post(url + '/resume', json=dict(confirmed, reason='-checked'))
+    assert resumed.status_code == 200, resumed.text
+    assert resumed.json()['reason'] == '-checked'
+    assert not (path / 'PAUSE.md').exists()
+    assert not (path / 'launch.log').exists()
+    assert api.get(url + '/state').json()['controls']['resume'] is False
+    assert api.post(url + '/resume', json=confirmed).status_code == 409
+
+
+def test_historical_native_home_is_read_only(home):
+    root, path = home
+    service = FactoryHttpService(roots=[root], historical_roots=[path])
+    api = client(service)
+    run = service.listing()['runs'][0]
+    assert run['read_only'] and run['status'] == 'replay'
+    url = f"/api/factory/runs/{run['id']}"
+    assert api.get(url + '/state').json()['controls'] is None
+    for action in ('pause', 'resume', 'revise', 'nodes/ingest_nvfp4/hold'):
+        payload = dict(reason='test') if action.startswith('nodes/') else dict(confirm=True, reason='test')
+        if action == 'revise':
+            payload['dry_run'] = True
+        assert api.post(url + '/' + action, json=payload).status_code == 403

@@ -329,7 +329,9 @@ class _SpaStaticHandler(SimpleHTTPRequestHandler):
         "x-original-host",
     }
     _WS_LOG_MAX_CHARS = 2000
-    _HTTP_PROXY_TIMEOUT = 30
+    # Operator override for slow hosts (e.g. a laptop replaying large factory
+    # evidence); unset keeps the 30 s default.
+    _HTTP_PROXY_TIMEOUT = float(os.environ.get("JIUWENSWARM_WEB_PROXY_TIMEOUT") or 30)
     # Transport allowance for an authenticated finite evaluation, including
     # completion serialization after a 600-second native slot. Native frozen
     # runtime/policy deadlines still own execution; this is not a worker limit.
