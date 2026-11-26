@@ -352,7 +352,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
   const visibleEvents = events.slice(0, position);
   const cursor = visibleEvents[visibleEvents.length - 1];
   const curatedStep = curatedStepFor(detail?.curated, cursor);
-  const focusedNode = selectedNode ?? curatedStep?.node_id;
+  const focusedNode = selectedNode ?? (curatedStep?.original_kind === 'revise' ? undefined : curatedStep?.node_id);
   useEffect(() => {
     if (selectedNode) nodeEvidenceSection.current?.scrollIntoView({ block: 'start' });
   }, [selectedNode]);

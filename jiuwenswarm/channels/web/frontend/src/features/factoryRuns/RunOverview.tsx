@@ -94,6 +94,7 @@ export function RunOverview({
   if (curated) {
     const focus = curated.steps.find((step) => step.step === currentStep) ?? curated.steps[0];
     const lead = focus?.key_files[0];
+    const stepSummary = focus?.say || focus?.original_summary;
     return (
       <div className="factory-story" data-testid="factory-runs-overview">
         <header className="factory-story-hero" data-testid="factory-runs-overview-brief">
@@ -119,9 +120,9 @@ export function RunOverview({
               {focus.presentation_title}
             </h3>
             <ReplayLabel value={focus.replayed_from} />
-            {focus.say && (
+            {stepSummary && (
               <p className="factory-curated-say" data-testid="factory-runs-curated-focus-say">
-                {focus.say}
+                {stepSummary}
               </p>
             )}
             {lead && (
@@ -151,7 +152,9 @@ export function RunOverview({
             )}
             <details className="factory-curated-more">
               <summary>Recorded summary and other key files</summary>
-              <p className="factory-muted">{focus.original_summary}</p>
+              {focus.original_summary && focus.original_summary !== stepSummary && (
+                <p className="factory-muted">{focus.original_summary}</p>
+              )}
               <ul className="factory-curated-key-files">
                 {focus.key_files.slice(1).map((key) => (
                   <li key={key.path}>
