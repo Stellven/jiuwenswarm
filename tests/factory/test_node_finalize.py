@@ -270,3 +270,20 @@ def test_the_brief_lists_operator_inputs_recorded_on_the_run(planned):
     brief = scheduler.finalize_brief(planned, 'pf', 'integrate')
     item = brief['operator_inputs']['earlier_accuracy_timing']
     assert item['how'] == 'an earlier run' and item['results'].startswith('about 6.3 s') and len(item['results']) == 600
+
+
+def test_retire_needs_a_contract_revision_and_unlinks_the_node(planned):
+    from jiuwenswarm.factory.taskgraph import operator_patch, _apply_operator
+    with pytest.raises(ValueError, match='still in the task contract'):
+        operator_patch(planned, 'pf', 'retire', 'integrate', 'moved to the lab')
+    nodes = {'a': dict(node_id='a', state='proposed', depends_on=[]), 'b': dict(node_id='b', state='proposed', depends_on=['a'], hold='step')}
+    from jiuwenswarm.factory import taskgraph
+    original = taskgraph._validate
+    taskgraph._validate = lambda *a, **k: None
+    try:
+        _apply_operator(nodes, {'retire': [dict(node_id='b', reason='moved to the lab')]})
+        _apply_operator(nodes, {'retire': [dict(node_id='a', reason='moved to the lab')]})
+    finally:
+        taskgraph._validate = original
+    assert nodes['b']['state'] == 'cancelled' and 'hold' not in nodes['b'] and nodes['b']['reason'].startswith('retired by operator')
+    assert nodes['b']['depends_on'] == [] and nodes['a']['state'] == 'cancelled'

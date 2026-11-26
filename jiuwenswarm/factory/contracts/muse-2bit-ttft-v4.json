@@ -1,7 +1,7 @@
 {
  "schema": "factory.contract/2",
  "contract_id": "muse-2bit-ttft-v4",
- "version": 6,
+ "version": 7,
  "title": "Muse Spark Open on DGX Spark: NVFP4 to mixed 2-bit (IQ2_XXS and Q2_K) requantization, the seeded expert cache and prefill batch sizing",
  "purpose": "Starting from stock llama.cpp and the official Muse Spark Open NVFP4 checkpoint, how much do time to first token, decode rate and total request time change when the routed experts are requantized to a mixed 2-bit format (IQ2_XXS for the gate and up projections, Q2_K for down), again when the profile-seeded expert cache is added, and again when the prefill batch is sized so each prompt streams the experts once?",
  "scope": {
@@ -360,7 +360,8 @@
    "Revision 5: the scheduler agent reported a spec gap on pin_inputs (2026-11-25): the free disk criterion asked for 1.4 TB, the room both packs need, while a run that reuses the packs writes almost nothing. The planner states it as free disk covering what the run writes plus 100 GB.",
    "Revision 6 fills the device budget with expert cache (owner, 2026-11-26): the 2-bit arms take --moe-cache-mib from the size_prefill_batch plan (about 66 GiB instead of 60) under the same 110000 MiB device budget as arm A, whose NVFP4 compute buffer leaves it at 61440. Equal memory budget, not equal cache size, is the fair comparison; B against A then includes the cache room the smaller compute buffer frees.",
    "Revision 6 also trims the lab protocol (owner, 2026-11-25): one warm request instead of two and 32 generated tokens instead of 128 per request, so the four arms fit in a few hours instead of a night.",
-   "Revision 6 (v4 file, owner decision 2026-11-25): a 2-bit pack not made before, routed experts IQ2_XXS for the gate and up projections, Q2_K for down, other tensors at their NVFP4-pack type (about 267 GB against 305 GB for the Q2_K pack of Nov 24), target iq2_xxs,down=q2_k for weights.build_weight_pack_compiler; and every node runs in this run (capped runs through factory.capped_runner), reusing nothing built by hand."
+   "Revision 6 (v4 file, owner decision 2026-11-25): a 2-bit pack not made before, routed experts IQ2_XXS for the gate and up projections, Q2_K for down, other tensors at their NVFP4-pack type (about 267 GB against 305 GB for the Q2_K pack of Nov 24), target iq2_xxs,down=q2_k for weights.build_weight_pack_compiler; and every node runs in this run (capped runs through factory.capped_runner), reusing nothing built by hand.",
+   "Revision 7 (owner, 2026-11-26): the task graph is the CC execution and implementation up to the image delivery; measurement is shipped to the lab once. measure_accuracy is removed from the graph and its requirement accuracy_2bit moves into the lab task; port_ttft_cache drops the decode comparison slot; the requant smoke drops the NVFP4 token agreement."
   ]
  },
  "extensions": {
@@ -754,7 +755,7 @@
        "criteria": [
         "Every routed gate and up expert weight is IQ2_XXS and every down expert weight Q2_K; attention, norms, router, embeddings and output keep their NVFP4-pack type; .scale tensors carried unchanged.",
         "Total size between 240 and 290 GB; the temporary disk peak stayed inside the grant.",
-        "Eight held-out prompts give coherent text; top-1 token agreement with the NVFP4 pack is reported, not claimed."
+        "Eight held-out prompts give coherent text on E0."
        ]
       }
      ],
@@ -830,110 +831,6 @@
      ],
      "bounds": {
       "verifiers.pack_2bit.inputs.expect_bytes_range": "inside"
-     }
-    },
-    {
-     "node_id": "measure_accuracy",
-     "kind": "measure",
-     "objective": "Measure how much accuracy the 2-bit pack loses against the NVFP4 pack on MMLU, paired question by question, and stop at the first planned checkpoint where the interval of the loss decides it against the margin.",
-     "requirement_ids": [
-      "B",
-      "accuracy_2bit"
-     ],
-     "predecessors": [
-      "requant_2bit",
-      "build_base_engine",
-      "ingest_nvfp4"
-     ],
-     "inputs": [
-      {
-       "name": "pack_2bit",
-       "from": "requant_2bit.pack_2bit"
-      },
-      {
-       "name": "nvfp4_pack",
-       "from": "ingest_nvfp4.nvfp4_pack"
-      },
-      {
-       "name": "base_engine",
-       "from": "build_base_engine.base_engine"
-      },
-      {
-       "name": "mmlu_test",
-       "from": "contract:mmlu_test"
-      }
-     ],
-     "outputs": [
-      {
-       "name": "accuracy",
-       "kind": "evidence",
-       "criteria": [
-        "A muse-paired-accuracy/1 state: both arms scored on the same canonical zero-shot prompts, in the seeded order of the full MMLU test set, on real capped server loads of E0.",
-        "The paired interval of the loss acc(NVFP4) - acc(2-bit) at the first decisive planned checkpoint has its upper bound below 5 points."
-       ]
-      }
-     ],
-     "evidence_obligations": [
-      "captured_input_and_output",
-      "invocation_observation",
-      "mandatory_checks"
-     ],
-     "node_limits": {
-      "turns": 20,
-      "time_s": 21600,
-      "gpu_launches": 6
-     },
-     "authority_ceiling": {
-      "effects": [
-       "process.exec",
-       "workspace.read",
-       "workspace.write"
-      ],
-      "workspace": "read"
-     },
-     "work": {
-      "helpful_ccs": [
-       "eval.paired_accuracy",
-       "factory.lab_manager"
-      ],
-      "capability": "eval.paired_accuracy.verify",
-      "eligible_ccs": [
-       "eval.paired_accuracy",
-       "factory.lab_manager",
-       "factory.capped_runner"
-      ]
-     },
-     "verifiers": [
-      {
-       "output": "accuracy",
-       "verifier": "eval.paired_accuracy.verify",
-       "stage": "runtime acceptance",
-       "review": true,
-       "inputs": {
-        "margin_pts": 5,
-        "min_letter_mass": 0.5
-       }
-      }
-     ],
-     "hands_to": "deliver_to_lab",
-     "stage": "preliminary",
-     "slots": [
-      {
-       "id": "bind",
-       "at": "work.bound_ccs",
-       "kind": "ccs",
-       "from": "The capsule catalog, what the upstream nodes were built with and what failed before for this node."
-      },
-      {
-       "id": "checkpoints",
-       "at": "outputs.accuracy.criteria",
-       "kind": "criteria",
-       "from": "The time left in the node limits and the measured seconds per question on E0: one criterion naming the planned checkpoints, chosen from the paired accuracy capsule planned looks (50, 100, 160, 250, 430 questions; its sequential boundary is calibrated for those looks only)."
-      }
-     ],
-     "bounds": {
-      "verifiers.accuracy.inputs.margin_pts": "lower",
-      "verifiers.accuracy.inputs.min_letter_mass": "higher"
      }
     },
     {
@@ -1096,12 +993,6 @@
        "at": "work.bound_ccs",
        "kind": "ccs",
        "from": "The capsule catalog, what the upstream nodes were built with and what failed before for this node."
-      },
-      {
-       "id": "decode_floor",
-       "at": "outputs.change.criteria",
-       "kind": "criteria",
-       "from": "Earlier measured decode rates of arms B, C and E: one criterion that the change must not lower decode."
       }
      ]
     },
@@ -1301,7 +1192,7 @@
     {
      "node_id": "deliver_to_lab",
      "kind": "deliver",
-     "objective": "Send E0, E1, both packs, the profile, the prefill batch plan and the lab task for arms A, B, C and D to the lab manager. Arm A keeps --moe-cache-mib 61440; arms B, C and D take the plan's --moe-cache-mib, and only arm D its -b and -ub.",
+     "objective": "Send E0, E1, both packs, the profile, the prefill batch plan and the lab task for arms A, B, C and D, with the paired accuracy test (accuracy_2bit, A against B), to the lab manager. Arm A keeps --moe-cache-mib 61440; arms B, C and D take the plan's --moe-cache-mib, and only arm D its -b and -ub.",
      "requirement_ids": [
       "A",
       "B",
@@ -1316,12 +1207,12 @@
       "request_total_ms",
       "prompt_tokens_per_second",
       "sampled_peak_memory_bytes",
-      "load_seconds"
+      "load_seconds",
+      "accuracy_2bit"
      ],
      "predecessors": [
       "build_candidate",
-      "size_prefill_batch",
-      "measure_accuracy"
+      "size_prefill_batch"
      ],
      "inputs": [
       {
@@ -1331,10 +1222,6 @@
       {
        "name": "batch_plan",
        "from": "size_prefill_batch.batch_plan"
-      },
-      {
-       "name": "accuracy",
-       "from": "measure_accuracy.accuracy"
       }
      ],
      "outputs": [
@@ -1342,7 +1229,7 @@
        "name": "lab_request",
        "kind": "lab_request",
        "criteria": [
-        "The lab task fills arms A, B, C and D with shipped subjects and runs every check and metric, cold and warm, at 512 and 2048 tokens."
+        "The lab task fills arms A, B, C and D with shipped subjects and runs every check and metric, cold and warm, at 512 and 2048 tokens, and the paired accuracy test accuracy_2bit on arms A and B."
        ]
       }
      ],

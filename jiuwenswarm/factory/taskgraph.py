@@ -18,7 +18,7 @@ NODE_FIELDS = {'node_id', 'kind', 'title', 'capability', 'inputs', 'depends_on',
                'attempt_ids', 'evidence_ids', 'created_by_decision_rev', 'reason',
                'outcome', 'entities', 'requires_evidence', 'resources', 'engine_slice', 'branch', 'check',
                'node_contract', 'hold', 'retry_from', 'checks_after', 'final_contract'}
-OPERATOR_OPS = ('hold', 'release', 'reopen')  # host-recorded operator patches; agents cannot issue them
+OPERATOR_OPS = ('hold', 'release', 'reopen', 'retire')  # host-recorded operator patches; agents cannot issue them
 SCHEDULER_OPS = ('finalize',)  # host-recorded after scheduler.finalize admits a final node contract
 
 
@@ -175,6 +175,16 @@ def _apply_operator(nodes, patch, component_cc=None):
                 if 'hold' not in node:
                     raise ValueError(f'Node {key} is not held')
                 del node['hold']
+            elif op == 'retire':
+                # A contract revision removed this node's work (checked by operator_patch): cancel the node and
+                # drop it from the dependencies of the nodes after it. Its records stay.
+                if node['state'] == 'running':
+                    raise ValueError(f'Node {key} is running; cancel its attempts first')
+                node.update(state='cancelled', reason='retired by operator: ' + reason)
+                node.pop('hold', None)
+                for other in nodes.values():
+                    if key in other.get('depends_on', []):
+                        other['depends_on'] = [d for d in other['depends_on'] if d != key]
             else:
                 affected = [key] + _descendants(nodes, key)
                 running = [k for k in affected if nodes[k]['state'] == 'running']
@@ -410,6 +420,13 @@ def operator_patch(store, task_id, op, node_id, reason, expected_graph_rev=None)
         change = dict(node_id=node_id, reason=reason)
         if op == 'reopen':  # this patch's own record: node checks before it no longer count
             change['since'] = f'{task_id}:plan:{rev + 1}'
+        if op == 'retire':
+            node = next((n for n in plan_get(host, task_id)['nodes'] if n['node_id'] == node_id), None)
+            from .node_contract import for_task
+            contracts = for_task(host.get_task(task_id)) or {'nodes': []}
+            if node and node.get('node_contract') in {c['node_id'] for c in contracts['nodes']}:
+                raise ValueError(f'Node {node_id}: its node contract {node["node_contract"]} is still in the task contract; '
+                                 'retire only work a contract revision removed')
         return _apply_patch(host, task_id, {op: [change]}, rev, 0,
                             readable=getattr(store, 'readable', ()), operator=True)
 

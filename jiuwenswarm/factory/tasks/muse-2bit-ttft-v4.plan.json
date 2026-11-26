@@ -43,16 +43,6 @@
    "title": "Write a precision recipe and requantize the NVFP4 pack to a 2-bit pack: routed gate and up experts to IQ2_XXS and down experts to Q2_K (the down projection is the most sensitive to low bits), everything else kept at its source type."
   },
   {
-   "node_id": "measure_accuracy",
-   "node_contract": "measure_accuracy",
-   "depends_on": [
-    "requant_2bit",
-    "build_base_engine",
-    "ingest_nvfp4"
-   ],
-   "title": "Measure how much accuracy the 2-bit pack loses against the NVFP4 pack on MMLU, paired question by question, and stop at the first planned checkpoint where the interval of the loss decides it against the margin."
-  },
-  {
    "node_id": "record_profile",
    "node_contract": "record_profile",
    "depends_on": [
@@ -91,10 +81,9 @@
    "node_contract": "deliver_to_lab",
    "depends_on": [
     "build_candidate",
-    "size_prefill_batch",
-    "measure_accuracy"
+    "size_prefill_batch"
    ],
-   "title": "Send E0, E1, both packs, the profile, the prefill batch plan and the lab task for arms A, B, C and D to the lab manager. Arm A keeps --moe-cache-mib 61440; arms B, C and D take the plan's --moe-cache-mib, and only arm D its -b and -ub."
+   "title": "Send E0, E1, both packs, the profile, the prefill batch plan and the lab task for arms A, B, C and D, with the paired accuracy test (accuracy_2bit, A against B), to the lab manager. Arm A keeps --moe-cache-mib 61440; arms B, C and D take the plan's --moe-cache-mib, and only arm D its -b and -ub."
   }
  ]
 }

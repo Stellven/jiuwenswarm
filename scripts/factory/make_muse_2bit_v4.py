@@ -140,6 +140,36 @@ contract['provenance']['notes'].append(
     + TARGET + ' for weights.build_weight_pack_compiler; and every node runs in this run (capped runs through '
     'factory.capped_runner), reusing nothing built by hand.')
 
+# Revision 7 (owner, 2026-11-26): the task graph is the execution of the CCs that add parts to the engine, up to the
+# delivery of the image; measurement is the lab's, shipped once. The paired accuracy check moves from a graph node into
+# the lab task (requirement accuracy_2bit stays, tested by the lab), the cache port loses its decode comparison, and
+# the 2-bit smoke keeps coherent text without the NVFP4 token agreement.
+contract['version'] = 7
+NODES = contract['extensions']['factory.node-contracts']['nodes']
+NODES[:] = [x for x in NODES if x['node_id'] != 'measure_accuracy']
+nodes = {x['node_id']: x for x in NODES}
+DL = nodes['deliver_to_lab']
+DL['predecessors'] = [x for x in DL['predecessors'] if x != 'measure_accuracy']
+DL['inputs'] = [i for i in DL.get('inputs', []) if not i['from'].startswith('measure_accuracy.')]
+DL['requirement_ids'] = list(dict.fromkeys(DL['requirement_ids'] + ['accuracy_2bit']))
+DL['objective'] = DL['objective'].replace('the prefill batch plan and the lab task for arms A, B, C and D',
+                                          'the prefill batch plan and the lab task for arms A, B, C and D, with the paired '
+                                          'accuracy test (accuracy_2bit, A against B),')
+DL['outputs'][0]['criteria'] = [
+    'The lab task fills arms A, B, C and D with shipped subjects and runs every check and metric, cold and warm, at 512 '
+    'and 2048 tokens, and the paired accuracy test accuracy_2bit on arms A and B.']
+PT = nodes['port_ttft_cache']
+PT['slots'] = [x for x in PT.get('slots', []) if x['id'] != 'decode_floor']
+RQ = nodes['requant_2bit']
+for o in RQ['outputs']:
+    o['criteria'] = [c.replace('Eight held-out prompts give coherent text; top-1 token agreement with the NVFP4 pack is '
+                               'reported, not claimed.', 'Eight held-out prompts give coherent text on E0.') for c in o['criteria']]
+contract['provenance']['notes'].append(
+    'Revision 7 (owner, 2026-11-26): the task graph is the CC execution and implementation up to the image delivery; '
+    'measurement is shipped to the lab once. measure_accuracy is removed from the graph and its requirement '
+    'accuracy_2bit moves into the lab task; port_ttft_cache drops the decode comparison slot; the requant smoke drops '
+    'the NVFP4 token agreement.')
+
 plan = {'format': 'factory.plan/1', 'planner': 'hand-written demo plan (muse-2bit-ttft, preliminary node contracts)',
         'nodes': [{'node_id': n['node_id'], 'node_contract': n['node_id'], 'depends_on': n.get('predecessors', []),
                    'title': n['objective']} for n in contract['extensions']['factory.node-contracts']['nodes']]}

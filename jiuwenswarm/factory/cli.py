@@ -188,7 +188,8 @@ def main(argv=None):
     excuse.add_argument('reason')
     for op, text in (('hold', 'operator: pause the run at a plan node (it will not start or close until released)'),
                      ('release', 'operator: lift a hold'),
-                     ('reopen', 'operator: rerun a failed or finished node and its descendants, keeping upstream outputs')):
+                     ('reopen', 'operator: rerun a failed or finished node and its descendants, keeping upstream outputs'),
+                     ('retire', 'operator: cancel a node whose work a contract revision removed')):
         command = sub.add_parser(op, help=text)
         command.add_argument('task_id')
         command.add_argument('node_id')
@@ -306,7 +307,7 @@ def main(argv=None):
         elif args.command == 'excuse':
             from .scheduler import excuse
             print(json.dumps(excuse(controller.store, args.task_id, args.attempt_id, args.reason), indent=2))
-        elif args.command in {'hold', 'release', 'reopen'}:
+        elif args.command in {'hold', 'release', 'reopen', 'retire'}:
             from .taskgraph import render_text
             print(render_text(controller.operator(args.task_id, args.command, args.node_id, args.reason)))
         elif args.command == 'baseline-import':
