@@ -35,6 +35,19 @@ Each node still to finalize carries a `briefing` (summary, facts with sources, p
 - `review: "advisory"` (recorded and shown, does not block; advisory -> blocking allowed in a final, not reverse).
 - Demo board (port 5175, replay + live) on `monitor.py`, reading a local snapshot of `~/muse-demo/graph-v4`.
 
+## Runtime control (owner, 2026-11-26: fixable and pausable during the run)
+
+- `pause <task> <reason>` / `resume <task>`: run-wide, checked at every controller iteration, while waiting on
+  jobs, and before every agent or scheduler turn. Running capped jobs finish; resume reconciles them. PAUSE.md shows it.
+- While paused (and while other nodes' jobs run): revise, note, hold, release, reopen, excuse, retire. Only changes to
+  a running node itself are refused. A revise clears the final of a node whose prelim changed and that has not
+  started, so the scheduler re-finalizes it. The controller uses the current contract revision after resume.
+- The scheduler (astra) sees as much as we can show: the full task contract, all node contracts, upstream finals and
+  evidence, run history, full capsule docs; it can read any capsule file or evidence record on demand.
+- The demo board shows all of it: run state banner (running / waiting on a job / paused / halted / step), revisions
+  on the timeline, briefings, the scheduler's brief and proposals, advisory vs blocking reviews; operator buttons only
+  with `--operator` on 127.0.0.1.
+
 ## Steps
 
 1. Merge the three branches, regenerate the contract, local tests; bundle to the Spark, full suite in
