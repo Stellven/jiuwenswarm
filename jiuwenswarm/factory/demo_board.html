@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Factory demo board</title>
+<style>
+:root{--bg:#f6f7f9;--panel:#fff;--line:#d9dde3;--text:#16202c;--dim:#5b6676;--accent:#1d4ed8;
+  --good:#15803d;--good-bg:#dcfce7;--bad:#b91c1c;--bad-bg:#fee2e2;--warn:#b45309;--warn-bg:#fef3c7;--op:#7c3aed;--op-bg:#f3e8ff;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 "Segoe UI",system-ui,-apple-system,sans-serif}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px;padding:10px 20px;background:var(--panel);border-bottom:2px solid var(--line)}
+header h1{margin:0;font-size:22px;font-weight:700}
+header .sub{color:var(--dim);font-size:14px}
+.grow{flex:1 1 300px;min-width:0}
+.mode button{font:600 14px inherit;padding:6px 14px;border:1px solid var(--line);background:#fff;cursor:pointer}
+.mode button:first-child{border-radius:6px 0 0 6px}.mode button:last-child{border-radius:0 6px 6px 0}
+.mode button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.clock{font:600 15px var(--mono);color:var(--dim);text-align:right}
+.clock b{color:var(--text)}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:8px 20px;background:#eef1f5;border-bottom:1px solid var(--line)}
+.controls button{font:600 15px inherit;min-width:42px;padding:6px 10px;border:1px solid #b9c0ca;border-radius:6px;background:#fff;cursor:pointer}
+.controls button:disabled{opacity:.4;cursor:default}
+.controls label,.controls select{font-size:14px}
+select{font:14px inherit;padding:4px 6px;border:1px solid #b9c0ca;border-radius:6px;background:#fff;max-width:260px}
+#strip{flex:1 1 400px;display:flex;align-items:stretch;height:26px;min-width:200px;cursor:pointer;border:1px solid #b9c0ca;border-radius:4px;overflow:hidden;background:#fff}
+#strip span{flex:1 1 0;min-width:1px;border-right:1px solid #fff}
+#strip span.cur{outline:3px solid var(--text);outline-offset:-3px;z-index:1}
+#strip .good{background:#86efac}#strip .bad{background:#fca5a5}#strip .warn{background:#fcd34d}#strip .op{background:#c4b5fd}#strip .info{background:#cbd5e1}
+#strip .past{opacity:1}#strip .future{opacity:.3}
+#now{padding:10px 20px;background:var(--panel);border-bottom:1px solid var(--line);min-height:76px}
+#now .who{font:600 13px inherit;text-transform:uppercase;letter-spacing:.06em;color:var(--dim)}
+#now .what{font-size:22px;font-weight:650;margin:2px 0}
+#now .detail{color:var(--dim);font-size:15px;max-height:3.2em;overflow:auto}
+#now.good .what{color:var(--good)}#now.bad .what{color:var(--bad)}#now.warn .what{color:var(--warn)}#now.op .what{color:var(--op)}
+#error{color:var(--bad);font:13px var(--mono)}
+main{display:grid;grid-template-columns:minmax(300px,0.95fr) minmax(380px,1.35fr) minmax(320px,1fr);gap:14px;padding:14px 20px}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-width:0}
+h2{margin:0 0 8px;font-size:14px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.08em}
+h2 .n{color:var(--accent);margin-right:6px}
+h3{margin:10px 0 4px;font-size:15px}
+.empty{color:var(--dim);font-style:italic}
+.small{font-size:13px;color:var(--dim)}
+.mono{font-family:var(--mono);font-size:13px}
+/* graph */
+#graph{position:relative}
+#graph svg{position:absolute;left:0;top:0;pointer-events:none}
+.node{position:absolute;border:2px solid #9ca3af;border-radius:8px;padding:4px 8px;background:#f3f4f6;cursor:pointer;overflow:hidden}
+.node .nm{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.node .st{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.node.sel{box-shadow:0 0 0 3px var(--text)}
+.node.changed{animation:flash 1.4s}
+@keyframes flash{0%{box-shadow:0 0 0 6px #facc15}100%{box-shadow:0 0 0 0 transparent}}
+.s-waiting{background:#f3f4f6;border-color:#9ca3af;color:#4b5563}
+.s-ready{background:#dbeafe;border-color:#2563eb}
+.s-held,.s-operator_hold{background:var(--warn-bg);border-color:#d97706}
+.s-working{background:#e0e7ff;border-color:#4f46e5}
+.s-running{background:#c7d2fe;border-color:#3730a3;border-width:3px}
+.s-checking{background:#ede9fe;border-color:#7c3aed}
+.s-fixing{background:#ffedd5;border-color:#ea580c}
+.s-halted,.s-failed{background:var(--bad-bg);border-color:#dc2626}
+.s-done{background:var(--good-bg);border-color:#16a34a}
+.s-retired,.s-superseded{background:#f9fafb;border-style:dashed;color:#6b7280}.s-retired .nm{text-decoration:line-through}
+.s-planned{background:#fff;border-style:dashed;border-color:#2563eb;color:#1e3a8a}
+.s-removed{background:#f3f4f6;border-style:dashed;color:#6b7280}.s-removed .nm{text-decoration:line-through}
+.node.dropped{border-style:dashed;opacity:.75}
+#runstate{padding:8px 20px;font-size:18px;font-weight:650;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+#runstate .tag{font-size:13px}
+.rs-paused,.rs-halted{background:var(--bad-bg);color:var(--bad)}.rs-step{background:var(--warn-bg);color:var(--warn)}
+.rs-job{background:#e0e7ff;color:#3730a3}.rs-working,.rs-idle{background:#eef2ff;color:#1e3a8a}.rs-finished{background:var(--good-bg);color:var(--good)}
+.cmd{display:flex;gap:6px;align-items:center;margin:3px 0}.cmd code{flex:1;font:12.5px var(--mono);background:#f3f4f6;padding:3px 6px;border-radius:4px;overflow-wrap:anywhere}
+.cmd button{font:12px inherit;padding:2px 8px;border:1px solid #b9c0ca;border-radius:5px;background:#fff;cursor:pointer}
+.cmd button.run{background:var(--warn-bg);border-color:#d97706;font-weight:700}
+.adv{background:#f1f5f9;border:1px dashed #94a3b8;border-radius:6px;padding:4px 8px;margin-top:4px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 6px;margin-top:8px}
+.legend span{font-size:12px;padding:1px 6px;border:1.5px solid;border-radius:5px}
+/* contract */
+.objective{font-size:15px;margin:2px 0 8px}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cmp>div{border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+.cmp h4{margin:0 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim)}
+.row{margin:4px 0 8px}
+.row .k{font-size:12.5px;font-weight:600;color:var(--dim)}
+ul{margin:2px 0;padding-left:18px}li{margin:2px 0;font-size:14px}
+.add{background:var(--good-bg);border-left:3px solid var(--good);padding:1px 4px;list-style:none;margin-left:-18px}
+.add::before{content:"+ added ";font-weight:700;color:var(--good);font-size:12px}
+.fill{background:var(--good-bg);border-radius:4px;padding:1px 5px}
+.open{background:var(--warn-bg);border-radius:4px;padding:1px 5px}
+.chg{background:var(--good-bg);font-weight:700;border-radius:4px;padding:0 4px}
+.tag{display:inline-block;font-size:12.5px;padding:1px 7px;margin:1px 3px 1px 0;border-radius:10px;background:#eef2ff;border:1px solid #c7d2fe}
+.tag.on{background:var(--good-bg);border-color:#86efac;font-weight:600}
+.card{border-radius:8px;padding:6px 10px;margin:6px 0;border:1px solid var(--line)}
+.card.bad{background:var(--bad-bg);border-color:#fca5a5}.card.good{background:var(--good-bg);border-color:#86efac}
+.card.warn{background:var(--warn-bg);border-color:#fcd34d}.card.op{background:var(--op-bg);border-color:#d8b4fe}
+.card .h{font-weight:650;font-size:14px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 6px}
+.tabs button{font:13px inherit;padding:3px 9px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer}
+.tabs button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+details summary{cursor:pointer;font-size:13px;color:var(--accent)}
+/* tables */
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-size:12px;color:var(--dim);font-weight:600;border-bottom:1px solid var(--line);padding:3px 4px}
+td{padding:4px;border-bottom:1px solid #eef0f3;vertical-align:top}
+tr.live td{background:#e0e7ff}
+.ok{color:var(--good);font-weight:700}.no{color:var(--bad);font-weight:700}.wait{color:var(--warn);font-weight:700}
+.chips{display:inline-flex;gap:3px;flex-wrap:wrap}
+.chip{display:inline-block;min-width:22px;text-align:center;font-size:12.5px;font-weight:700;padding:0 5px;border-radius:4px}
+.chip.p{background:var(--good-bg);color:var(--good)}.chip.f{background:var(--bad-bg);color:var(--bad)}.chip.r{background:#ede9fe;color:#6d28d9}.chip.n{background:#f3f4f6;color:#6b7280}
+.bar{height:9px;background:var(--accent);border-radius:4px;min-width:2px}
+.ops{max-height:340px;overflow:auto}
+.ops .card{cursor:pointer}
+.scroll{max-height:420px;overflow:auto}
+@media(max-width:1100px){main{grid-template-columns:1fr}}
+</style>
+<header>
+  <div class="grow"><h1>Factory demo board</h1><div class="sub" id="objective">Loading the run…</div></div>
+  <div class="mode" role="group" aria-label="Mode"><button id="mReplay" class="on">Replay</button><button id="mLive">Live</button></div>
+  <div class="clock"><div><b id="clock">--:--</b> run host time</div><div id="elapsed"></div></div>
+  <div id="error"></div>
+</header>
+<div class="controls" id="controls">
+  <button id="bFirst" title="First event (Home)">⏮</button>
+  <button id="bPrev" title="Previous event (←)">◀</button>
+  <button id="bPlay" title="Play / pause (space)">▶ Play</button>
+  <button id="bNext" title="Next event (→)">▶</button>
+  <button id="bLast" title="Last event (End)">⏭</button>
+  <label>Speed <select id="speed"><option value="3500">slow</option><option value="2000" selected>normal</option><option value="900">fast</option><option value="350">very fast</option></select></label>
+  <label>Jump to step <select id="jump"><option value="">choose…</option></select></label>
+  <label><input type="checkbox" id="every"> every agent step</label>
+  <label><input type="checkbox" id="follow" checked> follow the run</label>
+  <span class="small" id="pos"></span>
+  <div id="strip" title="Click to jump"></div>
+</div>
+<div id="runstate"></div>
+<div id="now"><div class="who"></div><div class="what"></div><div class="detail"></div></div>
+<main>
+  <div class="col">
+    <section><h2><span class="n">1</span>Task graph</h2><div id="graph"></div><div class="legend" id="legend"></div></section>
+    <section><h2><span class="n">6</span>Operator actions</h2><div class="ops" id="ops"></div></section>
+  </div>
+  <div class="col">
+    <section><h2><span class="n">2</span>Selected step: contract, planned vs final</h2><div id="contract"></div></section>
+    <section><h2><span class="n">4</span>Checks</h2><div id="checks"></div></section>
+  </div>
+  <div class="col">
+    <section><h2><span class="n">3</span>Capsules (CCs) in action</h2><div id="ccs"></div></section>
+    <section><h2><span class="n">5</span>Gate and delivery</h2><div id="gate"></div></section>
+  </div>
+</main>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const put = (el, ...kids) => el.replaceChildren(...kids.filter(k => k != null && k !== false));
+const params = new URLSearchParams(location.search);
+let B = null, pos = 0, selected = null, finalPick = null, timer = null, live = params.get('mode') === 'live', lastStates = {};
+
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') e.className = v; else if (k === 'style') e.style.cssText = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v);
+  }
+  for (const k of kids.flat()) if (k != null && k !== false) e.append(k instanceof Node ? k : String(k));
+  return e;
+}
+const bytes = n => { if (typeof n !== 'number') return null; for (const [u, s] of [['TB', 1e12], ['GB', 1e9], ['MB', 1e6], ['KB', 1e3]]) if (Math.abs(n) >= s) { const v = n / s; return (v < 100 || u === 'GB' ? v.toFixed(1) : v.toFixed(0)) + ' ' + u; } return n + ' B'; };
+const dur = s => { if (typeof s !== 'number') return null; s = Math.max(0, s); if (s < 90) return Math.round(s) + ' s'; const m = Math.round(s / 60); return m < 90 ? m + ' min' : Math.floor(m / 60) + ' h ' + String(m % 60).padStart(2, '0') + ' min'; };
+const clock = t => new Date((t + (B.clock_offset_s || 0)) * 1000).toISOString().slice(11, 16);
+const since = t => '+' + (dur(t - B.started) || '0 s');
+const cur = () => B.events[pos] || {t: B.started, states: {}};
+const T = () => cur().t;
+const states = () => cur().states || {};
+const label = s => (B.state_labels || {})[s] || s;
+const GLYPH = {planned: '◌', removed: '✂', waiting: '○', ready: '◔', held: '⏸', operator_hold: '⏸', working: '✎', running: '▶', checking: '🔍', fixing: '⚠', halted: '⛔', done: '✓', failed: '✗', retired: '—', superseded: '↪'};
+const nodeOf = id => B.nodes.find(n => n.node_id === id);
+const upto = list => (list || []).filter(x => (x.t ?? x.t_start ?? 0) <= T() + 1e-6);
+
+async function load() {
+  const task = params.get('task') || '';
+  const r = await fetch('/api/board' + (task ? '?task=' + encodeURIComponent(task) : ''));
+  const body = await r.json();
+  if (!r.ok) throw Error(body.error || 'board unavailable');
+  return body;
+}
+
+function visible(i) { const e = B.events[i]; return e && (e.key || $('every').checked); }
+function step(d) { let i = pos + d; while (i >= 0 && i < B.events.length && !visible(i)) i += d; if (i >= 0 && i < B.events.length) go(i); else if (d > 0) stop(); }
+function go(i) {
+  pos = Math.max(0, Math.min(B.events.length - 1, i));
+  const e = cur();
+  if ($('follow').checked && e.node) { if (selected !== e.node) finalPick = null; selected = e.node; }
+  render();
+}
+function play() { if (timer) return stop(); $('bPlay').textContent = '⏸ Pause'; if (pos >= B.events.length - 1) go(0); timer = setInterval(() => step(1), +$('speed').value); }
+function stop() { clearInterval(timer); timer = null; $('bPlay').textContent = '▶ Play'; }
+$('bFirst').onclick = () => { stop(); go(0); };
+$('bLast').onclick = () => { stop(); go(B.events.length - 1); };
+$('bPrev').onclick = () => { stop(); step(-1); };
+$('bNext').onclick = () => { stop(); step(1); };
+$('bPlay').onclick = play;
+$('speed').onchange = () => { if (timer) { stop(); play(); } };
+$('every').onchange = () => render();
+$('jump').onchange = () => {
+  const id = $('jump').value; if (!id) return; stop();
+  const i = B.events.findIndex(e => e.node === id && e.key);
+  selected = id; finalPick = null; $('follow').checked = false; $('jump').value = '';
+  if (i >= 0) go(i); else render();
+};
+document.addEventListener('keydown', e => {
+  if (live || e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
+  if (e.key === 'ArrowRight') { stop(); step(1); } else if (e.key === 'ArrowLeft') { stop(); step(-1); }
+  else if (e.key === ' ') { e.preventDefault(); play(); } else if (e.key === 'Home') { stop(); go(0); } else if (e.key === 'End') { stop(); go(B.events.length - 1); }
+});
+function setMode(isLive) {
+  live = isLive; stop();
+  $('mLive').classList.toggle('on', live); $('mReplay').classList.toggle('on', !live);
+  for (const id of ['bFirst', 'bPrev', 'bPlay', 'bNext', 'bLast']) $(id).disabled = live;
+  if (live) { pos = B.events.length - 1; render(); }
+}
+$('mLive').onclick = () => setMode(true);
+$('mReplay').onclick = () => setMode(false);
+
+// ---- header, strip, now -------------------------------------------------------------------------------
+function renderTop() {
+  const e = cur();
+  $('objective').textContent = `${B.task.task_id} · graph rev ${(e.graph_rev != null ? e.graph_rev : '') || B.events.slice(0, pos + 1).reduce((r, x) => x.graph_rev != null ? x.graph_rev : r, 0)} of ${B.graph_rev}` +
+    ` · ${B.turns || 0} agent turns` + (B.contract ? ` · contract now: ${B.contract.label}${B.contract.title ? ' — ' + B.contract.title : ''}` : '');
+  $('objective').title = B.task.objective || '';
+  $('clock').textContent = clock(e.t);
+  $('elapsed').textContent = `${since(e.t)} since the plan · ${live ? 'live' : 'replay'}`;
+  const vis = B.events.map((_, i) => i).filter(visible);
+  $('pos').textContent = `event ${vis.indexOf(pos) + 1 > 0 ? vis.indexOf(pos) + 1 : '·'} of ${vis.length}`;
+  put($('strip'), ...vis.map(i => {
+    const x = B.events[i];
+    return h('span', {class: `${x.tone} ${i <= pos ? 'past' : 'future'}${i === pos ? ' cur' : ''}`, title: `${clock(x.t)} ${x.title}`, onclick: () => { stop(); go(i); }});
+  }));
+  const rs = e.run || {state: 'idle', text: ''}, banner = $('runstate'), extra = [];
+  let text = rs.text;
+  if (rs.since) text += ` · for ${dur(e.t - rs.since)}`;
+  if (live) {
+    const files = (B.run_files || {}).files || {}, ctl = (B.run_files || {}).controller || {};
+    for (const name of ['PAUSE.md', 'HALT.md', 'STEP.md']) if (files[name]) extra.push(h('span', {class: 'tag', title: files[name].text}, `${name} present`));
+    if (ctl.tick) extra.push(h('span', {class: 'tag'}, `controller last active ${dur(Date.now() / 1000 - ctl.tick)} ago`));
+    if (ctl.stop_reason) extra.push(h('span', {class: 'tag', title: ctl.stop_reason}, 'last stop: ' + ctl.stop_reason.slice(0, 90)));
+  }
+  const RSL = {paused: '⏸ PAUSED', halted: '⛔ HALTED', step: '⏸ STEP CHECKPOINT', job: '⏳ WAITING ON A JOB', working: '✎ WORKING', idle: '· IDLE', finished: '✓ FINISHED'};
+  banner.className = 'rs-' + rs.state;
+  put(banner, h('span', {}, RSL[rs.state] || rs.state), h('span', {style: 'font-weight:500'}, text), ...extra);
+  const now = $('now'); now.className = e.tone || '';
+  now.children[0].textContent = `${e.who || ''}${e.node ? ' · ' + e.node : ''} · ${clock(e.t)} (${since(e.t)})`;
+  now.children[1].textContent = e.title || '';
+  now.children[2].textContent = e.detail || '';
+}
+
+// ---- panel 1: graph -----------------------------------------------------------------------------------
+function layout() {
+  const layer = {}, byId = Object.fromEntries(B.nodes.map(n => [n.node_id, n]));
+  const depth = id => { if (layer[id] != null) return layer[id]; layer[id] = 0; const d = (byId[id].depends_on || []).filter(x => byId[x]); layer[id] = d.length ? 1 + Math.max(...d.map(depth)) : 0; return layer[id]; };
+  B.nodes.forEach(n => depth(n.node_id));
+  const rows = [];
+  B.nodes.forEach(n => (rows[layer[n.node_id]] = rows[layer[n.node_id]] || []).push(n.node_id));
+  return rows.filter(Boolean);
+}
+function renderGraph() {
+  const box = $('graph'), W = box.clientWidth || 360, rows = layout(), RH = 50, GAP = 16, st = states();
+  const place = {};
+  rows.forEach((row, r) => { const w = (W - (row.length - 1) * 8) / row.length; row.forEach((id, c) => place[id] = {x: c * (w + 8), y: r * (RH + GAP), w, h: RH}); });
+  const H = rows.length * (RH + GAP);
+  box.style.height = H + 'px';
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', W); svg.setAttribute('height', H);
+  const defs = document.createElementNS(svg.namespaceURI, 'defs'), mk = document.createElementNS(svg.namespaceURI, 'marker');
+  mk.setAttribute('id', 'arr'); mk.setAttribute('viewBox', '0 0 8 8'); mk.setAttribute('refX', 7); mk.setAttribute('refY', 4); mk.setAttribute('markerWidth', 7); mk.setAttribute('markerHeight', 7); mk.setAttribute('orient', 'auto');
+  const tip = document.createElementNS(svg.namespaceURI, 'path'); tip.setAttribute('d', 'M0,0 L8,4 L0,8 z'); tip.setAttribute('fill', '#94a3b8'); mk.append(tip); defs.append(mk); svg.append(defs);
+  for (const n of B.nodes) for (const d of n.depends_on || []) {
+    const a = place[d], b = place[n.node_id]; if (!a || !b) continue;
+    const p = document.createElementNS(svg.namespaceURI, 'path'), x1 = a.x + a.w / 2, y1 = a.y + a.h, x2 = b.x + b.w / 2, y2 = b.y - 2;
+    p.setAttribute('d', `M${x1},${y1} C${x1},${y1 + 24} ${x2},${y2 - 24} ${x2},${y2}`);
+    p.setAttribute('fill', 'none'); p.setAttribute('stroke', st[d] === 'done' ? '#16a34a' : '#94a3b8'); p.setAttribute('stroke-width', 1.6); p.setAttribute('marker-end', 'url(#arr)');
+    svg.append(p);
+  }
+  const kids = [svg];
+  for (const n of B.nodes) {
+    const p = place[n.node_id], s = st[n.node_id] || 'waiting';
+    kids.push(h('div', {class: `node s-${s}${n.dropped && !['retired', 'removed', 'done'].includes(s) ? ' dropped' : ''}${selected === n.node_id ? ' sel' : ''}${lastStates[n.node_id] && lastStates[n.node_id] !== s ? ' changed' : ''}`,
+      style: `left:${p.x}px;top:${p.y}px;width:${p.w}px;height:${p.h}px`, title: `${n.node_id}: ${n.title}`,
+      onclick: () => { selected = n.node_id; finalPick = null; $('follow').checked = false; render(); }},
+      h('div', {class: 'nm'}, n.node_id), h('div', {class: 'st'}, `${GLYPH[s] || ''} ${label(s)}${n.dropped && !['retired', 'removed', 'done'].includes(s) ? ' · dropped by the new revision' : ''}`)));
+  }
+  put(box, ...kids);
+  lastStates = st;
+  put($('legend'), ...['waiting', 'ready', 'held', 'working', 'running', 'checking', 'fixing', 'halted', 'done', 'retired', 'removed', 'planned']
+    .map(s => h('span', {class: 's-' + s}, `${GLYPH[s]} ${label(s)}`)));
+}
+
+// ---- panel 2: contract --------------------------------------------------------------------------------
+const fmtValue = v => v == null ? '—' : typeof v === 'object' ? JSON.stringify(v) : String(v);
+function outputsBlock(view, other, isFinal) {
+  return (view.outputs || []).map(o => {
+    const before = ((other && other.outputs) || []).find(x => x.name === o.name) || {};
+    const crit = o.criteria.map(c => h('li', {class: isFinal && before.criteria && !before.criteria.includes(c) ? 'add' : null}, c));
+    const inputs = Object.entries(o.verifier_inputs || {}).map(([k, v]) => {
+      const rule = ((isFinal ? null : view.bounds) || {})['verifiers.' + o.name + '.inputs.' + k];
+      const changed = isFinal && before.verifier_inputs && JSON.stringify(before.verifier_inputs[k]) !== JSON.stringify(v);
+      return h('div', {class: 'mono'}, `${k} = `, h('span', {class: changed ? 'chg' : null}, fmtValue(v)),
+        rule ? h('span', {class: 'small'}, `  (may only ${rule === 'lower' ? 'go down' : rule === 'higher' ? 'go up' : 'narrow'})`) : null);
+    });
+    return h('div', {class: 'row'}, h('div', {class: 'k'}, `Output “${o.name}” (${o.kind})` + (o.verifier ? ` · checked by ${o.verifier}` : '') +
+      (o.review === 'advisory' ? ' · reviewer advisory' : o.review ? ' · plus independent reviewer' : '')), h('ul', {}, crit), inputs);
+  });
+}
+function renderContract() {
+  const n = nodeOf(selected), box = $('contract');
+  if (!n) return put(box, h('div', {class: 'empty'}, 'Click a step in the task graph.'));
+  const finals = upto(n.finals), refusals = upto(n.refusals);
+  const pick = finalPick != null && finals[finalPick] ? finals[finalPick] : finals[finals.length - 1];
+  const prelim = (pick && pick.preliminary) || n.preliminary;
+  const out = [h('h3', {}, n.node_id + ' — ' + (n.planned ? 'planned step' : n.title))];
+  if (prelim && prelim.objective && prelim.objective !== n.title) out.push(h('div', {class: 'objective'}, prelim.objective));
+  const s = states()[n.node_id];
+  if (n.planned && s === 'planned') out.push(h('div', {class: 'card warn'}, `Planned by ${(B.contract || {}).label || 'the new contract revision'}; an operator revise adds it to the live graph.`));
+  if (n.dropped && !['retired', 'removed', 'done'].includes(s)) out.push(h('div', {class: 'card warn'}, 'Dropped: ' + n.dropped));
+  if (s === 'removed' || s === 'retired') { const ev = B.events.slice(0, pos + 1).reverse().find(x => (x.kind === 'revise' && (x.changes || []).some(c => c.node === n.node_id)) || (x.kind === 'retire' && x.node === n.node_id));
+    out.push(h('div', {class: 'card'}, `${label(s)}${ev ? ' at ' + clock(ev.t) : ''}: ${ev ? ((ev.changes || []).find(c => c.node === n.node_id) || {}).reason || ev.detail : ''}`)); }
+  const br = prelim && prelim.briefing;
+  if (br) out.push(h('details', {open: true}, h('summary', {}, 'What the planner told the scheduler (briefing)'),
+    br.summary ? h('div', {}, br.summary) : null,
+    ...[['facts', 'Facts'], ['pitfalls', 'Pitfalls'], ['how_to_fill', 'How to fill the slots']].filter(([k]) => (br[k] || []).length)
+      .map(([k, t]) => h('div', {class: 'row'}, h('div', {class: 'k'}, t), h('ul', {}, br[k].map(x => h('li', {}, typeof x === 'string' ? x : JSON.stringify(x))))))));
+  const sessions = upto(n.briefs);
+  if (sessions.length) out.push(h('details', {}, h('summary', {}, `What the scheduler agent read and proposed (${sessions.length} session${sessions.length > 1 ? 's' : ''})`),
+    ...sessions.map(se => {
+      const b = se.briefs[se.briefs.length - 1];
+      return h('div', {class: 'card'}, h('div', {class: 'h'}, `${clock(se.t)} · ${se.model || 'scheduler'} · try ${se.attempt || '?'} · read ${se.briefs.length} brief${se.briefs.length === 1 ? '' : 's'}` + (b ? ` (${bytes(b.bytes)})` : '')),
+        b ? h('div', {class: 'small'}, 'Brief sections: ' + b.sections.map(x => `${x.label} ${bytes(x.bytes)}`).join(' · ')) : null,
+        se.proposals.length ? h('div', {}, 'Proposals: ', se.proposals.map(p => h('span', {class: p.admitted ? 'ok' : 'no'}, p.admitted ? ' admitted ✓ ' : ' refused ✗ ' + (p.problems || []).join('; ')))) : h('div', {class: 'small'}, 'No proposal in this session.'),
+        se.said ? h('div', {class: 'small'}, '“' + se.said + '”') : null);
+    })));
+  if (finals.length > 1) out.push(h('div', {class: 'tabs'}, finals.map((f, i) => h('button', {class: f === pick ? 'on' : null,
+    onclick: () => { finalPick = i; renderContract(); }}, `final ${i + 1} · ${clock(f.t)}`))));
+  const left = h('div', {}, h('h4', {}, 'Preliminary · by the planner'));
+  const right = h('div', {}, h('h4', {}, pick ? `Final · by the ${pick.by === 'scheduler-agent' ? 'scheduler agent' : pick.by} · ${clock(pick.t)}` : 'Final · not yet'));
+  if (prelim) {
+    left.append(h('div', {class: 'row'}, h('div', {class: 'k'}, 'Capsules it may use'), h('div', {}, (prelim.eligible_ccs || []).map(c => h('span', {class: 'tag'}, c)))));
+    left.append(h('div', {class: 'row'}, h('div', {class: 'k'}, 'Open slots the scheduler must fill'),
+      h('ul', {}, (prelim.slots || []).map(s => h('li', {}, h('span', {class: 'open'}, s.id), ` ${s.from || ''}`)))));
+    left.append(...outputsBlock(prelim, null, false));
+    left.append(h('div', {class: 'small'}, 'Limits: ' + Object.entries(prelim.node_limits || {}).map(([k, v]) => `${k} ${k === 'time_s' ? dur(v) : v}`).join(' · ')));
+    left.append(h('div', {class: 'small'}, 'Source: ' + ((pick && pick.preliminary_source) || n.preliminary_source || '?')));
+  } else left.append(h('div', {class: 'empty'}, 'No preliminary contract found in the records.'));
+  if (pick) {
+    const bound = new Set(pick.bound_ccs.map(b => b.cc));
+    right.append(h('div', {class: 'row'}, h('div', {class: 'k'}, 'Capsules bound'), h('div', {}, pick.bound_ccs.map(b => h('span', {class: 'tag on'}, b.cc + (b.version ? ' ' + b.version : ''))),
+      (prelim && prelim.eligible_ccs || []).filter(c => !bound.has(c)).map(c => h('span', {class: 'tag', title: 'eligible, not bound'}, 'not: ' + c)))));
+    right.append(h('div', {class: 'row'}, h('div', {class: 'k'}, 'Slots filled'), h('ul', {}, pick.slots.map(s =>
+      h('li', {}, h('span', {class: 'fill'}, s.id), ' ', Array.isArray(s.value) ? s.value.join(' · ') : fmtValue(s.value),
+        s.why ? h('div', {class: 'small'}, 'why: ' + s.why) : null)))));
+    right.append(...outputsBlock(pick.contract || {}, prelim, true));
+    right.append(h('div', {class: 'small'}, 'Limits: ' + Object.entries((pick.contract || {}).node_limits || {}).map(([k, v]) => `${k} ${k === 'time_s' ? dur(v) : v}`).join(' · ')));
+    right.append(h('details', {}, h('summary', {}, 'Why (scheduler rationale)'), h('div', {class: 'small'}, pick.rationale)));
+  } else right.append(h('div', {class: 'empty'}, refusals.length ? 'No admitted final yet: the host refused the proposals below.' : 'The scheduler agent finalizes this contract just before the step runs.'));
+  out.push(h('div', {class: 'cmp'}, left, right));
+  if (refusals.length) {
+    out.push(h('h3', {}, `Refused proposals (${refusals.length})`));
+    out.push(...refusals.map(r => h('div', {class: 'card bad'}, h('div', {class: 'h'}, `${clock(r.t)} · refused · ${r.why}`),
+      h('ul', {}, r.problems.map(p => h('li', {}, p))),
+      r.by && r.by !== 'scheduler-agent' ? h('div', {class: 'small'}, `Proposal by ${r.by}: ${r.rationale}`) : null)));
+  }
+  put(box, ...out);
+}
+
+// ---- panel 3: capsules in action -----------------------------------------------------------------------
+function renderCCs() {
+  const t = T(), runs = B.nodes.flatMap(n => n.runs).filter(r => (r.t_start ?? r.t_end) <= t + 1e-6).sort((a, b) => (b.t_start || 0) - (a.t_start || 0));
+  const rows = runs.map(r => {
+    const running = r.t_end == null || r.t_end > t + 1e-6;
+    const result = running ? h('span', {class: 'wait'}, `running ${dur(t - r.t_start)}`) :
+      r.state === 'succeeded' ? h('span', {class: 'ok'}, '✓ ok') : h('span', {class: 'no'}, r.state === 'cancelled' ? '■ cancelled' : '✗ ' + ((r.error || {}).code || r.state));
+    const out = running ? '' : r.bytes ? 'wrote ' + bytes(r.bytes) : r.bytes_read ? 'hashed ' + bytes(r.bytes_read) : r.rows != null ? r.rows + ' replies' : '';
+    return h('tr', {class: running ? 'live' : null}, h('td', {}, h('b', {}, r.what), r.label ? h('div', {class: 'small'}, r.label) : null),
+      h('td', {}, r.node_id), h('td', {}, r.memory_cap ? r.memory_cap.replace('G', ' GiB') : 'no model load'),
+      h('td', {}, running ? '…' : dur(r.seconds)), h('td', {}, out), h('td', {}, result));
+  });
+  const calls = B.calls.filter(c => c.t <= t + 1e-6), by = {};
+  for (const c of calls) { const k = c.capsule || '?'; (by[k] = by[k] || {n: 0, ms: 0, err: 0}); by[k].n++; by[k].ms += c.ms || 0; if (c.outcome !== 'ok') by[k].err++; }
+  const top = Object.entries(by).sort((a, b) => b[1].n - a[1].n), max = Math.max(1, ...top.map(x => x[1].n));
+  put($('ccs'), 
+    h('h3', {}, 'Capped runs (every model load inside a memory cap)'),
+    rows.length ? h('div', {class: 'scroll'}, h('table', {}, h('tr', {}, ['what', 'step', 'memory cap', 'time', 'output', 'result'].map(x => h('th', {}, x))), rows))
+      : h('div', {class: 'empty'}, 'No capped run yet.'),
+    h('h3', {}, `Capsule calls so far: ${calls.length}`),
+    top.length ? h('table', {}, top.slice(0, 9).map(([k, v]) => h('tr', {}, h('td', {class: 'mono'}, k),
+      h('td', {style: 'width:40%'}, h('div', {class: 'bar', style: `width:${100 * v.n / max}%`})),
+      h('td', {}, `${v.n}×`), h('td', {class: 'small'}, v.err ? `${v.err} errors` : '')))) : h('div', {class: 'empty'}, 'No capsule call yet.'),
+    calls.length ? h('div', {class: 'small'}, 'Latest: ' + calls.slice(-4).reverse().map(c => `${c.capability} ${Math.round(c.ms || 0)} ms`).join(' · ')) : null);
+}
+
+// ---- panel 4: checks ----------------------------------------------------------------------------------
+function chipsFor(checks) {
+  return h('span', {class: 'chips'}, checks.map(c => h('span', {class: 'chip ' + (c.state !== 'finished' ? 'r' : c.passed ? 'p' : 'f'),
+    title: `${clock(c.t)} ${c.state !== 'finished' ? 'running' : c.passed ? 'passed' : 'failed: ' + c.reason}`}, c.state !== 'finished' ? '…' : c.passed ? '✓' : '✗')));
+}
+function renderChecks() {
+  const t = T(), all = h('table', {}, h('tr', {}, h('th', {}, 'step · output'), h('th', {}, 'fail → pass history')));
+  for (const n of B.nodes) {
+    const outs = {}; for (const c of upto(n.checks)) (outs[c.output] = outs[c.output] || []).push(c);
+    for (const [o, list] of Object.entries(outs)) all.append(h('tr', {style: 'cursor:pointer', onclick: () => { selected = n.node_id; finalPick = null; $('follow').checked = false; render(); }},
+      h('td', {}, `${n.node_id} · ${o}`), h('td', {}, chipsFor(list.filter(c => c.state === 'finished')))));
+  }
+  const n = nodeOf(selected), detail = [];
+  if (n) {
+    const list = upto(n.checks).filter(c => c.state === 'finished');
+    detail.push(h('h3', {}, `${n.node_id}: ${list.length ? list.length + ' finished check' + (list.length > 1 ? 's' : '') : 'no finished check yet'}`));
+    for (const c of list.slice().reverse()) {
+      const v = c.verifier, r = c.review;
+      detail.push(h('div', {class: 'card ' + (c.passed ? 'good' : 'bad')},
+        h('div', {class: 'h'}, `${clock(c.t)} · ${c.output} · ${c.passed ? 'PASSED' : 'FAILED'}` + (c.seconds ? ` · ${dur(c.seconds)}` : '') + (c.reused ? ' · same work re-counted' : '')),
+        v ? h('div', {}, h('b', {}, 'Capsule verifier: '), `${v.cc}${v.capability ? '.' + v.capability : ''} `, h('span', {class: v.passed ? 'ok' : 'no'}, v.passed ? 'passed' : 'failed'),
+          v.stage ? ` · stage reached: ${v.stage}` : '', v.checks ? ` · ${v.checks} checks` : '', v.failed && v.failed.length ? h('span', {class: 'no'}, ` · failed: ${v.failed.join(', ')}`) : null) : null,
+        r ? h('div', {class: r.advisory ? 'adv' : null}, h('b', {}, r.advisory ? 'Node reviewer (advisory: recorded, does not block): ' : 'Node reviewer (blocking): '),
+          h('span', {class: r.verdict === 'pass' ? 'ok' : r.advisory ? 'wait' : 'no'}, r.verdict || 'no verdict'), ' — ', r.summary,
+          r.blockers.length ? h('ul', {}, r.blockers.map(b => h('li', {class: r.advisory ? null : 'no'}, (r.advisory ? 'finding (advisory): ' : 'blocker: ') + b))) : null,
+          (r.notes || []).length ? h('ul', {}, r.notes.map(b => h('li', {class: 'small'}, 'note: ' + b))) : null) : null,
+        !v && !r ? h('div', {class: 'small'}, c.reason) : null));
+    }
+  }
+  put($('checks'), all.children.length > 1 ? all : h('div', {class: 'empty'}, 'No check has run yet.'), ...detail);
+}
+
+// ---- panel 5: gate and delivery -------------------------------------------------------------------------
+function renderGate() {
+  const st = states(), t = T();
+  const rows = B.nodes.map(n => {
+    const checks = upto(n.checks).filter(c => c.state === 'finished');
+    const outs = (n.gate.length ? n.gate : []).map(g => {
+      const last = checks.filter(c => c.output === g.output).pop();
+      return h('span', {class: 'chip ' + (!last ? 'n' : last.passed ? 'p' : 'f'), title: last ? last.reason : 'not checked yet'}, `${last ? (last.passed ? '✓' : '✗') : '·'} ${g.output}`);
+    });
+    const s = st[n.node_id] || 'waiting';
+    return h('tr', {}, h('td', {}, n.node_id), h('td', {}, h('span', {class: 'chips'}, outs)),
+      h('td', {}, s === 'done' ? h('span', {class: 'ok'}, 'closed ✓') : s === 'retired' || s === 'removed' ? label(s) : s === 'planned' ? 'planned' : h('span', {class: 'small'}, 'open')));
+  });
+  const products = (B.products || []).filter(p => p.t <= t + 1e-6);
+  const gateNode = B.nodes.find(n => n.kind === 'deliver' && !['retired', 'removed'].includes(st[n.node_id])) || B.nodes[B.nodes.length - 1];
+  const last = gateNode, ls = st[last.node_id] || 'waiting', C = B.contract;
+  const arms = C && C.arms && C.arms.length ? [h('h3', {}, `Lab arms (contract ${C.label})`),
+    h('table', {}, C.arms.map(a => h('tr', {}, h('td', {}, h('b', {}, a.id)), h('td', {}, a.role + (a.source ? ` (from ${a.source})` : '')), h('td', {class: 'small'}, a.summary))))] : [];
+  put($('gate'), 
+    h('div', {class: 'small'}, 'A step closes only when every required output has a passing check (capsule verifier and reviewer).'),
+    h('table', {}, h('tr', {}, h('th', {}, 'step'), h('th', {}, 'outputs at the gate'), h('th', {}, 'gate')), rows),
+    h('h3', {}, 'Built so far'),
+    products.length ? h('ul', {}, products.map(p => h('li', {}, h('b', {}, p.what), p.size ? ` · ${p.size}` : '', p.name ? ` · ${p.name}` : '', h('span', {class: 'small'}, ` (${p.node}, ${clock(p.t)})`)))) : h('div', {class: 'empty'}, 'Nothing built yet.'),
+    h('h3', {}, `Delivery: ${last.node_id}`),
+    h('div', {class: 'card ' + (ls === 'done' ? 'good' : 'warn')}, h('div', {class: 'h'}, `${GLYPH[ls] || ''} ${label(ls)}`),
+      h('div', {class: 'small'}, (last.preliminary || {}).objective || last.title),
+      h('ul', {}, ((last.preliminary || {}).outputs || []).flatMap(o => o.criteria).map(c => h('li', {class: 'small'}, c)))),
+    ...arms,
+    B.packs && B.packs.length ? h('div', {class: 'small'}, 'Pack digests in the snapshot: ' + B.packs.map(p => `${p.name.replace(/^Muse-Spark-Open-816B-A42B-/, '')} (${p.files} shards, ${p.size})`).join(' · ')) : null);
+}
+
+// ---- panel 6: operator -------------------------------------------------------------------------------
+const OPK = new Set(['hold', 'release', 'reopen', 'retire', 'excuse', 'note', 'input', 'halt', 'step_hold', 'revise', 'pause', 'resume', 'operator']);
+const quote = a => /^[A-Za-z0-9_.\/:=-]+$/.test(a) ? a : '"' + a.replace(/(["\\$`])/g, '\\$1') + '"';
+function command(argv, action, fields) {
+  const line = argv.map(quote).join(' '), kids = [h('code', {}, line),
+    h('button', {title: 'Copy the command', onclick: () => navigator.clipboard && navigator.clipboard.writeText(line)}, 'copy')];
+  if (B.operator_enabled && action) kids.push(h('button', {class: 'run', onclick: () => operate(action, fields)}, 'run…'));
+  return h('div', {class: 'cmd'}, ...kids);
+}
+async function operate(action, fields) {
+  const request = {action, ...fields};
+  for (const k of ['reason', 'text']) if (k in request && !request[k]) { const v = prompt(`${action}: ${k}?`); if (!v) return; request[k] = v; }
+  if (!confirm(`Run on the factory home:\n\njiuwenswarm-factory ${action} ${B.task.task_id} ${Object.values(request).slice(1).join(' ')}\n\nThis changes the live run.`)) return;
+  try {
+    const r = await fetch('/api/operator?task=' + encodeURIComponent(B.task.task_id), {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Board-Operator': '1'}, body: JSON.stringify(request)});
+    const body = await r.json();
+    alert(r.ok ? `exit ${body.returncode}\n${body.stdout || ''}${body.stderr || ''}` : body.error);
+  } catch (e) { alert(e.message); }
+}
+function renderOps() {
+  const ops = B.events.map((e, i) => [e, i]).filter(([e, i]) => OPK.has(e.kind) && i <= pos).reverse();
+  const C = B.commands || {}, sel = selected && (C.release || {})[selected];
+  const cmds = h('details', {open: live}, h('summary', {}, B.operator_enabled ? 'Operator commands (buttons run them, each confirmed)' : 'Operator commands (copy; the board is read-only)'),
+    C.pause ? command(C.pause, 'pause', {reason: ''}) : null, C.resume ? command(C.resume, 'resume', {reason: ''}) : null,
+    sel ? command(sel, 'release', {node: selected, reason: 'step checkpoint passed'}) : null,
+    C.note ? command(C.note, 'note', {text: ''}) : null, C.revise ? command(C.revise) : null, C.status ? command(C.status) : null);
+  put($('ops'), cmds, ...(ops.length ? ops.map(([e, i]) => h('div', {class: 'card ' + (e.kind === 'halt' || e.kind === 'pause' ? 'bad' : e.kind === 'step_hold' || e.kind === 'reopen' ? 'warn' : 'op'), onclick: () => { stop(); go(i); }},
+    h('div', {class: 'h'}, `${clock(e.t)} · ${e.kind === 'step_hold' ? 'step checkpoint' : e.kind} · ${e.title}`), e.detail ? h('div', {class: 'small'}, e.detail.slice(0, 260) + (e.detail.length > 260 ? '…' : '')) : null))
+    : [h('div', {class: 'empty'}, 'No operator action yet.')]));
+}
+
+function render() {
+  if (!B || !B.events.length) return;
+  for (const f of [renderTop, renderGraph, renderContract, renderCCs, renderChecks, renderGate, renderOps]) {
+    try { f(); } catch (e) { $('error').textContent = `${f.name}: ${e.message}`; console.error(e); }
+  }
+}
+
+async function start() {
+  try {
+    B = await load();
+    $('jump').append(...B.nodes.map(n => h('option', {value: n.node_id}, n.node_id)));
+    selected = B.nodes[0] && B.nodes[0].node_id;
+    if (params.get('node')) { selected = params.get('node'); $('follow').checked = false; }
+    if (live) setMode(true); else go(Math.max(0, Math.min(B.events.length - 1, +(params.get('at') || 0))));
+    window.addEventListener('resize', () => renderGraph());
+  } catch (e) { $('error').textContent = e.message; }
+  setInterval(async () => {
+    if (!live) return;
+    try { B = await load(); pos = B.events.length - 1; const e = cur(); if ($('follow').checked && e.node) selected = e.node; render(); $('error').textContent = ''; }
+    catch (e) { $('error').textContent = e.message; }
+  }, 4000);
+}
+start();
+</script>
+</html>
