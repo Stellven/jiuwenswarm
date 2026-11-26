@@ -159,7 +159,7 @@ def _finding_key(finding):
 
 def project(data):
     """Return per-node counts and timeline. An unrelated or unchanged pass never resolves a finding."""
-    tid = data['tasks'][0]['task_id']
+    tid = data['tasks'][0].get('task_id')
     rows = [r for r in data.get('observations', []) if r.get('task_id', tid) == tid]
     indexed = {r['obs_id']: r for r in rows}
     notes = data.get('_operator_notes', [])
