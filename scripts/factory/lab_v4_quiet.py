@@ -82,7 +82,7 @@ def workload(comm, argv):
 
 
 def processes(proc_root=Path('/proc'), own_pid=None):
-    """Retain PIDs, categories and states only. Raw argv is used transiently for classification."""
+    """Retain process names, PIDs, categories and states. Raw argv is used transiently for classification."""
     own_pid = os.getpid() if own_pid is None else own_pid
     table = {}
     for directory in proc_root.iterdir():
@@ -100,14 +100,14 @@ def processes(proc_root=Path('/proc'), own_pid=None):
         except (FileNotFoundError, ProcessLookupError):
             # It is normal for short-lived processes to exit between enumeration and read.
             continue
-        table[pid] = (int(parent), state, workload(comm, argv if argv != [''] else []))
+        table[pid] = (int(parent), state, workload(comm, argv if argv != [''] else []), comm)
     if own_pid not in table:
         raise ValueError('own process absent from native process snapshot')
     descendants = {own_pid}
     previous = -1
     while previous != len(descendants):
         previous = len(descendants)
-        descendants.update(pid for pid, (parent, _, _) in table.items() if parent in descendants)
+        descendants.update(pid for pid, (parent, _, _, _) in table.items() if parent in descendants)
     # The Codex/shell chain can own this invocation. Its other branches are still foreign.
     ancestors = set()
     parent = table[own_pid][0]
@@ -115,10 +115,10 @@ def processes(proc_root=Path('/proc'), own_pid=None):
         ancestors.add(parent)
         parent = table[parent][0]
     relevant = []
-    for pid, (parent, state, kind) in sorted(table.items()):
+    for pid, (parent, state, kind, comm) in sorted(table.items()):
         own = pid in descendants or pid in ancestors and kind == 'helper'
         if own or kind or state in {'R', 'D'}:
-            relevant.append(dict(pid=pid, ppid=parent, state=state, kind=kind or 'other', own_lab=own))
+            relevant.append(dict(pid=pid, ppid=parent, name=comm, state=state, kind=kind or 'other', own_lab=own))
     return dict(process_count=len(table), processes=relevant)
 
 
