@@ -286,6 +286,10 @@ def test_manifest_hashes_every_shard_without_a_gpu_launch(world):
     assert rc == 0 and obs['outcome'] == 'ok', obs
     assert [r['sha256'] for r in obs['result']['files']] == [hashlib.sha256(f.read_bytes()).hexdigest() for f in shards]
     assert obs['memory_cap'] is None and capped_run.KIND['manifest'] == 'manifest'  # no gate, no gpu_launches
+    manifest = json.loads(Path(obs['result']['manifest']).read_text())
+    assert Path(obs['result']['manifest']).name == 'pack.manifest.json' and manifest['format'] == 'factory.pack-manifest/1'
+    assert [f['sha256'] for f in manifest['files']] == [r['sha256'] for r in obs['result']['files']]
+    assert [f['name'] for f in manifest['files']] == [f.name for f in shards]  # relative to the pack folder
     with pytest.raises(ValueError, match='under FACTORY_HOME/packs'):
         capped_run.validate(world['store'], 'task', 'manifest', dict(pack=str(world['models'] / 'pack-00001-of-00001.gguf')))
     shards[1].unlink()

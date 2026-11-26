@@ -39,9 +39,12 @@ Do not try to work around a closed gate: report it.
   packs/<name>/ and `recipe_out` in your workspace; run verify_recipe on it first. The probe times one layer:
   project the full time from it before you start the full run.
   convert and quantize hash every file they write: the result's `files` lists name, bytes and sha256 per shard
-  (host digests, the pack manifest's per-file sha256).
+  (host digests, the pack manifest's per-file sha256), and write `<stem>.manifest.json` (factory.pack-manifest/1)
+  beside the pack; `result.manifest` is its path. Pass that file as the weight pack compiler's `pack_manifest` so a
+  recipe carries every source sha256 without hashing the pack again.
 - `manifest`: `{pack}`. sha256 of every shard of a pack under FACTORY_HOME/packs (its first shard), for a pack
-  written before host hashing or to re-check one. No model load: no machine gate, no gpu_launches.
+  written before host hashing or to re-check one, and the same `<stem>.manifest.json`. No model load: no machine
+  gate, no gpu_launches.
 - Placement (every server load, serve and accuracy): on the GB10 device memory is system memory and is not
   charged to the cgroup cap, so llama.cpp's --fit would fill all of it (a 529 GB pack loaded without --cpu-moe left
   the host 1.8 GiB). The runner adds `-fitt` so the server stays within the device budget (resources.device_budget_mib,

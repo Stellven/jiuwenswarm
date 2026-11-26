@@ -484,6 +484,21 @@ def _shards(first):
     return [first.with_name(f'{m.group(1)}-{i:05d}-of-{m.group(2)}.gguf') for i in range(1, int(m.group(2)) + 1)]
 
 
+def write_manifest(run, first, rows):
+    """factory.pack-manifest/1 next to the pack (names relative to its folder), from the host's own digests: the
+    file the weight pack compiler takes as pack_manifest so a recipe carries every source sha256."""
+    stem = re.sub(r'-00001-of-\d{5}$', '', first.name.removesuffix('.gguf'))
+    path = first.parent / f'{stem}.manifest.json'
+    doc = dict(format='factory.pack-manifest/1', files=[dict(name=r['name'], bytes=r['bytes'], sha256=r['sha256']) for r in rows],
+               bytes=sum(r['bytes'] for r in rows), written_by='factory.capped_runner (host sha256)',
+               attempt_id=run.attempt['attempt_id'])
+    tmp = path.with_suffix('.json.tmp')
+    tmp.write_text(json.dumps(doc, indent=1), encoding='utf-8')
+    os.replace(tmp, path)
+    run.log('manifest', path)
+    return str(path)
+
+
 def recipe_manifest(run):
     first = Path(run.req['pack'])
     files = _shards(first)
@@ -491,7 +506,7 @@ def recipe_manifest(run):
     if missing:
         raise RunError('SOURCE', f'missing shards: {missing[:5]}')
     rows = _file_rows(run, files)
-    return dict(pack=str(first), files=rows, bytes=sum(r['bytes'] for r in rows))
+    return dict(pack=str(first), files=rows, bytes=sum(r['bytes'] for r in rows), manifest=write_manifest(run, first, rows))
 
 
 def _sha(path):
@@ -582,7 +597,8 @@ def recipe_convert(run):
         raise RunError('CONVERT', f'converter exited {rc}; see convert.log')
     files = sorted(out_dir.glob('*.gguf'))
     return dict(name=r['name'], commit=r['commit'], checkpoint=str(ckpt), out_dir=str(out_dir),
-                first_shard=str(files[0]) if files else None, files=_file_rows(run, files),
+                first_shard=str(files[0]) if files else None, files=(rows := _file_rows(run, files)),
+                manifest=write_manifest(run, files[0], rows) if files else None,
                 bytes=sum(f.stat().st_size for f in files), seconds=round(seconds, 1), free_before=free,
                 timing_lines=[l for l in _tail(run.dir / 'convert.log', 4000) if re.search(r'(?i)projected|timing|per expert', l)][:20])
 
@@ -602,7 +618,8 @@ def recipe_quantize(run):
     files = sorted(output.parent.glob(output.name.removesuffix('.gguf') + '*.gguf'))
     tail = _tail(run.dir / 'quantize.log', 30)
     return dict(name=r['name'], probe=r['probe'], recipe=r['recipe_path'], argv=r['argv'], seconds=round(seconds, 1),
-                first_shard=str(files[0]) if files else None, files=_file_rows(run, files),
+                first_shard=str(files[0]) if files else None, files=(rows := _file_rows(run, files)),
+                manifest=write_manifest(run, files[0], rows) if files else None,
                 bytes=sum(f.stat().st_size for f in files), free_before=free,
                 quantize_time_lines=[l for l in tail if 'time' in l])
 
