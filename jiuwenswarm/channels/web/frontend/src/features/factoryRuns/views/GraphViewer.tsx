@@ -145,7 +145,7 @@ const icons = {
   group: Layers3,
 };
 const nodeWidth = 216;
-const nodeHeight = 70;
+const nodeHeight = 82;
 const fitOptions = { padding: 0.18, maxZoom: 1, minZoom: 0.1 };
 type Phase = 'current' | 'seen' | 'upcoming';
 type FlowNode = Node<
@@ -214,13 +214,13 @@ function GraphCard({ data, selected }: NodeProps<FlowNode>) {
                 {atlasTitle(cc) ?? cc.split('.').pop()}
               </span>
             )}
+            {data.replayOrigin && (
+              <small className="factory-graph-node-replay" title={data.replayOrigin} data-testid="factory-runs-graph-node-replay">
+                Replayed
+              </small>
+            )}
           </span>
           <strong>{node.label}</strong>
-          {data.replayOrigin && (
-            <small className="factory-graph-node-replay" title={data.replayOrigin} data-testid="factory-runs-graph-node-replay">
-              Replayed
-            </small>
-          )}
         </span>
         {(status || check) && (
           <span className="factory-graph-node-state" data-testid="factory-runs-graph-node-status">
@@ -258,7 +258,7 @@ const edgeTypes = { membership: MembershipEdge };
 
 function layout(graph: GraphModel): { placement: GraphPlacement[]; links: GraphLink[] } {
   const positions = new dagre.graphlib.Graph()
-    .setGraph({ rankdir: 'LR', nodesep: 22, ranksep: 112, acyclicer: 'greedy' })
+    .setGraph({ rankdir: 'LR', nodesep: 34, ranksep: 120, acyclicer: 'greedy' })
     .setDefaultEdgeLabel(() => ({}));
   for (const node of graph.nodes) positions.setNode(node.id, { width: nodeWidth, height: nodeHeight });
   for (const link of graph.links) positions.setEdge(link.source, link.target);

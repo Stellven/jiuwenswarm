@@ -63,6 +63,8 @@ const panels = [
 type Panel = (typeof panels)[number];
 // A curated replay tells one story: the stepper, its graph, its files and the report.
 const curatedPanels: readonly Panel[] = ['overview', 'graph', 'artifacts', 'report'];
+// A task-graph run (node contracts, scheduler, capsule checks) has no ontology or iteration records.
+const graphRunPanels: readonly Panel[] = panels.filter((value) => !['iterations', 'ontology', 'tests'].includes(value));
 const storyVersion = (events: StoryEvent[]) => {
   const last = events[events.length - 1];
   return `${events.length}:${last?.id ?? ''}:${last?.summary ?? ''}`;
@@ -286,15 +288,31 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
     const timer = window.setTimeout(() => setPosition((old) => old + 1), 700);
     return () => window.clearTimeout(timer);
   }, [playing, position, events.length]);
+  const checkNames = useMemo(() => {
+    // obs_id node-check:<node>:<output>:<n>:<short id> names the files node-check-<id>-diff|review-*
+    const names = new Map<string, string>();
+    for (const row of detail?.records.observations ?? []) {
+      const id = typeof row.obs_id === 'string' ? row.obs_id : '';
+      const match = /^node-check:([^:]+):([^:]+):(\d+):([0-9a-f]{6,})$/.exec(id);
+      if (match) names.set(match[4], `${match[1].replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase())} · ${match[2].replace(/_/g, ' ')} · check ${match[3]}`);
+    }
+    return names;
+  }, [detail]);
   const matchingFiles = useMemo(() => {
-    const files = detail?.files ?? [];
+    const files = (detail?.files ?? []).map((item) => {
+      const match = /^node-check-([0-9a-f]+)-(diff|review-packet|review-reply)/.exec(item.display_path || '');
+      if (!match) return item;
+      const name = [...checkNames].find(([short]) => match[1].startsWith(short))?.[1];
+      const what = match[2] === 'diff' ? 'code diff' : match[2] === 'review-packet' ? 'review packet' : 'reviewer reply';
+      return name ? { ...item, display_path: `${name} · ${what} · ${item.display_path}` } : item;
+    });
     return files.filter((item) => {
       if (panel === 'artifacts') return true;
       const kind = evidenceKind(item.path, item.display_path);
       if ((panel === 'diffs' && kind === 'diff') || (panel === 'terminal' && kind === 'log')) return true;
       return [item.path, item.display_path || ''].some((name) => patterns[panel]?.test(name));
     });
-  }, [detail, panel]);
+  }, [detail, panel, checkNames]);
   const defaultFile =
     matchingFiles.find((item) => {
       const name = item.display_path || item.path;
@@ -529,7 +547,14 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                   {t(detail.run.kind === 'bundle' ? 'factoryRuns.story.bundle' : 'factoryRuns.story.factoryHome')}
                 </p>
                 <h2 data-testid="factory-runs-run-title">{detail.run.name}</h2>
-                <CapsuleChips value={[detail.stack, records.tasks?.map(({ component_cc, capability_cc }) => [component_cc, capability_cc])]} />
+                {typeof detail.contract.title === 'string' && detail.cc_overview && (
+                  <p className="factory-detail-subtitle" data-testid="factory-runs-run-subtitle">{detail.contract.title}</p>
+                )}
+                <CapsuleChips
+                  value={detail.cc_overview
+                    ? [...new Set(Object.values(detail.cc_overview).flat().map((cc) => cc.id))]
+                    : [detail.stack, records.tasks?.map(({ component_cc, capability_cc }) => [component_cc, capability_cc])]}
+                />
               </div>
               {isLiveHome && (
                 <label className="factory-live">
@@ -629,7 +654,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
               </p>
             </section>
             <nav className="factory-tabs" data-testid="factory-runs-tabs" aria-label={t('factoryRuns.panels')}>
-              {(detail.curated ? curatedPanels : panels).map((value) => (
+              {(detail.curated ? curatedPanels : detail.cc_overview ? graphRunPanels : panels).map((value) => (
                 <button
                   key={value}
                   data-testid="factory-runs-panel-tab"
@@ -642,7 +667,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
               ))}
             </nav>
             <section className="factory-evidence" data-testid="factory-runs-evidence">
-              {(!detail.curated || detail.curated.native) && ['overview', 'graph', 'contract', 'capsules'].includes(panel) && (
+              {(!detail.curated || detail.curated.native) && ['contract', 'capsules'].includes(panel) && (
                 <CapsuleOverviewStrip
                   nodes={detail.cc_overview}
                   labels={nodeLabels}
@@ -665,6 +690,16 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                   onSeek={seek}
                   onOpenFile={openEvidenceFile}
                   nodeEvidence={nodeEvidence}
+                />
+              )}
+              {panel === 'overview' && (!detail.curated || detail.curated.native) && (
+                <CapsuleOverviewStrip
+                  nodes={detail.cc_overview}
+                  labels={nodeLabels}
+                  replayByNode={replayByNode}
+                  corrections={detail.correction_overview}
+                  selected={focusedNode}
+                  onSelect={(id) => setSelectedNode((old) => old === id ? undefined : id)}
                 />
               )}
               {panel === 'iterations' && (
@@ -718,8 +753,15 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                   initialMode="readable"
                 />
               )}
-              {panel === 'capsules' && !focusedNode && (
+              {panel === 'capsules' && !focusedNode && !detail.cc_overview && (
                 <DataViewer key={selected} name={t('factoryRuns.capsules')} value={detail.stack} />
+              )}
+              {['capsules', 'contract'].includes(panel) && !focusedNode && detail.cc_overview && (
+                <p className="factory-pick-node" data-testid="factory-runs-pick-node">
+                  {panel === 'capsules'
+                    ? 'Pick a node above to see each capsule it used: what the capsule gave the worker, the diff, pack, plan or image it produced, and its checks.'
+                    : 'Pick a node above to compare its preliminary and final node contract, the planner briefing and the scheduler rationale.'}
+                </p>
               )}
               {panel === 'tests' && (
                 <DataViewer

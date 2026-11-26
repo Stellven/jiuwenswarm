@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ArrowUpRight, CheckCircle2, CircleDot, FileText, GitBranch, Layers3 } from 'lucide-react';
+import { ArrowUpRight, CheckCircle2, CircleDot, FileText, GitBranch, Layers3, PackageCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { EvidenceFile, JsonRecord, RunDetail, StoryEvent } from './api';
 import { atlasTitle } from './cc/atlasNames.ts';
@@ -242,7 +242,11 @@ export function RunOverview({
           {star ? t('factoryRuns.story.starTitle') : t('factoryRuns.story.runQuestion')}
         </h3>
         {star && <p className="factory-story-question">{t('factoryRuns.story.starQuestion')}</p>}
-        {!star && <p className="factory-story-question">{scope || objective || t('factoryRuns.story.noObjective')}</p>}
+        {!star && (
+          <p className="factory-story-question" data-long={(scope || objective || '').length > 320 ? 'true' : undefined}>
+            {scope || objective || t('factoryRuns.story.noObjective')}
+          </p>
+        )}
         {star && objective && (
           <p className="factory-story-context" data-testid="factory-runs-overview-run-objective">
             {objective}
@@ -261,6 +265,7 @@ export function RunOverview({
         )}
       </header>
       {headline}
+      <RunBuilds detail={detail} events={events} />
       <div className="factory-story-overview-grid">
         <section className="factory-story-card" data-testid="factory-runs-overview-progress">
           <div className="factory-story-card-title">
@@ -319,7 +324,7 @@ export function RunOverview({
         </section>
       </div>
       {measurements}
-      {candidates.length > 0 && (
+      {candidates.length > 0 && !detail.cc_overview && (
         <section className="factory-story-card factory-story-capsules" data-testid="factory-runs-overview-capsules">
           <div className="factory-story-section-heading">
             <div className="factory-story-card-title">
@@ -407,5 +412,87 @@ export function RunOverview({
         </details>
       )}
     </div>
+  );
+}
+
+// The capsules this week's demo is about; every other bound capsule is listed with them.
+const FEATURED: Record<string, string> = {
+  'weights.build_weight_pack_compiler': 'Quantization',
+  'engine.size_prefill_batch': 'Prefill batch',
+};
+
+function RunBuilds({ detail, events }: { detail: RunDetail; events: StoryEvent[] }) {
+  const overview = detail.cc_overview;
+  if (!overview) return null;
+  const capsules = new Map<string, { title: string; kind: string; nodes: string[]; passed: boolean }>();
+  for (const [node, rows] of Object.entries(overview)) {
+    for (const cc of rows) {
+      const row = capsules.get(cc.id) ?? { title: text(cc.title) || atlasTitle(cc.id) || cc.id, kind: text(cc.kind), nodes: [], passed: false };
+      row.nodes.push(node.replace(/_/g, ' '));
+      row.passed = row.passed || cc.verdict === 'passed';
+      capsules.set(cc.id, row);
+    }
+  }
+  const counts = Object.values(detail.correction_overview ?? {}).reduce(
+    (sum, c) => ({ findings: sum.findings + c.findings, notes: sum.notes + c.notes, repairs: sum.repairs + c.repairs }),
+    { findings: 0, notes: 0, repairs: 0 },
+  );
+  const checksPassed = Object.values(overview).flat().filter((cc) => cc.verdict === 'passed').length;
+  const replays = [...new Map(events.filter((e) => e.replayed_from).map((e) => [JSON.stringify(e.replayed_from), e.replayed_from])).values()];
+  const model = text(object(object(detail.contract.subject).model).name);
+  const observations = Array.isArray(detail.records.observations) ? detail.records.observations.map(object) : [];
+  const finals = observations.filter((o) => o.kind === 'node_contract_final').length;
+  const refusals = observations.filter((o) => o.kind === 'node_contract_refusal').length;
+  const ordered = [...capsules.entries()].sort(([a], [b]) => Number(!(a in FEATURED)) - Number(!(b in FEATURED)));
+  return (
+    <section className="factory-story-card factory-run-builds" data-testid="factory-runs-builds">
+      <div className="factory-story-card-title">
+        <PackageCheck aria-hidden size={17} />
+        <h4>What this run builds</h4>
+      </div>
+      {model && <p className="factory-run-builds-model">{model}</p>}
+      <div className="factory-run-builds-grid">
+        <div>
+          <span className="factory-run-builds-label">Capsules combined</span>
+          <strong className="factory-run-builds-value">{capsules.size}</strong>
+          <span className="factory-muted">across {Object.keys(overview).length} task graph nodes</span>
+        </div>
+        <div>
+          <span className="factory-run-builds-label">Node contracts finalized</span>
+          <strong className="factory-run-builds-value">{finals}</strong>
+          <span className="factory-muted">
+            by the scheduler agent{detail.scheduler_models?.length ? ` (${detail.scheduler_models.join(', ')})` : ''}
+            {' · '}{refusals} refused by control code
+          </span>
+        </div>
+        <div>
+          <span className="factory-run-builds-label">Capsule checks passed</span>
+          <strong className="factory-run-builds-value">{checksPassed}</strong>
+          <span className="factory-muted">
+            {counts.findings} findings · {counts.notes} specific-fix notes · {counts.repairs} repairs
+          </span>
+        </div>
+        <div>
+          <span className="factory-run-builds-label">Production replayed</span>
+          <strong className="factory-run-builds-value">{replays.length}</strong>
+          <span className="factory-run-builds-replays">
+            {replays.length ? replays.map((value, index) => <ReplayLabel key={index} value={value} />) : <span className="factory-muted">none yet</span>}
+          </span>
+        </div>
+      </div>
+      <ul className="factory-run-builds-ccs" data-testid="factory-runs-builds-capsules">
+        {ordered.map(([id, row]) => (
+          <li key={id} data-featured={id in FEATURED ? 'true' : undefined}>
+            {id in FEATURED && <span className="factory-run-builds-feature">{FEATURED[id]}</span>}
+            <strong>{row.title}</strong>
+            {row.kind && <small className="factory-muted">{row.kind}</small>}
+            <span className="factory-muted factory-run-builds-nodes">{row.nodes.join(' · ')}</span>
+            <span className="factory-run-builds-verdict" data-passed={row.passed ? 'true' : 'false'}>
+              {row.passed ? 'checked' : 'not checked yet'}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

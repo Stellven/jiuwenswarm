@@ -59,6 +59,7 @@ export type RunDetail = {
   controls?: Controls;
   run_state?: RunState;
   cc_overview?: Record<string, CapsuleOverview[]>;
+  scheduler_models?: string[];
   correction_overview?: Record<string, CorrectionCounts>;
 };
 export type RunState = {
