@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { armKey, armLabel, devices, evidenceLabel, fmt, groupBy, numeric, quietStatus } from './engineBenchModel';
+import { armKey, armLabel, armOrder, devices, evidenceLabel, fmt, groupBy, median, numeric, quietStatus } from './engineBenchModel';
 import type { EngineRow, Metric, Ratio } from './engineBenchModel';
 
 export type Inspect = (row: EngineRow) => void;
@@ -37,26 +38,50 @@ export function LengthPlot({
   rows,
   metric,
   unit,
+  scale = 1,
   inspect,
 }: {
   rows: EngineRow[];
   metric: Metric;
   unit: string;
+  scale?: number;
   inspect: Inspect;
 }) {
-  const points = rows.flatMap((row) => {
+  const [shownState, setShownState] = useState<'warm' | 'cold'>('warm');
+  const all = rows.flatMap((row) => {
     const tokens = row.request?.prompt_tokens;
-    const score = row.metrics?.[metric];
-    return numeric(tokens) && numeric(score) ? [{ row, tokens, score }] : [];
+    const value = row.metrics?.[metric];
+    return numeric(tokens) && numeric(value) ? [{ row, tokens, score: value / scale }] : [];
   });
-  if (!points.length) return <Empty />;
+  if (!all.length) return <Empty />;
+  const states = new Set(all.map(({ row }) => row.request?.state));
+  const points = states.has(shownState) ? all.filter(({ row }) => row.request?.state === shownState) : all;
   const lengths = [...new Set(points.map((point) => point.tokens))].sort((a, b) => a - b);
-  const groups = [...groupBy(points, ({ row }) => JSON.stringify([armKey(row), row.request?.state])).values()];
-  const x = (length: number) => 70 + (lengths.indexOf(length) * 550) / Math.max(1, lengths.length - 1);
+  const groups = [...groupBy(points, ({ row }) => JSON.stringify([armKey(row), row.request?.state])).values()].sort(
+    (a, b) => armOrder(a[0].row, b[0].row),
+  );
+  const x = (length: number) => 96 + (lengths.indexOf(length) * 524) / Math.max(1, lengths.length - 1);
   const max = Math.max(1, ...points.map((point) => point.score));
   const y = (value: number) => 195 - (value * 174) / max;
+  const digits = max >= 100 ? 0 : 1;
   return (
     <>
+      {states.has('warm') && states.has('cold') && (
+        <div className="engine-toggle" role="group" aria-label="Request state">
+          {(['warm', 'cold'] as const).map((state) => (
+            <button
+              key={state}
+              type="button"
+              aria-pressed={shownState === state}
+              onClick={() => setShownState(state)}
+              data-testid="factory-runs-engine-state"
+              data-variant={state}
+            >
+              {state === 'warm' ? 'Warm (pages cached)' : 'Cold (pages evicted)'}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="engine-plot-scroll">
         <svg
           className="engine-plot"
@@ -66,9 +91,9 @@ export function LengthPlot({
         >
           {[0, 0.25, 0.5, 0.75, 1].map((tick) => (
             <g key={tick}>
-              <line className="engine-gridline" x1="70" x2="637" y1={y(max * tick)} y2={y(max * tick)} />
-              <text x="62" y={y(max * tick) + 5} textAnchor="end">
-                {fmt(max * tick)}
+              <line className="engine-gridline" x1="96" x2="637" y1={y(max * tick)} y2={y(max * tick)} />
+              <text x="88" y={y(max * tick) + 5} textAnchor="end">
+                {`${fmt(max * tick, digits)} ${unit}`}
               </text>
             </g>
           ))}
@@ -152,36 +177,38 @@ export function LengthPlot({
   );
 }
 
-function RequestLabel({ row }: { row: EngineRow }) {
-  return (
-    <span>
-      <strong>{armLabel(row)}</strong>
-      <small>
-        {row.request?.prompt_tokens == null ? 'Prompt length unrecorded' : `${fmt(row.request.prompt_tokens)} tokens`}
-        {' · '}
-        {row.request?.state ?? 'State unknown'}
-        {row.request?.repeat == null ? '' : ` · Repeat ${row.request.repeat}`}
-      </small>
-    </span>
-  );
-}
-
 export function DecodeBars({ rows, inspect }: { rows: EngineRow[]; inspect: Inspect }) {
   const points = rows.flatMap((row) => {
     const value = row.metrics?.decode_tps;
     return numeric(value) ? [{ row, value }] : [];
   });
   if (!points.length) return <Empty />;
-  const max = Math.max(1, ...points.map(({ value }) => value));
+  const arms = [...groupBy(points, ({ row }) => armKey(row)).values()]
+    .map((group) => {
+      const accepted = group.filter(({ row }) => row.quiet?.eligible !== false && !row.error);
+      const warm = accepted.filter(({ row }) => row.request?.state === 'warm');
+      const used = warm.length ? warm : accepted.length ? accepted : group;
+      const values = used.map(({ value }) => value);
+      const middle = median(values);
+      const closest = used.reduce((best, item) =>
+        Math.abs(item.value - middle) < Math.abs(best.value - middle) ? item : best,
+      );
+      return { row: closest.row, value: middle, low: Math.min(...values), high: Math.max(...values), n: used.length, warm: warm.length > 0 };
+    })
+    .sort((a, b) => armOrder(a.row, b.row));
+  const max = Math.max(1, ...arms.map(({ high }) => high));
   return (
     <ul className="engine-bars">
-      {points.map(({ row, value }) => (
-        <li key={row.id} className={row.quiet?.eligible === false || row.error ? 'engine-excluded' : undefined}>
-          <RequestLabel row={row} />
+      {arms.map(({ row, value, low, high, n, warm }) => (
+        <li key={row.id}>
+          <span>
+            <strong>{armLabel(row)}</strong>
+            <small>{`${warm ? 'warm' : 'all'} median of ${n} request${n === 1 ? '' : 's'} · range ${fmt(low, 2)}–${fmt(high, 2)}`}</small>
+          </span>
           <span className="engine-track" aria-hidden="true">
             <i style={{ width: `${(100 * value) / max}%` }} />
           </span>
-          <RowValue row={row} inspect={inspect}>{`${fmt(value)} tok/s`}</RowValue>
+          <RowValue row={row} inspect={inspect}>{`${fmt(value, 2)} tok/s`}</RowValue>
         </li>
       ))}
     </ul>
@@ -190,12 +217,32 @@ export function DecodeBars({ rows, inspect }: { rows: EngineRow[]; inspect: Insp
 
 export function SpeedBars({ ratios, inspect }: { ratios: Ratio[]; inspect: Inspect }) {
   if (!ratios.length) return <Empty>No matched request evidence.</Empty>;
-  const max = Math.max(1.1, ...ratios.map(({ value }) => value));
+  const merged = [
+    ...groupBy(ratios, ({ candidate }) => JSON.stringify([armKey(candidate), candidate.request?.prompt_tokens])).values(),
+  ]
+    .map((group) => {
+      const warm = group.filter(({ candidate }) => candidate.request?.state === 'warm');
+      const used = warm.length ? warm : group;
+      const middle = median(used.map(({ value }) => value));
+      const closest = used.reduce((best, item) =>
+        Math.abs(item.value - middle) < Math.abs(best.value - middle) ? item : best,
+      );
+      return { ...closest, value: middle, n: used.length, warm: warm.length > 0 };
+    })
+    .sort(
+      (a, b) =>
+        armOrder(a.candidate, b.candidate) ||
+        (a.candidate.request?.prompt_tokens ?? 0) - (b.candidate.request?.prompt_tokens ?? 0),
+    );
+  const max = Math.max(1.1, ...merged.map(({ value }) => value));
   return (
     <ul className="engine-bars">
-      {ratios.map(({ candidate, base, value, label }) => (
+      {merged.map(({ candidate, base, value, label, n, warm }) => (
         <li key={candidate.id}>
-          <RequestLabel row={candidate} />
+          <span>
+            <strong>{armLabel(candidate)}</strong>
+            <small>{`${fmt(candidate.request?.prompt_tokens ?? 0)} tokens · ${warm ? 'warm' : 'all'} median of ${n}`}</small>
+          </span>
           <span
             className="engine-track"
             aria-hidden="true"

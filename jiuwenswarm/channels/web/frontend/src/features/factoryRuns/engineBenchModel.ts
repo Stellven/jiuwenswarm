@@ -78,8 +78,22 @@ export function cohort(row: EngineRow) {
   return row.comparison_group ?? row.run ?? 'Unknown run';
 }
 
+// What each lab arm is, in the words the demo uses. Unknown runs fall back to engine and pack.
+const armTitles: Record<string, Record<string, string>> = {
+  'nov24-lab-abc': { A: 'A · NVFP4 baseline (E0)', B: 'B · Q2_K pack', C: 'C · Q2_K + seeded cache' },
+  'nov25-lab-abcde': {
+    A: 'A · NVFP4 baseline (E0)',
+    B: 'B · Q2_K pack',
+    C: 'C · Q2_K + seeded cache',
+    D: 'D · C + prefill batch',
+    E: 'E · D + expert fill (negative)',
+  },
+  'r8-lab': { A: 'A · NVFP4 baseline (E0)', B: 'B · r8 image + mixed 2-bit', P: 'P · B + prefill plan' },
+};
+
 export function armLabel(row: EngineRow) {
-  if (row.arm === 'A' && row.run === 'nov25-lab-abcde') return 'A · Nov 25, E0 on NVFP4, Q2_K-era lab';
+  const title = row.run && row.arm ? armTitles[row.run]?.[row.arm] : undefined;
+  if (title) return title;
   return [row.arm, row.engine?.name, row.pack?.format ?? row.pack?.name].filter(Boolean).join(' · ') || 'Unknown arm';
 }
 
@@ -180,4 +194,15 @@ export function ratios(rows: EngineRow[], from = 'A', to?: string): Ratio[] {
       },
     ];
   });
+}
+
+export function median(values: number[]) {
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
+// Arms in lab order: A first, then the letters in order.
+export function armOrder(a: EngineRow, b: EngineRow) {
+  return armLabel(a).localeCompare(armLabel(b));
 }

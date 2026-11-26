@@ -489,14 +489,15 @@ export function EngineReport() {
         <p role="status" className="engine-status" data-testid="factory-runs-engine-status">
           {status}
         </p>
+        {dataset && (<>
         <div className="engine-report-grid">
           <Panel id="ttft" title="Time to first token">
-            <p>Cold and warm requests · milliseconds</p>
-            <LengthPlot rows={requests} metric="ttft_ms" unit="ms" inspect={inspect} />
+            <p>Seconds from sending the request to the first streamed token, by rendered prompt length</p>
+            <LengthPlot rows={requests} metric="ttft_ms" unit="s" scale={1000} inspect={inspect} />
           </Panel>
           <Panel id="decode" title="Decode and total request time">
-            <p>Total request time · milliseconds</p>
-            <LengthPlot rows={requests} metric="total_ms" unit="ms" inspect={inspect} />
+            <p>Total request time in seconds (prompt plus 32 generated tokens)</p>
+            <LengthPlot rows={requests} metric="total_ms" unit="s" scale={1000} inspect={inspect} />
             <h3>Decode · tokens per second</h3>
             <DecodeBars rows={requests} inspect={inspect} />
           </Panel>
@@ -542,6 +543,7 @@ export function EngineReport() {
           </Panel>
         </div>
         <ArmDetails rows={visible} accuracy={accuracy} inspect={inspect} />
+        </>)}
       </div>
       {selected && <SourceDialog row={selected} close={() => setSelected(undefined)} />}
     </main>
