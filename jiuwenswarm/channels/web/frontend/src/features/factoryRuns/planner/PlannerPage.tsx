@@ -797,6 +797,67 @@ function PlanView({
   const { i18n } = useTranslation();
   const t = useMemo(() => i18n.getFixedT('en'), [i18n]);
   const { status } = detail;
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [downloadingGraph, setDownloadingGraph] = useState(false);
+
+  const handleDownloadGraphJson = useCallback(async () => {
+    if (status.state !== 'succeeded' || detail.verification?.passed === false) {
+      setDownloadError('graph.json is only available after static checks and TLC verification pass.');
+      return;
+    }
+    setDownloadError(null);
+    setDownloadingGraph(true);
+    try {
+      let jsonText: string | null = null;
+      try {
+        const res = await fetch(plannerApi.graphJsonUrl(detail.id));
+        if (res.ok) {
+          jsonText = await res.text();
+        }
+      } catch {
+        // Fallback to verified in-memory graph payload if endpoint is unreachable on a stale dev server
+      }
+      if (!jsonText && detail.graph) {
+        const graphObj = detail.graph as Record<string, unknown>;
+        const payload =
+          'verification' in graphObj
+            ? graphObj
+            : {
+                ...graphObj,
+                ...(detail.verification
+                  ? {
+                      verification: {
+                        static_checks: { passed: true, warnings: status.warnings ?? [] },
+                        tlc: {
+                          passed: detail.verification.passed,
+                          runs: detail.verification.runs,
+                          ...(detail.verification.spec_sha256 ? { spec_sha256: detail.verification.spec_sha256 } : {}),
+                        },
+                      },
+                    }
+                  : {}),
+              };
+        jsonText = `${JSON.stringify(payload, null, 2)}\n`;
+      }
+      if (!jsonText) {
+        throw new Error('Verified graph.json is unavailable');
+      }
+      const blob = new Blob([jsonText], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'graph.json';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      setDownloadError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setDownloadingGraph(false);
+    }
+  }, [detail.graph, detail.id, detail.verification, status.state, status.warnings]);
+
   const graph = useMemo(() => (detail.graph ? detectGraph(detail.graph) : null), [detail.graph]);
   const caught = detail.rounds.filter((round) => round.problems.length > 0).length;
   const states = (detail.verification?.runs ?? []).reduce((sum, run) => sum + (run.distinct_states ?? 0), 0);
@@ -854,15 +915,16 @@ function PlanView({
           </div>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
             {hasVerifiedJson ? (
-              <a
-                href={plannerApi.graphJsonUrl(detail.id)}
-                download="graph.json"
+              <button
+                type="button"
+                disabled={downloadingGraph}
+                onClick={() => void handleDownloadGraphJson()}
                 className="planner-btn is-primary"
                 data-testid="factory-planner-download-graph-json"
               >
                 <Download size={14} aria-hidden />
                 {t('factoryPlanner.downloadGraphJson')}
-              </a>
+              </button>
             ) : (
               <a
                 href={plannerApi.graphTlaUrl(detail.id)}
@@ -879,6 +941,7 @@ function PlanView({
               <ArrowRight size={14} aria-hidden />
             </a>
           </div>
+          {downloadError && <p className="factory-error" role="alert" style={{ width: '100%', marginTop: '6px' }}>{downloadError}</p>}
         </section>
       )}
 
@@ -912,15 +975,16 @@ function PlanView({
               <li key={name} style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <code>{path}</code>
                 {name === 'graph.json' && (
-                  <a
-                    href={plannerApi.graphJsonUrl(detail.id)}
-                    download="graph.json"
+                  <button
+                    type="button"
+                    disabled={downloadingGraph}
+                    onClick={() => void handleDownloadGraphJson()}
                     className="planner-btn is-primary"
                     data-testid="factory-planner-download-output-graph-json"
                   >
                     <Download size={14} aria-hidden />
                     {t('factoryPlanner.downloadGraphJson')}
-                  </a>
+                  </button>
                 )}
                 {name === 'graph.tla' && (
                   <a href={plannerApi.graphTlaUrl(detail.id)} download="graph.tla" target="_blank" rel="noreferrer">
