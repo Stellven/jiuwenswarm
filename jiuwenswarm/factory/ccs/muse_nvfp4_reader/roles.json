@@ -1,5 +1,6 @@
 {
   "capabilities": {
+    "inspect_scale_layout": "tool",
     "scale_inventory": "tool",
     "verify": "tool",
     "verify_pack": "tool"

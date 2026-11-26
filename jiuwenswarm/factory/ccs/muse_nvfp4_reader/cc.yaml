@@ -1,6 +1,6 @@
 cc: '2'
 id: weights.build_muse_nvfp4_reader
-version: 1.1.0
+version: 1.2.0
 materials:
   guide:
     path: GUIDE.md
@@ -93,6 +93,36 @@ bindings:
     - '{python}'
     - '{bundle}/run.py'
 capabilities:
+  inspect_scale_layout:
+    does: Read a ModelOpt NVFP4 checkpoint's index and shard headers (never tensor data) and return the
+      role-by-role scale inventory - packed weight, block scale, global scale_2 and input scale with dtypes and
+      shapes, quantized and excluded layers, layout problems and findings. A helper for the worker; verify_pack
+      only cross-checks it against the checkpoint.
+    takes:
+      index:
+        kind: text
+        description: Absolute path to model.safetensors.index.json.
+      headers:
+        kind: json
+        optional: true
+        description: Absolute paths of shard files, header JSON files (hdr-NNNNN.json) or directories holding them.
+        schema:
+          type: array
+          items:
+            type: string
+    gives:
+      done: $done
+      checks: $checks
+      stage_reached: $stage_reached
+      not_done_because: $not_done_because
+      inventory:
+        kind: json
+        optional: true
+        description: Inventory summary (shards, headers read, quantized and excluded layers, roles, findings).
+    needs:
+    - python
+    changes:
+    - workspace.read
   scale_inventory:
     does: Read a ModelOpt NVFP4 checkpoint's index and shard headers (never tensor data) and return the
       role-by-role scale inventory - packed weight, block scale, global scale_2 and input scale with dtypes and

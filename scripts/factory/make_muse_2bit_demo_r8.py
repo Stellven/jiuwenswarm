@@ -26,6 +26,9 @@ def generate(root):
     nodes = {n['node_id']: n for n in document['nodes'] if n['node_id'] != 'record_profile'}
     document['nodes'] = list(nodes.values())
     pins = nodes['pin_inputs']
+    pins['briefing'] = dict(summary='Pin the stock source and inputs before working the converter.',
+        how_to_fill=['Bind the reader for inspect_scale_layout (read-only index and shard headers). Use the '
+                     'operator checkpoint_digests, contract prompt pins and host_reading for the remaining criteria.'])
     pins['outputs'][0]['criteria'][1] = ('Record free disk, expected new writes, cgroup cap and available memory. '
                                          'Allow 100 GB free beyond new writes. The two packs are linked read-only.')
     ingest = nodes['ingest_nvfp4']

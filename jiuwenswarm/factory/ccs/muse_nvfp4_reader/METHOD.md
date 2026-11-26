@@ -104,3 +104,5 @@ step). The layer plan, the excluded layers' dtypes and the expected `.scale` val
 checkpoint: the index, the shard headers and one small range read per `_weight_scale_2`. Your inventory, if
 passed, is only cross-checked. It returns the pack manifest (`factory.pack-manifest/1`)
 that `requant_q2` and the evidence record name. Hand the pack and the three tiny packs to `wire_expert_scales`.
+
+For read-only input pinning use `inspect_scale_layout` with the checkpoint index and shard headers. Its receipt includes the scale inventory.

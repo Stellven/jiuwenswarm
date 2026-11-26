@@ -1,0 +1,21 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "muse_nvfp4_reader/cc.yaml",
+      "from_version": "1.1.0",
+      "from_release": "076ad3bfc866041e3aec298eadca9b09cbd92f022807d3c79a8f359e30daed0f",
+      "from_commit": "cbd711869cc6b66d2f9d8f3e587cd68de3ed4bd8",
+      "to_version": "1.2.0",
+      "to_release": "5e9a5bcfa46f472564379a60c09faeab2a3fcc1d574c14450d193504cd615e27",
+      "changed_files": [
+        "METHOD.md",
+        "cc.yaml",
+        "roles.json",
+        "run.py"
+      ],
+      "unrecorded_versions": [],
+      "reason": "Read-only scale layout inspection for input pinning"
+    }
+  ]
+}

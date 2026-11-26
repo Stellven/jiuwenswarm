@@ -237,6 +237,12 @@ def do_verify_pack(inputs):
     return result(checks, STATIC, manifest=manifest)
 
 
+def inspect_scale_layout(inputs):
+    if set(inputs) - {"index", "headers"}:
+        raise ValueError("inspect_scale_layout accepts only index and headers")
+    return do_scale_inventory(inputs)
+
+
 def do_scale_inventory(inputs):
     inv = inventory(inputs["index"], inputs.get("headers") or [])
     checks = [check("headers_read", "pass" if inv["headers_read"] else "fail",
@@ -251,7 +257,7 @@ def do_scale_inventory(inputs):
                                                          "excluded_layers", "roles", "layout_problems", "findings")})
 
 
-CAPABILITIES = {"verify": do_verify, "verify_pack": do_verify_pack, "scale_inventory": do_scale_inventory}
+CAPABILITIES = {"inspect_scale_layout": inspect_scale_layout, "verify": do_verify, "verify_pack": do_verify_pack, "scale_inventory": do_scale_inventory}
 
 
 def main():

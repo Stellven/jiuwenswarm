@@ -408,7 +408,13 @@
        "kind": "ccs",
        "from": "The capsule catalog, what the upstream nodes were built with and what failed before for this node."
       }
-     ]
+     ],
+     "briefing": {
+      "summary": "Pin the stock source and inputs before working the converter.",
+      "how_to_fill": [
+       "Bind the reader for inspect_scale_layout (read-only index and shard headers). Use the operator checkpoint_digests, contract prompt pins and host_reading for the remaining criteria."
+      ]
+     }
     },
     {
      "node_id": "ingest_nvfp4",
