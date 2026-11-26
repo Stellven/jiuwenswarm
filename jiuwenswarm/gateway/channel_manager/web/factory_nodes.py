@@ -411,14 +411,16 @@ def node_detail(data, node, check_view, catalog, briefs, all_calls, releases, re
 
 def run_state(data, plan, markers, running, now):
     state = data['_meta']['controller_state']
+    outcome = data['_meta'].get('outcome')
+    stopped = str(outcome or '').startswith('stop_')
     result = dict(state='idle', reason=state.get('stop_reason'), by=None, since=None, node_id=None, job=None, markers=markers)
     if pause := current_in(data):
         return result | dict(state='paused', reason=pause.get('reason'), by=pause.get('by'), since=pause.get('at'),
                              source=pause.get('obs_id'))
     if not running and 'PAUSE.md' in markers and not recent_rows(data, 'operator_pause'):
         return result | dict(state='paused', since=markers['PAUSE.md']['mtime'], source='PAUSE.md')
-    if not running and data['_meta'].get('outcome') not in story.TERMINAL and (
-            'HALT.md' in markers or 'HALT.md' in (result['reason'] or '')):
+    if not running and outcome not in story.TERMINAL and (
+            'HALT.md' in markers or (not stopped and 'HALT.md' in (result['reason'] or ''))):
         halts = recent_rows(data, 'operator_halt')
         halt = halts[-1] if halts else {}
         values = halt.get('values') or {}
@@ -440,7 +442,15 @@ def run_state(data, plan, markers, running, now):
             replayed_from=request.get('replayed_from'), replay_source=story.replay_origin(request.get('replayed_from'))))
     if running:
         return result | dict(state='running', reason=None, since=state.get('started'))
-    if outcome := data['_meta'].get('outcome'):
+    if stopped:
+        # The controller can retain a checkpoint's stop_reason after a new terminal decision.
+        decision = max((row for row in data.get('decisions', []) if (row.get('action') or {}).get('type') == outcome),
+                       key=lambda row: row.get('rev', 0), default={})
+        return result | dict(state='stopped', outcome=outcome, reason=decision.get('reason_for_change'),
+                             source=decision.get('decision_id'),
+                             node_id=(decision.get('observations') or {}).get('node_id'),
+                             since=state.get('finished') or decision.get('created'))
+    if outcome:
         return result | dict(state='paused' if outcome == 'paused' else 'finished', outcome=outcome, since=state.get('finished'))
     return result | dict(reason=None) if 'STEP.md' in (result['reason'] or '') else result
 
@@ -448,8 +458,9 @@ def run_state(data, plan, markers, running, now):
 def native_replay(data, plan, files, source_home):
     """Project a completed, contracted native run onto the Nov 20 curated step format."""
     task = data['tasks'][0]
-    if task.get('contract_id') != 'muse-2bit-demo-r8' or not plan['nodes'] or any(
-            n['state'] not in {'done', 'cancelled', 'superseded'} for n in plan['nodes']):
+    outcome = data.get('_meta', {}).get('outcome')
+    if (task.get('contract_id') != 'muse-2bit-demo-r8' or str(outcome or '').startswith('stop_') or not plan['nodes']
+            or any(n['state'] not in {'done', 'cancelled', 'superseded'} for n in plan['nodes'])):
         return None
     steps = []
     reruns = recent_rows(data, 'capped_run')
