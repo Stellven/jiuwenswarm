@@ -315,11 +315,8 @@ def test_placement_keeps_the_server_inside_the_device_budget():
 
 def test_request_errors_carry_the_server_error_line(tmp_path):
     log = tmp_path / 'server.log'
-    log.write_text('8.11.319.140 E srv    send_error: task id = 63, error: Context size has been exceeded.
-'
-                   '8.11.404.814 I common_memory_breakdown_print: | memory breakdown |
-')
+    log.write_text('8.11.319.140 E srv    send_error: task id = 63, error: Context size has been exceeded.\n'
+                   '8.11.404.814 I common_memory_breakdown_print: | memory breakdown |\n')
     assert capped_run.server_error(log) == 'Context size has been exceeded.'
-    log.write_text('all fine
-')
+    log.write_text('all fine\n')
     assert capped_run.server_error(log) is None and capped_run.server_error(tmp_path / 'missing') is None
