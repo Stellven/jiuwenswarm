@@ -30,12 +30,15 @@ def test_engine_bench_only_reads_normalized_rows(tmp_path, monkeypatch):
            'source': {'path': str(external), 'line': 7}, 'quiet': {'eligible': False, 'reason': 'Host load'},
            'metrics': {'ttft_ms': 1024},
            'launch_verdict': {'status': 'excluded', 'reasons': ['runner']},
-           'corrected_verdict': {'status': 'accepted', 'reasons': []}, 'raw': {'text': 'raw request contents'}}
+           'corrected_verdict': {'status': 'accepted', 'reasons': []}, 'raw': {'text': 'raw request contents', 'client_ttft_ms': 1024}}
     dataset.write_text(json.dumps(row) + '\n', encoding='utf-8')
     response = client.get(url)
     assert response.status_code == 200
     assert response.headers['Cache-Control'] == 'no-store'
-    assert response.json()['rows'] == [{key: value for key, value in row.items() if key != 'raw'}]
+    assert response.json()['rows'] == [
+        {key: value for key, value in row.items() if key != 'raw'} | {'source_excerpt': {'client_ttft_ms': 1024}},
+    ]
+    assert 'raw request contents' not in response.text
     assert 'secret contents' not in response.text
     dataset.write_text(json.dumps(row) + '\ninvalid', encoding='utf-8')
     assert client.get(url).status_code == 422
@@ -63,3 +66,42 @@ def test_engine_bench_documents_use_fixed_plain_text_resources(tmp_path, monkeyp
         assert response.headers['X-Content-Type-Options'] == 'nosniff'
         assert response.headers['Cache-Control'] == 'no-store'
     assert client.get('/api/factory/engine-bench/report.json').status_code == 404
+
+def test_delivery_summary_uses_final_graph_receipt_and_accepted_rows(tmp_path, monkeypatch):
+    monkeypatch.setattr(Path, 'home', staticmethod(lambda: tmp_path))
+    app = FastAPI()
+    attach_factory_routes(app, service=FactoryHttpService(roots=[]))
+    client = TestClient(app)
+    url = '/api/factory/engine-bench'
+
+    final = tmp_path / 'muse-demo' / 'r8-final'
+    records = final / 'graph' / 'records'
+    records.mkdir(parents=True)
+    task = 'muse-2bit-demo-r8'
+    decision = {'task_id': task, 'rev': 2, 'decision_id': 'decision:2',
+                'action': {'type': 'report_inconclusive'}, 'uncertainty': 'One timing cell was excluded.'}
+    plan = {'kind': 'taskgraph_patch', 'values': {'parent_rev': 0, 'rev': 1, 'decision_rev': 1,
+            'patch': {'add': [
+                {'node_id': 'deliver_to_lab', 'title': 'Deliver image', 'kind': 'deliver',
+                 'state': 'done', 'evidence_ids': ['receipt']},
+                {'node_id': 'other', 'title': 'Pending work', 'kind': 'inspect'},
+            ]}}}
+    for name, rows in [('tasks', [{'task_id': task}]), ('decisions', [decision]), ('observations', [plan])]:
+        (records / f'{name}.json').write_text(json.dumps(rows), encoding='utf-8')
+    manifests = final / 'manifests'
+    manifests.mkdir()
+    (manifests / 'image-receipt.json').write_text(json.dumps({'image_id': 'sha256:fixture'}), encoding='utf-8')
+    dataset = final / 'engine-bench.jsonl'
+    row = {'schema': 'engine-bench/1', 'id': 'cell', 'kind': 'performance',
+           'run': 'r8-lab', 'arm': 'B', 'source': {'path': 'report.json'},
+           'metrics': {'ttft_ms': 1024}, 'corrected_verdict': {'status': 'excluded'}}
+    dataset.write_text(json.dumps(row), encoding='utf-8')
+    result = client.get(url)
+    assert result.status_code == 200, result.text
+    assert result.json()['delivery'] == {
+        'completed': 1, 'total': 2, 'image_delivered': True, 'measured': False,
+        'decision': {'kind': 'report_inconclusive', 'reason': 'One timing cell was excluded.', 'id': 'decision:2'},
+    }
+    row['corrected_verdict']['status'] = 'accepted'
+    dataset.write_text(json.dumps(row), encoding='utf-8')
+    assert client.get(url).json()['delivery']['measured'] is True
