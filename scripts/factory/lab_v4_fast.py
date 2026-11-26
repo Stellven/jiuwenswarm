@@ -95,6 +95,28 @@ def start(name, arm, out, device_budget_mib, quiet=None):
     return server, gate
 
 
+def server_peak_rss(pid, proc_root=Path('/proc')):
+    """Return Linux VmHWM in bytes for the llama-server started by this arm."""
+    pending = [pid]
+    visited = set()
+    while pending:
+        current = pending.pop()
+        if current in visited:
+            continue
+        visited.add(current)
+        process = proc_root / str(current)
+        try:
+            if (process / 'comm').read_text().strip() == 'llama-server':
+                status = (process / 'status').read_text()
+                match = re.search(r'^VmHWM:\s*(\d+) kB$', status, re.MULTILINE)
+                return int(match[1]) * 1024 if match else None
+            children = (process / 'task' / str(current) / 'children').read_text()
+            pending.extend(map(int, children.split()))
+        except (OSError, ValueError):
+            continue
+    return None
+
+
 def request(server, prompt, n_predict):
     body = dict(prompt=prompt, n_predict=n_predict, temperature=0, seed=1, cache_prompt=False, stream=True)
     t0 = time.monotonic()
@@ -302,7 +324,8 @@ def run_arm(name, arm, out, plan, prompts, report_path, report, config, referenc
                                device_budget_mib=server.placement['device_budget_mib'], quiet=evidence)
                 report['rows'].append(row)
                 aggregate(report, reference)
-                arm_record.update(sampled_peak_memory_bytes=server.run.peak or None,
+                arm_record.update(peak_process_rss_bytes=server_peak_rss(server.proc.pid),
+                                  sampled_peak_memory_bytes=server.run.peak or None,
                                   min_available_bytes=server.run.low)
                 save(report_path, report)
                 log(json.dumps({key: value for key, value in row.items() if key not in {'text_head', 'quiet'}}))

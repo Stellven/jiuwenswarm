@@ -419,3 +419,16 @@ def test_offline_comparison_excludes_partial_factory_evidence(lab, factory):
     assert result['cells'][0]['request'] == accepted['request']
     assert [item['reasons'] for item in result['excluded']] == [
         ['missing quiet evidence'], ['missing start, periodic or end quiet evidence']]
+
+
+def test_server_peak_rss_reads_server_high_water_instead_of_launcher(tmp_path):
+    launcher = tmp_path / '2'
+    (launcher / 'task/2').mkdir(parents=True)
+    (launcher / 'comm').write_text('systemd-run')
+    (launcher / 'task/2/children').write_text('3')
+    child = tmp_path / '3'
+    child.mkdir()
+    (child / 'comm').write_text('llama-server')
+    (child / 'status').write_text('VmHWM:   4096 kB\nVmRSS:   1024 kB\n')
+    assert lab_v4_fast.server_peak_rss(2, tmp_path) == 4096 * 1024
+    assert lab_v4_fast.server_peak_rss(4, tmp_path) is None
