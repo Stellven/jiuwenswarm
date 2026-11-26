@@ -42,7 +42,7 @@ def normalize_web_ws_path(path: str | None) -> str:
     return text
 
 
-def build_web_channel_app(channel: WebChannel) -> FastAPI:
+def build_web_channel_app(channel: WebChannel, *, factory_service=None) -> FastAPI:
     """Build the same-port HTTP+WS app bound to one WebChannel instance.
 
     WebSocket endpoints for ``channel.config.path`` (default ``/ws``) and
@@ -58,7 +58,7 @@ def build_web_channel_app(channel: WebChannel) -> FastAPI:
     app.state.web_channel = channel
     plugin_registry = getattr(channel, "application_plugin_registry", None)
 
-    register_http_routes(app, channel)
+    register_http_routes(app, channel, factory_service=factory_service)
     mount_application_plugin_http_routes(app, plugin_registry)
 
     main_path = normalize_web_ws_path(channel.config.path)
@@ -109,7 +109,7 @@ def build_web_channel_app(channel: WebChannel) -> FastAPI:
     return app
 
 
-def register_http_routes(app: FastAPI, channel: WebChannel) -> None:
+def register_http_routes(app: FastAPI, channel: WebChannel, *, factory_service=None) -> None:
     """Register optional HTTP routes on the WebChannel port.
 
     Container file APIs are mounted when ``channel.container_file_client`` is an
@@ -131,7 +131,7 @@ def register_http_routes(app: FastAPI, channel: WebChannel) -> None:
     from jiuwenswarm.gateway.channel_manager.web.factory_http import attach_factory_routes
 
     mount_research_routes(app, channel)
-    attach_factory_routes(app, channel)
+    attach_factory_routes(app, channel, service=factory_service)
 
 
 async def _serve_channel_websocket(channel: WebChannel, websocket: WebSocket) -> None:
