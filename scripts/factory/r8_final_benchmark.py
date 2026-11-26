@@ -88,13 +88,13 @@ def validate_ready(server, leg):
 
 
 def run_load(out, p, leg, image_dir, identity, plan, prepared):
-    from scripts.factory import r8_bench_cells, r8_bench_score
     lid, role = leg['id'], leg['role']
     receipt = out / f'{lid}.load.json'
     if receipt.exists():
         if read(receipt)['status'] == 'complete':
             return
         raise RuntimeError(f'Load {lid} already reserved or consumed; refusing another launch')
+    from scripts.factory import r8_bench_cells, r8_bench_score
     pin = p['pack_pins'][leg['pack']]
     arm = dict(model=pin['first_shard'], cache_mib=leg['moe_cache_mib'],
                image_id=identity['image_id'], llama_server_sha256=identity['llama_server_sha256'],
