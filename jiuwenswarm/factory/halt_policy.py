@@ -110,6 +110,6 @@ def step_holds(store, task_id, state, runnable):
         Path(store.home, 'STEP.md').write_text(
             f'# Step checkpoint: {task_id}\n\nHeld before it runs: {", ".join(held)}.\n\n'
             'Read the final node contract (status --plain, or the node_contract_final record), then release:\n'
-            + ''.join(f'    jiuwenswarm-factory operator {task_id} release {n} "step checkpoint passed"\n' for n in held)
+            + ''.join(f'    jiuwenswarm-factory release {task_id} {n} "step checkpoint passed"\n' for n in held)
             + '\nand run the controller again.\n', encoding='utf-8')
     return held

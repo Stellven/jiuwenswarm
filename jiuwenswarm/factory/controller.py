@@ -583,7 +583,8 @@ class Controller:
                         return self._finish(task_id, state, 'paused')
                     halted = self._halt(task_id, state)
                     if halted:
-                        state['stop_reason'] = 'halted for an operator: ' + '; '.join(h['reason'] for h in halted) + ' (HALT.md)'
+                        state['stop_reason'] = ('paused at a ' + halted[0]['reason'] if halted[0].get('step') else
+                                                'halted for an operator: ' + '; '.join(h['reason'] for h in halted) + ' (HALT.md)')
                         return self._finish(task_id, state, 'paused')
                     paused = self._paused_at(task_id)
                     if paused:
@@ -638,7 +639,7 @@ class Controller:
             held = halt_policy.step_holds(self.store, task_id, state, next_work(self.store, task_id)['runnable'])
             self._save(task_id, state)
             if held:
-                return [dict(reason='step checkpoint before ' + ', '.join(held) + ' (STEP.md)')]
+                return [dict(reason='step checkpoint before ' + ', '.join(held) + ' (STEP.md)', step=True)]
         return []
 
     def _paused_at(self, task_id):
