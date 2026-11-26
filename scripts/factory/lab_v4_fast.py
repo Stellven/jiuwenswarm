@@ -10,6 +10,9 @@ per prompt size one cold request (pack pages evicted with POSIX_FADV_DONTNEED fi
 size in skip_warm, one warm request; 32 generated tokens; each streamed request gives client time to first token,
 server prefill rate and decode rate together. Rows are written as they finish and a rerun skips rows already done.
 
+For the rev-8 demo supply `factory_run` with `home` and `task_id` and a `baseline_report` path. The completed
+Factory run supplies both arms and the device budget. See MUSE-V4-NEXT-PHASE.md for the exact invocation.
+
 Every load uses factory.capped_runner's machine gate and 96 GiB scope. The runner uses -fitt to keep device memory
 within total memory less 14 GiB by default, or CONFIG.device_budget_mib. The lab stops below 8 GiB available.
 """
@@ -29,6 +32,9 @@ from uuid import uuid4
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from jiuwenswarm.factory import capped_run
+from jiuwenswarm.factory.ccs.prefill_batch_sizing.run import parse_log
+from jiuwenswarm.factory.store import FactoryError
+from scripts.factory import lab_v4_inputs
 
 FLOOR_GIB = 8.0
 
@@ -52,6 +58,8 @@ def from_image(name, arm, out):
                            capture_output=True, text=True).stdout.strip()
     if not re.fullmatch(r'sha256:[0-9a-f]{64}', image):
         raise SystemExit(f'{name}: Docker returned an invalid image ID: {image!r}')
+    if arm.get('expect_image_id') and image != arm['expect_image_id']:
+        raise SystemExit(f'{name}: Docker image does not match the accepted build ID')
     directory = out / image.removeprefix('sha256:')
     server = directory / 'llama-server'
     if not server.is_file():
@@ -120,10 +128,78 @@ def summary(rows):
         key = f"{r['arm']} {r['request']} {r['state']}"
         out.setdefault(key, []).append(r)
     return {k: dict(client_ttft_s=round(statistics.median(x['client_ttft_ms'] for x in v) / 1000, 1),
+                    request_total_s=round(statistics.median(x['request_total_ms'] for x in v) / 1000, 1),
                     decode_tok_s=round(statistics.median(x['decode_tokens_per_second'] or 0 for x in v), 3),
                     prefill_tok_s=round(statistics.median(x['prompt_tokens_per_second'] or 0 for x in v), 1), n=len(v))
             for k, v in sorted(out.items())}
 
+
+
+COMPARISON_METRICS = ('client_ttft_ms', 'decode_tokens_per_second', 'request_total_ms')
+COMPARISON_PROVENANCE = ('image_id', 'llama_server_sha256', 'pack_manifest_sha256', 'batch_plan', 'n_batch',
+                         'n_ubatch', 'moe_cache_mib', 'requested_moe_cache_mib', 'prompt_sha256')
+
+
+def baseline(path):
+    path = Path(path).expanduser().resolve()
+    raw = path.read_bytes()
+    rows = [row for row in json.loads(raw)['rows'] if row['arm'] == 'A']
+    for size, tokens in lab_v4_inputs.PROMPT_TOKENS.items():
+        for state in ('cold', 'warm'):
+            cell = [row for row in rows if (row['request'], row['state']) == (size, state)]
+            if not cell or any(row['prompt_tokens'] != tokens for row in cell):
+                raise ValueError(f'Historical A needs {size} {state} at {tokens} rendered tokens')
+    return dict(path=str(path), sha256=hashlib.sha256(raw).hexdigest(), rows=rows)
+
+
+def comparison(rows, reference):
+    def groups(data):
+        cells = {}
+        for row in data:
+            cells.setdefault((row['arm'], row['request'], row['state']), []).append(row)
+        return cells
+
+    def cell_summary(cell):
+        metrics = {key: round(statistics.median(row[key] for row in cell), 6) for key in COMPARISON_METRICS}
+        provenance = {key: cell[0].get(key) if all(row.get(key) == cell[0].get(key) for row in cell) else None
+                      for key in COMPARISON_PROVENANCE}
+        return dict(n=len(cell), prompt_tokens=sorted({row['prompt_tokens'] for row in cell}),
+                    generated_tokens=sorted({row['generated_tokens'] for row in cell}), **metrics, **provenance)
+
+    historical = groups(reference['rows'])
+    output = []
+    for (arm, size, state), cell in sorted(groups(rows).items()):
+        key = ('A', size, state)
+        if arm not in {'B', 'P'} or key not in historical:
+            continue
+        current, baseline_a = cell_summary(cell), cell_summary(historical[key])
+        same_prompt_tokens = current['prompt_tokens'] == baseline_a['prompt_tokens']
+        same_generated_tokens = (len(current['generated_tokens']) == 1
+                                 and current['generated_tokens'] == baseline_a['generated_tokens'])
+        deltas = {key: round(current[key] - baseline_a[key], 6) for key in COMPARISON_METRICS
+                  if same_prompt_tokens and (key != 'request_total_ms' or same_generated_tokens)}
+        output.append(dict(arm=arm, request=size, state=state, measured=current, baseline_a=baseline_a,
+                           same_prompt_tokens=same_prompt_tokens, same_generated_tokens=same_generated_tokens,
+                           delta_vs_a=deltas))
+    return dict(baseline_sha256=reference['sha256'], aggregation='median per arm, request and state', cells=output)
+
+
+def observed_settings(server_log, arm):
+    parsed = parse_log(server_log)
+    return dict(n_batch=parsed['n_batch'], n_ubatch=parsed['n_ubatch'],
+                moe_cache_mib=parsed['device_mib'].get('moe_cache'), requested_moe_cache_mib=arm['cache_mib'])
+
+
+def validate_settings(name, observed, plan):
+    if name == 'P':
+        wanted = (plan['batch'], plan['ubatch'])
+    else:
+        wanted = (plan['reference']['n_batch'], plan['reference']['n_ubatch'])
+    if (observed['n_batch'], observed['n_ubatch']) != wanted:
+        raise ValueError(f'{name}: server batch settings {observed} differ from the verified plan ({wanted})')
+    cache = observed['moe_cache_mib']
+    if cache is None or not plan['moe_cache_mib'] - 1024 <= cache <= plan['moe_cache_mib']:
+        raise ValueError(f'{name}: server MoE cache {cache} MiB differs from plan {plan["moe_cache_mib"]} MiB')
 
 def save(report_path, report):
     temporary = report_path.with_suffix('.json.tmp')
@@ -131,14 +207,19 @@ def save(report_path, report):
     temporary.replace(report_path)
 
 
-def run_arm(name, arm, out, plan, prompts, report_path, report, config):
+def run_arm(name, arm, out, plan, prompts, report_path, report, config, reference=None):
     progress = out / f'{name}.progress.log'
     log(f'{name}: waiting for the machine; progress in {progress}')
     server, gate = start(name, arm, out, config.get('device_budget_mib'))
     try:
-        with server.log.open(errors='replace') as handle:
-            markers = [line.strip()[:240] for line in handle if re.search(
-                r'expert_weight_cache.*(active|inactive)|MoE cache size|n_ubatch|compute buffer size', line)][:20]
+        server_log = server.log.read_text(errors='replace')
+        markers = [line.strip()[:240] for line in server_log.splitlines() if re.search(
+            r'expert_weight_cache.*(active|inactive)|MoE cache size|n_(?:u)?batch|compute buffer size', line)][:20]
+        settings = observed_settings(server_log, arm)
+        factory = report.get('factory_provenance')
+        batch_plan = report.get('batch_plan')
+        if factory:
+            validate_settings(name, settings, batch_plan)
         arm_record = dict(argv=server.argv, env=arm.get('env', {}), load_seconds=round(server.ready_s, 1),
                           **server.placement, machine_gate=gate, memory_cap=server.run.cap, markers=markers,
                           started=time.strftime('%Y-%m-%dT%H:%M:%S', time.localtime(server.started)))
@@ -153,8 +234,18 @@ def run_arm(name, arm, out, plan, prompts, report_path, report, config):
                 evict(arm['model'])
                 request(server, prompts[size], n_predict)
             row = dict(arm=name, request=size, state=state, **request(server, prompts[size], n_predict))
+            if factory and row['prompt_tokens'] != lab_v4_inputs.PROMPT_TOKENS[size]:
+                raise ValueError(f'{name} {size}: server reported unexpected prompt token count {row["prompt_tokens"]}')
+            row.update(report.get('images', {}).get(name, {}), **settings, n_predict=n_predict, cache_prompt=False,
+                       prompt_sha256=hashlib.sha256(prompts[size].encode()).hexdigest())
+            if factory:
+                row.update(factory, batch_plan={key: batch_plan[key] for key in ('batch', 'ubatch', 'moe_cache_mib')},
+                           batch_plan_applied=name == 'P', pack_first_shard=arm['model'],
+                           device_budget_mib=server.placement['device_budget_mib'])
             report['rows'].append(row)
             report['summary'] = summary(report['rows'])
+            if reference:
+                report['comparison'] = comparison(report['rows'], reference)
             arm_record.update(sampled_peak_memory_bytes=server.run.peak or None,
                               min_available_bytes=server.run.low)
             save(report_path, report)
@@ -164,15 +255,38 @@ def run_arm(name, arm, out, plan, prompts, report_path, report, config):
         save(report_path, report)
 
 
-def main(config_path, names):
+def configuration(config_path):
     config = json.loads(Path(config_path).read_text())
-    out = Path(config['out_dir'])
+    reference = baseline(config['baseline_report']) if 'baseline_report' in config else None
+    prompts = {size: Path(path).expanduser().read_text() for size, path in config['prompts'].items()}
+    identity, batch_plan = None, None
+    if 'factory_run' in config:
+        if set(config) & {'arms', 'device_budget_mib'}:
+            raise ValueError('Factory mode derives arms and device budget from the accepted run')
+        if reference is None or set(prompts) != set(lab_v4_inputs.PROMPT_TOKENS):
+            raise ValueError('Factory mode needs the historical A report and p512/p2048 rendered prompts')
+        identity, batch_plan, config['arms'] = lab_v4_inputs.resolve(**config['factory_run'])
+        config['device_budget_mib'] = int(batch_plan['device_budget_mib'])
+    return config, prompts, reference, identity, batch_plan
+
+
+def main(config_path, names):
+    config, prompts, reference, identity, batch_plan = configuration(config_path)
+    out = Path(config['out_dir']).expanduser()
     out.mkdir(parents=True, exist_ok=True)
     report_path = out / 'report.json'
     report = json.loads(report_path.read_text()) if report_path.exists() else dict(
         format='muse-v4-fast-lab/1', note='Lab tooling outside the factory graph; engines and packs as delivered.',
         config=config, rows=[], arms={})
-    prompts = {size: Path(path).read_text() for size, path in config['prompts'].items()}
+    if identity:
+        protocol = dict(factory_provenance=identity, batch_plan=batch_plan,
+                        baseline={key: reference[key] for key in ('path', 'sha256')},
+                        prompt_sha256={size: hashlib.sha256(prompt.encode()).hexdigest() for size, prompt in prompts.items()})
+        if report_path.exists() and (report['config'] != config or any(report.get(key) != value for key, value in protocol.items())):
+            raise ValueError('Factory inputs differ from the existing report. Use a new out_dir.')
+        report.update(protocol)
+    elif report.get('factory_provenance'):
+        raise ValueError('Factory report requires its original Factory configuration')
     done = {(r['arm'], r['request'], r['state']) for r in report['rows']}
     with TemporaryDirectory(prefix='image-bins-', dir=out) as extracted:
         pending = []
@@ -192,15 +306,30 @@ def main(config_path, names):
                 images[name] = image_record
             pending.append((name, arm, plan))
         for name, arm, plan in pending:
-            run_arm(name, arm, out, plan, prompts, report_path, report, config)
+            run_arm(name, arm, out, plan, prompts, report_path, report, config, reference)
     log('lab done', json.dumps(report.get('summary', {}), indent=1))
 
 
 if __name__ == '__main__':
     signal.signal(signal.SIGTERM, lambda *_: sys.exit(143))
-    if len(sys.argv) < 2:
-        raise SystemExit('usage: python scripts/factory/lab_v4_fast.py CONFIG.json [ARM ...]')
+    args = sys.argv[1:]
     try:
-        main(sys.argv[1], sys.argv[2:])
+        if len(args) == 3 and args[0] == '--compare':
+            measured = json.loads(Path(args[1]).read_text())
+            reference = baseline(args[2])
+            recorded = measured.get('baseline', {}).get('sha256')
+            if recorded and recorded != reference['sha256']:
+                raise ValueError('Historical A report digest differs from the recorded baseline')
+            print(json.dumps(comparison(measured['rows'], reference), indent=1))
+        elif len(args) == 2 and args[0] == '--resolve':
+            config, _, _, identity, plan = configuration(args[1])
+            print(json.dumps(dict(config=config, factory_provenance=identity, batch_plan=plan), indent=1))
+        elif args and not args[0].startswith('--'):
+            main(args[0], args[1:])
+        else:
+            raise SystemExit('usage: lab_v4_fast.py CONFIG.json [ARM ...] | --resolve CONFIG.json | '
+                             '--compare REPORT.json BASELINE.json')
     except capped_run.RunError as exc:
         raise SystemExit(f'{exc.code}: {exc}') from exc
+    except (FactoryError, ValueError, OSError, KeyError) as exc:
+        raise SystemExit(f'Lab evidence or configuration: {exc}') from exc
