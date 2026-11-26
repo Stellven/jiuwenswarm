@@ -1,5 +1,5 @@
 import { createTwoFilesPatch } from 'diff';
-import type { JsonRecord, NodeCapsule, NodeContract, NodeOutput, RunOperation, StoryEvent } from '../api';
+import type { EvidenceFile, JsonRecord, NodeCapsule, NodeContract, NodeOutput, RunOperation, StoryEvent } from '../api';
 import { atlasTitle } from '../cc/atlasNames.ts';
 import { operatorEnabled, type Controls, type NodeCheckView, type RunKind } from './checkModel.ts';
 
@@ -9,6 +9,34 @@ export function evidenceRecord(value: unknown): JsonRecord | undefined {
 
 export function evidenceText(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() ? value : undefined;
+}
+
+export function checkArtifactLabels(records: readonly JsonRecord[]) {
+  const labels = new Map<string, { created: number; sequence: number; name: string }>();
+  for (const row of records) {
+    if (row.kind !== 'node_check' || !Array.isArray(row.source_artifacts) || evidenceRecord(row.values)?.reused_from) continue;
+    const check = /^node-check:([^:]+):([^:]+):(\d+):[^:]+$/.exec(evidenceText(row.obs_id) ?? '');
+    if (!check) continue;
+    const [, node, output, sequence] = check;
+    const title = node.replaceAll('_', ' ').replace(/^./, (letter) => letter.toUpperCase());
+    const name = `${title} · ${output.replaceAll('_', ' ')} · check ${sequence}`;
+    const created = typeof row.created === 'number' ? row.created : 0;
+    for (const artifact of row.source_artifacts) {
+      if (typeof artifact !== 'string') continue;
+      const kind = /^node-check-[0-9a-f]+-(diff|review-packet|review-reply)(?:$|[@.])/.exec(artifact)?.[1];
+      if (!kind) continue;
+      const previous = labels.get(artifact);
+      if (previous && (previous.created < created || (previous.created === created && previous.sequence <= Number(sequence)))) continue;
+      const what = kind === 'diff' ? 'code diff' : kind === 'review-packet' ? 'review packet' : 'reviewer reply';
+      labels.set(artifact, { created, sequence: Number(sequence), name: `${name} · ${what}` });
+    }
+  }
+  return labels;
+}
+
+export function labelCheckArtifact(file: EvidenceFile, labels: ReturnType<typeof checkArtifactLabels>): EvidenceFile {
+  const names = [...new Set((file.artifact_ids ?? []).flatMap((id) => labels.get(id)?.name ?? []))];
+  return names.length ? { ...file, display_path: [...names, file.display_path || file.path].join(' · ') } : file;
 }
 
 function sortedJson(_key: string, value: unknown) {
@@ -36,33 +64,20 @@ export function replayLabel(value: unknown): string | undefined {
     return labels.length ? labels.join(' · ') : undefined;
   }
   const row = evidenceRecord(value);
-  const source =
-    evidenceText(value) ??
-    evidenceText(
-      row?.source_run ??
-        row?.run ??
-        row?.run_id ??
-        row?.task_id ??
-        row?.source_task ??
-        row?.source_home ??
-        row?.original_attempt ??
-        row?.attempt_id ??
-        row?.source_attempt_id,
-    );
+  const source = evidenceText(value) ?? evidenceText(
+    row?.run_id ?? row?.source_run ?? row?.source_task ?? row?.source_home ?? row?.original_attempt ?? row?.source_attempt_id,
+  );
   if (!source && (!row || !Object.keys(row).length)) return undefined;
-  const minutes = row?.original_minutes ?? row?.minutes;
+  const minutes = row?.original_minutes;
   const seconds =
     row?.duration_seconds ??
     row?.original_elapsed_seconds ??
     row?.original_elapsed_s ??
-    row?.original_seconds ??
-    row?.elapsed_seconds ??
-    row?.elapsed_s ??
-    row?.seconds;
+    row?.original_seconds;
   const originalSeconds = typeof seconds === 'number' ? seconds : typeof minutes === 'number' ? minutes * 60 : NaN;
   let duration = '';
   if (Number.isFinite(originalSeconds) && originalSeconds >= 0) {
-    const wholeSeconds = Math.round(originalSeconds);
+    const wholeSeconds = originalSeconds < 60 ? originalSeconds : Math.round(originalSeconds);
     const wholeMinutes = Math.floor(wholeSeconds / 60);
     const remainingSeconds = wholeSeconds % 60;
     duration = [

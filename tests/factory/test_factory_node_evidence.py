@@ -68,3 +68,38 @@ def test_stopped_run_cites_latest_matching_terminal_decision_and_is_not_curated(
     assert factory_nodes.native_replay(data, {'nodes': [complete]}, [], 'graph-r8') is None
     data['decisions'] = []
     assert factory_nodes.run_state(data, {'nodes': [complete]}, {}, False, 30)['reason'] is None
+
+
+def test_terminal_decision_takes_precedence_over_stale_worker_and_cap_job():
+    attempt = dict(attempt_id='old-job', state='running', request={'node_id': 'deliver'})
+    decision = dict(decision_id='terminal', rev=12, created=16, action={'type': 'accept'})
+    data = dict(tasks=[{'task_id': 'demo'}], observations=[], attempts=[attempt], decisions=[decision],
+                _meta=dict(outcome='accept', controller_state=dict(finished=17, stop_reason='checkpoint')))
+    state = factory_nodes.run_state(data, {'nodes': []}, {}, True, 20)
+    assert (state['state'], state['source'], state['since']) == ('finished', 'terminal', 17)
+    assert state['job'] is None and state['reason'] is None
+
+
+def test_finished_capped_record_clears_stale_wait_while_a_new_job_can_run():
+    old = dict(attempt_id='stale', state='running', request={'node_id': 'build'})
+    data = dict(tasks=[{'task_id': 'demo'}], observations=[
+        observation('final', 'capped_run', dict(attempt_id='stale', outcome='ok'), 12)
+    ], attempts=[old], _meta=dict(outcome=None, controller_state={}))
+    assert factory_nodes.run_state(data, {'nodes': []}, {}, False, 20)['state'] == 'idle'
+    data['attempts'].append(dict(old, attempt_id='new'))
+    assert factory_nodes.run_state(data, {'nodes': []}, {}, False, 20)['job']['attempt_id'] == 'new'
+
+
+def test_pack_census_appears_on_the_pack_verifier_card_once(monkeypatch):
+    pack = dict(id='pack', name='pack', kind='pack', summary={'census': {'q2_k': 62}})
+    producer, runner = 'weights.pack_compiler', 'factory.capped_runner'
+    final = {'work': {'bound_ccs': [producer, runner]}, 'outputs': [{'name': 'pack', 'kind': 'evidence'}]}
+    monkeypatch.setattr(factory_nodes, 'contract_view', lambda *args: dict(final=final))
+    monkeypatch.setattr(factory_nodes, 'outputs_view', lambda *args: [pack])
+    monkeypatch.setattr(factory_nodes, 'cc_row', lambda catalog, cc, version, **kwargs: {'id': cc})
+    data = dict(tasks=[{'task_id': 'demo'}])
+    outputs = [dict(name='pack', verifier=f'{producer}.verify_pack', checks=[])]
+    result = factory_nodes.node_detail(data, {'node_id': 'quantize'}, {'outputs': outputs}, None, [], [], {}, None)
+    pack_card, runner_card = result['capsules']
+    assert pack_card['outputs'] == [pack] and runner_card['outputs'] == []
+    assert runner_card['checks'] == outputs

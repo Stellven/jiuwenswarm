@@ -20,7 +20,7 @@ export function correctionAt(sequence: NodeCorrection, cursor?: CorrectionCursor
   const events = reached.map((event) => correctionStatusAt(event, verified));
   return {
     counts: {
-      findings: events.filter((event) => event.kind === 'finding').length,
+      findings: new Set(events.filter((event) => event.kind === 'finding').map((event) => event.finding_key ?? event.id)).size,
       notes: events.filter((event) => event.kind === 'note').length,
       repairs: events.filter((event) => event.kind === 'repair').length,
     },

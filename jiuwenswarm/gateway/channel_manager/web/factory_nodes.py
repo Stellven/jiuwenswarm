@@ -389,13 +389,18 @@ def node_detail(data, node, check_view, catalog, briefs, all_calls, releases, re
     checks = check_view.get('outputs', [])
     outputs = outputs_view(data, node, checks, read_artifact)
     runs = _node_runs(data, node)
+    bound = bindings(record, contract['final'])
+    capsule_ids = {cc for cc, _ in bound}
+    pack_owners = {output['name']: str(output.get('verifier') or '').rpartition('.')[0] for output in checks}
     capsules = []
-    for cc, version in bindings(record, contract['final']):
+    for cc, version in bound:
         calls = [c for c in all_calls if c['node_id'] == key and c['cc'] == cc]
         attempt_ids = {c['attempt_id'] for c in calls if c.get('attempt_id')}
         owned_checks = capsule_checks(cc, checks, native_output_names(cc, record, contract['final']))
         names = {o['name'] for o in owned_checks}
-        own_outputs = [o for o in outputs if o['name'] in names]
+        own_outputs = [o for o in outputs if o['name'] in names
+                       and (o['kind'] != 'pack' or pack_owners[o['name']] not in capsule_ids
+                            or pack_owners[o['name']] == cc)]
         own_runs = [r for r in runs if r['attempt_id'] in attempt_ids or (cc == 'factory.capped_runner' and r['recorded'])]
         preferred = {c.get('release') for c in calls} | {(r.get('verifier') or {}).get('release')
                     for o in owned_checks for r in o['checks'] if (r.get('verifier') or {}).get('cc') == cc}
@@ -414,6 +419,11 @@ def run_state(data, plan, markers, running, now):
     outcome = data['_meta'].get('outcome')
     stopped = str(outcome or '').startswith('stop_')
     result = dict(state='idle', reason=state.get('stop_reason'), by=None, since=None, node_id=None, job=None, markers=markers)
+    if outcome in story.TERMINAL:
+        decision = max((row for row in data.get('decisions', []) if (row.get('action') or {}).get('type') == outcome),
+                       key=lambda row: row.get('rev', 0), default={})
+        return result | dict(state='finished', outcome=outcome, reason=None,
+                             since=state.get('finished') or decision.get('created'), source=decision.get('decision_id'))
     if pause := current_in(data):
         return result | dict(state='paused', reason=pause.get('reason'), by=pause.get('by'), since=pause.get('at'),
                              source=pause.get('obs_id'))
@@ -431,7 +441,10 @@ def run_state(data, plan, markers, running, now):
     if holds:
         return result | dict(state='step', node_id=holds[0]['node_id'], reason=holds[0]['hold'],
                              since=markers.get('STEP.md', {}).get('mtime'), source='STEP.md' if 'STEP.md' in markers else None)
-    jobs = [a for a in data.get('attempts', []) if a.get('state') in story.ACTIVE]
+    completed = {o['values']['attempt_id'] for o in recent_rows(data, 'capped_run')
+                 if o['values'].get('attempt_id') and o['values'].get('outcome')}
+    jobs = [a for a in data.get('attempts', []) if a.get('state') in story.ACTIVE
+            and not a.get('ended') and a['attempt_id'] not in completed]
     if jobs:
         job = jobs[-1]
         request = job.get('request') or {}

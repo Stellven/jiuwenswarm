@@ -126,6 +126,7 @@ export type NodeContract = {
 };
 export type CorrectionCounts = { findings: number; notes: number; repairs: number };
 export type CorrectionEvent = {
+  finding_key?: string;
   id: string;
   kind: 'finding' | 'note' | 'repair' | 'passing_check';
   created: number;
