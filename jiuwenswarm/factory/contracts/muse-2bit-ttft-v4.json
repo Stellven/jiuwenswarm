@@ -361,7 +361,7 @@
    "Revision 6 fills the device budget with expert cache (owner, 2026-11-26): the 2-bit arms take --moe-cache-mib from the size_prefill_batch plan (about 66 GiB instead of 60) under the same 110000 MiB device budget as arm A, whose NVFP4 compute buffer leaves it at 61440. Equal memory budget, not equal cache size, is the fair comparison; B against A then includes the cache room the smaller compute buffer frees.",
    "Revision 6 also trims the lab protocol (owner, 2026-11-25): one warm request instead of two and 32 generated tokens instead of 128 per request, so the four arms fit in a few hours instead of a night.",
    "Revision 6 (v4 file, owner decision 2026-11-25): a 2-bit pack not made before, routed experts IQ2_XXS for the gate and up projections, Q2_K for down, other tensors at their NVFP4-pack type (about 267 GB against 305 GB for the Q2_K pack of Nov 24), target iq2_xxs,down=q2_k for weights.build_weight_pack_compiler; and every node runs in this run (capped runs through factory.capped_runner), reusing nothing built by hand.",
-   "Revision 7 (owner, 2026-11-26): the task graph is the CC execution and implementation up to the image delivery; measurement is shipped to the lab once. measure_accuracy is removed from the graph and its requirement accuracy_2bit moves into the lab task; port_ttft_cache drops the decode comparison slot; the requant smoke drops the NVFP4 token agreement."
+   "Revision 7 (owner, 2026-11-26): the task graph is the CC execution and implementation up to the image delivery; measurement is shipped to the lab once. measure_accuracy is removed from the graph and its requirement accuracy_2bit moves into the lab task; port_ttft_cache drops the decode comparison slot; the requant smoke drops the NVFP4 token agreement; size_prefill_batch (arm D configuration) moves to the lab."
   ]
  },
  "extensions": {
@@ -1068,7 +1068,7 @@
        "review": true
       }
      ],
-     "hands_to": "size_prefill_batch",
+     "hands_to": "deliver_to_lab",
      "stage": "preliminary",
      "slots": [
       {
@@ -1080,119 +1080,9 @@
      ]
     },
     {
-     "node_id": "size_prefill_batch",
-     "kind": "tune",
-     "objective": "Size the server prefill batch so each lab prompt is prefilled in as few micro-batches as the device budget allows, give the rest of the budget to the MoE expert cache, and check both on capped loads of E1 with the 2-bit pack.",
-     "requirement_ids": [
-      "D",
-      "prefill_batch_applied",
-      "cold_smoke"
-     ],
-     "predecessors": [
-      "build_candidate",
-      "requant_2bit"
-     ],
-     "inputs": [
-      {
-       "name": "sources",
-       "from": "build_candidate.sources"
-      },
-      {
-       "name": "pack_2bit",
-       "from": "requant_2bit.pack_2bit"
-      },
-      {
-       "name": "prompt_512",
-       "from": "contract:prompt_512"
-      },
-      {
-       "name": "prompt_2048",
-       "from": "contract:prompt_2048"
-      }
-     ],
-     "outputs": [
-      {
-       "name": "batch_plan",
-       "kind": "evidence",
-       "criteria": [
-        "A factory.prefill-batch-plan/1 from a -lv 4 load log of the arm C server at the default batch: the batch and micro-batch sizes, the device estimate against the budget, and micro-batches per lab prompt before and after.",
-        "One capped load of the arm C server with the planned arguments: the server applied them, its device buffers fit the budget, and greedy outputs of the lab requests agree with the default batch (byte-identical or a long common prefix).",
-        "The plan sizes the MoE cache (--moe-cache-mib in its args) and the capped load with the planned arguments uses the device budget to within headroom plus 2 GiB; if the linear compute estimate left more, the plan is redone from that load's log and loaded again."
-       ]
-      }
-     ],
-     "evidence_obligations": [
-      "captured_input_and_output",
-      "invocation_observation",
-      "mandatory_checks"
-     ],
-     "node_limits": {
-      "turns": 20,
-      "gpu_launches": 3
-     },
-     "authority_ceiling": {
-      "effects": [
-       "process.exec",
-       "workspace.read",
-       "workspace.write"
-      ],
-      "workspace": "read"
-     },
-     "work": {
-      "helpful_ccs": [
-       "engine.size_prefill_batch",
-       "factory.lab_manager"
-      ],
-      "capability": "engine.size_prefill_batch.verify",
-      "eligible_ccs": [
-       "engine.size_prefill_batch",
-       "factory.lab_manager",
-       "factory.capped_runner"
-      ]
-     },
-     "verifiers": [
-      {
-       "output": "batch_plan",
-       "verifier": "engine.size_prefill_batch.verify",
-       "stage": "runtime acceptance",
-       "review": true,
-       "inputs": {
-        "device_budget_mib": 110000,
-        "prompt_tokens": [
-         511,
-         2047
-        ],
-        "min_agree_chars": 64,
-        "fill_moe_cache_headroom_mib": 2048
-       }
-      }
-     ],
-     "hands_to": "deliver_to_lab",
-     "stage": "preliminary",
-     "slots": [
-      {
-       "id": "bind",
-       "at": "work.bound_ccs",
-       "kind": "ccs",
-       "from": "The capsule catalog, what the upstream nodes were built with and what failed before for this node."
-      },
-      {
-       "id": "batch_choice",
-       "at": "outputs.batch_plan.criteria",
-       "kind": "criteria",
-       "from": "The measured KV and compute buffers at each micro-batch size and the free memory now: one criterion naming the micro-batch sizes to try."
-      }
-     ],
-     "bounds": {
-      "verifiers.batch_plan.inputs.device_budget_mib": "lower",
-      "verifiers.batch_plan.inputs.min_agree_chars": "higher",
-      "verifiers.batch_plan.inputs.fill_moe_cache_headroom_mib": "lower"
-     }
-    },
-    {
      "node_id": "deliver_to_lab",
      "kind": "deliver",
-     "objective": "Send E0, E1, both packs, the profile, the prefill batch plan and the lab task for arms A, B, C and D, with the paired accuracy test (accuracy_2bit, A against B), to the lab manager. Arm A keeps --moe-cache-mib 61440; arms B, C and D take the plan's --moe-cache-mib, and only arm D its -b and -ub.",
+     "objective": "Ship the built image once: E0, E1, both packs and the profile, with the lab task for arms A to D and the paired accuracy test, to the lab manager.",
      "requirement_ids": [
       "A",
       "B",
@@ -1208,20 +1098,16 @@
       "prompt_tokens_per_second",
       "sampled_peak_memory_bytes",
       "load_seconds",
-      "accuracy_2bit"
+      "accuracy_2bit",
+      "cold_smoke"
      ],
      "predecessors": [
-      "build_candidate",
-      "size_prefill_batch"
+      "build_candidate"
      ],
      "inputs": [
       {
        "name": "sources",
        "from": "build_candidate.sources"
-      },
-      {
-       "name": "batch_plan",
-       "from": "size_prefill_batch.batch_plan"
       }
      ],
      "outputs": [
@@ -1229,7 +1115,7 @@
        "name": "lab_request",
        "kind": "lab_request",
        "criteria": [
-        "The lab task fills arms A, B, C and D with shipped subjects and runs every check and metric, cold and warm, at 512 and 2048 tokens, and the paired accuracy test accuracy_2bit on arms A and B."
+        "The lab task fills arms A, B, C and D with shipped subjects and runs every check and metric, cold and warm, at 512 and 2048 tokens, and the paired accuracy test accuracy_2bit on arms A and B. The batch and cache of arm D are sized in the lab (engine.size_prefill_batch)."
        ]
       }
      ],

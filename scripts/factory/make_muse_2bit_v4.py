@@ -158,6 +158,21 @@ DL['objective'] = DL['objective'].replace('the prefill batch plan and the lab ta
 DL['outputs'][0]['criteria'] = [
     'The lab task fills arms A, B, C and D with shipped subjects and runs every check and metric, cold and warm, at 512 '
     'and 2048 tokens, and the paired accuracy test accuracy_2bit on arms A and B.']
+# The prefill batch sizing is the configuration of lab arm D, found with full model loads: the lab's, not the
+# graph's (owner, 2026-11-26: the graph ends at the compiled and built image).
+SP = nodes.pop('size_prefill_batch')
+NODES[:] = [x for x in NODES if x['node_id'] != 'size_prefill_batch']
+DL['predecessors'] = [x for x in DL['predecessors'] if x != 'size_prefill_batch']
+DL['inputs'] = [i for i in DL.get('inputs', []) if not i['from'].startswith('size_prefill_batch.')]
+DL['requirement_ids'] = list(dict.fromkeys(DL['requirement_ids'] + SP.get('requirement_ids', [])))
+DL['objective'] = DL['objective'].replace('the prefill batch plan and ', '').replace(
+    'and only arm D its -b and -ub.', 'and the lab sizes the -b, -ub and cache of arm D with engine.size_prefill_batch.')
+for x in NODES:  # nodes that handed work to a removed node hand it to the delivery
+    if x.get('hands_to') in {'size_prefill_batch', 'measure_accuracy'}:
+        x['hands_to'] = 'deliver_to_lab'
+DL['objective'] = ('Ship the built image once: E0, E1, both packs and the profile, with the lab task for arms A to D '
+                   'and the paired accuracy test, to the lab manager.')
+DL['outputs'][0]['criteria'][0] += ' The batch and cache of arm D are sized in the lab (engine.size_prefill_batch).'
 PT = nodes['port_ttft_cache']
 PT['slots'] = [x for x in PT.get('slots', []) if x['id'] != 'decode_floor']
 RQ = nodes['requant_2bit']
@@ -168,7 +183,7 @@ contract['provenance']['notes'].append(
     'Revision 7 (owner, 2026-11-26): the task graph is the CC execution and implementation up to the image delivery; '
     'measurement is shipped to the lab once. measure_accuracy is removed from the graph and its requirement '
     'accuracy_2bit moves into the lab task; port_ttft_cache drops the decode comparison slot; the requant smoke drops '
-    'the NVFP4 token agreement.')
+    'the NVFP4 token agreement; size_prefill_batch (arm D configuration) moves to the lab.')
 
 plan = {'format': 'factory.plan/1', 'planner': 'hand-written demo plan (muse-2bit-ttft, preliminary node contracts)',
         'nodes': [{'node_id': n['node_id'], 'node_contract': n['node_id'], 'depends_on': n.get('predecessors', []),

@@ -937,5 +937,8 @@ def user_bus_env(environ=None):
 if __name__ == '__main__':
     if sys.argv[1] == '_exec':
         os.environ.update(user_bus_env())
+        # A cancelled job gets SIGTERM; exit through the recipes' finally blocks so the llama-server they started
+        # (its own session and systemd scope, outside the job's process group) is stopped too.
+        signal.signal(signal.SIGTERM, lambda *_: sys.exit(143))
         sys.exit(execute(os.environ['FACTORY_HOME'], sys.argv[2], sys.argv[3]))
     raise SystemExit('usage: python -m jiuwenswarm.factory.capped_run _exec <task_id> <attempt_id>')

@@ -68,22 +68,12 @@
    "title": "Build candidate engine E1 (E0 plus the seeded cache) and package it for the lab arms."
   },
   {
-   "node_id": "size_prefill_batch",
-   "node_contract": "size_prefill_batch",
-   "depends_on": [
-    "build_candidate",
-    "requant_2bit"
-   ],
-   "title": "Size the server prefill batch so each lab prompt is prefilled in as few micro-batches as the device budget allows, give the rest of the budget to the MoE expert cache, and check both on capped loads of E1 with the 2-bit pack."
-  },
-  {
    "node_id": "deliver_to_lab",
    "node_contract": "deliver_to_lab",
    "depends_on": [
-    "build_candidate",
-    "size_prefill_batch"
+    "build_candidate"
    ],
-   "title": "Send E0, E1, both packs, the profile, the prefill batch plan and the lab task for arms A, B, C and D, with the paired accuracy test (accuracy_2bit, A against B), to the lab manager. Arm A keeps --moe-cache-mib 61440; arms B, C and D take the plan's --moe-cache-mib, and only arm D its -b and -ub."
+   "title": "Ship the built image once: E0, E1, both packs and the profile, with the lab task for arms A to D and the paired accuracy test, to the lab manager."
   }
  ]
 }
