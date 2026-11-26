@@ -136,7 +136,7 @@ def summary(rows):
 
 COMPARISON_METRICS = ('client_ttft_ms', 'decode_tokens_per_second', 'request_total_ms')
 COMPARISON_PROVENANCE = ('image_id', 'llama_server_sha256', 'pack_manifest_sha256', 'batch_plan', 'n_batch',
-                         'n_ubatch', 'moe_cache_mib', 'requested_moe_cache_mib', 'prompt_sha256')
+                         'n_ubatch', 'moe_cache_mib', 'requested_moe_cache_mib', 'batch_mode', 'prompt_sha256')
 
 
 def baseline(path):
@@ -240,7 +240,7 @@ def run_arm(name, arm, out, plan, prompts, report_path, report, config, referenc
                        prompt_sha256=hashlib.sha256(prompts[size].encode()).hexdigest())
             if factory:
                 row.update(factory, batch_plan={key: batch_plan[key] for key in ('batch', 'ubatch', 'moe_cache_mib')},
-                           batch_plan_applied=name == 'P', pack_first_shard=arm['model'],
+                           batch_mode='planned' if name == 'P' else 'default', pack_first_shard=arm['model'],
                            device_budget_mib=server.placement['device_budget_mib'])
             report['rows'].append(row)
             report['summary'] = summary(report['rows'])

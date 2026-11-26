@@ -254,6 +254,8 @@ def test_factory_rows_use_delivered_identity_and_server_settings(lab, factory):
         assert row['pack_manifest_sha256'] == factory.manifest_sha
         assert row['n_batch'] == 2048
         assert row['n_ubatch'] == (512 if row['arm'] == 'B' else 2048)
+        assert row['batch_mode'] == ('default' if row['arm'] == 'B' else 'planned')
+        assert row['requested_moe_cache_mib'] == 64
         assert row['moe_cache_mib'] == 63.0
         assert row['batch_plan'] == dict(batch=2048, ubatch=2048, moe_cache_mib=64)
         assert row['cache_prompt'] is False
