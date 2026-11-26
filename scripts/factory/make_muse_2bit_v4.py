@@ -95,6 +95,14 @@ protocol['notes'] = ('One server load per arm (A, B, C, D in that order). Per pr
 # against 1539 (B, C) and 2128 (D, ub 2048); MoE cache 61425. Arm A at 61440 MiB of cache already fills the
 # 110000 MiB budget, the 2-bit arms left about 5 to 7 GiB unused. The budget is the limit, not the cgroup cap:
 # device buffers of about 101 GiB loaded under the 96G cap, and 110000 MiB keeps the host above the 8 GiB guard.
+# The checkpoint slot names its domain: the paired accuracy capsule's planned looks (its sequential boundary
+# Z_SEQ is calibrated for exactly those), so a finalized schedule is one the recipe and verify accept.
+MA = nodes['measure_accuracy']
+for slot in MA.get('slots', []):
+    if slot['id'] == 'checkpoints':
+        slot['from'] = ('The time left in the node limits and the measured seconds per question on E0: one criterion naming '
+                        'the planned checkpoints, chosen from the paired accuracy capsule planned looks (50, 100, 160, '
+                        '250, 430 questions; its sequential boundary is calibrated for those looks only).')
 SPB = nodes['size_prefill_batch']
 SPB['objective'] = ('Size the server prefill batch so each lab prompt is prefilled in as few micro-batches as the '
                     'device budget allows, give the rest of the budget to the MoE expert cache, and check both on '

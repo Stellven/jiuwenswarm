@@ -928,7 +928,7 @@
        "id": "checkpoints",
        "at": "outputs.accuracy.criteria",
        "kind": "criteria",
-       "from": "The time left in the node limits and the measured seconds per question on E0: one criterion naming the planned checkpoints."
+       "from": "The time left in the node limits and the measured seconds per question on E0: one criterion naming the planned checkpoints, chosen from the paired accuracy capsule planned looks (50, 100, 160, 250, 430 questions; its sequential boundary is calibrated for those looks only)."
       }
      ],
      "bounds": {
