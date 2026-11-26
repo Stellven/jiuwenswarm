@@ -1,0 +1,25 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "routing_profile_analysis/cc.yaml",
+      "from_version": "1.5.0",
+      "from_release": "6b1e041058289823b527fb301c355a427985005fdcf62cfefe3d7008d8f074ad",
+      "from_commit": "a8454bc1e2d2af9c3dde23792c6bc05f825dda6b",
+      "to_version": "1.5.1",
+      "to_release": "fdc87b03828983f8383ac91247966c53bd541292ae945cb17e01d18044f85555",
+      "changed_files": [
+        "SHA256SUMS",
+        "cc.yaml"
+      ],
+      "unrecorded_versions": [
+        {
+          "commit": "fa5d5656abd1e0dc3968b8ff076a975743c211e7",
+          "version": "1.5.0",
+          "release": "ecebbb34e24472bf10d44b99099bfbefd5297d319d0e0ba0a8d9863cb39e4d96"
+        }
+      ],
+      "reason": "checksums list gguf_pack.py and the files changed in 1.5.0"
+    }
+  ]
+}
