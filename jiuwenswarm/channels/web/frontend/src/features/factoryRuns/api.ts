@@ -39,6 +39,7 @@ export type StoryEvent = JsonRecord & {
   created: number;
   rev?: number;
   replayed_from?: unknown;
+  correction?: CorrectionEvent;
 };
 export type RunDetail = {
   run: Run;
@@ -58,6 +59,7 @@ export type RunDetail = {
   controls?: Controls;
   run_state?: RunState;
   cc_overview?: Record<string, CapsuleOverview[]>;
+  correction_overview?: Record<string, CorrectionCounts>;
 };
 export type RunState = {
   state: string;
@@ -120,10 +122,38 @@ export type NodeContract = {
   source?: unknown;
   final_source?: unknown;
 };
+export type CorrectionCounts = { findings: number; notes: number; repairs: number };
+export type CorrectionEvent = {
+  id: string;
+  kind: 'finding' | 'note' | 'repair' | 'passing_check';
+  created: number;
+  source: string;
+  node_id: string;
+  text: string;
+  output?: string;
+  check_id?: string;
+  by?: string;
+  actor?: 'reviewer' | 'verifier' | 'host' | 'scheduler' | 'operator' | 'worker';
+  reviewer?: string;
+  file?: string;
+  line?: number;
+  severity?: string;
+  verdict?: string;
+  reviewer_verdict?: string;
+  advisory?: boolean;
+  status?: 'open' | 'verified_repair';
+  host_passed?: boolean;
+  verifier_passed?: boolean;
+  finding_ids?: string[];
+  note_ids?: string[];
+  evidence_ids?: string[];
+};
+export type NodeCorrection = { counts: CorrectionCounts; events: CorrectionEvent[] };
 export type NodeDetail = {
   node_id: string;
   contract?: NodeContract;
   capsules: NodeCapsule[];
+  corrections?: NodeCorrection;
   outputs?: NodeOutput[];
   runs?: JsonRecord[];
 };

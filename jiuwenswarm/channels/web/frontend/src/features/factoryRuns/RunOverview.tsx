@@ -5,6 +5,8 @@ import type { EvidenceFile, JsonRecord, RunDetail, StoryEvent } from './api';
 import { atlasTitle } from './cc/atlasNames.ts';
 import { collapseEvents, presentEvent } from './views/storyModel.ts';
 import { ReplayLabel } from './views/NodeEvidence';
+import { CorrectionRecord } from './views/CorrectionSequence';
+import { correctionStatusAt } from './views/correctionModel';
 import { revisionEvent } from './views/nodeEvidenceModel';
 import './story.css';
 
@@ -89,11 +91,14 @@ export function RunOverview({
   const curated = detail.curated;
   const fileByPath = new Map(detail.files.map((file) => [file.path, file]));
   const groups = collapseEvents(events);
-
+  const verifiedCorrections = new Set(
+    events.flatMap(({ correction }) => correction?.kind === 'passing_check' ? correction.finding_ids ?? [] : []),
+  );
 
   if (curated) {
     const focus = curated.steps.find((step) => step.step === currentStep) ?? curated.steps[0];
     const lead = focus?.key_files[0];
+    const correction = focus?.correction ?? events.find((event) => event.step === focus?.step)?.correction;
     const stepSummary = focus?.say || focus?.original_summary;
     return (
       <div className="factory-story" data-testid="factory-runs-overview">
@@ -120,10 +125,18 @@ export function RunOverview({
               {focus.presentation_title}
             </h3>
             <ReplayLabel value={focus.replayed_from} />
-            {stepSummary && (
+            {!correction && stepSummary && (
               <p className="factory-curated-say" data-testid="factory-runs-curated-focus-say">
                 {stepSummary}
               </p>
+            )}
+            {correction && (
+              <CorrectionRecord
+                event={correctionStatusAt(correction, verifiedCorrections)}
+                compact
+                files={detail.files}
+                onOpenFile={onOpenFile}
+              />
             )}
             {lead && (
               <button
@@ -152,7 +165,7 @@ export function RunOverview({
             )}
             <details className="factory-curated-more">
               <summary>Recorded summary and other key files</summary>
-              {focus.original_summary && focus.original_summary !== stepSummary && (
+              {!correction && focus.original_summary && focus.original_summary !== stepSummary && (
                 <p className="factory-muted">{focus.original_summary}</p>
               )}
               <ul className="factory-curated-key-files">
@@ -374,10 +387,19 @@ export function RunOverview({
                     {count > 1 && <span className="factory-event-count" data-testid="factory-runs-event-count"> ×{count}</span>}
                     <small className="factory-original-kind" data-testid="factory-runs-event-kind">{shown.kind}</small>
                   </strong>
-                  <span>
-                    {event.summary} {eventCapsules?.(event)} <ReplayLabel value={event.replayed_from} />
-                    {revisionEvent(event) !== undefined && <small className="factory-muted"><code>{event.id}</code></small>}
-                  </span>
+                  {event.correction ? (
+                    <CorrectionRecord
+                      event={correctionStatusAt(event.correction, verifiedCorrections)}
+                      compact
+                      files={detail.files}
+                      onOpenFile={onOpenFile}
+                    />
+                  ) : (
+                    <span>
+                      {event.summary} {eventCapsules?.(event)} <ReplayLabel value={event.replayed_from} />
+                      {revisionEvent(event) !== undefined && <small className="factory-muted"><code>{event.id}</code></small>}
+                    </span>
+                  )}
                 </li>
               );
             })}

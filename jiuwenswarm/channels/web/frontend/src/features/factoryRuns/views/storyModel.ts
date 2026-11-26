@@ -1,4 +1,4 @@
-import type { EvidenceFile, StoryEvent } from '../api';
+import type { CorrectionEvent, EvidenceFile, StoryEvent } from '../api';
 import { replayLabel, revisionEvent } from './nodeEvidenceModel.ts';
 
 export type KeyFile = { path: string; label: string; why?: string; step?: number };
@@ -19,6 +19,7 @@ export type CuratedStep = {
   graph_nodes?: string[];
   node_id?: string;
   replayed_from?: unknown;
+  correction?: CorrectionEvent;
 };
 export type CuratedReplay = {
   schema: string;
@@ -79,7 +80,7 @@ export function collapseEvents(events: readonly StoryEvent[]): EventGroup[] {
     const previous = groups[groups.length - 1];
     if (previous && previous.event.kind === event.kind && previous.event.summary === event.summary
         && replayLabel(previous.event.replayed_from) === replayLabel(event.replayed_from)
-        && !event.presentation_title && event.kind !== 'taskgraph_patch' && revisionEvent(event) === undefined) {
+        && !event.correction && !previous.event.correction && !event.presentation_title && event.kind !== 'taskgraph_patch' && revisionEvent(event) === undefined) {
       previous.count += 1;
       previous.last = event.cursor;
       previous.events.push(event);

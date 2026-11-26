@@ -1,9 +1,9 @@
 import { useCallback, useId, useState } from 'react';
-import { FileCode, GitCompareArrows, Layers3 } from 'lucide-react';
+import { GitCompareArrows, Layers3 } from 'lucide-react';
 import {
   factoryApi,
   type CapsuleOverview,
-  type EvidenceFile,
+  type CorrectionCounts,
   type NodeCapsule,
   type NodeContract,
   type NodeOutput,
@@ -15,6 +15,9 @@ import { readableName } from '../cc/capsuleModel';
 import { useCapsuleResource } from '../cc/useCapsuleResource';
 import { DiffViewer } from './DiffViewer';
 import { NodeChecks } from './NodeChecks';
+import { CorrectionSequence, CorrectionTally } from './CorrectionSequence';
+import type { CorrectionCursor } from './correctionModel';
+import { SourceLinks, type EvidenceLinks } from './SourceLinks';
 import type { NodeCheckView, PlanNode } from './checkModel';
 import {
   capsuleCard,
@@ -27,7 +30,6 @@ import {
 import '../cc/capsules.css';
 import './nodeEvidence.css';
 
-type EvidenceLinks = { files: readonly EvidenceFile[]; onOpenFile: (path: string) => void };
 const emptyCapsules: CapsuleOverview[] = [];
 const verdictLabel = (verdict: string) => (verdict === 'unchecked' ? 'No output check' : verdict);
 
@@ -76,65 +78,6 @@ function ExpandableFields({ label, value }: { label: string; value: unknown }) {
       </summary>
       {expanded && <StructuredData value={value} />}
     </details>
-  );
-}
-
-function SourceLinks({
-  source,
-  ids = [],
-  files,
-  onOpenFile,
-}: EvidenceLinks & { source?: unknown; ids?: readonly string[] }) {
-  const sources = Array.isArray(source) ? source : [source];
-  const refs = [
-    ...new Set([
-      ...ids,
-      ...sources.flatMap((value) => {
-        const row = evidenceRecord(value);
-        return [
-          evidenceText(value),
-          ...[
-            row?.path,
-            row?.file,
-            row?.artifact_id,
-            row?.obs_id,
-            row?.observation_id,
-            row?.decision_id,
-            row?.attempt_id,
-            row?.record_id,
-            row?.id,
-            row?.ref,
-            row?.section,
-          ].map(evidenceText),
-        ].filter((ref): ref is string => Boolean(ref));
-      }),
-    ]),
-  ];
-  if (!refs.length) return null;
-  return (
-    <ul className="factory-node-evidence-sources" data-testid="factory-runs-node-evidence-sources" aria-label="Sources">
-      {refs.map((ref) => {
-        const file = files.find(
-          (entry) => entry.path === ref || entry.display_path === ref || entry.artifact_ids?.includes(ref),
-        );
-        return (
-          <li key={ref} data-testid="factory-runs-node-evidence-source" data-variant={ref}>
-            {file && file.integrity !== 'missing' ? (
-              <button
-                className="factory-graph-file-link"
-                type="button"
-                onClick={() => onOpenFile(file.path)}
-                data-testid="factory-runs-node-evidence-source-open"
-              >
-                <FileCode aria-hidden size={13} /> {file.display_path || file.path}
-              </button>
-            ) : (
-              <code>{ref}</code>
-            )}
-          </li>
-        );
-      })}
-    </ul>
   );
 }
 
@@ -372,6 +315,7 @@ export function NodeEvidence({
   node,
   checks,
   revision,
+  correctionCursor,
   onClose,
   ...links
 }: EvidenceLinks & {
@@ -380,6 +324,7 @@ export function NodeEvidence({
   node?: PlanNode;
   checks?: NodeCheckView;
   revision: unknown;
+  correctionCursor?: CorrectionCursor;
   onClose?: () => void;
 }) {
   const heading = useId();
@@ -418,6 +363,9 @@ export function NodeEvidence({
       ) : (
         <>
           {evidence.data.contract && <ContractEvidence {...links} contract={evidence.data.contract} />}
+          {evidence.data.corrections && (
+            <CorrectionSequence {...links} corrections={evidence.data.corrections} cursor={correctionCursor} />
+          )}
           <div className="factory-node-evidence-cards" data-testid="factory-runs-node-capsules">
             {!evidence.data.capsules.length && (
               <p className="factory-muted">No capsule bindings are recorded for this node.</p>
@@ -528,12 +476,14 @@ export function CapsuleOverviewStrip({
   nodes,
   labels,
   replayByNode,
+  corrections,
   selected,
   onSelect,
 }: {
   nodes?: Record<string, CapsuleOverview[]>;
   labels: Map<string, string>;
   replayByNode?: Map<string, unknown[]>;
+  corrections?: Record<string, CorrectionCounts>;
   selected?: string;
   onSelect: (id: string) => void;
 }) {
@@ -559,6 +509,7 @@ export function CapsuleOverviewStrip({
               >
                 {readableName(id)}
               </button>
+              {corrections?.[id] && <CorrectionTally counts={corrections[id]} />}
               <ReplayLabel value={replayByNode?.get(id)} />
               {capsules.map((capsule) => (
                 <span
