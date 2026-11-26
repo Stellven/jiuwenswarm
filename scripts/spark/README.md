@@ -12,6 +12,21 @@ The Factory runs web API (`jiuwenswarm/gateway/channel_manager/web/factory_http.
 
 Run them from the repository root with the checkout's Python. See the [API contract](../../docs/architecture/factory/FACTORY-RUNS-HTTP.md).
 
+### Rebuild the ten-step Muse R8 replay
+
+```bash
+python -m scripts.spark.build_r8_curated_replay \
+  --graph <R8 factory home> --report <corrected R8 report.json> \
+  --baseline <Nov 25 report-abcde.json> --accuracy <Q2_K verify-out.json> \
+  --out <new bundle directory>
+```
+
+On Spark the defaults generate `~/muse-demo/r8-final/curated-replay`, the
+path used by both viewers. The generator reads the frozen factory and lab
+records, copies the starred artifacts with their original hashes, records the
+sources of projections, and verifies the native export manifest before
+publishing. Regenerate to a new directory to compare manifests.
+
 ## Serve the Factory demo on Spark
 
 After the lead retires the prior local instance on port 5175, run from the

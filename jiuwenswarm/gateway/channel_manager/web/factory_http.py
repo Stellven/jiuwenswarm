@@ -85,7 +85,8 @@ def curated_replay(path):
     for cursor, step in enumerate(value['steps'], 1):
         step['event_cursor'] = cursor
         step['recorded_plan_nodes'] = step.get('graph_nodes', [])
-        step['graph_nodes'] = curated_graph_nodes(step)
+        if value.get('graph_mode') != 'recorded':
+            step['graph_nodes'] = curated_graph_nodes(step)
     return value
 
 
@@ -602,7 +603,8 @@ class FactoryHttpService:
             trace = [json.loads(line) for line in trace_path.read_text().splitlines() if line.strip()] if trace_path.is_file() else []
         checks = node_check_view(data, plan)
         return sanitize(dict(run=item, records=data, contract=data.get('_contract', {}),
-                             graph=curated_graph(bundled, item['task_id']) if bundled else plan,
+                             graph=curated_graph(bundled, item['task_id'])
+                             if bundled and bundled.get('graph_mode') != 'recorded' else plan,
                              recorded_plan=plan if bundled else None, node_checks=checks,
                              cc_overview=factory_nodes.overview(data, plan, checks, self.capsule_catalog),
                              scheduler_models=self._scheduler_models(path, item['task_id']),

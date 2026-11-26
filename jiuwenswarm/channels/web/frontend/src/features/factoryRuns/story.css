@@ -44,6 +44,10 @@
   font-weight: 650;
 }
 
+.factory-run strong.factory-run-demo-name {
+  white-space: normal;
+}
+
 .factory-runs-page .factory-run[aria-pressed='true'] {
   background: var(--color-action-primary-subtle);
   border-color: var(--color-text-link);
@@ -365,6 +369,16 @@
 .factory-curated-quotes small { font-family: inherit; color: var(--color-text-primary); }
 .factory-curated-step-key { justify-self: start; margin-left: 34px; padding: 2px 8px; border: 1px solid var(--color-border-warning); border-radius: 999px; background: transparent; color: var(--color-text-primary); font-size: 0.78rem; cursor: pointer; }
 .factory-curated-more summary { cursor: pointer; font-size: 0.85rem; color: var(--color-text-link); }
+.factory-curated-measurements { display: grid; gap: 8px; }
+.factory-curated-measurements p { margin: 0; }
+.factory-curated-table-scroll { overflow-x: auto; }
+.factory-curated-measurements table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.factory-curated-measurements th,
+.factory-curated-measurements td { padding: 5px 8px; border-bottom: 1px solid var(--color-border-default); text-align: start; }
+.factory-curated-measurements tr[data-excluded='true'] { color: var(--color-text-secondary); background: var(--color-surface-muted); }
+.factory-curated-measurements summary { cursor: pointer; }
+.factory-curated-measurements button,
+.factory-curated-graph-link { width: fit-content; padding: 0; border: 0; background: none; color: var(--color-text-link); font: inherit; cursor: pointer; text-decoration: underline; }
 
 .factory-detail-subtitle { margin: 2px 0 8px; color: #5a6676; font-size: 15px; max-width: 80ch; }
 .factory-run-builds { display: grid; gap: 14px; }
