@@ -139,6 +139,8 @@ def capsule_checks(cc, checks, output_ids=()):
 
 
 def verdict(checks):
+    if not checks:
+        return 'unchecked'
     relevant = []
     for output in checks:
         countable = [r for r in output['checks'] if not r['superseded'] and r['state'] == 'finished'
