@@ -260,3 +260,13 @@ def test_an_infrastructure_failure_halts(world, monkeypatch):
     capped_run.execute(store.home, 'task', attempt['attempt_id'])
     halts = halt_policy.find(store, 'task', [dict(node_id='build_base_engine', state='running')], store.get_task('task'))
     assert any('MACHINE_BUSY' in h['reason'] for h in halts)
+
+
+def test_user_bus_env_fills_the_trimmed_agent_env(tmp_path, monkeypatch):
+    from jiuwenswarm.factory import capped_run
+    runtime = tmp_path / 'run'
+    runtime.mkdir()
+    (runtime / 'bus').write_text('')
+    assert capped_run.user_bus_env(dict(XDG_RUNTIME_DIR=str(runtime))) == dict(DBUS_SESSION_BUS_ADDRESS=f'unix:path={runtime}/bus')
+    assert capped_run.user_bus_env(dict(XDG_RUNTIME_DIR=str(runtime), DBUS_SESSION_BUS_ADDRESS='x')) == {}
+    assert capped_run.user_bus_env(dict(XDG_RUNTIME_DIR=str(tmp_path / 'missing'))) == {}

@@ -25,6 +25,7 @@ export FACTORY_MUSE_SPIKES=${FACTORY_MUSE_SPIKES:-$HOME}
 export FACTORY_MUSE_CAPS=${FACTORY_MUSE_CAPS:-/tmp/cc-muse-caps}
 export FACTORY_LLAMA_SOURCE=${FACTORY_LLAMA_SOURCE:-$HOME/predemo-spark/llama.cpp-stock}
 export FACTORY_LAB_STATE=$FACTORY_HOME/lab-state
+export JOBQ_DIR=$FACTORY_LAB_STATE/jobq  # one queue for the worker, the controller and the agent's tools
 export FACTORY_HOST_PYTHON=$PY
 CODEX=${CODEX:-$HOME/.local/bin/codex}  # Codex 0.171 knows gpt-6.2-sol; the bundled 0.163 does not
 export JIUWENSWARM_CODEX_BIN=$CODEX FACTORY_SCHEDULER_CODEX_BIN=$CODEX

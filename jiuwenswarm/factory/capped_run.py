@@ -806,7 +806,21 @@ def execute(home, task_id, attempt_id):
     return 0 if outcome == 'ok' else 1
 
 
+def user_bus_env(environ=None):
+    """systemd-run --user needs the user's runtime dir and session bus. A job submitted from an agent's tool process
+    (whose env is trimmed) has neither; take the standard per-user locations when they exist."""
+    environ = os.environ if environ is None else environ
+    runtime = environ.get('XDG_RUNTIME_DIR') or f'/run/user/{os.getuid()}'
+    if not Path(runtime).is_dir():
+        return {}
+    extra = {} if environ.get('XDG_RUNTIME_DIR') else dict(XDG_RUNTIME_DIR=runtime)
+    if not environ.get('DBUS_SESSION_BUS_ADDRESS') and Path(runtime, 'bus').exists():
+        extra['DBUS_SESSION_BUS_ADDRESS'] = f'unix:path={runtime}/bus'
+    return extra
+
+
 if __name__ == '__main__':
     if sys.argv[1] == '_exec':
+        os.environ.update(user_bus_env())
         sys.exit(execute(os.environ['FACTORY_HOME'], sys.argv[2], sys.argv[3]))
     raise SystemExit('usage: python -m jiuwenswarm.factory.capped_run _exec <task_id> <attempt_id>')

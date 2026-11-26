@@ -131,7 +131,9 @@ def configure_agent(task, grants=(), home=None):
            # Bind native {python} to the controller's admitted environment.
            'CCV2_PYTHON': sys.executable, 'FACTORY_PYTHON': sys.executable,
            'PATH': '/usr/local/cuda/bin:' + os.environ.get('PATH', '')}
-    for key in ('FACTORY_BRIDGE_DIR', 'FACTORY_HOST_PYTHON', 'FACTORY_JOBQ_BIN', 'JOBQ_DIR',
+    # FACTORY_LAB_STATE picks the jobq queue (config.LAB_STATE): without it a job the agent submits lands in the
+    # default queue, which the operator's worker does not read.
+    for key in ('FACTORY_BRIDGE_DIR', 'FACTORY_HOST_PYTHON', 'FACTORY_JOBQ_BIN', 'JOBQ_DIR', 'FACTORY_LAB_STATE',
                 'FACTORY_YIELD_ON_JOBS', 'FACTORY_BUILD_RECIPE', 'FACTORY_NATIVE_BUILDER_IMAGE'):
         if key in os.environ:
             env[key] = os.environ[key]
