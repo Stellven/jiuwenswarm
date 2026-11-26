@@ -88,3 +88,38 @@ def test_missing_baseline_row_and_bad_plan_fail(tmp_path):
     assert not out['done'] and out['checks'][0]['name'] == 'plan_format'
     out = call('verify', plan={}, device_budget_mib=1)
     assert not out['done']
+
+
+def test_fill_gives_the_rest_of_the_budget_to_the_moe_cache(tmp_path):
+    out = planned(tmp_path, fill_moe_cache_headroom_mib=2048)
+    doc = out['plan']
+    assert out['done'], out['not_done_because']
+    assert doc['args'][:4] == ['-b', '2048', '-ub', '2048'] and doc['args'][4] == '--moe-cache-mib'
+    cache = doc['moe_cache_mib']
+    assert cache % 1024 == 0 and cache == int(doc['args'][5]) and cache > doc['moe_cache_from_mib']
+    assert 110000 - 2048 - 1024 < doc['estimate_mib'] <= 110000 - 2048
+    # without the input the plan is unchanged (1.1.0 behaviour)
+    assert 'moe_cache_mib' not in planned(tmp_path)['plan']
+
+
+def test_fill_verify_checks_the_server_cache(tmp_path):
+    planned(tmp_path, fill_moe_cache_headroom_mib=2048)
+    # the probe log was loaded at 61440 MiB, not the filled size: the cache was not applied
+    out = call('verify', plan=str(tmp_path / 'plan.json'), server_log=str(FIX / 'Bub.server.log'), device_budget_mib=110000,
+               baseline_rows=ROWS['baseline'], candidate_rows=ROWS['candidate'], fill_moe_cache_headroom_mib=2048)
+    status = {c['name']: c['status'] for c in out['checks']}
+    assert not out['done'] and status['moe_cache_applied'] == 'fail' and status['budget_filled'] == 'fail'
+    # The linear compute estimate leaves the measured load about 5 GiB under the budget; re-planned from the
+    # probe's own log (compute measured at the planned batch) the fill is exact, and a load that applied it passes.
+    planned(tmp_path, baseline_log=str(FIX / 'Bub.server.log'), fill_moe_cache_headroom_mib=2048)
+    plan = json.loads((tmp_path / 'plan.json').read_text())
+    log = (FIX / 'Bub.server.log').read_text().replace('MoE cache size = 61425.00 MiB',
+                                                       f"MoE cache size = {plan['moe_cache_mib'] - 15}.00 MiB")
+    out = call('verify', plan=plan, server_log=log, device_budget_mib=110000, baseline_rows=ROWS['baseline'],
+               candidate_rows=ROWS['candidate'], fill_moe_cache_headroom_mib=2048)
+    assert out['done'], out['not_done_because']
+    # a plan without a cache size fails when the node asks for a filled budget
+    planned(tmp_path)
+    out = call('verify', plan=str(tmp_path / 'plan.json'), server_log=str(FIX / 'Bub.server.log'), device_budget_mib=110000,
+               baseline_rows=ROWS['baseline'], candidate_rows=ROWS['candidate'], fill_moe_cache_headroom_mib=2048)
+    assert not out['done'] and {c['name']: c['status'] for c in out['checks']}['budget_filled'] == 'fail'

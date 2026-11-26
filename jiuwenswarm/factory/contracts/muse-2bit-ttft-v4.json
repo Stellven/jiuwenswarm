@@ -135,7 +135,7 @@
    "summary": "Base engine E0 (stock plus expert scale wiring) on the NVFP4 pack.",
    "deviations": [
     "Expert scale wiring, needed for stock to run the official NVFP4 weights correctly",
-    "--moe-cache-mib 61440 on every arm"
+    "One device memory budget (110000 MiB) on every arm: arm A runs --moe-cache-mib 61440 (its NVFP4 compute buffer of about 8 GiB leaves no more), arms B, C and D the larger --moe-cache-mib of the size_prefill_batch plan"
    ]
   },
   {
@@ -144,7 +144,8 @@
    "from": "A",
    "summary": "E0 on the mixed 2-bit pack: the quantization change alone.",
    "deviations": [
-    "Routed experts IQ2_XXS for the gate and up projections, Q2_K for down, instead of NVFP4"
+    "Routed experts IQ2_XXS for the gate and up projections, Q2_K for down, instead of NVFP4",
+    "--moe-cache-mib from the size_prefill_batch plan (device budget filled)"
    ]
   },
   {
@@ -154,7 +155,8 @@
    "summary": "E1 (E0 plus the seeded expert cache) on the 2-bit pack with the Muse routing profile.",
    "deviations": [
     "Routed experts IQ2_XXS for the gate and up projections, Q2_K for down, instead of NVFP4",
-    "LLAMA_EXPERT_CACHE_NATIVE_PROFILE=1 with the recorded profile"
+    "LLAMA_EXPERT_CACHE_NATIVE_PROFILE=1 with the recorded profile",
+    "--moe-cache-mib from the size_prefill_batch plan (device budget filled)"
    ]
   },
   {
@@ -165,7 +167,8 @@
    "deviations": [
     "Routed experts IQ2_XXS for the gate and up projections, Q2_K for down, instead of NVFP4",
     "LLAMA_EXPERT_CACHE_NATIVE_PROFILE=1 with the recorded profile",
-    "Server batch and micro-batch from the size_prefill_batch plan"
+    "Server batch and micro-batch from the size_prefill_batch plan",
+    "--moe-cache-mib from the size_prefill_batch plan (device budget filled)"
    ]
   }
  ],
@@ -355,6 +358,7 @@
    "Revision 3 adds node measure_accuracy: the 2-bit pack must lose less than 5 MMLU points against the NVFP4 pack (paired, planned checkpoints, eval.paired_accuracy) before the lab.",
    "Revision 4 (v3 file) makes every node contract preliminary: the scheduler agent finalizes each node just before it runs, binding capsules and filling slots from accepted upstream outputs, earlier failures and the machine state. A final contract may be more concrete or stricter than its preliminary one, never weaker.",
    "Revision 5: the scheduler agent reported a spec gap on pin_inputs (2026-11-25): the free disk criterion asked for 1.4 TB, the room both packs need, while a run that reuses the packs writes almost nothing. The planner states it as free disk covering what the run writes plus 100 GB.",
+   "Revision 6 fills the device budget with expert cache (owner, 2026-11-26): the 2-bit arms take --moe-cache-mib from the size_prefill_batch plan (about 66 GiB instead of 60) under the same 110000 MiB device budget as arm A, whose NVFP4 compute buffer leaves it at 61440. Equal memory budget, not equal cache size, is the fair comparison; B against A then includes the cache room the smaller compute buffer frees.",
    "Revision 6 also trims the lab protocol (owner, 2026-11-25): one warm request instead of two and 32 generated tokens instead of 128 per request, so the four arms fit in a few hours instead of a night.",
    "Revision 6 (v4 file, owner decision 2026-11-25): a 2-bit pack not made before, routed experts IQ2_XXS for the gate and up projections, Q2_K for down, other tensors at their NVFP4-pack type (about 267 GB against 305 GB for the Q2_K pack of Nov 24), target iq2_xxs,down=q2_k for weights.build_weight_pack_compiler; and every node runs in this run (capped runs through factory.capped_runner), reusing nothing built by hand."
   ]
@@ -1187,7 +1191,7 @@
     {
      "node_id": "size_prefill_batch",
      "kind": "tune",
-     "objective": "Size the server prefill batch for the lab prompts so each prompt is prefilled in as few micro-batches as the device memory budget allows (with CPU-resident experts every micro-batch streams the routed experts again), and check it on one capped load of E1 with the 2-bit pack.",
+     "objective": "Size the server prefill batch so each lab prompt is prefilled in as few micro-batches as the device budget allows, give the rest of the budget to the MoE expert cache, and check both on capped loads of E1 with the 2-bit pack.",
      "requirement_ids": [
       "D",
       "prefill_batch_applied",
@@ -1221,7 +1225,8 @@
        "kind": "evidence",
        "criteria": [
         "A factory.prefill-batch-plan/1 from a -lv 4 load log of the arm C server at the default batch: the batch and micro-batch sizes, the device estimate against the budget, and micro-batches per lab prompt before and after.",
-        "One capped load of the arm C server with the planned arguments: the server applied them, its device buffers fit the budget, and greedy outputs of the lab requests agree with the default batch (byte-identical or a long common prefix)."
+        "One capped load of the arm C server with the planned arguments: the server applied them, its device buffers fit the budget, and greedy outputs of the lab requests agree with the default batch (byte-identical or a long common prefix).",
+        "The plan sizes the MoE cache (--moe-cache-mib in its args) and the capped load with the planned arguments uses the device budget to within headroom plus 2 GiB; if the linear compute estimate left more, the plan is redone from that load's log and loaded again."
        ]
       }
      ],
@@ -1266,7 +1271,8 @@
          511,
          2047
         ],
-        "min_agree_chars": 64
+        "min_agree_chars": 64,
+        "fill_moe_cache_headroom_mib": 2048
        }
       }
      ],
@@ -1288,13 +1294,14 @@
      ],
      "bounds": {
       "verifiers.batch_plan.inputs.device_budget_mib": "lower",
-      "verifiers.batch_plan.inputs.min_agree_chars": "higher"
+      "verifiers.batch_plan.inputs.min_agree_chars": "higher",
+      "verifiers.batch_plan.inputs.fill_moe_cache_headroom_mib": "lower"
      }
     },
     {
      "node_id": "deliver_to_lab",
      "kind": "deliver",
-     "objective": "Send E0, E1, both packs, the profile, the prefill batch plan and the lab task for arms A, B, C and D to the lab manager.",
+     "objective": "Send E0, E1, both packs, the profile, the prefill batch plan and the lab task for arms A, B, C and D to the lab manager. Arm A keeps --moe-cache-mib 61440; arms B, C and D take the plan's --moe-cache-mib, and only arm D its -b and -ub.",
      "requirement_ids": [
       "A",
       "B",

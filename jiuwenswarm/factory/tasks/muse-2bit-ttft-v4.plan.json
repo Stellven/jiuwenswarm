@@ -84,7 +84,7 @@
     "build_candidate",
     "requant_2bit"
    ],
-   "title": "Size the server prefill batch for the lab prompts so each prompt is prefilled in as few micro-batches as the device memory budget allows (with CPU-resident experts every micro-batch streams the routed experts again), and check it on one capped load of E1 with the 2-bit pack."
+   "title": "Size the server prefill batch so each lab prompt is prefilled in as few micro-batches as the device budget allows, give the rest of the budget to the MoE expert cache, and check both on capped loads of E1 with the 2-bit pack."
   },
   {
    "node_id": "deliver_to_lab",
@@ -94,7 +94,7 @@
     "size_prefill_batch",
     "measure_accuracy"
    ],
-   "title": "Send E0, E1, both packs, the profile, the prefill batch plan and the lab task for arms A, B, C and D to the lab manager."
+   "title": "Send E0, E1, both packs, the profile, the prefill batch plan and the lab task for arms A, B, C and D to the lab manager. Arm A keeps --moe-cache-mib 61440; arms B, C and D take the plan's --moe-cache-mib, and only arm D its -b and -ub."
   }
  ]
 }

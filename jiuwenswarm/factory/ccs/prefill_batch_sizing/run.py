@@ -8,6 +8,10 @@ verify  check one capped server load (its log) and lab rows of the same requests
         planned batch: the batch was applied, every planned prompt fits one micro-batch, the measured device
         buffers fit the budget, and the greedy outputs agree (byte-identical, or a long common prefix when a
         different batch split changes the float summation order).
+fill    (plan input fill_moe_cache_headroom_mib) after the batch is chosen, give the rest of the device budget to
+        the MoE expert cache: --moe-cache-mib = budget - headroom - (model + KV + compute at the planned batch),
+        in whole GiB. Unified memory left idle under the budget is expert bytes streamed from disk again; verify
+        then checks the server sized its cache to the plan.
 Reads files only; starts nothing.
 """
 import json
@@ -94,6 +98,15 @@ def estimate(base, ubatch):
     return round(fixed + scaled, 1)
 
 
+def _headroom(inputs, key='fill_moe_cache_headroom_mib'):
+    value = inputs.get(key)
+    if value is None:
+        return None
+    if type(value) is not int or value < 0:
+        raise ValueError(f'{key} is a non-negative integer (MiB)')
+    return value
+
+
 def plan(inputs):
     base = parse_log(_text(inputs['baseline_log'], 'baseline_log'))
     if not base['n_ubatch'] or not base['device_mib'].get('compute'):
@@ -112,20 +125,34 @@ def plan(inputs):
             break
         ubatch //= 2
     fits = tried[-1]['fits']
+    headroom, cache = _headroom(inputs), None
+    if headroom is not None and fits:
+        others = tried[-1]['estimate_mib'] - base['device_mib'].get('moe_cache', 0)
+        cache = int((budget - headroom - others) // 1024) * 1024
+        cache = max(cache, int(base['device_mib'].get('moe_cache', 0) // 1024) * 1024)
+        tried[-1]['estimate_mib'] = round(others + cache, 1)
     batch = max(ubatch, base['n_batch'] or 0)
     passes = {str(p): dict(before=math.ceil(p / base['n_ubatch']), after=math.ceil(p / ubatch)) for p in prompts}
-    doc = dict(format='factory.prefill-batch-plan/1', batch=batch, ubatch=ubatch, args=['-b', str(batch), '-ub', str(ubatch)],
+    args = ['-b', str(batch), '-ub', str(ubatch)] + (['--moe-cache-mib', str(cache)] if cache else [])
+    doc = dict(format='factory.prefill-batch-plan/1', batch=batch, ubatch=ubatch, args=args,
                reference=dict(n_ubatch=base['n_ubatch'], n_batch=base['n_batch'], n_ctx=n_ctx, device_mib=base['device_mib']),
                device_budget_mib=budget, estimate_mib=tried[-1]['estimate_mib'], tried=tried, prompt_tokens=prompts,
                micro_batches=passes, fits=fits,
+               **(dict(moe_cache_mib=cache, headroom_mib=headroom,
+                       moe_cache_from_mib=base['device_mib'].get('moe_cache', 0)) if cache else {}),
                rationale=(f'Each prefill micro-batch streams the CPU-resident experts again; ubatch {ubatch} prefills '
                           + ', '.join(f'{p} tokens in {v["after"]} (was {v["before"]})' for p, v in passes.items())
-                          + f' micro-batch(es); estimated device {tried[-1]["estimate_mib"]:.0f} MiB of {budget:.0f}.'))
+                          + f' micro-batch(es); estimated device {tried[-1]["estimate_mib"]:.0f} MiB of {budget:.0f}.'
+                          + (f' The rest of the budget less {headroom} MiB headroom goes to the MoE cache: {cache} MiB '
+                             f'(was {base["device_mib"].get("moe_cache", 0):.0f}).' if cache else '')))
     checks = [check('baseline_log', 'pass', f"ubatch {base['n_ubatch']}, device {sum(base['device_mib'].values()):.0f} MiB", NATIVE),
               check('baseline_context', 'pass' if ctx_ok else 'fail',
                     f"baseline n_ctx {base['n_ctx']}, target {n_ctx}" + ('' if ctx_ok else ': load the baseline at the target context'), NATIVE),
               check('fits_budget', 'pass' if fits else 'fail',
                     f"{tried[-1]['estimate_mib']:.0f} MiB estimated vs {budget:.0f} MiB budget at ubatch {ubatch}", NATIVE),
+              *([check('moe_cache_filled', 'pass' if cache else 'fail',
+                       f"--moe-cache-mib {cache}, estimate {tried[-1]['estimate_mib']:.0f} MiB with {headroom} MiB headroom"
+                       if cache else 'no room: the batch does not fit the budget', NATIVE)] if headroom is not None else []),
               check('fewer_micro_batches', 'pass' if any(v['after'] < v['before'] for v in passes.values()) else 'info',
                     json.dumps(passes), NATIVE)]
     if inputs.get('plan_out'):
@@ -169,6 +196,20 @@ def verify(inputs):
     else:
         checks.append(check('device_budget', 'pass' if device <= budget else 'fail',
                             f"{device:.0f} MiB measured ({', '.join(f'{k} {v:.0f}' for k, v in log['device_mib'].items())}) vs {budget:.0f} MiB", RUNTIME))
+        planned = doc.get('moe_cache_mib')
+        if planned:
+            got = log['device_mib'].get('moe_cache', 0)
+            # The server rounds the cache down to whole expert slots (61440 MiB asked printed 61425 on Muse).
+            checks.append(check('moe_cache_applied', 'pass' if planned - 1024 <= got <= planned else 'fail',
+                                f'server MoE cache {got:.0f} MiB vs planned --moe-cache-mib {planned}', RUNTIME))
+        headroom = _headroom(inputs)
+        if headroom is not None:
+            filled = bool(planned) and device + headroom + 2048 >= budget
+            checks.append(check('budget_filled', 'pass' if filled else 'fail',
+                                f'{device:.0f} MiB used + {headroom} MiB headroom vs {budget:.0f} MiB budget'
+                                + ('' if planned else ': the plan does not size the MoE cache')
+                                + ('' if filled or not planned else ': the compute estimate was high; plan again with '
+                                   "this load's log as baseline_log (compute measured at the planned batch)"), RUNTIME))
         estimate_mib = doc.get('estimate_mib')
         if isinstance(estimate_mib, (int, float)):
             checks.append(check('estimate_safe', 'pass' if device <= estimate_mib * 1.02 else 'fail',

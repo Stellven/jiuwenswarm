@@ -90,6 +90,39 @@ protocol['notes'] = ('One server load per arm (A, B, C, D in that order). Per pr
                      'generated tokens each. Trimmed to keep the lab short: with a single warm request there is no '
                      'warm spread, so small differences are reported as measured, not as gains.')
 
+# Fill the device budget with expert cache (owner, 2026-11-26: "allow a lot of the memory to be used"). Measured on
+# the Q2_K lab of Nov 25 (-lv 4 logs): model 37397 MiB and KV 716 on every arm; compute 8387 MiB on arm A (NVFP4)
+# against 1539 (B, C) and 2128 (D, ub 2048); MoE cache 61425. Arm A at 61440 MiB of cache already fills the
+# 110000 MiB budget, the 2-bit arms left about 5 to 7 GiB unused. The budget is the limit, not the cgroup cap:
+# device buffers of about 101 GiB loaded under the 96G cap, and 110000 MiB keeps the host above the 8 GiB guard.
+SPB = nodes['size_prefill_batch']
+SPB['objective'] = ('Size the server prefill batch so each lab prompt is prefilled in as few micro-batches as the '
+                    'device budget allows, give the rest of the budget to the MoE expert cache, and check both on '
+                    'capped loads of E1 with the 2-bit pack.')
+plan_out = next(o for o in SPB['outputs'] if o['name'] == 'batch_plan')
+plan_out['criteria'].append(
+    'The plan sizes the MoE cache (--moe-cache-mib in its args) and the capped load with the planned arguments uses '
+    'the device budget to within headroom plus 2 GiB; if the linear compute estimate left more, the plan is redone '
+    'from that load\'s log and loaded again.')
+for v in SPB['verifiers']:
+    if v['output'] == 'batch_plan':
+        v['inputs']['fill_moe_cache_headroom_mib'] = 2048
+SPB.setdefault('bounds', {})['verifiers.batch_plan.inputs.fill_moe_cache_headroom_mib'] = 'lower'
+arms = {a['id']: a for a in contract['arms']}
+arms['A']['deviations'] = [
+    d if '61440' not in d else
+    ('One device memory budget (110000 MiB) on every arm: arm A runs --moe-cache-mib 61440 (its NVFP4 compute buffer '
+     'of about 8 GiB leaves no more), arms B, C and D the larger --moe-cache-mib of the size_prefill_batch plan')
+    for d in arms['A']['deviations']]
+for arm in ('B', 'C', 'D'):
+    arms[arm]['deviations'].append('--moe-cache-mib from the size_prefill_batch plan (device budget filled)')
+nodes['deliver_to_lab']['objective'] += (' Arm A keeps --moe-cache-mib 61440; arms B, C and D take the plan\'s '
+                                         '--moe-cache-mib, and only arm D its -b and -ub.')
+contract['provenance']['notes'].append(
+    'Revision 6 fills the device budget with expert cache (owner, 2026-11-26): the 2-bit arms take --moe-cache-mib '
+    'from the size_prefill_batch plan (about 66 GiB instead of 60) under the same 110000 MiB device budget as arm A, '
+    'whose NVFP4 compute buffer leaves it at 61440. Equal memory budget, not equal cache size, is the fair '
+    'comparison; B against A then includes the cache room the smaller compute buffer frees.')
 contract['provenance']['notes'].append(
     'Revision 6 also trims the lab protocol (owner, 2026-11-25): one warm request instead of two and 32 generated '
     'tokens instead of 128 per request, so the four arms fit in a few hours instead of a night.')
