@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Normalize Muse Spark benchmark receipts without running a model."""
 import argparse
+from collections import Counter
 from functools import cache
 import hashlib
 import json
@@ -44,9 +45,14 @@ def digest(buffer):
     return hashlib.sha256(buffer).hexdigest()
 
 
+@cache
+def file_digest(path):
+    return digest(payload(path))
+
+
 def source(path, record=None, line=None):
     location = {"record": record} if record is not None else {"line": line}
-    return dict(path=str(path), sha256=digest(payload(path)), **location)
+    return dict(path=str(path), sha256=file_digest(path), **location)
 
 
 def flag(argv, name):
@@ -92,10 +98,19 @@ def quiet(evidence=None):
     eligible = {"accepted": True, "excluded": False}.get(status)
     samples = evidence.get("samples", [])
     loads = [sample["load_averages"][0] for sample in samples if sample.get("load_averages")]
-    snapshots = [sample["processes"] for sample in samples if sample.get("processes") is not None]
+    appearances = Counter(
+        (process.get("own_lab"), process.get("kind"), process.get("name"), process.get("state"))
+        for sample in samples for process in sample.get("processes") or ()
+    )
+    ranked = sorted(appearances, key=lambda key: (key[0] is True, key[1] == "other", -appearances[key], str(key)))
+    processes = [
+        dict(own_lab=own, kind=kind, name=name, state=state, observations=appearances[own, kind, name, state])
+        for own, kind, name, state in ranked[:24]
+    ]
     reasons = evidence.get("reasons", [])
     reason = "; ".join(reasons) or ("No row-level quiet evidence" if eligible is None else None)
-    return dict(eligible=eligible, load1=max(loads, default=None), processes=snapshots or None, reason=reason)
+    return dict(eligible=eligible, load1=max(loads, default=None), processes=processes or None, reason=reason,
+                sample_count=len(samples) if evidence else None, process_groups_omitted=max(0, len(ranked) - len(processes)))
 
 
 def metrics(row=None, load=None):
@@ -128,6 +143,7 @@ def server_log(path):
     census = {}
     details = {}
     split_requests = []
+    ready_line = None
     current = None
     names = {"n_batch": "b", "n_ubatch": "ub", "n_ctx": "ctx", "n_seq_max": "np"}
     devices = dict(zip(("model buffer", "KV buffer", "compute buffer", "MoE cache"), DEVICE_KEYS))
@@ -145,16 +161,20 @@ def server_log(path):
         elif found := re.search(r"(\d+)\.(\d+)\.(\d+)\.(\d+) I srv\s+server_run_i: model loaded", line):
             minutes, seconds, millis, micros = map(int, found.groups())
             details["server_ready_s"] = 60 * minutes + seconds + millis / 1000 + micros / 1000000
+            ready_line = number
         elif found := re.search(r"new prompt, .*task\.n_tokens = (\d+)", line):
-            current = dict(prompt_tokens=int(found[1]), batches=[], lines=[])
+            current = dict(prompt_tokens=int(found[1]), batches=[], lines=[number])
             split_requests.append(current)
+            continue
         elif current is not None and (found := re.search(r"prompt processing, n_tokens =\s*(\d+)", line)):
             current["batches"].append(int(found[1]))
             current["lines"].append(number)
+            continue
         elif current is not None and (found := re.search(r"init sampler, .*tokens: text = (\d+)", line)):
             current["lines"].append(number)
             current["batches"].append(int(found[1]))
             current = None
+            continue
         else:
             continue
         captures[number] = line
@@ -167,14 +187,15 @@ def server_log(path):
         if entry["batches"] and entry["batches"][-1] == entry["prompt_tokens"]
         and entry["batches"] == sorted(set(entry["batches"]))
     ]
-    return dict(device=device, observed=observed, census=census, details=details, lines=captures, splits=chunks)
+    return dict(device=device, observed=observed, census=census, details=details, lines=captures, splits=chunks,
+                ready_line=ready_line)
 
 
 def add_log(log_path, settings_row, pack_row, engine_row, references):
     if log_path is None or not log_path.is_file():
         return {}, None
     log = server_log(log_path)
-    references.append(source(log_path, record="server startup / CUDA allocation and session settings"))
+    references.extend(source(log_path, line=number) for number in log["lines"])
     settings_row.update(log["observed"])
     if engine_row["commit"] is None:
         engine_row["commit"] = log["details"].get("commit")
@@ -337,7 +358,8 @@ def legacy_smoke(root):
         req["name"] = row["prompt"]
         yield record("2026-11-24", "nov24-smoke", "S-A", "performance", source(path, record=f"/rows/{index}"),
                      key=str(index), **shared, request=req, metrics=metrics(row), raw=row)
-    yield record("2026-11-24", "nov24-smoke", "S-A", "load", refs[-1], key="startup", **shared,
+    yield record("2026-11-24", "nov24-smoke", "S-A", "load", source(log_path, line=log["ready_line"]),
+                 key="startup", **shared,
                  metrics=metrics(load=log["details"].get("server_ready_s")), raw=log)
 
 
@@ -372,10 +394,19 @@ def phase_four(path):
         arm = row["arm"]
         raw = doc["arms"].get(arm, {})
         date = raw.get("started", "2026-11-26")[:10]
-        evidence = quiet(row.get("quiet"))
+        raw_evidence = row.get("quiet") or {}
+        evidence = quiet(raw_evidence)
+        row_refs = shared[arm]["sources"].copy()
+        if raw_evidence:
+            quiet_source = source(path, record=f"/rows/{index}/quiet")
+            row_refs.append(quiet_source)
+            evidence["source"] = quiet_source
+        raw_row = {key: value for key, value in row.items() if key != "quiet"}
+        if raw_evidence:
+            raw_row["quiet"] = {key: value for key, value in raw_evidence.items() if key != "samples"}
         yield record(date, run, arm, "performance", source(path, record=f"/rows/{index}"),
-                     key=str(index), **shared[arm], request=request(row), quiet=evidence,
-                     metrics=metrics(row, raw.get("load_seconds")), raw=row, error=row.get("error"))
+                     key=str(index), **(shared[arm] | {"sources": row_refs}), request=request(row), quiet=evidence,
+                     metrics=metrics(row, raw.get("load_seconds")), raw=raw_row, error=row.get("error"))
 
 
 def main():
