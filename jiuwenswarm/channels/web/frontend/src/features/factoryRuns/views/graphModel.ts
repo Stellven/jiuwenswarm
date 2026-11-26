@@ -36,6 +36,7 @@ export type GraphReplay = {
   curated?: CuratedReplay | null;
   onOpenFile?: (path: string) => void;
   onOpenNode?: (nodeId: string) => void;
+  replayByNode?: Map<string, unknown[]>;
   /** Live and exported runs: per plan node checking records (GET /runs/{id} node_checks). */
   checks?: NodeCheckIndex;
   /** Live homes only: hold, release and reopen. */

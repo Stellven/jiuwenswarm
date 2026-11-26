@@ -68,6 +68,32 @@ export function replayLabel(value: unknown): string | undefined {
   return `Replayed${source ? ` from ${source}` : ''}${duration === undefined ? '' : `, originally ${duration} min`}`;
 }
 
+function indexReplay(replays: Map<string, unknown[]>, id: unknown, source: unknown) {
+  if (typeof id !== 'string' || !source) return;
+  const origins = replays.get(id) ?? [];
+  origins.push(source);
+  replays.set(id, origins);
+}
+
+export function nodeReplayOrigins(events: readonly StoryEvent[], position: number) {
+  const replays = new Map<string, unknown[]>();
+  for (const event of events.slice(0, position)) {
+    indexReplay(replays, event.node_id, event.replayed_from);
+  }
+  return replays;
+}
+
+export function artifactReplayOrigins(records: readonly JsonRecord[]) {
+  const replays = new Map<string, unknown[]>();
+  for (const record of records) {
+    const values = evidenceRecord(record.values);
+    const source = values?.replayed_from ?? evidenceRecord(values?.request)?.replayed_from;
+    if (!source || !Array.isArray(record.source_artifacts)) continue;
+    for (const id of record.source_artifacts) indexReplay(replays, id, source);
+  }
+  return replays;
+}
+
 export function capsuleCard(capsule: NodeCapsule, checks: NodeCheckView | undefined) {
   const outputNames = new Set((capsule.outputs ?? []).map((output) => output.name));
   const attached =

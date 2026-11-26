@@ -21,7 +21,7 @@ import { isContractV2 } from './labModel';
 import { nodeActions, operatorEnabled, pauseStatement, type Controls, type NodeOperator, type PlanNode } from './views/checkModel';
 import { CapsuleOverviewStrip, NodeEvidence, ReplayLabel } from './views/NodeEvidence';
 import { RunState } from './views/RunState';
-import { evidenceText, revisionEvent, runOperations } from './views/nodeEvidenceModel';
+import { artifactReplayOrigins, evidenceText, nodeReplayOrigins, revisionEvent, runOperations } from './views/nodeEvidenceModel';
 import './labResults.css';
 import { Iterations } from './Iterations';
 import { FactoryReport } from './FactoryReport';
@@ -350,6 +350,8 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
     if (main.current) main.current.scrollTop = 0;
   }, [panel, selected]);
   const visibleEvents = events.slice(0, position);
+  const replayByNode = useMemo(() => nodeReplayOrigins(events, position), [events, position]);
+  const replayByArtifact = useMemo(() => artifactReplayOrigins(detail?.records.observations ?? []), [detail]);
   const cursor = visibleEvents[visibleEvents.length - 1];
   const curatedStep = curatedStepFor(detail?.curated, cursor);
   const focusedNode = selectedNode ?? (curatedStep?.original_kind === 'revise' ? undefined : curatedStep?.node_id);
@@ -635,6 +637,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                 <CapsuleOverviewStrip
                   nodes={detail.cc_overview}
                   labels={nodeLabels}
+                  replayByNode={replayByNode}
                   selected={focusedNode}
                   onSelect={(id) => setSelectedNode((old) => old === id ? undefined : id)}
                 />
@@ -690,6 +693,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                     onOpenFile: (path: string) => selectPanel('artifacts', path),
                     checks: detail.node_checks,
                     operator,
+                    replayByNode,
                     onOpenNode: detail.cc_overview ? (id) => setSelectedNode(id) : undefined,
                   }}
                   initialMode="graph"
@@ -764,6 +768,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                   onSelect={(path) => { setExpectedSha(''); setFilePath(path); }}
                   keyFiles={stepKeyFiles}
                   keyFlags={keyFlagMap}
+                  replayByArtifact={replayByArtifact}
                 />
               )}
             </section>
