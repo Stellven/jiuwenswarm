@@ -463,7 +463,7 @@ export function EngineReport() {
             <footer className="engine-method" data-testid="factory-runs-engine-method">
               <h2>How this was measured</h2>
               <p>
-                A is E0 on NVFP4 from Nov 25. B and P use the same R8 image, with one capped load per arm and the same
+                A is the Nov 25 baseline, E0 on NVFP4 from the Q2_K-era lab. B and P use the same R8 image, with one capped load per arm and the same
                 prompts and device budget as A. TTFT speedups match prompt and cache state. Total times cover 128
                 generated tokens for A and 32 for B and P. The paired MMLU result is for Q2_K. The new pack is the next
                 accuracy benchmark.
