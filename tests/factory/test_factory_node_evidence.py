@@ -78,6 +78,9 @@ def test_terminal_decision_takes_precedence_over_stale_worker_and_cap_job():
     state = factory_nodes.run_state(data, {'nodes': []}, {}, True, 20)
     assert (state['state'], state['source'], state['since']) == ('finished', 'terminal', 17)
     assert state['job'] is None and state['reason'] is None
+    data['_meta'] = dict(outcome=None, controller_state={})
+    state = factory_nodes.run_state(data, {'nodes': []}, {}, True, 20)
+    assert (state['state'], state['source'], state['since']) == ('finished', 'terminal', 16)
 
 
 def test_finished_capped_record_clears_stale_wait_while_a_new_job_can_run():
@@ -103,3 +106,14 @@ def test_pack_census_appears_on_the_pack_verifier_card_once(monkeypatch):
     pack_card, runner_card = result['capsules']
     assert pack_card['outputs'] == [pack] and runner_card['outputs'] == []
     assert runner_card['checks'] == outputs
+
+
+def test_checked_patch_reports_the_producing_check_when_reused_later():
+    artifact = 'node-check-abcd-diff'
+    old = observation('old-check', 'node_check', {'head': 'source-base'}, 10, [artifact])
+    new = observation('new-check', 'node_check', {'head': 'later-base', 'reused_from': 'old-check'}, 12, [artifact])
+    check = dict(state='finished', superseded=False, cited=True, obs_id='new-check', artifacts=[artifact])
+    data = dict(observations=[old, new], artifacts=[dict(artifact_id=artifact, sha256='patch-sha')])
+    [patch] = factory_nodes.outputs_view(data, {}, [dict(name='change', kind='diff', checks=[check])])
+    assert patch['source'] == 'new-check'
+    assert patch['summary'] == dict(diff_artifact_id=artifact, diff_source='old-check', base='source-base', sha256='patch-sha')

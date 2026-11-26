@@ -341,7 +341,11 @@ def outputs_view(data, node, checks, read_artifact=None):
         diff_id = next((a for a in ids if kind == 'diff' and (a.endswith(('-diff', '.diff', '.patch'))
                         or artifacts[a].get('media_type') in {'text/x-diff', 'text/x-patch'})), None)
         if diff_id:
-            summary.update(diff_artifact_id=diff_id, base=values.get('head'), sha256=artifacts[diff_id].get('sha256'))
+            producer = min((o for o in obs.values() if o.get('kind') == 'node_check'
+                            and diff_id in (o.get('source_artifacts') or []) and not o['values'].get('reused_from')),
+                           key=lambda o: o.get('created') or 0, default=record)
+            summary.update(diff_artifact_id=diff_id, diff_source=producer.get('obs_id'),
+                           base=(producer.get('values') or {}).get('head'), sha256=artifacts[diff_id].get('sha256'))
         replay = next((r['values']['replayed_from'] for r in records if r['values'].get('replayed_from')), None)
         outputs.append(dict(id=name, name=name, kind=kind, artifact_ids=ids, summary=summary, replayed_from=replay,
                             replay_source=story.replay_origin(replay), source=check.get('obs_id'),
@@ -417,6 +421,10 @@ def node_detail(data, node, check_view, catalog, briefs, all_calls, releases, re
 def run_state(data, plan, markers, running, now):
     state = data['_meta']['controller_state']
     outcome = data['_meta'].get('outcome')
+    latest = max(data.get('decisions', []), key=lambda row: row.get('rev', 0), default={})
+    decision_outcome = (latest.get('action') or {}).get('type')
+    if not outcome and decision_outcome in story.TERMINAL:
+        outcome = decision_outcome
     stopped = str(outcome or '').startswith('stop_')
     result = dict(state='idle', reason=state.get('stop_reason'), by=None, since=None, node_id=None, job=None, markers=markers)
     if outcome in story.TERMINAL:
