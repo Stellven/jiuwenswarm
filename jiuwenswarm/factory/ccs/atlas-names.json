@@ -523,6 +523,15 @@
       "target": null,
       "summary": "Inspects and edits the task-owned source checkout and records local commits."
     },
+    "capped_runner": {
+      "capsule_id": "factory.capped_runner",
+      "title": "Capped run workbench",
+      "kind": "factory",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Runs builds, conversions, requantizations, server runs and paired accuracy as capped jobs of the task and records each run."
+    },
     "spark_gap_analysis": {
       "capsule_id": "factory.spark_gap_analysis",
       "title": "Engine gap analysis",

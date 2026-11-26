@@ -4,7 +4,7 @@ from jiuwenswarm.factory.cli import main
 
 def test_real_capsules(capsys):
     rows = capsule_rows()
-    assert len(rows) == 67
+    assert len(rows) == 68
     assert all(r['valid'] for r in rows)
     assert sum(r['binding'] == 'material-only' for r in rows) == 9
     assert sum(len(r['capabilities']) for r in rows) >= 28
