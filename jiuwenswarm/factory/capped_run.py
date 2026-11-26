@@ -355,13 +355,20 @@ def _meminfo():
     return out
 
 
-def _gpu_apps():
+def _gpu_apps(*, strict=False):
     try:
-        rows = subprocess.run(['nvidia-smi', '--query-compute-apps=pid,process_name,used_memory',
-                               '--format=csv,noheader'], capture_output=True, text=True, timeout=30).stdout
-    except (OSError, subprocess.TimeoutExpired):
+        response = subprocess.run(['nvidia-smi', '--query-compute-apps=pid,process_name,used_memory',
+                                   '--format=csv,noheader'], capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        if strict:
+            raise RunError('MACHINE_PROBE', f'GPU process check unavailable: {exc}') from exc
         return []
-    return [r.strip() for r in rows.splitlines() if r.strip()]
+    if strict and response.returncode:
+        raise RunError('MACHINE_PROBE', 'GPU process check exited unsuccessfully')
+    rows = [row.strip() for row in response.stdout.splitlines() if row.strip()]
+    if strict and any(not row.split(',', 1)[0].isdigit() for row in rows):
+        raise RunError('MACHINE_PROBE', 'GPU process check returned an unrecognized process record')
+    return rows
 
 
 def machine(task, home, own_pids=()):
@@ -887,6 +894,11 @@ def recipe_accuracy(run):
                 server_logs={a: st['arms'][a]['server_log'] for a in st['arms']}, active_s=round(st['active_s']))
 
 
+def recipe_wire_fixture(run):
+    from .wiring_fixture import run_job
+    return run_job(run)
+
+
 def execute(home, task_id, attempt_id):
     store = Store(Path(home))
     attempt = store._decode('attempts', store._db.execute(
@@ -903,7 +915,8 @@ def execute(home, task_id, attempt_id):
         outcome, error = 'error', dict(code='UNEXPECTED', message=f'{type(exc).__name__}: {exc}')
     run.log('outcome', outcome, error or '')
     doc = dict(format='factory.capped-run/1', recipe=req['recipe'], request=req, outcome=outcome, error=error,
-               result=result, seconds=round(time.time() - started, 1), memory_cap=run.cap if req['recipe'] in MODEL_LOADS else None,
+               result=result, seconds=round(time.time() - started, 1),
+               memory_cap=run.cap if req['recipe'] in MODEL_LOADS or req['recipe'] == 'wire_fixture' else None,
                peak_memory_bytes=run.peak or None,
                min_available_bytes=run.low, node_id=req.get('node_id'), attempt_id=attempt_id)
     (run.dir / 'result.json').write_text(json.dumps(doc, indent=1))

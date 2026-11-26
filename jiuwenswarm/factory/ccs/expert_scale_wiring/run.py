@@ -15,6 +15,7 @@ Nothing is written inside the checkout. Pass absolute paths.
 """
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -26,6 +27,7 @@ sys.path.insert(0, str(HERE / "helpers"))
 import checkout as co  # noqa: E402
 import patchlib  # noqa: E402
 import wiring_rules  # noqa: E402
+from fixture_scope import DEMO_TASK, SCOPE_ENV, inherited_cap, require_scope  # noqa: E402
 from gguf_pack import load_pack  # noqa: E402
 from kld_compare import finite, kld  # noqa: E402
 from llama_runs import PROMPT, eval_callback, simple  # noqa: E402
@@ -204,6 +206,7 @@ def runtime(inputs, checkout, head, work, src, require):
     if not packs:
         return [check("runtime_acceptance", missing, "no tiny_dir: parity and numerics not run", RUNTIME)]
     cap = inputs.get("mem_cap", "16G")
+    capped = inherited_cap if os.environ.get(SCOPE_ENV) else co.capped
     jobs = int(inputs.get("jobs", 8))
     cand_bin = work / "cand-build" / "bin"
     checks = []
@@ -229,8 +232,8 @@ def runtime(inputs, checkout, head, work, src, require):
         checks.append(check("stock_build", "info", f"stock {head[:12]} at {stock}", COMPILE))
 
     acceptance = []
-    rc_c, out_c, err_c, note = simple(cand_bin, packs["bf16_pack"], co.capped, cap)
-    rc_s, out_s, err_s, _ = simple(stock, packs["bf16_pack"], co.capped, cap)
+    rc_c, out_c, err_c, note = simple(cand_bin, packs["bf16_pack"], capped, cap)
+    rc_s, out_s, err_s, _ = simple(stock, packs["bf16_pack"], capped, cap)
     same = rc_c == 0 and rc_s == 0 and out_c == out_s and len(out_c) > len(PROMPT)
     acceptance.append(check("scale_free_parity", "pass" if same else "fail",
                       f"greedy llama-simple -n 32 on {packs['bf16_pack'].name}: stdout byte-identical to stock "
@@ -239,7 +242,7 @@ def runtime(inputs, checkout, head, work, src, require):
                       f"{out_c[-200:]!r} vs {out_s[-200:]!r} {err_c[-300:]}", RUNTIME))
 
     text = Path(inputs.get("text") or (src / "README.md"))
-    prefix, note = co.capped([], cap)
+    prefix, note = capped([], cap)
     res, base = kld(str(cand_bin / "llama-perplexity"), packs["ref_pack"], packs["nvfp4_pack"], text,
                     work / "kld", threads=jobs, prefix=prefix)
     limit = float(inputs.get("kld_max", 0.005))
@@ -252,8 +255,8 @@ def runtime(inputs, checkout, head, work, src, require):
     vals = [res.get("mean_kld"), res.get("ppl_q")]
     acceptance.append(check("no_nan", "pass" if ran and finite(vals) else "fail",
                       f"KLD and PPL finite: {vals}" if ran and finite(vals) else f"non-finite or missing: {vals}", RUNTIME))
-    rc_a = eval_callback(cand_bin, packs["nvfp4_pack"], work / "cb-nvfp4.log", co.capped, cap, jobs)
-    rc_b = eval_callback(cand_bin, packs["ref_pack"], work / "cb-ref.log", co.capped, cap, jobs)
+    rc_a = eval_callback(cand_bin, packs["nvfp4_pack"], work / "cb-nvfp4.log", capped, cap, jobs)
+    rc_b = eval_callback(cand_bin, packs["ref_pack"], work / "cb-ref.log", capped, cap, jobs)
     tol = float(inputs.get("slice_tol", 0.05))
     if rc_a or rc_b or layer is None:
         acceptance.append(check("expert_slice", "fail", f"llama-eval-callback exited {rc_a} / {rc_b} (layer {layer})", RUNTIME))
@@ -345,6 +348,8 @@ def main():
         print(json.dumps({"outcome": "error", "error": {"code": "INVALID_INPUT", "message": "Expected the verify capability"}}))
         return
     try:
+        if os.environ.get('FACTORY_TASK_ID') == DEMO_TASK or os.environ.get(SCOPE_ENV):
+            require_scope()
         outputs = do_verify(packet.get("inputs", {}))
     except (KeyError, OSError, TypeError, ValueError) as exc:
         outputs = result([check("verification_input", "fail", f"{type(exc).__name__}: {exc}", STATIC)])

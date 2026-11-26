@@ -1,0 +1,20 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "expert_scale_wiring/cc.yaml",
+      "from_version": "1.1.0",
+      "from_release": "b634323529f86d90a13d62e6eba6792f82e61d4c6ad9a280aecf41a2c7f3f6ce",
+      "from_commit": "cbd711869cc6b66d2f9d8f3e587cd68de3ed4bd8",
+      "to_version": "1.2.0",
+      "to_release": "b0e05ef2170212b4e7b06df3ef8067ad01a7b89020c5b7940bc161d8ca7e2e9d",
+      "changed_files": [
+        "cc.yaml",
+        "helpers/fixture_scope.py",
+        "run.py"
+      ],
+      "unrecorded_versions": [],
+      "reason": "Use the owned capped runner scope for the approved Muse r8 CPU fixtures"
+    }
+  ]
+}
