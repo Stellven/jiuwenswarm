@@ -444,6 +444,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
         files={detail.files}
         revision={detail}
         correctionCursor={correctionCursor}
+        r8VerifierHelp={detail.contract.contract_id === 'muse-2bit-demo-r8'}
         onOpenFile={openEvidenceFile}
         onClose={selectedNode ? () => setSelectedNode(undefined) : undefined}
       />
@@ -570,7 +571,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
             />
             {detail.contract.contract_id === 'muse-2bit-demo-r8' && (
               <p className="factory-correction-explanation" data-testid="factory-runs-correction-explanation">
-                Node verifiers are experimental; reviews are advisory and agents help the graph keep going.
+                Agent help with the verifier role included monitoring and specific-fix notes. Advisory findings remain in the evidence.
               </p>
             )}
             {isLiveHome && (live || panel === 'overview' || panel === 'terminal') && (

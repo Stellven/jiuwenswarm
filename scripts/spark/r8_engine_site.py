@@ -22,7 +22,7 @@ IDENTIFIER = r'[A-Za-z0-9][A-Za-z0-9_.-]{0,199}'
 RUN = r'/api/factory/runs/[a-f0-9]{24}'
 NODE = rf'{RUN}/nodes/{IDENTIFIER}'
 FACTORY_READ = re.compile(
-    rf'(?:/api/factory/(?:runs|engine-bench)'
+    rf'(?:/api/factory/(?:runs|engine-bench(?:/(?:readme|method-history))?)'
     rf'|{RUN}(?:/(?:state|session|story|file))?|{NODE}(?:/(?:diff|material))?)'
 )
 STATIC_READ = re.compile(r'/(?:index\.html|logo\.svg|favicon\.ico|assets/[A-Za-z0-9_.-]+)?')

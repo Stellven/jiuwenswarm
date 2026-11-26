@@ -32,13 +32,16 @@ export function CorrectionTally({ counts }: { counts: CorrectionCounts }) {
 export function CorrectionRecord({
   event,
   compact = false,
+  r8VerifierHelp = false,
   ...links
 }: EvidenceLinks & {
   event: CorrectionEvent;
   compact?: boolean;
+  r8VerifierHelp?: boolean;
 }) {
   const finding = event.kind === 'finding';
   const passing = event.kind === 'passing_check';
+  const assisted = r8VerifierHelp && event.kind === 'note' && event.actor === 'operator';
   const attribution = [...new Set([event.actor, event.by, event.reviewer].filter(Boolean))];
   const when = Number.isFinite(event.created) && event.created > 0 ? new Date(event.created * 1000) : undefined;
   const refs = [
@@ -57,7 +60,7 @@ export function CorrectionRecord({
       data-status={finding ? event.status : undefined}
     >
       <header className="factory-correction-header">
-        <strong>{labels[event.kind]}</strong>
+        <strong>{assisted ? 'Agent help with the verifier role' : labels[event.kind]}</strong>
         {event.advisory !== undefined && (finding || event.reviewer_verdict) && (
           <span className="factory-correction-badge" data-testid="factory-runs-correction-policy">
             {event.advisory ? 'Advisory' : 'Blocking'}
@@ -100,10 +103,12 @@ export function CorrectionRecord({
 export function CorrectionSequence({
   corrections: sequence,
   cursor,
+  r8VerifierHelp,
   ...links
 }: EvidenceLinks & {
   corrections: NodeCorrection;
   cursor?: CorrectionCursor;
+  r8VerifierHelp?: boolean;
 }) {
   const heading = useId();
   const view = useMemo(() => correctionAt(sequence, cursor), [sequence, cursor]);
@@ -121,7 +126,7 @@ export function CorrectionSequence({
       <ol>
         {view.events.map((event) => (
           <li key={event.id} data-kind={event.kind}>
-            <CorrectionRecord event={event} {...links} />
+            <CorrectionRecord event={event} r8VerifierHelp={r8VerifierHelp} {...links} />
           </li>
         ))}
       </ol>

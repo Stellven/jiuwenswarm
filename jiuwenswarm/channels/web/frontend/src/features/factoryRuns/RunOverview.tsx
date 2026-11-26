@@ -90,6 +90,7 @@ export function RunOverview({
   const verified = detail.files.filter((file) => file.integrity === 'verified').length;
   const dateFormat = new Intl.DateTimeFormat(i18n.resolvedLanguage, { timeStyle: 'medium' });
   const curated = detail.curated;
+  const r8VerifierHelp = detail.contract.contract_id === 'muse-2bit-demo-r8';
   const fileByPath = new Map(detail.files.map((file) => [file.path, file]));
   const groups = collapseEvents(events);
   const verifiedCorrections = new Set(
@@ -135,6 +136,7 @@ export function RunOverview({
               <CorrectionRecord
                 event={correctionStatusAt(correction, verifiedCorrections)}
                 compact
+                r8VerifierHelp={r8VerifierHelp}
                 files={detail.files}
                 onOpenFile={onOpenFile}
               />
@@ -397,6 +399,7 @@ export function RunOverview({
                     <CorrectionRecord
                       event={correctionStatusAt(event.correction, verifiedCorrections)}
                       compact
+                      r8VerifierHelp={r8VerifierHelp}
                       files={detail.files}
                       onOpenFile={onOpenFile}
                     />
