@@ -647,7 +647,10 @@ def recipe_serve(run):
         for rep in range(r['repeat']):
             for p in r['prompts']:
                 started = time.time()
-                body = dict(prompt=p['prompt'], n_predict=p['n_predict'], temperature=0, seed=1, cache_prompt=False)
+                # return_tokens: greedy identity is judged on token ids, not on decoded text (pieces can match
+                # while ids differ, and a byte-identical text can come from different ids).
+                body = dict(prompt=p['prompt'], n_predict=p['n_predict'], temperature=0, seed=1, cache_prompt=False,
+                            return_tokens=True)
                 if r['n_probs']:
                     body['n_probs'] = r['n_probs']
                 out = server.post(body)
@@ -657,12 +660,13 @@ def recipe_serve(run):
                            text_head=out.get('content', '')[:200], wall_ms=round((time.time() - started) * 1000, 1),
                            prompt_n=tm.get('prompt_n'), prompt_ms=tm.get('prompt_ms'),
                            prompt_per_second=tm.get('prompt_per_second'), predicted_n=tm.get('predicted_n'),
-                           decode_tps=tm.get('predicted_per_second'))
+                           decode_tps=tm.get('predicted_per_second'),
+                           token_ids=out.get('tokens') or None)
                 if r['n_probs']:
                     row['top'] = [[(t.get('token') or t.get('tok_str')) for t in (c.get('top_logprobs') or c.get('probs') or [])][:r['n_probs']]
                                   for c in out.get('completion_probabilities', [])]
                 rows.append(row)
-                run.log(json.dumps({k: v for k, v in row.items() if k not in {'text', 'top'}}))
+                run.log(json.dumps({k: v for k, v in row.items() if k not in {'text', 'top', 'token_ids'}}))
     finally:
         server.close()
     (run.dir / 'rows.json').write_text(json.dumps(rows, indent=1))

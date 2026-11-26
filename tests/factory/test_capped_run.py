@@ -30,6 +30,8 @@ class H(BaseHTTPRequestHandler):
             item = dict(content=' Paris is the capital.' if body.get('n_predict', 1) > 1 else ' A', index=i,
                         tokens_evaluated=len(p) // 4, timings=dict(prompt_n=len(p) // 4, prompt_ms=10.0,
                         prompt_per_second=100.0, predicted_n=body.get('n_predict'), predicted_per_second=5.0))
+            if body.get('return_tokens'):
+                item['tokens'] = [11, 12, 13]
             if body.get('n_probs'):
                 item['completion_probabilities'] = [dict(top_logprobs=[dict(token=' A', logprob=-0.1), dict(token=' B', logprob=-3.0)])]
             return item
@@ -176,6 +178,7 @@ def test_build_then_serve_records_host_evidence(world):
     assert rc == 0 and serve['outcome'] == 'ok', serve
     rows = json.loads((run_dir / 'rows.json').read_text())
     assert [r['request'] for r in rows] == ['france', 'raw'] and rows[0]['text_head'].startswith(' Paris')
+    assert all(r['token_ids'] == [11, 12, 13] for r in rows)  # serve asks the server for token ids (return_tokens)
     assert rows[0]['top'] == [[' A', ' B']]
     assert any('n_ubatch' in m for m in serve['result']['log_markers'])
     assert serve['memory_cap'] == '96G' and serve['result']['env'] == {'LLAMA_EXPERT_CACHE_NATIVE_PROFILE': '1'}
