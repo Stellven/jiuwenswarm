@@ -45,7 +45,9 @@ Do not try to work around a closed gate: report it.
   --moe-cache-mib --moe-cache-cpu-share -lm -fa -t -tb --no-warmup -ctk -ctv --seed. `env` takes LLAMA_* and
   GGML_* names (for example an engine switch). `trace: true` sets LLAMA_MOE_CACHE_TRACE to the run's trace.mct (the
   routing trace analysis.expert_routing_profile.rank_trace reads). With no prompts it only loads: the -lv 4 load log
-  is the result. Rows (request, output_sha256, text_head, timings, top tokens with n_probs) are in rows.json.
+  is the result. Rows (request, output_sha256, text_head, token_ids, timings, top tokens with n_probs) are in
+  rows.json; token_ids are the generated ids the server returns (return_tokens), so greedy identity between two
+  packs or engines is judged on ids, not on decoded text.
 - `accuracy`: `{name, arms: {A: {build, model, server_args?, env?}, B: {...}}, dataset_dir, stages?, margin_pts?,
   slots?}`. Paired MMLU as eval.paired_accuracy describes: one fixed seeded order, both arms on byte-identical
   prompts, next-token letter scored from 20 top log-probabilities, 32 questions per request. Stages default to
