@@ -52,20 +52,27 @@ export function replayLabel(value: unknown): string | undefined {
   if (!source && (!row || !Object.keys(row).length)) return undefined;
   const minutes = row?.original_minutes ?? row?.minutes;
   const seconds =
+    row?.duration_seconds ??
     row?.original_elapsed_seconds ??
     row?.original_elapsed_s ??
+    row?.original_seconds ??
     row?.elapsed_seconds ??
     row?.elapsed_s ??
-    row?.original_seconds ??
-    row?.seconds ??
-    row?.duration_seconds;
-  const duration =
-    typeof minutes === 'number'
-      ? Math.round(minutes)
-      : typeof seconds === 'number'
-        ? Math.round(seconds / 60)
-        : undefined;
-  return `Replayed${source ? ` from ${source}` : ''}${duration === undefined ? '' : `, originally ${duration} min`}`;
+    row?.seconds;
+  const originalSeconds = typeof seconds === 'number' ? seconds : typeof minutes === 'number' ? minutes * 60 : NaN;
+  let duration = '';
+  if (Number.isFinite(originalSeconds) && originalSeconds >= 0) {
+    const wholeSeconds = Math.round(originalSeconds);
+    const wholeMinutes = Math.floor(wholeSeconds / 60);
+    const remainingSeconds = wholeSeconds % 60;
+    duration = [
+      wholeMinutes ? `${wholeMinutes} min` : '',
+      remainingSeconds || !wholeMinutes ? `${remainingSeconds} s` : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+  }
+  return `Replayed${source ? ` from ${source}` : ''}${duration ? `, originally ${duration}` : ''}`;
 }
 
 function indexReplay(replays: Map<string, unknown[]>, id: unknown, source: unknown) {
