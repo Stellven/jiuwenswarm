@@ -189,49 +189,73 @@ export function LengthPlot({
 }
 
 export function DecodeBars({ rows, inspect }: { rows: EngineRow[]; inspect: Inspect }) {
-  const points = rows
-    .filter((row) => !excluded(row))
-    .flatMap((row) => {
-      const value = row.metrics?.decode_tps;
-      return numeric(value) ? [{ row, value }] : [];
-    });
-  if (!points.length) return <Empty />;
-  const arms = [...groupBy(points, ({ row }) => armKey(row)).values()]
-    .map((group) => {
-      const warm = group.filter(({ row }) => row.request?.state === 'warm');
-      const used = warm.length ? warm : group;
-      const values = used.map(({ value }) => value);
-      const middle = median(values);
-      const closest = used.reduce((best, item) =>
-        Math.abs(item.value - middle) < Math.abs(best.value - middle) ? item : best,
-      );
-      return {
-        row: closest.row,
-        related: used.map(({ row }) => row),
-        value: middle,
-        low: Math.min(...values),
-        high: Math.max(...values),
-        n: used.length,
-        warm: warm.length > 0,
-      };
-    })
-    .sort((a, b) => armOrder(a.row, b.row));
-  const max = Math.max(1, ...arms.map(({ high }) => high));
+  const [shownState, setShownState] = useState<'warm' | 'cold'>('warm');
+  const points = rows.flatMap((row) => {
+    const length = row.request?.prompt_tokens;
+    const speed = row.metrics?.decode_tps;
+    return numeric(length) && numeric(speed) ? [{ row, length, speed }] : [];
+  });
+  const eligible = points.filter(({ row }) => !excluded(row));
+  if (!eligible.length) return <Empty />;
+
+  const lengths = [...new Set(points.map(({ length }) => length))].sort((a, b) => b - a);
+  const arms = [...groupBy(points, ({ row }) => armKey(row)).entries()].sort((a, b) =>
+    armOrder(a[1][0].row, b[1][0].row),
+  );
+  const shown = eligible.filter(({ row }) => row.request?.state === shownState);
+  const max = Math.max(1, ...eligible.map(({ speed }) => speed));
+
   return (
-    <ul className="engine-bars">
-      {arms.map(({ row, related, value, low, high, n, warm }) => (
-        <li key={row.id}>
-          <span>
-            <strong>{armLabel(row)}</strong>
-            <small>{`${warm ? 'warm' : 'cold'} request${n === 1 ? '' : 's'} · range ${fmt(low, 2)}–${fmt(high, 2)}`}</small>
-          </span>
-          <span className="engine-track" aria-hidden="true">
-            <i style={{ width: `${(100 * value) / max}%` }} />
-          </span>
-          <RowValue row={row} related={related} inspect={inspect}>{`${fmt(value, 2)} tok/s`}</RowValue>
-        </li>
+    <>
+      <div className="engine-toggle" role="group" aria-label="Decode request state">
+        {(['warm', 'cold'] as const).map((state) => (
+          <button
+            key={state}
+            type="button"
+            aria-pressed={shownState === state}
+            onClick={() => setShownState(state)}
+            data-testid="factory-runs-engine-decode-state"
+            data-variant={state}
+          >
+            {state === 'warm' ? 'Warm (pages cached)' : 'Cold (pages evicted)'}
+          </button>
+        ))}
+      </div>
+      {lengths.map((length) => (
+        <section
+          key={length}
+          className="engine-decode-length"
+          data-testid="factory-runs-engine-decode-length"
+          data-variant={length}
+        >
+          <h3>{fmt(length, 0)} rendered prompt tokens</h3>
+          <ul className="engine-bars">
+            {arms.map(([key, [arm]]) => {
+              const samples = shown.filter((point) => point.length === length && armKey(point.row) === key);
+              const values = samples.map(({ speed }) => speed);
+              const value = samples.length ? median(values) : undefined;
+              const sources = samples.map(({ row }) => row);
+              return (
+                <li key={key} data-testid="factory-runs-engine-decode-arm" data-variant={arm.row.arm}>
+                  <span>
+                    <strong>{armLabel(arm.row)}</strong>
+                    {values.length > 1 && <small>Median of {values.length} requests</small>}
+                  </span>
+                  <span className="engine-track" aria-hidden="true">
+                    {value !== undefined && <i style={{ width: `${(100 * value) / max}%` }} />}
+                  </span>
+                  {value !== undefined ? (
+                    <RowValue row={sources[0]} related={sources} inspect={inspect}>{`${fmt(value, 2)} tok/s`}</RowValue>
+                  ) : (
+                    '—'
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       ))}
-    </ul>
+    </>
   );
 }
 

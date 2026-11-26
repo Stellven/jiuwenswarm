@@ -443,10 +443,10 @@ export function EngineReport() {
               <Panel id="ttft" title="Time to first token">
                 <LengthPlot rows={requests} metric="ttft_ms" unit="s" scale={1000} inspect={inspect} />
               </Panel>
-              <Panel id="decode" title="Decode and total request time">
-                <LengthPlot rows={requests} metric="total_ms" unit="s" scale={1000} inspect={inspect} />
-                <h3>Decode · tokens per second</h3>
+              <Panel id="decode" title="Decode by rendered prompt length">
                 <DecodeBars rows={requests} inspect={inspect} />
+                <h3>Total request time</h3>
+                <LengthPlot rows={requests} metric="total_ms" unit="s" scale={1000} inspect={inspect} />
               </Panel>
               <Panel id="speed" title="TTFT speedup versus A">
                 <SpeedBars ratios={speed} inspect={inspect} />

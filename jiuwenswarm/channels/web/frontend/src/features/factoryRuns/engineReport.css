@@ -177,6 +177,14 @@
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
+.engine-decode-length {
+  margin-top: 12px;
+}
+
+.engine-decode-length h3 {
+  margin-bottom: 8px;
+}
+
 .engine-bars > li {
   display: grid;
   grid-template-columns: minmax(100px, 1.45fr) minmax(36px, 1fr) minmax(67px, auto);
