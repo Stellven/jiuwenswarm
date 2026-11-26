@@ -9,14 +9,14 @@ event (replay) or follow the newest event (live). Nothing here writes to the fac
 
 Records used (all written by the factory, none by this module):
 
-* ``taskgraph_patch``: graph revisions (seed plan, scheduler finalize, operator hold/release/reopen/retire,
+* ``taskgraph_patch``: graph revisions (seed plan, scheduler finalize, operator hold/release/reopen/retire/revise,
   agent decisions). Node states come from replaying them (``taskgraph.replay``).
 * ``node_contract_final`` / ``node_contract_refusal``: the scheduler's admitted final node contracts (with
   their diff from the preliminary contract) and the host's refusals.
 * ``node_check``: capsule verifier and independent reviewer results per node output.
 * attempts + ``capped_run``: durable jobs and what the capped runner recorded (recipe, memory cap, time,
   bytes written, error).
-* ``operator_halt``, ``attempt_excused``, ``operator_input``, the operator inbox: operator actions.
+* ``operator_pause``, ``operator_halt``, ``attempt_excused``, ``operator_input``, the operator inbox: operator actions.
 * telemetry ``cc.call`` and ``scheduler.turn``: capsule calls and scheduler agent turns.
 """
 from __future__ import annotations
@@ -299,7 +299,8 @@ def check_view(record):
         findings = review.get('findings') or []
         blockers = [_clip(f.get('problem'), 300) for f in findings if f.get('severity') == 'blocker']
         advisory = bool(review.get('advisory')) or (v.get('entry') or {}).get('review') == 'advisory'
-        out['review'] = dict(verdict=review.get('verdict'), summary=_clip(review.get('summary'), 600), blockers=blockers,
+        out['review'] = dict(verdict=review.get('verdict'), summary=_clip(review.get('summary') or review.get('reason'), 600),
+                             blockers=blockers,
                              findings=len(findings), advisory=advisory,
                              notes=[_clip(f.get('problem'), 300) for f in findings if f.get('severity') != 'blocker'][:5])
     return out
@@ -410,7 +411,7 @@ def _apply_lenient(nodes, entry):
                 elif action == 'update' and node is not None:
                     if 'depends_on' in change:
                         node['depends_on'] = list(change['depends_on'])
-                    for field in ('kind', 'capability', 'check', 'resources'):
+                    for field in ('title', 'kind', 'capability', 'check', 'resources'):
                         if field in change:
                             node[field] = change[field]
                     if change.get('unfinalize'):
@@ -473,19 +474,11 @@ def build_replay(data, *, telemetry=(), notes=(), contracts=(), manifests=(), cu
     current_nodes = {n.get('node_id'): n for n in current_doc.get('nodes') or []}
 
     # -- static node detail ------------------------------------------------------------------------------
-    order, deps = [], {}
-    for entry in history:
-        for key, node in graphs[entry['rev']].items():
-            if key not in deps:
-                order.append(key)
-                deps[key] = []
-            deps[key] = list(dict.fromkeys(deps[key] + node.get('depends_on', [])))
     latest = graphs[history[-1]['rev']] if history else {}
     nodes = {}
-    for key in order:
-        g = latest.get(key) or {}
+    for key, g in latest.items():
         nodes[key] = dict(node_id=key, title=g.get('title') or key, kind=g.get('kind'), node_contract=g.get('node_contract'),
-                          depends_on=deps[key], finals=[], refusals=[], checks=[], runs=[], preliminary=None,
+                          depends_on=g.get('depends_on', []), finals=[], refusals=[], checks=[], runs=[], preliminary=None,
                           preliminary_source=None, gate=[], briefs=[], planned=False, dropped=None)
     if current_nodes:
         for key, node in nodes.items():
@@ -496,7 +489,6 @@ def build_replay(data, *, telemetry=(), notes=(), contracts=(), manifests=(), cu
                                    + (' (its recorded work stays)' if g.get('state') == 'done' else ''))
         for name, contract in current_nodes.items():
             if name not in nodes and not any(n['node_contract'] == name for n in nodes.values()):
-                order.append(name)
                 nodes[name] = dict(node_id=name, title=contract.get('objective') or name, kind=contract.get('kind'),
                                    node_contract=name, depends_on=[d for d in contract.get('predecessors') or []],
                                    finals=[], refusals=[], checks=[], runs=[], preliminary=contract_view(contract),
@@ -607,7 +599,7 @@ def build_replay(data, *, telemetry=(), notes=(), contracts=(), manifests=(), cu
                     unfinal = [c.get('node_id') for c in changes if c.get('unfinalize')]
                     words = [f'removed {", ".join(parts["cancel"])}' if parts['cancel'] else '',
                              f'added {", ".join(parts["add"])}' if parts['add'] else '',
-                             f'rewired {", ".join(parts["update"])}' if parts['update'] else '',
+                             f'updated {", ".join(parts["update"])}' if parts['update'] else '',
                              f'cleared the final contract of {", ".join(unfinal)}' if unfinal else '']
                     reasons = list(dict.fromkeys(c.get('reason', '') for c in changes))
                     add(t, 'revise', 'operator', f'Operator applied a contract revision to the graph (graph rev {rev})',
@@ -716,7 +708,7 @@ def build_replay(data, *, telemetry=(), notes=(), contracts=(), manifests=(), cu
             add(v.get('at') or o.get('created'), 'pause', 'operator', f"Operator paused the run (by {v.get('by') or 'operator'})",
                 detail=(v.get('reason') or '') + (' Running jobs cancelled.' if v.get('cancel_jobs') else ' Running jobs left to finish.'),
                 tone='warn', ref=o.get('obs_id'), pause=dict(reason=v.get('reason'), by=v.get('by'), at=v.get('at') or o.get('created')))
-        else:
+        elif v.get('action') == 'resume':
             add(v.get('at') or o.get('created'), 'resume', 'operator', f"Operator resumed the run (by {v.get('by') or 'operator'})",
                 detail=v.get('reason') or '', tone='op', ref=o.get('obs_id'))
     for o in by_kind.get('attempt_excused', []):
@@ -839,6 +831,8 @@ def build_replay(data, *, telemetry=(), notes=(), contracts=(), manifests=(), cu
         clock_offset_s=_clock_offset(observations), turns=(meta.get('budget_used') or {}).get('turns'),
         stop_reason=state.get('stop_reason'), outcome=meta.get('outcome'),
         graph_rev=history[-1]['rev'] if history else 0, nodes=list(nodes.values()), events=events, calls=calls,
+        graph_dependencies={str(rev): {key: node['depends_on'] for key, node in graph.items()}
+                            for rev, graph in graphs.items()},
         calls_p50_ms=statistics.median(durations) if durations else None, products=products, packs=packs,
         state_labels=STATE_LABELS, contracts_source=as_run[0] if as_run else None,
         contract=contract_summary(current_contract, current_label), skipped_ops=skipped_ops,
@@ -864,7 +858,7 @@ def operator_commands(task_id, node_ids):
     """The exact operator commands for this run (the CLI the operator already uses); argv lists, no shell."""
     base = ['jiuwenswarm-factory']
     return dict(
-        pause=base + ['pause', task_id, '<reason>'], resume=base + ['resume', task_id, '<reason>'],
+        pause=base + ['pause', task_id, '<reason>'], resume=base + ['resume', task_id, '<reason>', '--no-run'],
         note=base + ['note', task_id, '<text>'], revise=base + ['revise', task_id, '<reason>', '--dry-run'],
         status=base + ['status', task_id, '--plain'],
         release={k: base + ['release', task_id, k, 'step checkpoint passed'] for k in node_ids},
@@ -1015,9 +1009,11 @@ def read_run_files(home, task_id):
     files = {}
     for name in ('PAUSE.md', 'HALT.md', 'STEP.md'):
         path = home / name
-        if path.is_file():
+        try:
             text = path.read_text(encoding='utf-8', errors='replace')
             files[name] = dict(text=_clip(text, 1200), mtime=path.stat().st_mtime)
+        except (FileNotFoundError, IsADirectoryError):  # the file may be absent or cleared during polling
+            continue
     state = {}
     path = home / 'sessions' / f'{task_id}.state.json'
     if path.is_file():
@@ -1053,24 +1049,30 @@ def read_manifests(home):
 
 
 def contract_paths(home, contract_id, extra=()):
+    from .contract import CONTRACTS
+
     paths = list(extra)
     for candidate in (Path(home) / 'contracts', Path(home).parent / 'contracts'):
         if candidate.is_dir():
             paths.append(candidate)
     if contract_id:
-        paths.append(Path(__file__).with_name('contracts') / f'{contract_id}.json')
+        path = Path(contract_id) if '/' in contract_id or contract_id.endswith('.json') else CONTRACTS / f'{contract_id}.json'
+        paths.append(path)
     return paths
 
 
-def current_contract(contract_id, override=None):
+def current_contract(contract_id, value, override=None):
     """(label, contract JSON) of the task contract as it stands now (the revision a revise would apply)."""
-    path = Path(override) if override else Path(__file__).with_name('contracts') / f'{contract_id}.json'
-    try:
-        value = json.loads(path.read_text(encoding='utf-8'))
-    except (OSError, ValueError, TypeError):
+    if override:
+        try:
+            value = json.loads(Path(override).read_text(encoding='utf-8'))
+        except (OSError, ValueError, TypeError):
+            return None
+    if not isinstance(value, dict) or not value:
         return None
     version = value.get('version')
-    return (f"{value.get('contract_id', contract_id)} rev {version}" if version is not None else path.name), value
+    name = value.get('contract_id') or Path(override or contract_id).stem
+    return (f"{name} rev {version}" if version is not None else name), value
 
 
 def load_board(home, task_id, contracts=(), contract=None):
@@ -1081,7 +1083,8 @@ def load_board(home, task_id, contracts=(), contract=None):
     contract_id = data['tasks'][0].get('contract_id')
     docs = contract_documents(contract_paths(home, contract_id, contracts))
     board = build_replay(data, telemetry=read_telemetry(home, task_id), notes=read_notes(home, task_id),
-                         contracts=docs, manifests=read_manifests(home), current=current_contract(contract_id, contract),
+                         contracts=docs, manifests=read_manifests(home),
+                         current=current_contract(contract_id, data.get('_contract'), contract),
                          briefs=read_briefs(home, task_id), run_files=read_run_files(home, task_id))
     return sanitize(board)
 
@@ -1105,7 +1108,9 @@ def operator_argv(home, task_id, request):
         if field == 'node' and not re.fullmatch(r'[A-Za-z0-9_.-]+', value):
             raise ValueError('Invalid node id')
         values.append(value.strip())
-    return [sys.executable, '-m', 'jiuwenswarm.factory.cli', '--home', str(home), action, task_id, *values]
+    # The launcher's environment and grants own step-mode execution. The board only clears the pause.
+    flags = ['--no-run'] if action == 'resume' else []
+    return [sys.executable, '-m', 'jiuwenswarm.factory.cli', '--home', str(home), action, task_id, *values, *flags]
 
 
 def run_operator(argv, home):

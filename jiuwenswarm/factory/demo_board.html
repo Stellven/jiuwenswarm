@@ -172,6 +172,7 @@ const since = t => '+' + (dur(t - B.started) || '0 s');
 const cur = () => B.events[pos] || {t: B.started, states: {}};
 const T = () => cur().t;
 const states = () => cur().states || {};
+const graphRevision = () => B.events.slice(0, pos + 1).reduce((rev, e) => e.graph_rev ?? rev, 0);
 const label = s => (B.state_labels || {})[s] || s;
 const GLYPH = {planned: '◌', removed: '✂', waiting: '○', ready: '◔', held: '⏸', operator_hold: '⏸', working: '✎', running: '▶', checking: '🔍', fixing: '⚠', halted: '⛔', done: '✓', failed: '✗', retired: '—', superseded: '↪'};
 const nodeOf = id => B.nodes.find(n => n.node_id === id);
@@ -225,7 +226,7 @@ $('mReplay').onclick = () => setMode(false);
 // ---- header, strip, now -------------------------------------------------------------------------------
 function renderTop() {
   const e = cur();
-  $('objective').textContent = `${B.task.task_id} · graph rev ${(e.graph_rev != null ? e.graph_rev : '') || B.events.slice(0, pos + 1).reduce((r, x) => x.graph_rev != null ? x.graph_rev : r, 0)} of ${B.graph_rev}` +
+  $('objective').textContent = `${B.task.task_id} · graph rev ${graphRevision()} of ${B.graph_rev}` +
     ` · ${B.turns || 0} agent turns` + (B.contract ? ` · contract now: ${B.contract.label}${B.contract.title ? ' — ' + B.contract.title : ''}` : '');
   $('objective').title = B.task.objective || '';
   $('clock').textContent = clock(e.t);
@@ -255,16 +256,20 @@ function renderTop() {
 }
 
 // ---- panel 1: graph -----------------------------------------------------------------------------------
-function layout() {
-  const layer = {}, byId = Object.fromEntries(B.nodes.map(n => [n.node_id, n]));
+function layout(nodes) {
+  const layer = {}, byId = Object.fromEntries(nodes.map(n => [n.node_id, n]));
   const depth = id => { if (layer[id] != null) return layer[id]; layer[id] = 0; const d = (byId[id].depends_on || []).filter(x => byId[x]); layer[id] = d.length ? 1 + Math.max(...d.map(depth)) : 0; return layer[id]; };
-  B.nodes.forEach(n => depth(n.node_id));
+  nodes.forEach(n => depth(n.node_id));
   const rows = [];
-  B.nodes.forEach(n => (rows[layer[n.node_id]] = rows[layer[n.node_id]] || []).push(n.node_id));
+  nodes.forEach(n => (rows[layer[n.node_id]] = rows[layer[n.node_id]] || []).push(n.node_id));
   return rows.filter(Boolean);
 }
 function renderGraph() {
-  const box = $('graph'), W = box.clientWidth || 360, rows = layout(), RH = 50, GAP = 16, st = states();
+  const st = states(), dependencies = (B.graph_dependencies || {})[graphRevision()] || {};
+  const nodes = B.nodes.filter(n => Object.hasOwn(st, n.node_id)).map(n => ({
+    ...n, depends_on: dependencies[n.node_id] || n.depends_on
+  }));
+  const box = $('graph'), W = box.clientWidth || 360, rows = layout(nodes), RH = 50, GAP = 16;
   const place = {};
   rows.forEach((row, r) => { const w = (W - (row.length - 1) * 8) / row.length; row.forEach((id, c) => place[id] = {x: c * (w + 8), y: r * (RH + GAP), w, h: RH}); });
   const H = rows.length * (RH + GAP);
@@ -274,7 +279,7 @@ function renderGraph() {
   const defs = document.createElementNS(svg.namespaceURI, 'defs'), mk = document.createElementNS(svg.namespaceURI, 'marker');
   mk.setAttribute('id', 'arr'); mk.setAttribute('viewBox', '0 0 8 8'); mk.setAttribute('refX', 7); mk.setAttribute('refY', 4); mk.setAttribute('markerWidth', 7); mk.setAttribute('markerHeight', 7); mk.setAttribute('orient', 'auto');
   const tip = document.createElementNS(svg.namespaceURI, 'path'); tip.setAttribute('d', 'M0,0 L8,4 L0,8 z'); tip.setAttribute('fill', '#94a3b8'); mk.append(tip); defs.append(mk); svg.append(defs);
-  for (const n of B.nodes) for (const d of n.depends_on || []) {
+  for (const n of nodes) for (const d of n.depends_on || []) {
     const a = place[d], b = place[n.node_id]; if (!a || !b) continue;
     const p = document.createElementNS(svg.namespaceURI, 'path'), x1 = a.x + a.w / 2, y1 = a.y + a.h, x2 = b.x + b.w / 2, y2 = b.y - 2;
     p.setAttribute('d', `M${x1},${y1} C${x1},${y1 + 24} ${x2},${y2 - 24} ${x2},${y2}`);
@@ -282,7 +287,7 @@ function renderGraph() {
     svg.append(p);
   }
   const kids = [svg];
-  for (const n of B.nodes) {
+  for (const n of nodes) {
     const p = place[n.node_id], s = st[n.node_id] || 'waiting';
     kids.push(h('div', {class: `node s-${s}${n.dropped && !['retired', 'removed', 'done'].includes(s) ? ' dropped' : ''}${selected === n.node_id ? ' sel' : ''}${lastStates[n.node_id] && lastStates[n.node_id] !== s ? ' changed' : ''}`,
       style: `left:${p.x}px;top:${p.y}px;width:${p.w}px;height:${p.h}px`, title: `${n.node_id}: ${n.title}`,
@@ -386,7 +391,7 @@ function renderCCs() {
   const calls = B.calls.filter(c => c.t <= t + 1e-6), by = {};
   for (const c of calls) { const k = c.capsule || '?'; (by[k] = by[k] || {n: 0, ms: 0, err: 0}); by[k].n++; by[k].ms += c.ms || 0; if (c.outcome !== 'ok') by[k].err++; }
   const top = Object.entries(by).sort((a, b) => b[1].n - a[1].n), max = Math.max(1, ...top.map(x => x[1].n));
-  put($('ccs'), 
+  put($('ccs'),
     h('h3', {}, 'Capped runs (every model load inside a memory cap)'),
     rows.length ? h('div', {class: 'scroll'}, h('table', {}, h('tr', {}, ['what', 'step', 'memory cap', 'time', 'output', 'result'].map(x => h('th', {}, x))), rows))
       : h('div', {class: 'empty'}, 'No capped run yet.'),
@@ -447,8 +452,8 @@ function renderGate() {
   const last = gateNode, ls = st[last.node_id] || 'waiting', C = B.contract;
   const arms = C && C.arms && C.arms.length ? [h('h3', {}, `Lab arms (contract ${C.label})`),
     h('table', {}, C.arms.map(a => h('tr', {}, h('td', {}, h('b', {}, a.id)), h('td', {}, a.role + (a.source ? ` (from ${a.source})` : '')), h('td', {class: 'small'}, a.summary))))] : [];
-  put($('gate'), 
-    h('div', {class: 'small'}, 'A step closes only when every required output has a passing check (capsule verifier and reviewer).'),
+  put($('gate'),
+    h('div', {class: 'small'}, 'A step closes when every required output passes its gate checks. Advisory reviews record findings.'),
     h('table', {}, h('tr', {}, h('th', {}, 'step'), h('th', {}, 'outputs at the gate'), h('th', {}, 'gate')), rows),
     h('h3', {}, 'Built so far'),
     products.length ? h('ul', {}, products.map(p => h('li', {}, h('b', {}, p.what), p.size ? ` · ${p.size}` : '', p.name ? ` · ${p.name}` : '', h('span', {class: 'small'}, ` (${p.node}, ${clock(p.t)})`)))) : h('div', {class: 'empty'}, 'Nothing built yet.'),
@@ -466,13 +471,14 @@ const quote = a => /^[A-Za-z0-9_.\/:=-]+$/.test(a) ? a : '"' + a.replace(/(["\\$
 function command(argv, action, fields) {
   const line = argv.map(quote).join(' '), kids = [h('code', {}, line),
     h('button', {title: 'Copy the command', onclick: () => navigator.clipboard && navigator.clipboard.writeText(line)}, 'copy')];
-  if (B.operator_enabled && action) kids.push(h('button', {class: 'run', onclick: () => operate(action, fields)}, 'run…'));
+  if (B.operator_enabled && action) kids.push(h('button', {class: 'run', onclick: () => operate(argv, action, fields)}, 'run…'));
   return h('div', {class: 'cmd'}, ...kids);
 }
-async function operate(action, fields) {
+async function operate(argv, action, fields) {
   const request = {action, ...fields};
   for (const k of ['reason', 'text']) if (k in request && !request[k]) { const v = prompt(`${action}: ${k}?`); if (!v) return; request[k] = v; }
-  if (!confirm(`Run on the factory home:\n\njiuwenswarm-factory ${action} ${B.task.task_id} ${Object.values(request).slice(1).join(' ')}\n\nThis changes the live run.`)) return;
+  const line = argv.map(a => quote(a === '<reason>' ? request.reason : a === '<text>' ? request.text : a)).join(' ');
+  if (!confirm(`Run on the factory home:\n\n${line}\n\nThis changes the live run.`)) return;
   try {
     const r = await fetch('/api/operator?task=' + encodeURIComponent(B.task.task_id), {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Board-Operator': '1'}, body: JSON.stringify(request)});
     const body = await r.json();
@@ -484,6 +490,7 @@ function renderOps() {
   const C = B.commands || {}, sel = selected && (C.release || {})[selected];
   const cmds = h('details', {open: live}, h('summary', {}, B.operator_enabled ? 'Operator commands (buttons run them, each confirmed)' : 'Operator commands (copy; the board is read-only)'),
     C.pause ? command(C.pause, 'pause', {reason: ''}) : null, C.resume ? command(C.resume, 'resume', {reason: ''}) : null,
+    C.resume ? h('div', {class: 'small'}, 'Resume clears the pause. Continue the run with your usual step-mode launcher.') : null,
     sel ? command(sel, 'release', {node: selected, reason: 'step checkpoint passed'}) : null,
     C.note ? command(C.note, 'note', {text: ''}) : null, C.revise ? command(C.revise) : null, C.status ? command(C.status) : null);
   put($('ops'), cmds, ...(ops.length ? ops.map(([e, i]) => h('div', {class: 'card ' + (e.kind === 'halt' || e.kind === 'pause' ? 'bad' : e.kind === 'step_hold' || e.kind === 'reopen' ? 'warn' : 'op'), onclick: () => { stop(); go(i); }},
