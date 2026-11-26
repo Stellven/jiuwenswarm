@@ -1,0 +1,21 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "routing_profile_analysis/cc.yaml",
+      "from_version": "1.4.0",
+      "from_release": "c35f58810dfb0696452ec34f413f8624b13086540ec1dd5c3a7f512a60527114",
+      "from_commit": "ea3a76e41658047d7d3e4f36a322247ff5a91fbc",
+      "to_version": "1.5.0",
+      "to_release": "6b1e041058289823b527fb301c355a427985005fdcf62cfefe3d7008d8f074ad",
+      "changed_files": [
+        "cc.yaml",
+        "gguf_pack.py",
+        "run.py",
+        "trace_rank.py"
+      ],
+      "unrecorded_versions": [],
+      "reason": "rank_trace imported the GGUF reader from a sibling capsule, which a release bundle does not hold; the capsule now carries gguf_pack.py"
+    }
+  ]
+}
