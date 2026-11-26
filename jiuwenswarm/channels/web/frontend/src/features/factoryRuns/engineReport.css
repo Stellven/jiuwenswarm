@@ -397,3 +397,7 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.engine-toggle { display: flex; gap: 6px; margin: 4px 0 8px; }
+.engine-toggle button { padding: 4px 10px; border: 1px solid #c9d2dd; border-radius: 999px; background: #fff; font-size: 13px; cursor: pointer; }
+.engine-toggle button[aria-pressed='true'] { border-color: #2563eb; background: #eff4ff; color: #1d4ed8; font-weight: 600; }
