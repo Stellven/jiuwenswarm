@@ -35,6 +35,7 @@ from jiuwenswarm.factory.store import FactoryError
 from . import factory_nodes
 from .capsule_catalog import CapsuleCatalog, _parse as parse_material
 from .capsule_evidence import capsule_usage, collect_capsule_evidence
+from .engine_bench import read_engine_bench
 
 from jiuwenswarm.gateway.channel_manager.web.factory_measurements import MeasurementEvidence
 from jiuwenswarm.gateway.channel_manager.web.factory_session import controller_is_locked, session_snapshot
@@ -1069,6 +1070,17 @@ def attach_factory_routes(app: FastAPI, channel=None, *, service=None):
     @app.get(PREFIX + '/measurements')
     async def measurements():
         return await call(service.measurements.listing)
+
+    @app.get(PREFIX + '/engine-bench')
+    async def engine_bench(request: Request):
+        if request.query_params:
+            raise HTTPException(400, 'The engine benchmark endpoint accepts no query parameters')
+        try:
+            path = Path.home() / 'muse-demo' / 'bench'
+            data = await run_in_threadpool(read_engine_bench, path)
+        except (OSError, ValueError, TypeError, RecursionError):
+            raise HTTPException(422, 'The engine benchmark dataset could not be read') from None
+        return JSONResponse(data, headers={'Cache-Control': 'no-store'})
 
     @app.get(PREFIX + '/headlines')
     async def headlines():
