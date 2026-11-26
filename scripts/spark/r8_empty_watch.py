@@ -32,13 +32,13 @@ def interactive_sessions():
     return sorted(other)
 
 
-def watch(bridge):
+def watch(bridge, evidence=None):
     cpu = quiet.ProcessCPU()
     hz = os.sysconf('SC_CLK_TCK')
     start = None
     last_log = 0
     limits = quiet.policy(quiet.EMPTY)
-    with (bridge / 'r8-empty-watch.jsonl').open('x', buffering=1) as out:
+    with (evidence or bridge / 'r8-empty-watch.jsonl').open('x', buffering=1) as out:
         while True:
             stamp = time.monotonic()
             row = dict(utc=datetime.now(timezone.utc).isoformat(timespec='seconds'), reasons=[])
@@ -93,4 +93,6 @@ def watch(bridge):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('bridge', type=Path)
-    watch(parser.parse_args().bridge)
+    parser.add_argument('--evidence', type=Path)
+    args = parser.parse_args()
+    watch(args.bridge, args.evidence)

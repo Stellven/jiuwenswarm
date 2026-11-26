@@ -230,8 +230,10 @@ class Breach(capped_run.RunError):
 class Monitor:
     """One periodic watch for an arm, including startup, preparation and requests."""
 
-    def __init__(self, limits):
+    def __init__(self, limits, *, slots=1, stop_on_gate=False):
         self.limits = limits
+        self.slots = slots
+        self.stop_on_gate = stop_on_gate
         self.server = None
         self.cpu = ProcessCPU()
         self.phase = 'loading'
@@ -251,7 +253,7 @@ class Monitor:
                         import urllib.request
                         with urllib.request.urlopen(f'http://127.0.0.1:{self.server.port}/slots', timeout=5) as reply:
                             slots = json.load(reply)
-                        sample['idle_slot'] = len(slots) == 1 and slots[0].get('is_processing') is False
+                        sample['idle_slot'] = len(slots) == self.slots and all(slot.get('is_processing') is False for slot in slots)
                         if not sample['idle_slot']:
                             sample['reasons'].append('measured slot is busy')
                         # Full pre-load memory gate already passed. This running server owns its allocation.
@@ -292,7 +294,8 @@ class Monitor:
                     sample['phase'] = phase
                     self.phase = following
                     return index, waited
-            if any('probe unavailable' in reason for reason in sample['reasons']):
+            if (any('probe unavailable' in reason for reason in sample['reasons'])
+                    or self.stop_on_gate and 'resident-server machine gate closed' in sample['reasons']):
                 raise Breach(sample)
             log(f'{phase}: waiting for quiet at raw load {sample["load_averages"][0]:g}; '
                 + ', '.join(sample['reasons']))
