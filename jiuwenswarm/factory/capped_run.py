@@ -494,6 +494,9 @@ def recipe_build(run):
     # can disappear, and 'latest' need not fit an older source). The lab talks to the HTTP API only.
     flags = ['-DCMAKE_BUILD_TYPE=Release', '-DLLAMA_CURL=OFF', '-DLLAMA_BUILD_TESTS=OFF', '-DLLAMA_USE_PREBUILT_UI=OFF',
              '-DLLAMA_BUILD_UI=OFF']
+    # A build directory first configured with the UI download keeps that dist tree, and ui-assets.cmake falls back
+    # to it ("embedding stale assets") when provisioning is off, then fails its asset check. It is generated output.
+    shutil.rmtree(build / 'ui' / 'apps' / 'chat', ignore_errors=True)
     if r['cuda']:
         flags += ['-DGGML_CUDA=ON', '-DCMAKE_CUDA_ARCHITECTURES=121-real']
     env = dict(CCACHE_BASEDIR=str(base), CCACHE_NOHASHDIR='1',  # src/ and build/ relative: hits across builds
