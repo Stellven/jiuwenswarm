@@ -12,6 +12,8 @@ import textwrap
 import time
 
 from .export import snapshot
+from . import corrections
+from .redact import sanitize
 
 TERMINAL = {'accept', 'reject', 'report_inconclusive', 'partial'}
 ACTIVE = {'queued', 'running', 'cancel_requested', 'unknown'}
@@ -62,7 +64,7 @@ def replay_origin(source):
     return f'{run} ({details})' if details else run
 
 
-def load_source(source, home=None, *, records=None, transcript_path=None):
+def load_source(source, home=None, *, records=None, transcript_path=None, notes_path=None):
     """records: an export.snapshot of this task already taken from a stable copy of home."""
     path = Path(source).expanduser()
     bundle = records is None and path.is_dir()
@@ -139,6 +141,9 @@ def load_source(source, home=None, *, records=None, transcript_path=None):
                 - state['started']) if state.get('started') is not None else 0))
     data['_meta']['controller_state'] = state
     data['_meta']['turn_ends'] = turn_ends
+    if not bundle:
+        inbox = notes_path or home / 'operator-inbox' / task['task_id']
+        data['_operator_notes'] = corrections.read_notes(inbox, task['task_id'])
     return data
 
 
@@ -191,6 +196,8 @@ def factory_record(kind, v):
     if kind == 'node_check':
         if v.get('state') != 'finished':
             return 'check', f"{v.get('node_id')}.{v.get('output', 'change')} check started", '·', True
+        if reused := v.get('reused_from'):
+            return 'check', f"{v.get('node_id')}.{v.get('output', 'change')} reused check {reused}", '·', True
         passed = bool(v.get('passed'))
         return ('check', f"{v.get('node_id')}.{v.get('output', 'change')} "
                 + ('passed' + (f" ({(v.get('verifier') or {}).get('stage_reached')})" if (v.get('verifier') or {}).get('stage_reached') else '')
@@ -223,12 +230,15 @@ def factory_record(kind, v):
     return None
 
 
-def build_events(data):
+def build_events(data, *, trails=None):
     events = []
 
     def add(created, key, kind, summary, mark='·', rev=None, **extra):
         events.append(dict(created=created or 0, id=key, kind=kind, summary=summary, mark=mark, rev=rev) | extra)
 
+    if trails is None:
+        trails = corrections.project(data)
+    passing_checks = {r['source']: r for trail in trails.values() for r in trail['events'] if r['kind'] == 'passing_check'}
     previous = flatten(data['tasks'][0].get('initial_run_config', {}))
     # Observed requested config is useful even when decisions use prose actions.
     configs = sorted([(r.get('created', 0), flatten(r.get('values', {}).get('requested', {})))
@@ -294,7 +304,11 @@ def build_events(data):
                 continue
             replayed = v.get('replayed_from') or (v.get('request') or {}).get('replayed_from')
             node_id = v.get('node_id')
+            passing = passing_checks.get(r['obs_id'])
+            if passing:
+                summary = f"{node_id}.{passing['output']} · {passing['text']}"
             add(r.get('created'), r['obs_id'], label, summary, mark, noise=noise,
+                **(dict(correction=sanitize(passing)) if passing else {}),
                 **(dict(node_id=node_id, graph_nodes=[node_id]) if node_id else {}),
                 **(dict(replayed_from=replayed, replay_source=replay_origin(replayed)) if replayed else {}))
             continue
@@ -380,7 +394,7 @@ def build_events(data):
         add(r.get('created'), r['eval_id'], 'contract', evaluation_summary(r),
             '✓' if r.get('correctness') == 'pass' else '✗')
     for kind, records in data.items():
-        if kind in {'tasks', 'decisions', 'observations', 'attempts', 'uploads', 'evaluations', 'artifacts', 'events', '_meta', '_contract'}:
+        if kind in {'tasks', 'decisions', 'observations', 'attempts', 'uploads', 'evaluations', 'artifacts', 'events', '_meta', '_contract', '_operator_notes'}:
             continue
         if isinstance(records, list):
             for i, r in enumerate(records):
@@ -388,7 +402,19 @@ def build_events(data):
     for r in data.get('events', []):
         if r.get('type', r.get('kind')) not in {'task', 'decision', 'observation', 'attempt', 'upload', 'evaluation', 'artifact'}:
             add(r.get('created'), 'event:' + str(r.get('cursor')), r.get('kind', 'unknown'), 'record')
-    return sorted(events, key=lambda e: (e['created'], e['id']))
+    for node_id, trail in trails.items():
+        for correction in trail['events']:
+            kind = correction['kind']
+            if kind == 'passing_check':
+                continue
+            output = f".{correction['output']}" if correction.get('output') else ''
+            mode = ('advisory' if correction['advisory'] else 'blocking') if kind == 'finding' else None
+            actor = f"{mode} {correction['actor']}" if mode else correction['actor']
+            summary = f"{node_id}{output} · {actor} {kind}: {correction['text']} · source {correction['source']}"
+            add(correction['created'], f"{node_id}:{correction['id']}", kind, sanitize(summary),
+                '!' if kind == 'finding' else '·', node_id=node_id, graph_nodes=[node_id], correction=sanitize(correction))
+    order = {'finding': 0, 'note': 1, 'repair': 2, 'passing_check': 3}
+    return sorted(events, key=lambda e: (e['created'], order.get((e.get('correction') or {}).get('kind'), 4), e['id']))
 
 
 def event_lines(event, created):
@@ -431,7 +457,11 @@ def demo_lines(event, created, data):
                     text, width=100, initial_indent=' ' * 19 + f'{label:5} ',
                     subsequent_indent=' ' * 25)]
         return out
-    if '✗' in lines[0] or event['mark'] == '✗':
+    if kind == 'finding':
+        color = AMBER if event['correction']['advisory'] else RED
+    elif kind in {'note', 'repair'}:
+        color = AMBER
+    elif '✗' in lines[0] or event['mark'] == '✗':
         color = RED
     elif event.get('confirmed') or kind in {'contract', 'check'} and event['mark'] == '✓':
         color = GREEN
@@ -527,15 +557,24 @@ def decision_stack(data):
     return stack
 
 
+def correction_counts(trails):
+    lines = ['Step-through corrections by node']
+    for node_id, trail in trails.items():
+        c = trail['counts']
+        lines.append(f"  {node_id} · findings {c['findings']} · notes {c['notes']} · repairs {c['repairs']}")
+    return lines if trails else []
+
+
 def render_story(data, plain=False):
     lines = header(data)
-    for event in build_events(data):
+    trails = corrections.project(data)
+    for event in build_events(data, trails=trails):
         lines.extend(event_lines(event, data['tasks'][0]['created']))
     from .taskgraph import from_records, render_text
     graph = from_records(data)
     if graph['rev']:
         lines.extend(render_text(graph).splitlines())
-    return '\n'.join(paint(line, plain) for line in lines + footer(data))
+    return '\n'.join(paint(line, plain) for line in lines + correction_counts(trails) + footer(data))
 
 
 def show_story(source, home=None, plain=False, as_json=False, follow=False, demo=False):
@@ -547,7 +586,8 @@ def show_story(source, home=None, plain=False, as_json=False, follow=False, demo
     first = True
     while True:
         data = load_source(source, home)
-        events = build_events(data)
+        trails = corrections.project(data)
+        events = build_events(data, trails=trails)
         if as_json:
             print(json.dumps(events, indent=2, ensure_ascii=False))
             return
@@ -562,6 +602,7 @@ def show_story(source, home=None, plain=False, as_json=False, follow=False, demo
                     lines.extend(event_lines(event, data['tasks'][0]['created']))
                 seen.add(event['id'])
         if not follow or data['_meta']['outcome']:
+            lines.extend(correction_counts(trails))
             lines.extend(footer(data))
         for line in lines:
             print(line if line.startswith('\033[') else paint(line, plain), flush=True)

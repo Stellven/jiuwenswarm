@@ -26,7 +26,7 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from starlette.concurrency import run_in_threadpool
 from starlette.responses import JSONResponse
 
-from jiuwenswarm.factory import demo_board, monitor, story, taskgraph, telemetry
+from jiuwenswarm.factory import corrections, demo_board, monitor, story, taskgraph, telemetry
 from jiuwenswarm.factory.export import snapshot
 from jiuwenswarm.factory.contract import CONTRACTS
 from jiuwenswarm.factory.redact import sanitize, scrub_bytes
@@ -130,11 +130,13 @@ def curated_events(replay):
     events = []
     for cursor, step in enumerate(replay['steps'], 1):
         events.append(dict(
-            cursor=cursor, id=step['primary_record'], kind=step['original_kind'], summary=step['original_summary'],
+            cursor=cursor, id=(step.get('correction') or {}).get('id') or step['primary_record'],
+            kind=step['original_kind'], summary=step['original_summary'],
             created=step['created'], step=step['step'], presentation_title=step['presentation_title'],
             say=step.get('say', ''), graph_nodes=step.get('graph_nodes') or curated_graph_nodes(step),
             node_id=step.get('node_id'), replayed_from=step.get('replayed_from'),
-            replay_source=step.get('replay_source'), mark='·', rev=step.get('graph_rev')))
+            replay_source=step.get('replay_source'), correction=step.get('correction'),
+            mark='·', rev=step.get('graph_rev')))
     return events
 
 
@@ -474,7 +476,8 @@ class FactoryHttpService:
                 target = temporary / relative
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(original, target)
-            return story.load_source(item['task_id'], temporary, records=data, transcript_path=transcript)
+            inbox = _inside(path, f"operator-inbox/{item['task_id']}")
+            return story.load_source(item['task_id'], temporary, records=data, transcript_path=transcript, notes_path=inbox)
 
     @staticmethod
     def copy_store(path, temporary):
@@ -587,8 +590,9 @@ class FactoryHttpService:
         plan = taskgraph.from_records(data)
         files = self.files(item, path, data)
         bundled = curated_replay(path) if item['kind'] == 'bundle' else None
-        replay = bundled or factory_nodes.native_replay(data, plan, files, item['source_name'])
-        events = curated_events(replay) if replay else self.events(data)
+        trails = corrections.project(data)
+        replay = bundled or factory_nodes.native_replay(data, plan, files, item['source_name'], trails=trails)
+        events = curated_events(replay) if replay else self.events(data, trails=trails)
         if item['kind'] == 'live':
             _inside(path, 'telemetry/events.jsonl')
             trace = telemetry.read_events(path, item['task_id'])
@@ -600,6 +604,8 @@ class FactoryHttpService:
                              graph=curated_graph(bundled, item['task_id']) if bundled else plan,
                              recorded_plan=plan if bundled else None, node_checks=checks,
                              cc_overview=factory_nodes.overview(data, plan, checks, self.capsule_catalog),
+                             correction_overview={n['node_id']: trails.get(n['node_id'], {}).get('counts',
+                                 dict(findings=0, notes=0, repairs=0)) for n in plan['nodes']},
                              **self._state(item, path, data, plan), stack=monitor.engine_stack(data),
                              telemetry=trace, files=files, events=events,
                              summary=dict(meta=data.get('_meta', {}), telemetry=telemetry.summary(trace)),
@@ -666,8 +672,10 @@ class FactoryHttpService:
                 self._worker_calls[transcript] = cached
             calls = cached[1]
         releases = factory_nodes.sealed_releases(_inside(path, 'ccstore/releases')) if item['kind'] == 'live' else {}
+        trail = corrections.project(data).get(node_id, dict(counts=dict(findings=0, notes=0, repairs=0), events=[]))
         return sanitize(factory_nodes.node_detail(data, node, checks, self.capsule_catalog, briefs, calls, releases,
-                                                 lambda artifact: self.node_artifact(item, path, artifact)))
+                                                 lambda artifact: self.node_artifact(item, path, artifact))
+                        | dict(corrections=trail))
 
     def node_artifact(self, item, path, artifact):
         relative = artifact.get('location') if item['kind'] == 'live' else artifact.get('exported_path')
@@ -829,20 +837,21 @@ class FactoryHttpService:
         return sanitize(self._session(item, path, self.load(item, path, include_transcript=False)))
 
     @staticmethod
-    def events(data):
+    def events(data, *, trails=None):
         # Story is a projection: later decisions can revise earlier summaries.
         # The cursor counts this snapshot; polling replaces the projection.
-        return [dict(event, cursor=i + 1) for i, event in enumerate(story.build_events(data))]
+        return [dict(event, cursor=i + 1) for i, event in enumerate(story.build_events(data, trails=trails))]
 
     def event_page(self, run_id, since):
         item, path = self.resolve(run_id)
         data = self.load(item, path)
         replay = curated_replay(path) if item['kind'] == 'bundle' else None
+        trails = corrections.project(data)
         if not replay and data['tasks'][0].get('contract_id') == 'muse-2bit-demo-r8':
             plan = taskgraph.from_records(data)
             if plan['nodes'] and all(n['state'] in {'done', 'cancelled', 'superseded'} for n in plan['nodes']):
-                replay = factory_nodes.native_replay(data, plan, self.files(item, path, data), item['source_name'])
-        events = curated_events(replay) if replay else self.events(data)
+                replay = factory_nodes.native_replay(data, plan, self.files(item, path, data), item['source_name'], trails=trails)
+        events = curated_events(replay) if replay else self.events(data, trails=trails)
         return sanitize(dict(events=events, cursor=len(events), total=len(events),
                              reset=bool(since)))
 

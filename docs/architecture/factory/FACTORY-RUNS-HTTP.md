@@ -99,3 +99,19 @@ separate user systemd scopes, so gateway restarts do not kill their sessions.
 The generic backend default remains a detached local subprocess. Content-addressed
 artifact files include a human `display_path` from native artifact identities;
 HTTP reads still use the confined original `path`, never a display label.
+
+## Step-through correction history
+
+`GET /runs/{id}` carries `correction_overview`, keyed by node ID, with counts of
+findings, corrective notes and evidence-backed repairs. `GET /runs/{id}/nodes/{node}`
+returns those counts and ordered `corrections.events`. The native story and
+curated replay also carry each correction under `correction`. Each event identifies
+its original check, operator inbox note, or cited repair observation or artifact.
+The host, capsule verifier and independent reviewer retain separate verdicts.
+
+For a new corrective `jiuwenswarm-factory note`, name the exact check observation
+ID, the reported problem and the specific fix. Include the finding ID shown in the
+story when the check reported several findings. A new repair observation can carry
+`addresses_findings` with those exact finding IDs. The passing check must cite
+that observation as evidence for the same output. A subsequent pass without
+specific repair evidence leaves earlier findings visible and unresolved.

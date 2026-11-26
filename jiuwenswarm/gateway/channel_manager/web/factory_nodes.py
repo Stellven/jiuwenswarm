@@ -455,7 +455,7 @@ def run_state(data, plan, markers, running, now):
     return result | dict(reason=None) if 'STEP.md' in (result['reason'] or '') else result
 
 
-def native_replay(data, plan, files, source_home):
+def native_replay(data, plan, files, source_home, *, trails=None):
     """Project a completed, contracted native run onto the Nov 20 curated step format."""
     task = data['tasks'][0]
     outcome = data.get('_meta', {}).get('outcome')
@@ -504,7 +504,23 @@ def native_replay(data, plan, files, source_home):
                           primary_record=latest['obs_id'], created=done.get('created') or 0, records=records,
                           key_files=key_files, replayed_from=replay, replay_source=story.replay_origin(replay),
                           say=node.get('reason', '')))
-    steps.sort(key=lambda step: step['created'])
+    for key, trail in (trails or {}).items():
+        for correction in trail['events']:
+            kind, source = correction['kind'], correction['source']
+            ids = list(dict.fromkeys([source, *(correction.get('evidence_ids') or [])]))
+            key_files = [dict(path=file_by_id[aid]['path'], label=file_by_id[aid]['display_path'])
+                         for aid in ids if aid in file_by_id][:5]
+            title = {'finding': 'Finding', 'note': 'Operator note', 'repair': 'Recorded repair',
+                     'passing_check': 'Passing output check'}[kind]
+            steps.append(dict(node_id=key, graph_nodes=[key], recorded_plan_nodes=[key],
+                              presentation_title=f'{key} · {title}', original_kind=kind, correction=correction,
+                              original_summary=correction['text'], primary_record=source,
+                              created=correction['created'], key_files=key_files,
+                              records=[dict(id=source, table='operator-inbox' if kind == 'note' else
+                                           'observations' if source in observations else 'artifacts',
+                                           task_id=task['task_id'], source_home=source_home)]))
+    correction_order = {'finding': 0, 'note': 1, 'repair': 2, 'passing_check': 3}
+    steps.sort(key=lambda step: (step['created'], correction_order.get(step['original_kind'], 4)))
     for cursor, step in enumerate(steps, 1):
         step.update(step=cursor, event_cursor=cursor)
     return dict(schema='factory.curated-replay/1', title=task['task_id'], summary=task['objective'], native=True,
