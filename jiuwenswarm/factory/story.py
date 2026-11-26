@@ -42,7 +42,10 @@ def replay_duration(seconds):
     """Keep sub-minute verification visible alongside the original production duration."""
     if not isinstance(seconds, (int, float)) or isinstance(seconds, bool) or seconds < 0:
         return None
-    return f'{seconds / 60:.0f} min' if seconds >= 60 else f'{seconds:g} s'
+    if seconds < 60:
+        return f'{seconds:g} s'
+    minutes, remainder = divmod(round(seconds), 60)
+    return f'{minutes} min {remainder} s' if remainder else f'{minutes} min'
 
 
 def replay_origin(source):
