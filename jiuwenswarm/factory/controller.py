@@ -836,7 +836,7 @@ class Controller:
 
     def _operator_status(self, task_id, state):
         """Operator view: the pause in force (reason, who, when), held nodes and operator records not yet acted on."""
-        from .operator_notes import pending
+        from .operator_notes import pending_summary
         from .run_pause import current, records
         pause = current(self.store, task_id)
         try:
@@ -846,8 +846,7 @@ class Controller:
             held = {}
         return dict(paused=None if pause is None else {k: pause[k] for k in ('reason', 'by', 'at', 'cancel_jobs', 'obs_id')},
                     held_nodes=held, pause_records=len(records(self.store, task_id)),
-                    pending_operator_notes=[dict(note_id=n['note_id'], created=n['created'], text=n['text'][:300])
-                                            for n in pending(self.home, task_id, state)])
+                    pending_operator_notes=pending_summary(self.home, task_id, state))
 
 
 def status(task_id):

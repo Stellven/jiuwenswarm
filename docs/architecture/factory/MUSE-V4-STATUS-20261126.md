@@ -107,8 +107,13 @@ about 28% vs 13% of experts; compute buffer 1.5 GiB vs 8.4 GiB.
 - Halt policy (`halt_policy.py`): halts on 2 failed checks in a row, 2 failed runs of a recipe in a row, or an
   infrastructure failure; writes HALT.md; rerun acknowledges. Step mode (`FACTORY_STEP=1`): holds each node after
   finalization (STEP.md).
-- Operator commands: `note`, `hold`, `release`, `reopen`, `excuse <task> <attempt> <reason>` (host fault does not
-  use node limits), `retire <task> <node> <reason>` (cancel a node whose work a contract revision removed).
+- Operator commands include `pause <task> <reason> [--cancel-jobs]`, `revise <task> <reason> [--dry-run] [--json]`
+  and `resume <task> [reason] [--no-run]`. Pause stops the controller at its next check and leaves active jobs to
+  finish by default. Revise applies the current task contract in one graph revision while the controller is stopped.
+  Resume lifts the pause and runs the controller by default.
+- While paused, use `note <task> <text>` to queue an instruction for the agent. Use
+  `hold|release|reopen|retire <task> <node> <reason>` to manage individual nodes and
+  `excuse <task> <attempt> <reason>` to keep a host failure from consuming node limits.
 - Scheduler brief: carries the accepted checks of upstream nodes (bounded) and the run's operator inputs.
 - Controller: a turn ending in RUNTIME_TIMEOUT or NEW_SESSION_REQUIRED starts a new agent session with context.
 - Story (`jiuwenswarm-factory story --demo`): factory records rendered by what they say.
@@ -155,12 +160,26 @@ with repairs) or a fresh short run on rev 8 reusing its packs (~2 h more).
 ```
 cd ~/muse-demo/wt-v4
 export TASK=muse-2bit-ttft-v4 FACTORY_HOME=$HOME/muse-demo/graph-v4 SESSION=muse   # all three are required
-STEP=1 bash scripts/factory/run_muse_v4_graph.sh run        # job worker + controller in tmux (resume = run again)
+STEP=1 bash scripts/factory/run_muse_v4_graph.sh run        # job worker + controller in tmux
 bash scripts/factory/run_muse_v4_graph.sh release NODE      # lift a step checkpoint
-PYTHONPATH=$PWD ~/predemo-spark/jiuwenswarm/.venv/bin/python -m jiuwenswarm.factory.cli note|excuse|reopen|retire ...
+factory() { PYTHONPATH=$PWD ~/predemo-spark/jiuwenswarm/.venv/bin/python -m jiuwenswarm.factory.cli "$@"; }
+factory status "$TASK" --json
 PYTHONPATH=$PWD FACTORY_HOME=... python scripts/factory/graph_status.py $TASK     # one-screen status
 python -m jiuwenswarm.factory.cli story $TASK --demo                               # the run as a story
 ```
+
+Apply a contract revision while the run is paused. Wait for the controller to stop before running `revise`.
+
+```bash
+factory pause "$TASK" "apply the current contract"
+factory revise "$TASK" "apply the current contract" --dry-run
+factory revise "$TASK" "apply the current contract"
+factory plan "$TASK"
+factory resume "$TASK" "contract applied" --no-run
+```
+
+Omit `--no-run` to start the controller immediately, or use the step-mode driver above after lifting the pause.
+
 Ship code to the Spark with git bundles (never tar the Windows tree); SHA256SUMS and reseals are computed on the
 Spark (LF files). Reseal after editing a capsule: bump cc.yaml version, `scripts/factory/reseal_capsules.py <dir>`.
 

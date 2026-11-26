@@ -5,6 +5,7 @@ import re
 import time
 import uuid
 from .contract import atomic_json
+from .redact import sanitize
 
 
 def directory(home, task_id):
@@ -27,3 +28,9 @@ def pending(home, task_id, state):
         if value['task_id']!=task_id:raise ValueError('Operator inbox task differs')
         if value['note_id'] not in delivered:values.append(value)
     return sorted(values,key=lambda n:(n['created'],n['note_id']))
+
+
+def pending_summary(home, task_id, state):
+    """Summarize unread notes for operator status without exposing embedded credentials."""
+    return [dict(note_id=note['note_id'], created=note['created'], text=sanitize(note['text'])[:300])
+            for note in pending(home, task_id, state)]

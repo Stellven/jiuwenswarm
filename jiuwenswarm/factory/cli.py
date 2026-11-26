@@ -57,8 +57,8 @@ def format_status(value, plain=False, evidence=None):
     return '\n'.join(paint(line, plain) for line in lines)
 
 
-def readonly_status(data):
-    """Match Controller.status without initializing or mutating the live store."""
+def readonly_status(data, *, home=None):
+    """Build status from a snapshot, reading the operator inbox when a factory home is supplied."""
     from .story import ACTIVE
     import time
     task = data['tasks'][0]
@@ -74,12 +74,16 @@ def readonly_status(data):
                 budget_used=dict(turns=state.get('turns', 0), wall_clock_s=state['active_s'] if 'active_s' in state else max(0,
                     (state.get('finished') or time.time()) - state['started']) if state.get('started') is not None else 0),
                 pending_attempts=state.get('pending_attempts', []), pending_questions=state.get('pending_questions', []),
-                stop_reason=state.get('stop_reason'), **_operator_view(data))
+                stop_reason=state.get('stop_reason'), **_operator_view(data, state, home))
 
 
-def _operator_view(data):
-    from .run_pause import current_in
+def _operator_view(data, state, home):
+    from .operator_notes import pending_summary
+    from .run_pause import KIND, current_in
+    task_id = data['tasks'][0]['task_id']
     pause = current_in(data)
+    pause_count = sum(r.get('kind') == KIND and r.get('task_id', task_id) == task_id
+                      for r in data.get('observations', []))
     held = {}
     try:
         from .taskgraph import from_records
@@ -87,7 +91,8 @@ def _operator_view(data):
     except Exception:  # noqa: BLE001 - a task without a plan holds nothing
         pass
     return dict(paused=None if pause is None else {k: pause.get(k) for k in ('reason', 'by', 'at', 'cancel_jobs', 'obs_id')},
-                held_nodes=held)
+                held_nodes=held, pause_records=pause_count,
+                pending_operator_notes=pending_summary(home, task_id, state) if home is not None else [])
 
 
 def _operator_lines(value):
@@ -308,11 +313,14 @@ def main(argv=None):
                 from .capsules import capsule_rows, format_capsules
                 print(format_capsules(capsule_rows(), args.plain))
             else:
+                from pathlib import Path
+                from .controller import factory_home, scrub
                 from .story import load_source
-                from .controller import scrub
-                data = scrub(load_source(args.task_id, args.home))
-                result = readonly_status(data)
-                print(json.dumps(result, indent=2) if args.json else format_status(result, args.plain, data))
+                home = Path(args.home).expanduser() if args.home else factory_home()
+                data = load_source(args.task_id, home)
+                inbox_home = None if Path(args.task_id).expanduser().is_dir() else home
+                result = scrub(readonly_status(data, home=inbox_home))
+                print(json.dumps(result, indent=2) if args.json else format_status(result, args.plain, scrub(data)))
         except KeyboardInterrupt:
             raise SystemExit(130) from None
         except (FactoryError, ValueError, OSError, sqlite3.Error) as exc:

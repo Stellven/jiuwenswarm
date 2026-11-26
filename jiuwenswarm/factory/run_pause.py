@@ -34,7 +34,9 @@ def current(host, task_id):
 
 def current_in(data):
     """The pause in force from a store dump or read-only snapshot (status without the live store)."""
-    rows = [dict(r['values'], obs_id=r['obs_id']) for r in data.get('observations', []) if r.get('kind') == KIND]
+    task_id = data['tasks'][0]['task_id']
+    rows = [dict(r['values'], obs_id=r['obs_id']) for r in data.get('observations', [])
+            if r.get('kind') == KIND and r.get('task_id', task_id) == task_id]
     rows.sort(key=lambda r: r.get('at', 0))
     return rows[-1] if rows and rows[-1]['action'] == 'pause' else None
 
