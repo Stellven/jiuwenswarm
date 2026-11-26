@@ -443,27 +443,26 @@ def machine(task, home, own_pids=()):
 
 
 # ---- job side ----------------------------------------------------------------------------------------------
-class Run:
-    def __init__(self, store, task_id, attempt):
-        self.store, self.task_id, self.attempt = store, task_id, attempt
-        self.task = store.get_task(task_id)
-        self.req = attempt['request']
-        self.dir = store.home / 'runs' / attempt['attempt_id']
+class RunScope:
+    """Shared host limits for factory jobs and operator-run measurements."""
+
+    def __init__(self, home, directory, task, run_id, progress_name='progress.log'):
+        self.home, self.dir, self.task, self.run_id = home, directory, task, run_id
         self.dir.mkdir(parents=True, exist_ok=True)
-        self.progress = (self.dir / 'progress.log').open('a', encoding='utf-8')
+        self.progress = self.dir / progress_name
         self.peak = 0
         self.low = None
         self.files = {}
         self.cap = _resources(self.task).get('memory_cap', CAP)
 
     def log(self, *parts):
-        self.progress.write(time.strftime('%H:%M:%S ') + ' '.join(str(p) for p in parts) + '\n')
-        self.progress.flush()
+        with self.progress.open('a', encoding='utf-8') as handle:
+            handle.write(time.strftime('%H:%M:%S ') + ' '.join(str(p) for p in parts) + '\n')
 
     def gate(self):
         deadline = time.time() + float(_resources(self.task).get('gate_wait_s', GATE_WAIT_S))
         while True:
-            state = machine(self.task, self.store.home)
+            state = machine(self.task, self.home)
             if state['ok']:
                 self.log('machine gate passed:', state['available_gib'], 'GiB available, no foreign GPU process')
                 return state
@@ -475,7 +474,7 @@ class Run:
 
     def capped(self, argv, unit):
         return ['systemd-run', '--user', '--scope', '--quiet', '-p', f'MemoryMax={self.cap}', '-p', 'MemorySwapMax=0',
-                '--unit', f'factory-{unit}-{self.attempt["attempt_id"][:8]}-{int(time.time())}', *argv]
+                '--unit', f'factory-{unit}-{self.run_id[:8]}-{int(time.time())}', *argv]
 
     def watch(self, proc):
         """One sample: peak cgroup memory of the scope and lowest available memory; stop below the floor."""
@@ -492,6 +491,14 @@ class Run:
         if avail / 2**30 < float(_resources(self.task).get('floor_gib', FLOOR_GIB)):
             stop(proc)
             raise RunError('MEMORY_LOW', f'available memory fell to {avail / 2**30:.1f} GiB; the run was stopped')
+
+
+class Run(RunScope):
+    def __init__(self, store, task_id, attempt):
+        self.store, self.task_id, self.attempt = store, task_id, attempt
+        self.req = attempt['request']
+        run_id = attempt['attempt_id']
+        super().__init__(store.home, store.home / 'runs' / run_id, store.get_task(task_id), run_id)
 
     def run(self, argv, log_name, env=None, cwd=None, unit='run', capped=True):
         log = self.dir / log_name
@@ -764,29 +771,35 @@ class Server:
         bindir = str(Path(server).parent)
         server_args, self.placement = placement_args(server_args, run.task)
         run.log('placement:', json.dumps(self.placement))
-        argv = run.capped([server, '-m', model, *server_args, '--host', '127.0.0.1', '--port', str(self.port),
-                           '-lv', '4'], 'serve')
-        run.log('serve:', ' '.join(argv)[:2000], 'env', env)
+        self.argv = run.capped([server, '-m', model, *server_args, '--host', '127.0.0.1', '--port', str(self.port),
+                                '-lv', '4'], 'serve')
+        run.log('serve:', ' '.join(self.argv)[:2000], 'env', env)
         self.started = time.time()
-        self.proc = subprocess.Popen(argv, stdout=subprocess.DEVNULL, stderr=self.log.open('ab'),
-                                     env=dict(os.environ, LD_LIBRARY_PATH=bindir, **env), start_new_session=True)
-        while True:
-            time.sleep(2)
-            run.watch(self.proc)
-            if self.proc.poll() is not None:
-                raise RunError('SERVER_EXIT', f'llama-server exited {self.proc.returncode} while loading; see {log_name}')
-            try:
-                with urllib.request.urlopen(f'http://127.0.0.1:{self.port}/health', timeout=2) as r:
-                    if r.status == 200:
-                        break
-            except OSError:
-                pass
-            if time.time() - self.started > 3600:
-                raise RunError('SERVER_LOAD', 'not ready after an hour')
+        with self.log.open('ab') as handle:
+            self.proc = subprocess.Popen(self.argv, stdout=subprocess.DEVNULL, stderr=handle,
+                                         env={**os.environ, 'LD_LIBRARY_PATH': bindir, **env}, start_new_session=True)
+        try:
+            while True:
+                time.sleep(2)
+                run.watch(self.proc)
+                if self.proc.poll() is not None:
+                    raise RunError('SERVER_EXIT', f'llama-server exited {self.proc.returncode} while loading; see {log_name}')
+                try:
+                    with urllib.request.urlopen(f'http://127.0.0.1:{self.port}/health', timeout=2) as r:
+                        if r.status == 200:
+                            break
+                except OSError:
+                    pass
+                if time.time() - self.started > 3600:
+                    raise RunError('SERVER_LOAD', 'not ready after an hour')
+        except BaseException:
+            if self.proc.poll() is None:
+                stop(self.proc)
+            raise
         self.ready_s = time.time() - self.started
         run.log(f'ready in {self.ready_s:.0f} s')
 
-    def post(self, body, timeout=7200):
+    def post(self, body, timeout=7200, *, consume=json.load):
         """POST and wait, sampling memory every 2 s (a request can take many minutes on a streamed pack)."""
         import threading
         box = {}
@@ -796,7 +809,7 @@ class Server:
                 req = urllib.request.Request(f'http://127.0.0.1:{self.port}/completion', data=json.dumps(body).encode(),
                                              headers={'Content-Type': 'application/json'})
                 with urllib.request.urlopen(req, timeout=timeout) as r:
-                    box['out'] = json.loads(r.read())
+                    box['out'] = consume(r)
             except Exception as exc:  # noqa: BLE001 - reported below
                 box['error'] = exc
         thread = threading.Thread(target=call, daemon=True)
