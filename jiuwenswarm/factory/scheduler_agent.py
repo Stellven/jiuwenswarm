@@ -10,7 +10,7 @@ contract may be more concrete or stricter than the preliminary one, never weaker
 It is a separate agent from the one that works the node: its own JiuwenSwarm profile, its own
 session and its own capsule root (``scheduler_ccs``), with only the scheduler capsule. The model is
 Codex through the JiuwenSwarm ``codex_subscription`` transport; ``FACTORY_SCHEDULER_MODEL`` picks
-the model (default ``gpt-6.2-sol``).
+the model (default ``gpt-6.2-astra``; the worker and the reviewer keep their own models).
 
 Run once for one node (the controller does this in a subprocess, so the two agents never share a
 transport or MCP configuration)::
@@ -31,7 +31,7 @@ import time
 import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_MODEL = 'gpt-6.2-sol'
+DEFAULT_MODEL = 'gpt-6.2-astra'  # available with Codex 0.171 on the Spark
 TURN_TIMEOUT_S = 900
 CAPSULES = Path(__file__).with_name('scheduler_ccs')
 
@@ -61,7 +61,7 @@ def configure(home, task_id):
            'FACTORY_AGENT_ROLE': 'scheduler',
            'PYTHONPATH': os.pathsep.join(dict.fromkeys([str(ROOT), *filter(None, os.environ.get('PYTHONPATH', '').split(os.pathsep))])),
            'CCV2_PYTHON': sys.executable, 'FACTORY_PYTHON': sys.executable, 'PATH': os.environ.get('PATH', '')}
-    for key in ('FACTORY_MACHINE_STATE', 'FACTORY_READ_TASKS'):
+    for key in ('FACTORY_MACHINE_STATE', 'FACTORY_READ_TASKS', 'JOBQ_DIR'):  # JOBQ_DIR: the brief lists the queue
         if key in os.environ:
             env[key] = os.environ[key]
     quote = json.dumps
@@ -75,7 +75,7 @@ def configure(home, task_id):
     os.environ.update(env | {'JIUWENSWARM_DATA_DIR': str(data), 'JIUWENSWARM_AGENT_SDK': 'codex_subscription',
                              'JIUWENSWARM_CODEX_AGENT': '1', 'JIUWENSWARM_CODEX_AGENT_MCP': str(mcp),
                              'JIUWENSWARM_CODEX_AGENT_CWD': str(workspace), 'JIUWENSWARM_SKIP_DOTENV': '1'})
-    # The bundled Codex (0.163.0) does not list gpt-6.2-sol; FACTORY_SCHEDULER_CODEX_BIN names a newer one.
+    # The bundled Codex (0.163.0) does not list the gpt-6.2 models; FACTORY_SCHEDULER_CODEX_BIN names a newer one.
     if os.environ.get('FACTORY_SCHEDULER_CODEX_BIN'):
         os.environ['JIUWENSWARM_CODEX_BIN'] = os.environ['FACTORY_SCHEDULER_CODEX_BIN']
     return mcp

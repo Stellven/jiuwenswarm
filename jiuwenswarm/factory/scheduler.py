@@ -303,7 +303,8 @@ def next_work(host, task_id):
                         inputs=_resolve(host, task, contract_node, graph['nodes']),
                         limits_left=remaining_limits(host, task_id, key, contract_node.get('node_limits', {})),
                         authority_ceiling=contract_node.get('authority_ceiling', {}),
-                        hands_to=contract_node['hands_to'])
+                        hands_to=contract_node['hands_to'],
+                        **({'briefing': contract_node['briefing']} if contract_node.get('briefing') else {}))
         if node['state'] == 'failed':
             waiting[key] = 'failed: ' + (node['reason'] or 'revise or supersede it')
             continue
@@ -323,7 +324,7 @@ def brief(work):
     """A compact form for the agent's turn message."""
     return dict(graph_rev=work['graph_rev'], done=work['done'], waiting=work['waiting'],
                 runnable=[{k: item[k] for k in ('node_id', 'kind', 'objective', 'outputs', 'done_blocked_by', 'bound_ccs',
-                                                 'helpful_ccs', 'inputs', 'limits_left', 'hands_to') if k in item}
+                                                 'helpful_ccs', 'inputs', 'limits_left', 'hands_to', 'briefing') if k in item}
                           for item in work['runnable']],
                 **({'to_finalize': [i['node_id'] for i in work['to_finalize']]} if work.get('to_finalize') else {}))
 
@@ -358,17 +359,21 @@ def effective_contract(host, task_id, graph_node, contracts):
 
 
 def catalog():
-    """Capsule id -> version, folder, purpose and capabilities, from the factory capsule folders."""
+    """Capsule id -> version, folder, purpose and capabilities, from the factory capsule folders.
+
+    CC v2 declarations carry no top-level purpose; it then comes from the capsule's own doc (the
+    description in its front matter, or its first paragraph)."""
     import yaml
-    from pathlib import Path
+    from .scheduler_brief import ccs_root, doc_purpose
     found = {}
-    for path in sorted(Path(__file__).with_name('ccs').glob('*/cc.yaml')):
+    for path in sorted(ccs_root().glob('*/cc.yaml')):
         try:
             declaration = yaml.safe_load(path.read_text(encoding='utf-8'))
         except (OSError, yaml.YAMLError):
             continue
         if isinstance(declaration, dict) and declaration.get('id'):
-            purpose = declaration.get('purpose') or declaration.get('does') or declaration.get('summary') or ''
+            purpose = declaration.get('purpose') or declaration.get('does') or declaration.get('summary') \
+                or doc_purpose(path.parent, declaration)
             found[declaration['id']] = dict(version=str(declaration.get('version', '')), folder=path.parent.name,
                                             purpose=str(purpose)[:300],
                                             capabilities=sorted((declaration.get('capabilities') or {}).keys()))
@@ -390,61 +395,9 @@ def _failures(host, task_id, graph, name):
 
 
 def finalize_brief(store, task_id, node_id):
-    """What the scheduler agent reads before it finalizes one node. Pure read."""
-    from .node_contract import node as contract_node_of
-    from .node_finalize import draft_final, is_preliminary
-    host = getattr(store, '_store', store)
-    if hasattr(store, '_check'):
-        store._check(task_id)
-    task = host.get_task(task_id)
-    graph = _graph(host, task_id)
-    node = next((n for n in graph['nodes'] if n['node_id'] == node_id), None)
-    if node is None:
-        raise ValueError('Unknown plan node: ' + node_id)
-    contracts = _contracts(host, task)
-    prelim = contract_node_of(contracts, node.get('node_contract')) if contracts and node.get('node_contract') else None
-    if not is_preliminary(prelim):
-        raise ValueError(f'Node {node_id} has no preliminary node contract')
-    failures, earlier_finals = _failures(host, task_id, graph, node['node_contract'])
-    upstream = {}
-    for item in graph['nodes']:
-        if item['state'] == 'done' and item.get('node_contract'):
-            final, _ = effective_contract(host, task_id, item, contracts)
-            upstream[item['node_id']] = dict(node_contract=item['node_contract'], evidence_ids=item['evidence_ids'],
-                                             outcome=item.get('outcome'), final_contract=item.get('final_contract'),
-                                             bound_ccs=((final or {}).get('work') or {}).get('bound_ccs'),
-                                             accepted_checks=accepted_checks(host, task_id, item['node_id']))
-    known = catalog()
-    eligible = (prelim.get('work') or {}).get('eligible_ccs')
-    machine = None
-    state_file = os.environ.get('FACTORY_MACHINE_STATE')
-    if state_file:
-        try:
-            with open(state_file, encoding='utf-8') as handle:
-                machine = json.load(handle)
-        except (OSError, ValueError) as exc:
-            machine = {'unavailable': str(exc)}
-    refusals = [json.loads(r[0]) for r in host._db.execute(
-        'SELECT "values" FROM observations WHERE task_id=? AND kind=? ORDER BY created, rowid', (task_id, REFUSAL_KIND))]
-    refusals = [dict(problems=r['problems'], rationale=r['rationale'], by=r.get('by', 'scheduler-agent'))
-                for r in refusals if r['node_id'] == node_id]
-    return dict(schema='factory.finalize-brief/1', task_id=task_id, node_id=node_id, state=node['state'],
-                refusals=refusals,
-                preliminary=prelim, draft_final=draft_final(prelim),
-                inputs=_resolve(host, task, prelim, graph['nodes']), upstream=upstream,
-                failures=failures, earlier_finals=earlier_finals,
-                capsules={k: v for k, v in known.items() if not eligible or k in eligible},
-                machine=machine,
-                # Operator inputs only (never producer prose): constraints and resources such as prior
-                # artifacts and results the operator lists for this task.
-                constraints=task.get('constraints'), resources=task.get('resources') or {},
-                # Operator inputs recorded on the run (host operator_input records), including ones added after
-                # the task was created: what each is, how it was made and what it says.
-                operator_inputs=operator_inputs(host, task_id),
-                rule='The final contract may be more concrete or stricter than the preliminary one, never weaker. '
-                     'Fill every slot, keep every criterion word for word, keep limits at or under the ceiling, '
-                     'bind capsules in work.bound_ccs. If the preliminary contract cannot be met as written, do not '
-                     'propose; report it as a spec gap.')
+    """What the scheduler agent reads before it finalizes one node. Pure read (see scheduler_brief.py)."""
+    from .scheduler_brief import finalize_brief as build
+    return build(store, task_id, node_id)
 
 
 def finalize(store, task_id, node_id, final, rationale, by='scheduler-agent'):
