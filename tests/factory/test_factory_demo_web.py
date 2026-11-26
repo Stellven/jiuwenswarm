@@ -1,3 +1,5 @@
+from pathlib import Path
+
 """The integrated Factory demo uses one native web application."""
 from fastapi.testclient import TestClient
 
@@ -60,7 +62,7 @@ def test_native_websocket_adapter_accepts_a_unix_listener():
     assert adapter.local_address is None and adapter.remote_address is None
 
 
-def test_engine_viewer_uses_only_public_reads(tmp_path):
+def test_engine_viewer_uses_only_public_reads(tmp_path, monkeypatch):
     import pytest
     from starlette.websockets import WebSocketDisconnect
     from scripts.spark.r8_engine_site import HISTORY_TASK, LIVE_TASK, TAILSCALE_HOST, make_app as make_engine
@@ -74,10 +76,20 @@ def test_engine_viewer_uses_only_public_reads(tmp_path):
             for task in tasks:
                 store.create_task(dict(task_id=task, objective='Fixture', budget={}, source={}, allowed_effects=[]))
 
+    monkeypatch.setattr(Path, 'home', staticmethod(lambda: tmp_path))
+    evidence = tmp_path / 'muse-demo' / 'r8-final'
+    evidence.mkdir(parents=True)
+    (evidence / 'README.md').write_text('Final index', encoding='utf-8')
+    (evidence / 'strict-history.md').write_text('Strict history', encoding='utf-8')
     site = make_engine(dist, live, history, replay)
     forwarded = {'X-Forwarded-For': '127.0.0.1', 'Forwarded': 'for=127.0.0.1'}
     with TestClient(site, base_url=f'http://{TAILSCALE_HOST}', client=('100.64.0.9', 50000)) as api:
         assert 'Engine Factory' in api.get('/').text
+        for slug, expected in [('readme', 'Final index'), ('method-history', 'Strict history')]:
+            url = '/api/factory/engine-bench/' + slug
+            assert api.get(url).text == expected
+            assert api.post(url, headers=forwarded).status_code == 403
+        assert api.get('/api/factory/engine-bench/report.json').status_code == 403
         listing = api.get('/api/factory/runs').json()
         assert set(row['task_id'] for row in listing['runs']) == {LIVE_TASK, HISTORY_TASK}
         assert listing['launch_enabled'] is False

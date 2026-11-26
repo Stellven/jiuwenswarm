@@ -1,20 +1,29 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { armKey, armLabel, armOrder, devices, evidenceLabel, fmt, groupBy, median, numeric, quietStatus } from './engineBenchModel';
+import { armKey, armLabel, armOrder, devices, excluded, fmt, groupBy, median, numeric } from './engineBenchModel';
 import type { EngineRow, Metric, Ratio } from './engineBenchModel';
 
-export type Inspect = (row: EngineRow) => void;
+export type Inspect = (row: EngineRow, related?: EngineRow[]) => void;
 
-export function RowValue({ row, inspect, children }: { row: EngineRow; inspect: Inspect; children: ReactNode }) {
+export function RowValue({
+  row,
+  related,
+  inspect,
+  children,
+}: {
+  row: EngineRow;
+  related?: EngineRow[];
+  inspect: Inspect;
+  children: string;
+}) {
   return (
     <button
       type="button"
       className="engine-value"
-      onClick={() => inspect(row)}
+      onClick={() => inspect(row, related)}
       data-testid="factory-runs-engine-row-value"
       data-variant={row.id}
-      aria-label={`${children}, ${evidenceLabel(row)}, ${quietStatus(row)}. Open source row`}
-      title={`${evidenceLabel(row)} · ${quietStatus(row)} · Open source row`}
+      aria-label={`${children}. Open measurement sources`}
     >
       {children}
     </button>
@@ -30,7 +39,7 @@ export function Panel({ id, title, children }: { id: string; title: string; chil
   );
 }
 
-export function Empty({ children = 'Unmeasured' }: { children?: ReactNode }) {
+export function Empty({ children = 'No data available.' }: { children?: ReactNode }) {
   return <p className="engine-empty">{children}</p>;
 }
 
@@ -105,21 +114,21 @@ export function LengthPlot({
           <text x="350" y="240" textAnchor="middle">
             Rendered prompt tokens
           </text>
-          {groups.map((group, index) => {
+          {groups.map((group) => {
             const first = group[0];
             const state = first.row.request?.state;
-            const accepted = group.filter(({ row }) => row.quiet?.eligible !== false && !row.error);
+            const accepted = group.filter(({ row }) => !excluded(row));
             const byLength = [...groupBy(accepted, ({ tokens }) => String(tokens)).values()].sort(
               (a, b) => a[0].tokens - b[0].tokens,
             );
             const path = byLength
               .map((observations) => {
-                const average = observations.reduce((sum, point) => sum + point.score, 0) / observations.length;
-                return `${x(observations[0].tokens)},${y(average)}`;
+                const middle = median(observations.map(({ score }) => score));
+                return `${x(observations[0].tokens)},${y(middle)}`;
               })
               .join(' ');
             return (
-              <g key={first.row.id} className="engine-series" data-series={index % 8}>
+              <g key={first.row.id} className="engine-series" data-arm={first.row.arm}>
                 {byLength.length > 1 && (
                   <polyline
                     points={path}
@@ -130,7 +139,7 @@ export function LengthPlot({
                   />
                 )}
                 {group.map(({ row, tokens, score }) => {
-                  const label = `${armLabel(row)} · ${state ?? 'State unknown'} · ${fmt(tokens)} tokens · ${fmt(score)} ${unit} · ${quietStatus(row)}`;
+                  const label = `${armLabel(row)} · ${state ?? 'State unknown'} · ${fmt(tokens)} tokens · ${fmt(score)} ${unit}`;
                   return (
                     <circle
                       key={row.id}
@@ -139,7 +148,7 @@ export function LengthPlot({
                       r="5"
                       stroke="currentColor"
                       fill={state === 'warm' ? 'var(--color-surface-card)' : 'currentColor'}
-                      className={row.quiet?.eligible === false || row.error ? 'engine-excluded' : undefined}
+                      className={excluded(row) ? 'engine-excluded' : undefined}
                       tabIndex={0}
                       role="button"
                       aria-label={label}
@@ -163,10 +172,10 @@ export function LengthPlot({
         </svg>
       </div>
       <ul className="engine-legend">
-        {groups.map((group, index) => {
+        {groups.map((group) => {
           const { row } = group[0];
           return (
-            <li key={row.id} className="engine-series" data-series={index % 8}>
+            <li key={row.id} className="engine-series" data-arm={row.arm}>
               <span aria-hidden="true">{row.request?.state === 'warm' ? '○' : '●'}</span> {armLabel(row)} ·{' '}
               {row.request?.state ?? 'State unknown'}
             </li>
@@ -185,7 +194,7 @@ export function DecodeBars({ rows, inspect }: { rows: EngineRow[]; inspect: Insp
   if (!points.length) return <Empty />;
   const arms = [...groupBy(points, ({ row }) => armKey(row)).values()]
     .map((group) => {
-      const accepted = group.filter(({ row }) => row.quiet?.eligible !== false && !row.error);
+      const accepted = group.filter(({ row }) => !excluded(row));
       const warm = accepted.filter(({ row }) => row.request?.state === 'warm');
       const used = warm.length ? warm : accepted.length ? accepted : group;
       const values = used.map(({ value }) => value);
@@ -193,22 +202,30 @@ export function DecodeBars({ rows, inspect }: { rows: EngineRow[]; inspect: Insp
       const closest = used.reduce((best, item) =>
         Math.abs(item.value - middle) < Math.abs(best.value - middle) ? item : best,
       );
-      return { row: closest.row, value: middle, low: Math.min(...values), high: Math.max(...values), n: used.length, warm: warm.length > 0 };
+      return {
+        row: closest.row,
+        related: used.map(({ row }) => row),
+        value: middle,
+        low: Math.min(...values),
+        high: Math.max(...values),
+        n: used.length,
+        warm: warm.length > 0,
+      };
     })
     .sort((a, b) => armOrder(a.row, b.row));
   const max = Math.max(1, ...arms.map(({ high }) => high));
   return (
     <ul className="engine-bars">
-      {arms.map(({ row, value, low, high, n, warm }) => (
+      {arms.map(({ row, related, value, low, high, n, warm }) => (
         <li key={row.id}>
           <span>
             <strong>{armLabel(row)}</strong>
-            <small>{`${warm ? 'warm' : 'all'} median of ${n} request${n === 1 ? '' : 's'} · range ${fmt(low, 2)}–${fmt(high, 2)}`}</small>
+            <small>{`${warm ? 'warm' : 'cold'} request${n === 1 ? '' : 's'} · range ${fmt(low, 2)}–${fmt(high, 2)}`}</small>
           </span>
           <span className="engine-track" aria-hidden="true">
             <i style={{ width: `${(100 * value) / max}%` }} />
           </span>
-          <RowValue row={row} inspect={inspect}>{`${fmt(value, 2)} tok/s`}</RowValue>
+          <RowValue row={row} related={related} inspect={inspect}>{`${fmt(value, 2)} tok/s`}</RowValue>
         </li>
       ))}
     </ul>
@@ -218,7 +235,9 @@ export function DecodeBars({ rows, inspect }: { rows: EngineRow[]; inspect: Insp
 export function SpeedBars({ ratios, inspect }: { ratios: Ratio[]; inspect: Inspect }) {
   if (!ratios.length) return <Empty>No matched request evidence.</Empty>;
   const merged = [
-    ...groupBy(ratios, ({ candidate }) => JSON.stringify([armKey(candidate), candidate.request?.prompt_tokens])).values(),
+    ...groupBy(ratios, ({ candidate }) =>
+      JSON.stringify([armKey(candidate), candidate.request?.prompt_tokens]),
+    ).values(),
   ]
     .map((group) => {
       const warm = group.filter(({ candidate }) => candidate.request?.state === 'warm');
@@ -227,7 +246,12 @@ export function SpeedBars({ ratios, inspect }: { ratios: Ratio[]; inspect: Inspe
       const closest = used.reduce((best, item) =>
         Math.abs(item.value - middle) < Math.abs(best.value - middle) ? item : best,
       );
-      return { ...closest, value: middle, n: used.length, warm: warm.length > 0 };
+      return {
+        ...closest,
+        value: middle,
+        sources: used.flatMap(({ candidate, baselines }) => [candidate, ...baselines]),
+        warm: warm.length > 0,
+      };
     })
     .sort(
       (a, b) =>
@@ -237,11 +261,11 @@ export function SpeedBars({ ratios, inspect }: { ratios: Ratio[]; inspect: Inspe
   const max = Math.max(1.1, ...merged.map(({ value }) => value));
   return (
     <ul className="engine-bars">
-      {merged.map(({ candidate, base, value, label, n, warm }) => (
+      {merged.map(({ candidate, value, sources, warm }) => (
         <li key={candidate.id}>
           <span>
             <strong>{armLabel(candidate)}</strong>
-            <small>{`${fmt(candidate.request?.prompt_tokens ?? 0)} tokens · ${warm ? 'warm' : 'all'} median of ${n}`}</small>
+            <small>{`${fmt(candidate.request?.prompt_tokens ?? 0)} tokens · ${warm ? 'warm' : 'cold'}`}</small>
           </span>
           <span
             className="engine-track"
@@ -250,12 +274,7 @@ export function SpeedBars({ ratios, inspect }: { ratios: Ratio[]; inspect: Inspe
           >
             <i style={{ width: `${(100 * value) / max}%` }} />
           </span>
-          <span>
-            <RowValue row={candidate} inspect={inspect}>{`${fmt(value, 2)}×`}</RowValue>
-            <small>
-              {label} · <RowValue row={base} inspect={inspect}>{`vs ${base.arm}`}</RowValue>
-            </small>
-          </span>
+          <RowValue row={candidate} related={sources} inspect={inspect}>{`${fmt(value)}x`}</RowValue>
         </li>
       ))}
     </ul>
@@ -308,7 +327,7 @@ export function MemoryBars({ rows, inspect }: { rows: EngineRow[]; inspect: Insp
         const budget = row.memory?.budget;
         const rss = row.memory?.peak_rss;
         return (
-          <li key={row.id} className={row.quiet?.eligible === false || row.error ? 'engine-excluded' : undefined}>
+          <li key={row.id} className={excluded(row) ? 'engine-excluded' : undefined}>
             <strong>{armLabel(row)}</strong>
             <div
               className="engine-track engine-stack"
@@ -325,24 +344,15 @@ export function MemoryBars({ rows, inspect }: { rows: EngineRow[]; inspect: Insp
                   <RowValue row={row} inspect={inspect}>{`${name} ${fmt(value)} MiB`}</RowValue>
                 </span>
               ))}
-              {buffers.length < devices.length && (
-                <span>{buffers.length ? 'Partial device breakdown' : 'Device buffers unmeasured'}</span>
-              )}
-              {numeric(budget) ? (
-                <RowValue row={row} inspect={inspect}>{`Budget ${fmt(budget)} MiB`}</RowValue>
-              ) : (
-                <span>Budget unmeasured</span>
-              )}
+              {numeric(budget) && <RowValue row={row} inspect={inspect}>{`Budget ${fmt(budget)} MiB`}</RowValue>}
             </div>
-            {numeric(rss) ? (
+            {numeric(rss) && (
               <>
                 <div className="engine-track engine-rss" aria-hidden="true">
                   <i style={{ width: width(rss) }} />
                 </div>
                 <RowValue row={row} inspect={inspect}>{`Peak host RSS ${fmt(rss)} MiB`}</RowValue>
               </>
-            ) : (
-              <span>Peak host RSS unmeasured</span>
             )}
           </li>
         );
@@ -369,11 +379,9 @@ export function AccuracyPlot({ rows, inspect }: { rows: EngineRow[]; inspect: In
         const high = row.interval?.hi;
         const delta = row.delta;
         return (
-          <li key={row.id} className={row.quiet?.eligible === false || row.error ? 'engine-excluded' : undefined}>
+          <li key={row.id} className={excluded(row) ? 'engine-excluded' : undefined}>
             <strong>{row.pack?.name ?? row.pack?.format ?? 'Pack unrecorded'}</strong>
-            <span>
-              {row.test ?? 'Test unrecorded'} · {evidenceLabel(row)}
-            </span>
+            <span>{row.test ?? 'Paired accuracy'}</span>
             <div
               className="engine-track engine-interval"
               style={{ '--engine-reference': '50%' } as React.CSSProperties}
@@ -383,15 +391,9 @@ export function AccuracyPlot({ rows, inspect }: { rows: EngineRow[]; inspect: In
               {numeric(delta) && <b style={{ left: `${x(delta)}%` }} />}
             </div>
             <div className="engine-memory-values">
-              {numeric(delta) ? (
-                <RowValue row={row} inspect={inspect}>{`Δ ${points(delta)}`}</RowValue>
-              ) : (
-                <span>Delta unmeasured</span>
-              )}
-              {numeric(low) && numeric(high) ? (
+              {numeric(delta) && <RowValue row={row} inspect={inspect}>{`Δ ${points(delta)}`}</RowValue>}
+              {numeric(low) && numeric(high) && (
                 <RowValue row={row} inspect={inspect}>{`Interval ${points(low)} to ${points(high)}`}</RowValue>
-              ) : (
-                <span>Interval unmeasured</span>
               )}
               {numeric(row.n) && <RowValue row={row} inspect={inspect}>{`n = ${fmt(row.n)}`}</RowValue>}
               {numeric(row.acc) && (

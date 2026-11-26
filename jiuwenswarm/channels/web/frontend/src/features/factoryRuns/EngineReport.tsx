@@ -1,62 +1,42 @@
 import { useEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import { getApiBase } from '../../utils/env';
 import { request } from './api';
-import {
-  AccuracyPlot,
-  DecodeBars,
-  Empty,
-  LengthPlot,
-  MemoryBars,
-  Panel,
-  RowValue,
-  SpeedBars,
-} from './EngineReportCharts';
+import { AccuracyPlot, DecodeBars, LengthPlot, MemoryBars, Panel, RowValue, SpeedBars } from './EngineReportCharts';
 import type { Inspect } from './EngineReportCharts';
 import {
-  armKey,
+  accuracyRun,
+  armOrder,
   armLabel,
   devices,
   evidenceLabel,
+  excluded,
   fmt,
   groupBy,
+  isReportArm,
+  median,
   numeric,
   quietStatus,
   ratios,
   sourceRef,
 } from './engineBenchModel';
-import type { Benchmark, EngineRow, Metric } from './engineBenchModel';
+import type { Benchmark, EngineRow, Metric, QuietVerdict, Ratio } from './engineBenchModel';
 import './story.css';
 import './engineReport.css';
 
 const runs: Record<string, string> = {
   'r8-lab': 'Nov 26 · R8 delivery lab',
-  'nov25-lab-abcde': 'Nov 25 · A–E lab',
-  'r8-prefill-calibration': 'Nov 26 · R8 prefill calibration',
-  'r8-smoke': 'Nov 26 · R8 smoke',
+  'nov25-lab-abcde': 'Nov 25 · E0 NVFP4 baseline',
   'nov25-mmlu-q2': 'Nov 25 · Paired MMLU',
-  'nov25-agent-sweep': 'Nov 25 · Agent-length sweep',
-  'nov25-size-probe': 'Nov 25 · Context-size probe',
-  'nov25-probe-d': 'Nov 25 · D probe',
-  'nov25-probe-ub2048': 'Nov 25 · Microbatch probe',
-  'nov24-lab-abc': 'Nov 24 · A–C lab',
-  'nov24-smoke': 'Nov 24 · Smoke',
 };
 
 const metrics: [Metric, string, string][] = [
   ['ttft_ms', 'TTFT', 'ms'],
-  ['decode_tps', 'Decode', 'tok/s'],
   ['prefill_tps', 'Prefill', 'tok/s'],
+  ['decode_tps', 'Decode', 'tok/s'],
   ['total_ms', 'Total', 'ms'],
   ['load_s', 'Load time', 's'],
   ['server_prefill_ms', 'Server prefill time', 'ms'],
 ];
-
-const ablations = [
-  ['A', 'B', 'Quantization on default settings'],
-  ['A', 'A+P', 'Prefill plan on NVFP4'],
-  ['B', 'P', 'Prefill plan on mixed 2-bit'],
-  ['A', 'P', 'Quantization and prefill plan'],
-] as const;
 
 function value(value: unknown, unit = '', digits = 2) {
   if (numeric(value)) return `${fmt(value, digits)}${unit ? ` ${unit}` : ''}`;
@@ -125,7 +105,20 @@ function Facts({ facts, row, inspect }: { facts: Datum[]; row?: EngineRow; inspe
   );
 }
 
-function SourceDialog({ row, close }: { row: EngineRow; close: () => void }) {
+function Verdict({ label, verdict }: { label: string; verdict: QuietVerdict }) {
+  return (
+    <div data-testid="factory-runs-engine-quiet-verdict" data-variant={label}>
+      <dt>{label}</dt>
+      <dd>
+        {verdict.status}
+        {verdict.reasons.length ? ` · ${verdict.reasons.join('; ')}` : ''}
+      </dd>
+    </div>
+  );
+}
+
+function SourceDialog({ rows, close }: { rows: EngineRow[]; close: () => void }) {
+  const [row, setRow] = useState(rows[0]);
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     dialog.current?.showModal();
@@ -150,8 +143,31 @@ function SourceDialog({ row, close }: { row: EngineRow; close: () => void }) {
           Close
         </button>
       </header>
-      <p className={row.quiet?.eligible === false ? 'engine-excluded' : undefined}>{quietStatus(row)}</p>
-      {row.quiet?.eligible !== false && row.quiet?.reason && <p>{row.quiet.reason}</p>}
+      {rows.length > 1 && (
+        <div className="engine-toggle engine-source-choices" role="group" aria-label="Measurement rows">
+          {rows.map((source) => (
+            <button
+              key={source.id}
+              type="button"
+              aria-pressed={source.id === row.id}
+              data-testid="factory-runs-engine-source-row"
+              data-variant={source.id}
+              onClick={() => setRow(source)}
+            >
+              {source.arm} · {source.request?.state} ·{' '}
+              {source.request?.repeat == null ? source.id.split('/').at(-1) : `repeat ${source.request.repeat}`}
+            </button>
+          ))}
+        </div>
+      )}
+      {row.launch_verdict || row.corrected_verdict ? (
+        <dl className="engine-facts">
+          {row.launch_verdict && <Verdict label="Launch quiet rule" verdict={row.launch_verdict} />}
+          {row.corrected_verdict && <Verdict label="Final quiet rule" verdict={row.corrected_verdict} />}
+        </dl>
+      ) : (
+        <p>{row.quiet?.reason ?? quietStatus(row)}</p>
+      )}
       {row.error && <p>{row.error}</p>}
       <ul className="engine-sources" data-testid="factory-runs-engine-source-references">
         {[...sources].map(([location, source]) => (
@@ -228,192 +244,135 @@ function SourceDialog({ row, close }: { row: EngineRow; close: () => void }) {
   );
 }
 
-function RequestRows({ rows, inspect }: { rows: EngineRow[]; inspect: Inspect }) {
-  if (!rows.length) return <Empty />;
+function ReportTable({ rows, speed, inspect }: { rows: EngineRow[]; speed: Ratio[]; inspect: Inspect }) {
   return (
-    <div className="engine-table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Rendered prompt</th>
-            <th>Request</th>
-            {metrics.slice(0, 4).map(([metric, label, unit]) => (
-              <th key={metric}>
-                {label} ({unit})
-              </th>
-            ))}
-            <th>Evidence and quiet gate</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr
-              key={row.id}
-              className={row.quiet?.eligible === false || row.error ? 'engine-excluded' : undefined}
-              data-testid="factory-runs-engine-measurement-row"
-              data-variant={row.id}
-            >
-              <td>
-                {numeric(row.request?.prompt_tokens) ? (
-                  <RowValue row={row} inspect={inspect}>
-                    {fmt(row.request.prompt_tokens)}
-                  </RowValue>
-                ) : (
-                  unavailable
-                )}
-              </td>
-              <td>
-                {[
-                  row.request?.name,
-                  row.request?.state,
-                  row.request?.repeat == null ? undefined : `repeat ${row.request.repeat}`,
-                ]
-                  .filter(Boolean)
-                  .join(' · ') || 'Unrecorded'}
-              </td>
-              {metrics.slice(0, 4).map(([metric]) => (
-                <td key={metric}>
-                  {numeric(row.metrics?.[metric]) ? (
-                    <RowValue row={row} inspect={inspect}>
-                      {fmt(row.metrics[metric], 2)}
-                    </RowValue>
-                  ) : (
-                    unavailable
-                  )}
-                </td>
-              ))}
-              <td>
-                <RowValue row={row} inspect={inspect}>{`${evidenceLabel(row)} · ${quietStatus(row)}`}</RowValue>
-                {row.error && <small>{row.error}</small>}
-              </td>
+    <Panel id="comparison" title="A / B / P comparison">
+      <div className="engine-table-wrap">
+        <table data-testid="factory-runs-engine-comparison-table">
+          <thead>
+            <tr>
+              <th scope="col">Arm</th>
+              <th scope="col">Rendered tokens</th>
+              <th scope="col">Request</th>
+              <th scope="col">TTFT (s)</th>
+              <th scope="col">Prefill (tok/s)</th>
+              <th scope="col">Decode (tok/s)</th>
+              <th scope="col">Total (s)</th>
+              <th scope="col">TTFT speedup</th>
+              <th scope="col">Settings and resources</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function ArmDetails({ rows, accuracy, inspect }: { rows: EngineRow[]; accuracy: EngineRow[]; inspect: Inspect }) {
-  return (
-    <Panel id="arms" title="Arm details">
-      {!rows.length && <Empty />}
-      {[...groupBy(rows, armKey).values()].map((group) => {
-        const arm =
-          group.find((row) => row.kind === 'load' && row.quiet?.eligible !== false && !row.error) ??
-          group.find((row) => row.quiet?.eligible !== false && !row.error) ??
-          group[0];
-        const packAccuracy = accuracy.find((row) => row.pack?.name && row.pack.name === arm.pack?.name);
-        return (
-          <article key={arm.id} className="engine-arm" data-testid="factory-runs-engine-arm" data-variant={arm.id}>
-            <h3>{armLabel(arm)}</h3>
-            <p>
-              {runs[arm.run ?? ''] ?? arm.run} · {arm.engine?.commit ?? 'Engine revision unrecorded'}
-            </p>
-            <Facts
-              row={arm}
-              inspect={inspect}
-              facts={[
-                ...packFacts(arm),
-                ...settingFacts(arm),
-                ['Load time', metricValue(arm, 'load_s', 's')],
-                ...memoryFacts(arm).slice(0, 5),
-              ]}
-            />
-            <div className="engine-arm-accuracy">
-              Paired accuracy{' '}
-              {packAccuracy && numeric(packAccuracy.acc) ? (
-                <RowValue
-                  row={packAccuracy}
-                  inspect={inspect}
-                >{`${evidenceLabel(packAccuracy)} · ${fmt(packAccuracy.acc * 100, 2)}%`}</RowValue>
-              ) : (
-                unavailable
-              )}
-            </div>
-            <RequestRows rows={group.filter((row) => row.kind === 'performance')} inspect={inspect} />
-            {group
-              .filter((row) => row.kind === 'load')
-              .map((row) => (
-                <p key={row.id} className={row.quiet?.eligible === false || row.error ? 'engine-excluded' : undefined}>
-                  <RowValue
-                    row={row}
-                    inspect={inspect}
-                  >{`Startup · ${evidenceLabel(row)} · ${quietStatus(row)}`}</RowValue>
-                  {row.error && ` · ${row.error}`}
-                </p>
-              ))}
-          </article>
-        );
-      })}
-    </Panel>
-  );
-}
-
-function Ablation({
-  campaign,
-  scope,
-  baselineRows,
-  inspect,
-}: {
-  campaign: EngineRow[];
-  scope: string;
-  baselineRows: EngineRow[];
-  inspect: Inspect;
-}) {
-  return (
-    <div className="engine-table-wrap">
-      <table>
-        <caption>R8 ablation by total request time</caption>
-        <thead>
-          <tr>
-            <th>Arms</th>
-            <th>Capsule contribution</th>
-            <th>Matched evidence</th>
-          </tr>
-        </thead>
-        <tbody>
-          {ablations.map(([from, to, title]) => {
-            const comparisons =
-              scope === 'r8-lab' || scope === 'all'
-                ? ratios([...campaign.filter((row) => row.run === 'r8-lab'), ...baselineRows], from, to).filter(
-                    ({ candidate }) => candidate.run === 'r8-lab',
-                  )
-                : [];
+          </thead>
+          {[...groupBy(rows, (row) => row.arm ?? '').values()].map((arm) => {
+            const load = arm.find((row) => row.kind === 'load') ?? arm[0];
+            const requests = arm.filter((row) => row.kind === 'performance');
+            const groups = [
+              ...groupBy(requests, (row) =>
+                JSON.stringify([row.request?.name, row.request?.prompt_tokens, row.request?.state]),
+              ).values(),
+            ].sort(
+              (a, b) =>
+                (a[0].request?.prompt_tokens ?? 0) - (b[0].request?.prompt_tokens ?? 0) ||
+                Number(b[0].request?.state === 'warm') - Number(a[0].request?.state === 'warm'),
+            );
+            const facts: Datum[] = [
+              [
+                'Batch / microbatch',
+                numeric(load.settings?.b) && numeric(load.settings?.ub)
+                  ? `${load.settings.b} / ${load.settings.ub}`
+                  : null,
+              ],
+              ['Expert cache', value(load.settings?.moe_cache_mib, 'MiB')],
+              ['Peak host RSS', value(load.memory?.peak_rss, 'MiB')],
+              ['Available memory floor', value(load.memory?.min_available, 'MiB')],
+              ['Fit margin', value(load.memory?.fit_margin, 'MiB')],
+              ['Load time', metricValue(load, 'load_s', 's')],
+              ...packFacts(load).filter(([name]) => name !== 'Pack'),
+            ];
+            const rowsToShow = groups.length ? groups : [[]];
             return (
-              <tr key={`${from}-${to}`}>
-                <td>
-                  {from} → {to}
-                </td>
-                <td>{title}</td>
-                <td>
-                  {comparisons.length
-                    ? comparisons.map(({ candidate, base, value, label }) => (
-                        <div key={candidate.id} className="engine-comparison">
-                          {candidate.request?.prompt_tokens} tokens · {candidate.request?.state}{' '}
+              <tbody key={load.id}>
+                {rowsToShow.map((group, index) => {
+                  const row = group[0];
+                  const accepted = group.filter((source) => !excluded(source));
+                  const shown = accepted.length ? accepted : group;
+                  const matched = speed.filter(({ candidate }) => shown.includes(candidate));
+                  const prompt = row?.request?.prompt_tokens;
+                  return (
+                    <tr
+                      key={row?.id ?? load.id}
+                      data-testid="factory-runs-engine-measurement-row"
+                      data-variant={row?.id ?? load.id}
+                    >
+                      {index === 0 && (
+                        <th scope="rowgroup" rowSpan={rowsToShow.length}>
+                          <RowValue row={load} inspect={inspect}>
+                            {armLabel(load)}
+                          </RowValue>
+                        </th>
+                      )}
+                      <td>
+                        {row && numeric(prompt) ? (
+                          <RowValue row={row} related={group} inspect={inspect}>
+                            {fmt(prompt, 0)}
+                          </RowValue>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                      <td>{row?.request?.state ?? '—'}</td>
+                      {metrics.slice(0, 4).map(([metric]) => {
+                        const samples = shown.flatMap((source) => {
+                          const measurement = source.metrics?.[metric];
+                          return numeric(measurement) ? [{ source, measurement }] : [];
+                        });
+                        const middle = median(samples.map(({ measurement }) => measurement));
+                        const scale = metric === 'ttft_ms' || metric === 'total_ms' ? 1000 : 1;
+                        return (
+                          <td key={metric} className={!accepted.length && group.length ? 'engine-excluded' : undefined}>
+                            {samples.length ? (
+                              <RowValue row={samples[0].source} related={group} inspect={inspect}>
+                                {fmt(middle / scale, 2)}
+                              </RowValue>
+                            ) : (
+                              '—'
+                            )}
+                          </td>
+                        );
+                      })}
+                      <td>
+                        {matched.length ? (
                           <RowValue
-                            row={candidate}
+                            row={matched[0].candidate}
+                            related={matched.flatMap(({ candidate, baselines }) => [candidate, ...baselines])}
                             inspect={inspect}
-                          >{`${fmt(value, 2)}× ${label.toLowerCase()}`}</RowValue>{' '}
-                          <RowValue row={base} inspect={inspect}>{`Arm ${base.arm} source`}</RowValue>
-                        </div>
-                      ))
-                    : unavailable}
-                </td>
-              </tr>
+                          >
+                            {`${fmt(median(matched.map(({ value }) => value)))}x`}
+                          </RowValue>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                      {index === 0 && (
+                        <td rowSpan={rowsToShow.length}>
+                          <Facts facts={facts.filter(([, datum]) => datum != null)} row={load} inspect={inspect} />
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
             );
           })}
-        </tbody>
-      </table>
-    </div>
+        </table>
+      </div>
+    </Panel>
   );
 }
 
 export function EngineReport() {
   const [dataset, setDataset] = useState<Benchmark>();
   const [error, setError] = useState('');
-  const [scope, setScope] = useState('');
-  const [selected, setSelected] = useState<EngineRow>();
+  const [selection, setSelection] = useState<EngineRow[]>();
   useEffect(() => {
     const controller = new AbortController();
     request<Benchmark>('/engine-bench', { signal: controller.signal })
@@ -424,128 +383,89 @@ export function EngineReport() {
     return () => controller.abort();
   }, []);
   const observations = dataset?.rows ?? [];
-  const campaign = observations.filter((row) => row.kind !== 'accuracy');
-  const collections = new Set(campaign.map((row) => row.run ?? 'Unknown run'));
-  const visibleScope =
-    scope || ['r8-lab', 'nov25-lab-abcde', ...collections].find((key) => collections.has(key)) || 'all';
-  const visible = campaign.filter((row) => visibleScope === 'all' || row.run === visibleScope);
-  const requests = visible.filter((row) => row.kind === 'performance');
-  const baselineRows = campaign.filter(
-    (row) => row.kind === 'performance' && row.run === 'nov25-lab-abcde' && row.arm === 'A',
-  );
-  const speed = ratios([...new Map([...requests, ...baselineRows].map((row) => [row.id, row])).values()]).filter(
-    ({ candidate }) => requests.includes(candidate),
-  );
-  const accuracy = [
-    ...groupBy(
-      observations.filter((row) => row.kind === 'accuracy'),
-      (row) => JSON.stringify([row.run, row.pack?.name, row.test, row.quiet?.eligible]),
-    ).values(),
-  ].map((rows) => rows.reduce((latest, row) => ((row.n ?? 0) > (latest.n ?? 0) ? row : latest)));
-  const accuracyPacks = new Set(accuracy.map((row) => row.pack?.name));
-  const unmeasuredPacks = [...new Set(campaign.map((row) => row.pack?.name))].filter(
-    (pack) => pack && !accuracyPacks.has(pack),
-  );
-  const excluded = observations.filter((row) => row.quiet?.eligible === false);
-  const inspect: Inspect = setSelected;
-  let status: ReactNode;
-  if (error) status = `Unable to load benchmark evidence. ${error}`;
-  else if (!dataset) status = 'Loading benchmark evidence…';
-  else if (!observations.length) status = 'No benchmark evidence is available.';
-  else
-    status = (
-      <>
-        <strong>{fmt(observations.length)}</strong> source rows · <strong>{fmt(excluded.length)}</strong> excluded by
-        the quiet gate
-      </>
-    );
+  const arms = observations.filter(isReportArm).sort(armOrder);
+  const starts = arms.filter((row) => row.kind === 'load');
+  const requests = arms.filter((row) => row.kind === 'performance');
+  const speed = ratios(requests);
+  const accuracy = observations
+    .filter((row) => row.kind === 'accuracy' && row.run === accuracyRun && row.arm === 'B')
+    .sort((a, b) => (b.n ?? 0) - (a.n ?? 0))
+    .slice(0, 1);
+  const inspect: Inspect = (row, related = []) => {
+    setSelection([...new Map([row, ...related].map((source) => [source.id, source])).values()]);
+  };
+  const api = `${getApiBase()}/api/factory/engine-bench`;
+  const status = error
+    ? `Unable to load R8 measurements. ${error}`
+    : !dataset
+      ? 'Loading R8 measurements…'
+      : !arms.length
+        ? 'R8 measurements are unavailable.'
+        : '';
 
   return (
     <main className="factory-runs-page engine-report" data-testid="factory-runs-engine-report">
       <div className="engine-report-content">
         <header className="engine-report-header">
           <div>
-            <h1>Engine Report</h1>
+            <h1>R8 Engine Report</h1>
             <p>Muse Spark Open on DGX Spark</p>
           </div>
-          {collections.size > 0 && (
-            <label>
-              Run
-              <select
-                value={visibleScope}
-                onChange={(event) => setScope(event.target.value)}
-                data-testid="factory-runs-engine-run"
-              >
-                {[...collections].map((run) => (
-                  <option value={run} key={run}>
-                    {runs[run] ?? run}
-                  </option>
-                ))}
-                <option value="all">All evidence</option>
-              </select>
-            </label>
-          )}
         </header>
-        <p role="status" className="engine-status" data-testid="factory-runs-engine-status">
-          {status}
-        </p>
-        {dataset && (<>
-        <div className="engine-report-grid">
-          <Panel id="ttft" title="Time to first token">
-            <p>Seconds from sending the request to the first streamed token, by rendered prompt length</p>
-            <LengthPlot rows={requests} metric="ttft_ms" unit="s" scale={1000} inspect={inspect} />
-          </Panel>
-          <Panel id="decode" title="Decode and total request time">
-            <p>Total request time in seconds (prompt plus 32 generated tokens)</p>
-            <LengthPlot rows={requests} metric="total_ms" unit="s" scale={1000} inspect={inspect} />
-            <h3>Decode · tokens per second</h3>
-            <DecodeBars rows={requests} inspect={inspect} />
-          </Panel>
-          <Panel id="speed" title="Speed-up versus arm A">
-            <p>
-              Total-time ratios use matching rendered lengths, generation limits and request states. Historical or
-              incompletely matched environments are indicative.
-            </p>
-            <SpeedBars ratios={speed} inspect={inspect} />
-            <Ablation campaign={requests} baselineRows={baselineRows} scope={visibleScope} inspect={inspect} />
-          </Panel>
-          <Panel id="memory" title="Device and host memory">
-            <p>
-              The stacked bars show reported device buffers. The vertical marker shows the device budget. Host RSS has
-              its own bar.
-            </p>
-            <MemoryBars rows={visible} inspect={inspect} />
-          </Panel>
-          <Panel id="accuracy" title="Paired accuracy versus NVFP4">
-            <p>
-              Difference in percentage points at the latest reported sample size. The center line marks zero difference.
-            </p>
-            <AccuracyPlot rows={accuracy} inspect={inspect} />
-            {unmeasuredPacks.length > 0 && (
-              <p className="engine-unmeasured">{unmeasuredPacks.join(', ')} · Paired accuracy unmeasured</p>
-            )}
-          </Panel>
-          <Panel id="excluded" title="Quiet-gate exclusions">
-            {excluded.length ? (
-              <ul className="engine-exclusions">
-                {excluded.map((row) => (
-                  <li key={row.id} className="engine-excluded">
-                    <RowValue
-                      row={row}
-                      inspect={inspect}
-                    >{`${armLabel(row)} · ${row.id} · ${quietStatus(row)}`}</RowValue>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <Empty>{observations.length ? 'No rows are marked excluded.' : 'No quiet-gate records available.'}</Empty>
-            )}
-          </Panel>
-        </div>
-        <ArmDetails rows={visible} accuracy={accuracy} inspect={inspect} />
-        </>)}
+        {status && (
+          <p role="status" className="engine-status" data-testid="factory-runs-engine-status">
+            {status}
+          </p>
+        )}
+        {arms.length > 0 && (
+          <>
+            <ReportTable rows={arms} speed={speed} inspect={inspect} />
+            <div className="engine-report-grid">
+              <Panel id="ttft" title="Time to first token">
+                <LengthPlot rows={requests} metric="ttft_ms" unit="s" scale={1000} inspect={inspect} />
+              </Panel>
+              <Panel id="decode" title="Decode and total request time">
+                <LengthPlot rows={requests} metric="total_ms" unit="s" scale={1000} inspect={inspect} />
+                <h3>Decode · tokens per second</h3>
+                <DecodeBars rows={requests} inspect={inspect} />
+              </Panel>
+              <Panel id="speed" title="TTFT speedup versus A">
+                <SpeedBars ratios={speed} inspect={inspect} />
+              </Panel>
+              <Panel id="memory" title="Device and host memory">
+                <MemoryBars rows={starts.length ? starts : arms} inspect={inspect} />
+              </Panel>
+              {accuracy.length > 0 && (
+                <Panel id="accuracy" title="Q2_K paired accuracy versus NVFP4">
+                  <AccuracyPlot rows={accuracy} inspect={inspect} />
+                </Panel>
+              )}
+            </div>
+            <footer className="engine-method" data-testid="factory-runs-engine-method">
+              <h2>How this was measured</h2>
+              <p>
+                A is E0 on NVFP4 from Nov 25. B and P use the same R8 image, with one capped load per arm and the same
+                prompts and device budget as A. TTFT speedups match prompt and cache state. Total times cover 128
+                generated tokens for A and 32 for B and P. The paired MMLU result is for Q2_K. The new pack is the next
+                accuracy benchmark.
+              </p>
+              <p>
+                Admission required an idle server, one-minute load below 1 and a clear machine gate. Timing excluded
+                builds, tests, helpers and foreign processes above 50% of one core. The launch rule exempted the server
+                tree. The final rule also exempts the lab runner tree and ignores CPU windows shorter than 0.5 s.{' '}
+                <a href={`${api}/readme`} data-testid="factory-runs-engine-readme">
+                  Final evidence index
+                </a>
+                {' · '}
+                <a href={`${api}/method-history`} data-testid="factory-runs-engine-method-history">
+                  Strict-rule history
+                </a>
+              </p>
+            </footer>
+          </>
+        )}
       </div>
-      {selected && <SourceDialog row={selected} close={() => setSelected(undefined)} />}
+      {selection && <SourceDialog rows={selection} close={() => setSelection(undefined)} />}
     </main>
   );
 }

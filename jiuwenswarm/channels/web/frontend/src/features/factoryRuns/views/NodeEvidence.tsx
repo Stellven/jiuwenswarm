@@ -316,6 +316,7 @@ export function NodeEvidence({
   checks,
   revision,
   correctionCursor,
+  r8VerifierHelp,
   onClose,
   ...links
 }: EvidenceLinks & {
@@ -325,6 +326,7 @@ export function NodeEvidence({
   checks?: NodeCheckView;
   revision: unknown;
   correctionCursor?: CorrectionCursor;
+  r8VerifierHelp?: boolean;
   onClose?: () => void;
 }) {
   const heading = useId();
@@ -453,7 +455,7 @@ export function NodeEvidence({
             })}
           </div>
           {evidence.data.corrections && (
-            <CorrectionSequence {...links} corrections={evidence.data.corrections} cursor={correctionCursor} />
+            <CorrectionSequence {...links} corrections={evidence.data.corrections} cursor={correctionCursor} r8VerifierHelp={r8VerifierHelp} />
           )}
           <CappedRuns {...links} runs={otherRuns} />
           {unassigned.length > 0 && (

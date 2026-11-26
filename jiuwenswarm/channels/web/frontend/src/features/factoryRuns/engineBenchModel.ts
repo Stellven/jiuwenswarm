@@ -45,6 +45,8 @@ export type EngineRow = {
     fit_margin?: number;
   } | null;
   quiet?: { load1?: number; processes?: unknown; eligible?: boolean | null; reason?: string } | null;
+  launch_verdict?: QuietVerdict;
+  corrected_verdict?: QuietVerdict;
   source: EngineSource;
   sources?: EngineSource[];
   attempt_id?: string;
@@ -59,6 +61,7 @@ export type EngineRow = {
   error?: string | null;
 };
 
+export type QuietVerdict = { status: string; reasons: string[] };
 export type EngineSource = { path: string; line?: number; record?: string | number; sha256?: string };
 export type Benchmark = { schema: 'engine-bench/1'; status: 'ready' | 'unavailable'; rows: EngineRow[] };
 export type Metric = 'ttft_ms' | 'decode_tps' | 'prefill_tps' | 'total_ms' | 'load_s' | 'server_prefill_ms';
@@ -74,25 +77,31 @@ export const devices: [Device, string][] = [
 export const numeric = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 export const fmt = (value: number, digits = 1) => value.toLocaleString('en-US', { maximumFractionDigits: digits });
 
-export function cohort(row: EngineRow) {
-  return row.comparison_group ?? row.run ?? 'Unknown run';
-}
+export const baselineRun = 'nov25-lab-abcde';
+export const rerun = 'r8-lab';
+export const accuracyRun = 'nov25-mmlu-q2';
 
-// What each lab arm is, in the words the demo uses. Unknown runs fall back to engine and pack.
-const armTitles: Record<string, Record<string, string>> = {
-  'nov24-lab-abc': { A: 'A · NVFP4 baseline (E0)', B: 'B · Q2_K pack', C: 'C · Q2_K + seeded cache' },
-  'nov25-lab-abcde': {
-    A: 'A · NVFP4 baseline (E0)',
-    B: 'B · Q2_K pack',
-    C: 'C · Q2_K + seeded cache',
-    D: 'D · C + prefill batch',
-    E: 'E · D + expert fill (negative)',
-  },
-  'r8-lab': { A: 'A · NVFP4 baseline (E0)', B: 'B · r8 image + mixed 2-bit', P: 'P · B + prefill plan' },
+const armTitles: Record<string, string> = {
+  A: 'A · NVFP4 baseline (E0)',
+  B: 'B · R8 + mixed 2-bit',
+  P: 'P · B + prefill plan',
 };
 
+export function isReportArm(row: EngineRow) {
+  return (
+    row.kind !== 'accuracy' &&
+    ((row.run === baselineRun && row.arm === 'A') || (row.run === rerun && (row.arm === 'B' || row.arm === 'P')))
+  );
+}
+
+export function excluded(row: EngineRow) {
+  return Boolean(
+    row.error || (row.corrected_verdict ? row.corrected_verdict.status !== 'accepted' : row.quiet?.eligible === false),
+  );
+}
+
 export function armLabel(row: EngineRow) {
-  const title = row.run && row.arm ? armTitles[row.run]?.[row.arm] : undefined;
+  const title = isReportArm(row) && row.arm ? armTitles[row.arm] : undefined;
   if (title) return title;
   return [row.arm, row.engine?.name, row.pack?.format ?? row.pack?.name].filter(Boolean).join(' · ') || 'Unknown arm';
 }
@@ -143,54 +152,39 @@ export function groupBy<T>(items: T[], key: (item: T) => string) {
   return groups;
 }
 
-export type Ratio = { candidate: EngineRow; base: EngineRow; value: number; label: string };
-export function ratios(rows: EngineRow[], from = 'A', to?: string): Ratio[] {
+export type Ratio = { candidate: EngineRow; baselines: EngineRow[]; value: number };
+
+export function ratios(rows: EngineRow[]): Ratio[] {
   const eligible = rows.filter(
     (row) =>
-      row.quiet?.eligible !== false &&
-      !row.error &&
-      row.label &&
+      isReportArm(row) &&
+      row.kind === 'performance' &&
+      !excluded(row) &&
+      Boolean(row.request?.name) &&
       numeric(row.request?.prompt_tokens) &&
-      numeric(row.request?.n_predict) &&
-      row.request?.state &&
-      numeric(row.metrics?.total_ms) &&
-      row.metrics.total_ms > 0,
+      Boolean(row.request?.state) &&
+      numeric(row.metrics?.ttft_ms) &&
+      row.metrics.ttft_ms > 0,
   );
-  const baselines = eligible.filter(
-    (row) =>
-      row.arm === from &&
-      (from !== 'A' || (row.run !== 'nov24-lab-abc' && /\bNVFP4\b/i.test(row.pack?.format ?? row.pack?.name ?? ''))),
-  );
+  const baseline = eligible.filter((row) => row.run === baselineRun);
   return eligible.flatMap((candidate) => {
-    if (candidate.arm === from || (to && candidate.arm !== to)) return [];
-    const matched = baselines.filter(
-      (base) =>
-        base.request?.prompt_tokens === candidate.request?.prompt_tokens &&
-        base.request?.n_predict === candidate.request?.n_predict &&
-        base.request?.state === candidate.request?.state,
+    if (
+      candidate.run !== rerun ||
+      (candidate.corrected_verdict?.status ?? (candidate.quiet?.eligible ? 'accepted' : '')) !== 'accepted'
+    )
+      return [];
+    const baselines = baseline.filter(
+      (row) =>
+        row.request?.name === candidate.request?.name &&
+        row.request?.prompt_tokens === candidate.request?.prompt_tokens &&
+        row.request?.state === candidate.request?.state,
     );
-    const local = matched.filter((base) => cohort(base) === cohort(candidate));
-    const historical =
-      from === 'A' && candidate.run === 'r8-lab' ? matched.filter((base) => base.run === 'nov25-lab-abcde') : [];
-    const scope = local.length ? local : historical;
-    const sameRepeat = scope.filter((base) => base.request?.repeat === candidate.request?.repeat);
-    const choices = sameRepeat.length ? sameRepeat : scope;
-    if (choices.length !== 1) return [];
-    const base = choices[0];
-    const sameBinary = Boolean(base.engine?.sha256 && base.engine.sha256 === candidate.engine?.sha256);
-    const measured =
-      sameBinary &&
-      cohort(base) === cohort(candidate) &&
-      base.label === 'measured' &&
-      candidate.label === 'measured' &&
-      base.quiet?.eligible === true &&
-      candidate.quiet?.eligible === true;
+    if (!baselines.length) return [];
     return [
       {
         candidate,
-        base,
-        value: base.metrics!.total_ms! / candidate.metrics!.total_ms!,
-        label: measured ? 'Measured' : 'Indicative',
+        baselines,
+        value: median(baselines.map((row) => row.metrics!.ttft_ms!)) / candidate.metrics!.ttft_ms!,
       },
     ];
   });

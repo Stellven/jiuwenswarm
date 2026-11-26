@@ -24,7 +24,7 @@ import uuid
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from starlette.concurrency import run_in_threadpool
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, PlainTextResponse
 
 from jiuwenswarm.factory import corrections, demo_board, monitor, story, taskgraph, telemetry
 from jiuwenswarm.factory.export import snapshot
@@ -35,7 +35,7 @@ from jiuwenswarm.factory.store import FactoryError
 from . import factory_nodes
 from .capsule_catalog import CapsuleCatalog, _parse as parse_material
 from .capsule_evidence import capsule_usage, collect_capsule_evidence
-from .engine_bench import read_engine_bench
+from .engine_bench import read_engine_bench, read_engine_bench_document
 
 from jiuwenswarm.gateway.channel_manager.web.factory_measurements import MeasurementEvidence
 from jiuwenswarm.gateway.channel_manager.web.factory_session import controller_is_locked, session_snapshot
@@ -1079,11 +1079,34 @@ def attach_factory_routes(app: FastAPI, channel=None, *, service=None):
         if request.query_params:
             raise HTTPException(400, 'The engine benchmark endpoint accepts no query parameters')
         try:
-            path = Path.home() / 'muse-demo' / 'bench'
+            path = Path.home() / 'muse-demo' / 'r8-final'
             data = await run_in_threadpool(read_engine_bench, path)
         except (OSError, ValueError, TypeError, RecursionError):
             raise HTTPException(422, 'The engine benchmark dataset could not be read') from None
         return JSONResponse(data, headers={'Cache-Control': 'no-store'})
+
+    async def bench_document(request: Request, document: str):
+        if request.query_params:
+            raise HTTPException(400, 'The engine benchmark endpoint accepts no query parameters')
+        try:
+            path = Path.home() / 'muse-demo' / 'r8-final'
+            data = await run_in_threadpool(read_engine_bench_document, path, document)
+        except (OSError, ValueError):
+            raise HTTPException(422, 'The engine benchmark document could not be read') from None
+        if data is None:
+            raise HTTPException(404, 'The engine benchmark document is unavailable')
+        return PlainTextResponse(data, headers={
+            'Cache-Control': 'no-store',
+            'X-Content-Type-Options': 'nosniff',
+        })
+
+    @app.get(PREFIX + '/engine-bench/readme')
+    async def engine_bench_readme(request: Request):
+        return await bench_document(request, 'readme')
+
+    @app.get(PREFIX + '/engine-bench/method-history')
+    async def engine_bench_method_history(request: Request):
+        return await bench_document(request, 'method-history')
 
     @app.get(PREFIX + '/headlines')
     async def headlines():
