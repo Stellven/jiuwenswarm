@@ -106,6 +106,7 @@ def main(argv=None):
     parser.add_argument('--dist', type=Path, default=DEFAULT_DIST)
     parser.add_argument('--live', type=Path, default=muse / 'graph-r8')
     parser.add_argument('--history', type=Path, default=muse / 'graph-v4')
+    parser.add_argument('--replay', type=Path, default=muse / 'r8-final' / 'curated-replay')
     parser.add_argument('--extra-root', type=Path, action='append', default=[], metavar='PATH')
     parser.add_argument('--socket', type=Path, help='Serve on a Unix socket for local verification.')
     args = parser.parse_args(argv)
@@ -115,7 +116,7 @@ def main(argv=None):
     os.environ['JIUWENSWARM_ENABLE_ORIGIN_CHECK'] = '1'
     os.environ['JIUWENSWARM_WS_ALLOWED_ORIGIN_HOSTS'] = '127.0.0.1,localhost,none'
     try:
-        app = make_app(args.dist, args.live, args.history, extra_roots=args.extra_root,
+        app = make_app(args.dist, args.live, args.history, extra_roots=[args.replay, *args.extra_root],
                        require_loopback=not args.socket)
     except ValueError as exc:
         parser.error(str(exc))

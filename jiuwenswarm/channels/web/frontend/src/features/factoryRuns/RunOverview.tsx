@@ -3,9 +3,9 @@ import { ArrowUpRight, CheckCircle2, CircleDot, FileText, GitBranch, Layers3, Pa
 import { useTranslation } from 'react-i18next';
 import type { EvidenceFile, JsonRecord, RunDetail, StoryEvent } from './api';
 import { atlasTitle } from './cc/atlasNames.ts';
-import { collapseEvents, presentEvent } from './views/storyModel.ts';
+import { collapseEvents, presentEvent, type CuratedMeasurement } from './views/storyModel.ts';
 import { ReplayLabel } from './views/NodeEvidence';
-import { CorrectionRecord } from './views/CorrectionSequence';
+import { CorrectionRecord, CorrectionSequence } from './views/CorrectionSequence';
 import { correctionStatusAt } from './views/correctionModel';
 import { outputCheckCounts } from './views/checkModel';
 import { revisionEvent } from './views/nodeEvidenceModel';
@@ -35,6 +35,78 @@ function object(value: unknown): JsonRecord {
 
 function text(value: unknown) {
   return typeof value === 'string' ? value : '';
+}
+
+function ReplayMeasurements({
+  measurement,
+  onOpenFile,
+}: {
+  measurement: CuratedMeasurement;
+  onOpenFile?: (path: string) => void;
+}) {
+  const { baseline, rows, accuracy } = measurement;
+  const aTokens = rows.find((row) => row.arm === 'A')?.generated_tokens;
+  const measuredTokens = rows.find((row) => row.arm === 'B')?.generated_tokens;
+  return (
+    <section className="factory-curated-measurements" data-testid="factory-runs-curated-measurements">
+      <p>{baseline}. A generated {aTokens} tokens per request. B and P generated {measuredTokens}.</p>
+      <div className="factory-curated-table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Arm</th>
+              <th scope="col">Prompt</th>
+              <th scope="col">State</th>
+              <th scope="col">TTFT (s)</th>
+              <th scope="col">Decode (tok/s)</th>
+              <th scope="col">Total (s)</th>
+              <th scope="col">Source row</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.path + row.pointer} data-excluded={row.status === 'excluded' || undefined}>
+                <th scope="row">{row.arm}</th>
+                <td>{row.request.slice(1)} ({row.prompt_tokens} rendered)</td>
+                <td>{row.state}{row.repeat != null ? ` · ${row.repeat + 1}` : ''}</td>
+                <td>{(row.ttft_ms / 1000).toFixed(3)}</td>
+                <td>{row.decode_tps.toFixed(3)}</td>
+                <td>{(row.total_ms / 1000).toFixed(3)}</td>
+                <td>
+                  <button
+                    type="button"
+                    data-testid="factory-runs-curated-measurement-source"
+                    data-variant={row.arm + row.pointer}
+                    onClick={() => onOpenFile?.(row.path)}
+                  >
+                    {row.pointer}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <details data-testid="factory-runs-curated-quiet-decisions">
+        <summary>Quiet-rule decisions</summary>
+        <ul>
+          {rows.filter((row) => row.arm !== 'A').map((row) => (
+            <li key={row.pointer}>
+              {row.arm} · {row.request.slice(1)} · {row.state} · {row.status}
+              {row.reasons.length ? ` · ${row.reasons.join(' · ')}` : ''}
+            </li>
+          ))}
+        </ul>
+      </details>
+      <p>
+        Historical Q2_K paired MMLU · indicative · loss {accuracy.loss_pts} pp
+        (interval {accuracy.lo_pts} to {accuracy.hi_pts} pp, n={accuracy.n}).{' '}
+        <button type="button" data-testid="factory-runs-curated-accuracy-source" onClick={() => onOpenFile?.(accuracy.path)}>
+          Source
+        </button>
+      </p>
+    </section>
+  );
 }
 
 export function RunOverview({
@@ -125,6 +197,16 @@ export function RunOverview({
             <h3 title="Presentation title" data-testid="factory-runs-curated-focus-title">
               {focus.presentation_title}
             </h3>
+            {curated.graph_mode === 'recorded' && (
+              <button
+                type="button"
+                className="factory-curated-graph-link"
+                data-testid="factory-runs-curated-open-graph"
+                onClick={() => onOpen('graph')}
+              >
+                View highlighted graph nodes
+              </button>
+            )}
             <ReplayLabel value={focus.replayed_from} />
             {!correction && stepSummary && (
               <p className="factory-curated-say" data-testid="factory-runs-curated-focus-say">
@@ -139,6 +221,7 @@ export function RunOverview({
                 onOpenFile={onOpenFile}
               />
             )}
+            {focus.measurement && <ReplayMeasurements measurement={focus.measurement} onOpenFile={onOpenFile} />}
             {lead && (
               <button
                 type="button"
@@ -164,7 +247,7 @@ export function RunOverview({
                 ))}
               </ul>
             )}
-            <details className="factory-curated-more">
+            <details className="factory-curated-more" open={curated.graph_mode === 'recorded' || undefined}>
               <summary>Recorded summary and other key files</summary>
               {!correction && focus.original_summary && focus.original_summary !== stepSummary && (
                 <p className="factory-muted">{focus.original_summary}</p>
@@ -186,6 +269,12 @@ export function RunOverview({
                 ))}
               </ul>
             </details>
+            {focus.correction_trail && (
+              <details className="factory-curated-more">
+                <summary>Correction sequence</summary>
+                <CorrectionSequence corrections={focus.correction_trail} files={detail.files} onOpenFile={onOpenFile} />
+              </details>
+            )}
           </section>
         )}
         {nodeEvidence}

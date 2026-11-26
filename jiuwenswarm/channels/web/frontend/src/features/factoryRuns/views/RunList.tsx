@@ -56,7 +56,7 @@ export function FactoryRunList({
             aria-pressed={run.id === selected}
             onClick={() => onSelect(run.id)}
           >
-            <strong title={run.name} data-testid="factory-runs-run-name">
+            <strong className={run.demo ? 'factory-run-demo-name' : undefined} title={run.name} data-testid="factory-runs-run-name">
               {run.demo && <span className="factory-run-demo-badge" data-testid="factory-runs-run-demo">Demo</span>}
               {run.name}
             </strong>

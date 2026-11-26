@@ -1,7 +1,26 @@
-import type { CorrectionEvent, EvidenceFile, StoryEvent } from '../api';
+import type { CorrectionEvent, EvidenceFile, NodeCorrection, StoryEvent } from '../api';
 import { replayLabel, revisionEvent } from './nodeEvidenceModel.ts';
 
 export type KeyFile = { path: string; label: string; why?: string; step?: number };
+export type CuratedMeasurement = {
+  baseline: string;
+  accuracy: { loss_pts: number; lo_pts: number; hi_pts: number; n: number; path: string };
+  rows: {
+    arm: string;
+    request: string;
+    state: string;
+    repeat?: number;
+    prompt_tokens: number;
+    generated_tokens?: number;
+    ttft_ms: number;
+    decode_tps: number;
+    total_ms: number;
+    status: string;
+    reasons: string[];
+    path: string;
+    pointer: string;
+  }[];
+};
 export type CuratedStep = {
   step: number;
   presentation_title: string;
@@ -20,6 +39,8 @@ export type CuratedStep = {
   node_id?: string;
   replayed_from?: unknown;
   correction?: CorrectionEvent;
+  correction_trail?: NodeCorrection;
+  measurement?: CuratedMeasurement;
 };
 export type CuratedReplay = {
   schema: string;
@@ -27,6 +48,7 @@ export type CuratedReplay = {
   summary: string;
   source_homes?: string[];
   native?: boolean;
+  graph_mode?: 'recorded';
   steps: CuratedStep[];
 };
 
