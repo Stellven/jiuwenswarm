@@ -531,3 +531,24 @@ def test_mcp_env_carries_the_user_bus_for_systemd_run(tmp_path, rig, monkeypatch
     env = tomllib.loads(configure_agent(task, rig.grants, rig.home).read_text())['mcp_servers']['cc']['env']
     assert env['XDG_RUNTIME_DIR'] == str(runtime)
     assert env['DBUS_SESSION_BUS_ADDRESS'] == f'unix:path={runtime}/bus'
+
+
+def test_a_timed_out_turn_starts_a_new_session_in_the_same_run(tmp_path, rig):
+    make_task(tmp_path, rig)
+    calls = []
+    async def facade(request):
+        calls.append(request)
+        if len(calls) == 1:
+            yield {'event_type': 'chat.error', 'code': 'RUNTIME_TIMEOUT', 'error': 'RUNTIME_TIMEOUT'}
+            return
+        if request.session_id == 't':  # the old session cannot continue
+            yield {'event_type': 'chat.error', 'code': 'NEW_SESSION_REQUIRED', 'error': 'NEW_SESSION_REQUIRED'}
+            return
+        publish(rig, 'accept')
+        yield {'event_type': 'chat.final'}
+    rig.facade = facade
+    result = asyncio.run(rig.run('t'))
+    assert result['outcome'] == 'accept'
+    # the turn after the timeout goes to a new session with the full context, not the dead one
+    assert [c.session_id for c in calls] == ['t', 't-s1']
+    assert 'NEW agent session' in json.loads(calls[1].params['query'])['host_observation']

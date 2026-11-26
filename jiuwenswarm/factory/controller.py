@@ -164,6 +164,8 @@ def configure_agent(task, grants=(), home=None):
 
 
 STALL_TURNS = 3
+# Agent turn errors after which the session cannot continue: the controller starts a new session at once.
+SESSION_ERRORS = {'NEW_SESSION_REQUIRED', 'RUNTIME_TIMEOUT'}
 SCHEDULER_TRIES = 3  # scheduler agent proposals per node before the run pauses on it
 ENGINE_CONTRACTS = {'qwen36-bare-greedy-v1', 'qwen36-quick-v1'}
 
@@ -172,6 +174,7 @@ class Controller:
                  sleep=asyncio.sleep, clock=time.time, scheduler=None):
         self.home = Path(home or (store.home if store else factory_home())).resolve()
         self.store = store or Store(self.home)
+        self.last_turn_error = None
         if store is not None:
             # An injected Store may have been opened before importing Controller.
             columns = {row['name'] for row in store._db.execute('PRAGMA table_info(tasks)')}
@@ -512,6 +515,7 @@ class Controller:
                         tokens.update({key: observed[key] for key in ('input_tokens_details', 'output_tokens_details', 'cached_input_tokens') if key in observed})
                     if kind in {'chat.error', 'error'}:
                         outcome = 'stream_error'
+                        self.last_turn_error = payload.get('code') or payload.get('error')
                 emit({'event': 'turn.end', 'turn': turn})
                 outcome = 'ok' if outcome != 'stream_error' else 'error'
         finally:
@@ -609,12 +613,20 @@ class Controller:
                     state['missing_decision'] = True
                     state['pending_turn_rev'] = before
                     self._save(task_id, state)
+                    self.last_turn_error = None
                     try:
                         await self._bounded_turn(task_id, query, state['turns'],
                             f"{task_id}-s{state['session_gen']}" if state.get('session_gen') else None,
                             remaining['wall_clock_s'])
                     except asyncio.TimeoutError:
                         return self._finish(task_id, state, 'partial')
+                    if self.last_turn_error in SESSION_ERRORS:
+                        # The agent session cannot continue (an interrupted or timed-out turn marks it so); every
+                        # further turn in it fails at once. Start a new session with the full context, as a restart
+                        # does, instead of spending turns until the stall rule stops the run.
+                        state['session_gen'] = state.get('session_gen', 0) + 1
+                        state['needs_context'] = True
+                        state['session_restarts'] = state.get('session_restarts', 0) + 1
                     state['operator_notes_delivered'] = sorted(set(state.get('operator_notes_delivered', [])) | set(state.pop('pending_operator_note_ids', [])))
                     state['missing_decision'] = self.store.get_task(task_id)['current_decision_rev'] == before
                     state.pop('pending_turn_rev', None)
