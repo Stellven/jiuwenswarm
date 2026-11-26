@@ -1,0 +1,20 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "prefill_batch_sizing/cc.yaml",
+      "from_version": "1.1.0",
+      "from_release": "ef05626f3a6e042bda3a2f5daf0d63ad1e26c3b7b873d499f067d1144c3229c0",
+      "from_commit": "b8a7647c68efcdc3da5e01ea5a27ab256050b20d",
+      "to_version": "1.2.0",
+      "to_release": "07136e639226c7f38ebec436a505ad21d1746d1f274ca01ad9d6f7c54750ec30",
+      "changed_files": [
+        "cc.yaml",
+        "run.py",
+        "tests/test_prefill_batch_capabilities.py"
+      ],
+      "unrecorded_versions": [],
+      "reason": "fill the device budget with MoE expert cache (plan input fill_moe_cache_headroom_mib), verify checks the server applied it"
+    }
+  ]
+}
