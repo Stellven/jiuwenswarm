@@ -137,6 +137,13 @@ def configure_agent(task, grants=(), home=None):
                 'FACTORY_YIELD_ON_JOBS', 'FACTORY_BUILD_RECIPE', 'FACTORY_NATIVE_BUILDER_IMAGE'):
         if key in os.environ:
             env[key] = os.environ[key]
+    # The user's runtime dir and session bus, so systemd-run --user (the memory cap of capped runs and of capsule
+    # verifiers that load tiny models) works from the agent's tools and the node checks they start.
+    from .capped_run import user_bus_env
+    for key in ('XDG_RUNTIME_DIR', 'DBUS_SESSION_BUS_ADDRESS'):
+        if os.environ.get(key):
+            env[key] = os.environ[key]
+    env.update({k: v for k, v in user_bus_env(env).items() if k not in env})
     # Cross-task reads only when the operator lists prior tasks in constraints.read_tasks.
     reads = read_tasks(task)
     if reads:

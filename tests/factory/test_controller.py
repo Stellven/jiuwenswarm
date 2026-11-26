@@ -519,3 +519,15 @@ def test_reopened_slow_turn_is_not_cancelled_by_old_terminal_decision(tmp_path,r
     rig.add_note('t','Advance to the next admitted phase.')
     assert asyncio.run(rig.run('t'))['outcome']=='accept'
     assert completed==[True]
+
+
+def test_mcp_env_carries_the_user_bus_for_systemd_run(tmp_path, rig, monkeypatch):
+    runtime = tmp_path / 'run-user'
+    runtime.mkdir()
+    (runtime / 'bus').write_text('')
+    monkeypatch.setenv('XDG_RUNTIME_DIR', str(runtime))
+    monkeypatch.delenv('DBUS_SESSION_BUS_ADDRESS', raising=False)
+    task = make_task(tmp_path, rig)
+    env = tomllib.loads(configure_agent(task, rig.grants, rig.home).read_text())['mcp_servers']['cc']['env']
+    assert env['XDG_RUNTIME_DIR'] == str(runtime)
+    assert env['DBUS_SESSION_BUS_ADDRESS'] == f'unix:path={runtime}/bus'
