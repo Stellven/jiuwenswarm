@@ -42,6 +42,12 @@ Do not try to work around a closed gate: report it.
   (host digests, the pack manifest's per-file sha256).
 - `manifest`: `{pack}`. sha256 of every shard of a pack under FACTORY_HOME/packs (its first shard), for a pack
   written before host hashing or to re-check one. No model load: no machine gate, no gpu_launches.
+- Placement (every server load, serve and accuracy): on the GB10 device memory is system memory and is not
+  charged to the cgroup cap, so llama.cpp's --fit would fill all of it (a 529 GB pack loaded without --cpu-moe left
+  the host 1.8 GiB). The runner adds `-fitt` so the server stays within the device budget (resources.device_budget_mib,
+  default total memory less 14 GiB; a smaller margin you give is raised) and `-lm mmap` when no load mode is given.
+  Name the placement yourself (`--cpu-moe` or `--n-cpu-moe`, `-c`, `--moe-cache-mib`) as the workload states; the
+  placement line of progress.log shows the budget and margin used.
 - `serve`: `{build, model, prompts?, server_args?, env?, trace?, n_probs?, repeat?, label?}`. Starts llama-server
   on `model` (a pack's first shard) with `-lv 4`, waits for health, sends each prompt greedily (temperature 0,
   seed 1, no prompt cache), stops the server. Prompts are `{id, text}`, `{id, path}` or `{id, jsonl}` (a file of `{"id", "prompt"}` lines, e.g. the calibration set; `limit` caps how many) with `template` raw (default)

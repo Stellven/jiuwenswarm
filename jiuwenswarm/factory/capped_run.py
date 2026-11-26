@@ -51,7 +51,8 @@ ENV_KEY = re.compile(r'^(LLAMA|GGML)_[A-Z0-9_]{1,64}$')
 TARGETS = {'llama-server', 'llama-quantize', 'llama-imatrix', 'llama-cli', 'llama-completion', 'llama-gguf-split', 'llama-bench'}
 # llama-server flags an agent may set (value count); always added: -m, --host, --port, -lv 4
 SERVER_FLAGS = {'-c': 1, '-b': 1, '-ub': 1, '-np': 1, '-kvu': 0, '--cpu-moe': 0, '--n-cpu-moe': 1, '-ngl': 1,
-                '--moe-cache-mib': 1, '--moe-cache-cpu-share': 1, '-lm': 1, '-fa': 1, '-t': 1, '-tb': 1,
+                '--moe-cache-mib': 1, '--moe-cache-cpu-share': 1, '-lm': 1, '-fa': 1, '-t': 1, '-tb': 1, '-fitt': 1,
+                '-fit': 1,
                 '--no-warmup': 0, '-ctk': 1, '-ctv': 1, '--seed': 1}
 MUSE_CHAT = ('<|start|>system<|message|>You are a helpful AI assistant.<|eot|>'
              '<|start|>user<|message|>{}<|eot|><|start|>assistant')
@@ -614,12 +615,43 @@ def _free_port():
         return s.getsockname()[1]
 
 
+HOST_RESERVE_MIB = 14336  # host memory kept out of the device budget on a unified-memory machine (GB10)
+
+
+def placement_args(server_args, task, avail_mib=None, total_mib=None):
+    """Server args with the host's memory placement rules applied.
+
+    On the GB10 device memory is system memory and is not charged to the cgroup cap, so llama.cpp's --fit (on by
+    default) would fill all of it: a load of the 529 GB NVFP4 pack without --cpu-moe planned 119 GiB on the device
+    and left the host 1.8 GiB. The runner passes -fitt (the margin fit keeps free) so the server stays within the
+    device budget (resources.device_budget_mib, default total memory less HOST_RESERVE_MIB), raising a smaller
+    margin the agent gave, and -lm mmap when no load mode is given (the packs are larger than memory)."""
+    mem = _meminfo()
+    avail_mib = mem['MemAvailable'] // 2**20 if avail_mib is None else avail_mib
+    total_mib = mem['MemTotal'] // 2**20 if total_mib is None else total_mib
+    budget = int(_resources(task).get('device_budget_mib') or total_mib - HOST_RESERVE_MIB)
+    margin = max(1024, avail_mib - budget)
+    args, out, i = list(server_args), [], 0
+    while i < len(args):
+        if args[i] in ('-fitt', '--fit-target'):
+            margin = max(margin, max(int(x) for x in str(args[i + 1]).split(',')))
+            i += 2
+            continue
+        out.append(args[i])
+        i += 1
+    if not {'-lm', '--load-mode'} & set(out):
+        out = ['-lm', 'mmap', *out]
+    return [*out, '-fitt', str(margin)], dict(device_budget_mib=budget, fit_margin_mib=margin, available_mib=avail_mib)
+
+
 class Server:
     def __init__(self, run, server, model, server_args, env, log_name):
         self.run, self.port = run, _free_port()
         self.log = run.dir / log_name
         run.files[log_name] = self.log
         bindir = str(Path(server).parent)
+        server_args, self.placement = placement_args(server_args, run.task)
+        run.log('placement:', json.dumps(self.placement))
         argv = run.capped([server, '-m', model, *server_args, '--host', '127.0.0.1', '--port', str(self.port),
                            '-lv', '4'], 'serve')
         run.log('serve:', ' '.join(argv)[:2000], 'env', env)

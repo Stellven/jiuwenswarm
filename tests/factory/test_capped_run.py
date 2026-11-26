@@ -291,3 +291,19 @@ def test_manifest_hashes_every_shard_without_a_gpu_launch(world):
     shards[1].unlink()
     rc, obs, _ = run_now(world, 'manifest', dict(pack=str(shards[0])))
     assert rc == 1 and obs['error']['code'] == 'SOURCE'
+
+
+def test_placement_keeps_the_server_inside_the_device_budget():
+    task = dict(resources={})
+    # the failing load: no -lm, no --cpu-moe; 120520 MiB free of 124608
+    args, info = capped_run.placement_args(['--moe-cache-mib', '61440', '--no-warmup'], task, avail_mib=120520, total_mib=124608)
+    assert args[:2] == ['-lm', 'mmap'] and args[-2:] == ['-fitt', str(120520 - (124608 - capped_run.HOST_RESERVE_MIB))]
+    assert info['device_budget_mib'] == 124608 - capped_run.HOST_RESERVE_MIB
+    # a smaller margin from the agent is raised; a larger one is kept; an explicit load mode is kept
+    args, _ = capped_run.placement_args(['-lm', 'none', '-fitt', '512'], dict(resources={'device_budget_mib': 100000}),
+                                        avail_mib=120000, total_mib=124608)
+    assert args == ['-lm', 'none', '-fitt', '20000']
+    args, _ = capped_run.placement_args(['-fitt', '30000'], dict(resources={'device_budget_mib': 100000}), avail_mib=120000, total_mib=124608)
+    assert args[-2:] == ['-fitt', '30000'] and args.count('-fitt') == 1
+    # never below llama.cpp's own 1 GiB margin
+    assert capped_run.placement_args([], dict(resources={'device_budget_mib': 200000}), avail_mib=120000, total_mib=124608)[0][-1] == '1024'
