@@ -1,0 +1,19 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "capped_runner/cc.yaml",
+      "from_version": "1.0.0",
+      "from_release": "ba8e0067b2401cfe0f781df2161b62c0d623a0e1116e31add54322352955c1e9",
+      "from_commit": "a4820622c873d0066ae70481ed214b9aa2a59388",
+      "to_version": "1.1.0",
+      "to_release": "e0a9dd8017a11abfc009e7dcbebd3d043a93cad2ca42ed0eec20960d4762587d",
+      "changed_files": [
+        "METHOD.md",
+        "cc.yaml"
+      ],
+      "unrecorded_versions": [],
+      "reason": "serve rows carry token_ids (method text and checksums)"
+    }
+  ]
+}
