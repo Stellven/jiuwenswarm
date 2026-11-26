@@ -182,6 +182,10 @@ def main(argv=None):
     note = sub.add_parser('note', help='operator: queue an instruction for the agent\'s next turn')
     note.add_argument('task_id')
     note.add_argument('text')
+    excuse = sub.add_parser('excuse', help='operator: an attempt failed for a host reason; it does not use its node limits')
+    excuse.add_argument('task_id')
+    excuse.add_argument('attempt_id')
+    excuse.add_argument('reason')
     for op, text in (('hold', 'operator: pause the run at a plan node (it will not start or close until released)'),
                      ('release', 'operator: lift a hold'),
                      ('reopen', 'operator: rerun a failed or finished node and its descendants, keeping upstream outputs')):
@@ -299,6 +303,9 @@ def main(argv=None):
             print(format_status(scrub(result), args.plain, controller._snapshot(args.task_id)))
         elif args.command == 'note':
             controller.add_note(args.task_id, args.text)
+        elif args.command == 'excuse':
+            from .scheduler import excuse
+            print(json.dumps(excuse(controller.store, args.task_id, args.attempt_id, args.reason), indent=2))
         elif args.command in {'hold', 'release', 'reopen'}:
             from .taskgraph import render_text
             print(render_text(controller.operator(args.task_id, args.command, args.node_id, args.reason)))

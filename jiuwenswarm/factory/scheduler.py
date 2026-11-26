@@ -53,9 +53,39 @@ def _graph(host, task_id):
     return plan_get(host, task_id)
 
 
+def excused(host, task_id):
+    """Attempts an operator recorded as host faults (kind attempt_excused): they do not use the node's limits."""
+    rows = host._db.execute('SELECT "values" FROM observations WHERE task_id=? AND kind=?', (task_id, 'attempt_excused'))
+    return {json.loads(values).get('attempt_id') for (values,) in rows}
+
+
 def _attempts(host, task_id, node_id):
-    rows = host._db.execute('SELECT kind, request FROM attempts WHERE task_id=?', (task_id,))
-    return [kind for kind, request in rows if json.loads(request or '{}').get('node_id') == node_id]
+    skip = excused(host, task_id)
+    rows = host._db.execute('SELECT attempt_id, kind, request FROM attempts WHERE task_id=?', (task_id,))
+    return [kind for attempt_id, kind, request in rows
+            if json.loads(request or '{}').get('node_id') == node_id and attempt_id not in skip]
+
+
+def excuse(host, task_id, attempt_id, reason):
+    """Operator: record that an attempt failed for a host reason (the machine, the recipe, the environment), so it
+    does not count against its node's build_attempts or gpu_launches. The attempt and its evidence stay."""
+    row = host._db.execute('SELECT kind, state, request FROM attempts WHERE task_id=? AND attempt_id=?',
+                           (task_id, attempt_id)).fetchone()
+    if not row:
+        raise ValueError(f'No attempt {attempt_id} in task {task_id}')
+    kind, state, request = row
+    if state in {'queued', 'running'}:
+        raise ValueError(f'Attempt {attempt_id} is still {state}')
+    if not reason.strip():
+        raise ValueError('Say why the attempt is a host fault')
+    if attempt_id in excused(host, task_id):
+        return dict(attempt_id=attempt_id, excused=True, already=True)
+    node_id = json.loads(request or '{}').get('node_id')
+    host.append_observation(task_id, dict(
+        kind='attempt_excused', values=dict(attempt_id=attempt_id, node_id=node_id, kind=kind, state=state, reason=reason),
+        host_run=dict(by='operator', module='jiuwenswarm.factory.scheduler'),
+        limitations='Operator record: the attempt does not count against the node limits; its evidence is unchanged.'))
+    return dict(attempt_id=attempt_id, node_id=node_id, excused=True)
 
 
 def _passed_output(host, task_id, node_id, output):

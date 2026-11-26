@@ -270,6 +270,26 @@ def test_node_limits_are_charged(pipeline):
     scheduler.charge(store, 'lt', 'build', 'lab')  # other kinds have no limit here
 
 
+def test_operator_excused_host_fault_frees_the_node_limit(pipeline):
+    store, ccs, root, base = pipeline
+    checks = NodeChecks(store, reviewer=Reviewer(PASS), ccs_roots=[ccs])
+    (root / 'main.c').write_text('int main(void){return 0;}\n')
+    mark_done(store, 'integrate', [checks.start('lt', 'integrate', checkout=root, background=False)['obs_id']])
+    attempt = store.create_attempt('lt', dict(kind='build', idem_key='b1', fingerprint='f', request={'node_id': 'build'}))
+    with pytest.raises(ValueError, match='still'):
+        scheduler.excuse(store, 'lt', attempt['attempt_id'], 'bus missing')
+    store.transition_attempt('lt', attempt['attempt_id'], 'running')
+    store.transition_attempt('lt', attempt['attempt_id'], 'failed')
+    with pytest.raises(ValueError, match='host fault'):
+        scheduler.excuse(store, 'lt', attempt['attempt_id'], ' ')
+    with pytest.raises(ValueError, match='used its build_attempts'):
+        scheduler.charge(store, 'lt', 'build', 'build')
+    assert scheduler.excuse(store, 'lt', attempt['attempt_id'], 'systemd user bus missing')['excused']
+    assert scheduler.excuse(store, 'lt', attempt['attempt_id'], 'again')['already']
+    scheduler.charge(store, 'lt', 'build', 'build')  # the limit is free again; the attempt record stays
+    assert store.read('lt', attempt['attempt_id'])['state'] == 'failed'
+
+
 # ---- review findings: the done rule and the hand-off cannot be bypassed --------------------------
 def test_agents_cannot_drop_or_fake_contracted_work(pipeline):
     store, ccs, root, base = pipeline
