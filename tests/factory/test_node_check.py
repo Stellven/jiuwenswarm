@@ -297,11 +297,16 @@ def test_an_advisory_review_is_recorded_but_does_not_decide(advisory, reviewer, 
 
 
 def test_an_advisory_review_runs_without_a_reviewer_and_the_verifier_still_decides(advisory, monkeypatch):
+    from jiuwenswarm.factory.demo_board import load_board
+
     store, ccs, checkout = advisory
     monkeypatch.setattr(node_check, 'default_reviewer', lambda: None)
     (checkout / 'a.c').write_text('int a = 8;\n')
     result = checks(store, ccs, None).start('t', 'adv', checkout=checkout, background=False)
     assert result['passed'] and result['review']['advisory'] and 'no reviewer is configured' in result['review']['reason']
+    board = load_board(store.home, 't')
+    [check] = next(n['checks'] for n in board['nodes'] if n['node_id'] == 'adv')
+    assert check['passed'] and check['review']['summary'] == result['review']['reason']
     (checkout / 'a.c').write_text('int a = 9;\n')
     with pytest.raises(node_check.CheckError, match='No reviewer is configured'):  # a blocking review still needs one
         checks(store, ccs, None).start('t', 'integrate', checkout=checkout, background=False)
@@ -311,11 +316,16 @@ def test_an_advisory_review_runs_without_a_reviewer_and_the_verifier_still_decid
 
 
 def test_an_advisory_review_of_evidence_and_the_status_shows_the_mode(advisory):
+    from jiuwenswarm.factory.demo_board import load_board
+
     store, ccs, checkout = advisory
     result = checks(store, ccs, Reviewer(BLOCKER)).start('t', 'ev', refs={'evidence_ids': ['t']}, background=False)
     assert result['passed'] and result['review']['advisory'] and result['review']['verdict'] == 'fail'
     status = checks(store, ccs, Reviewer(BLOCKER)).status('t', 'ev')
     assert status['outputs']['records']['review'] == 'advisory' and status['done_blocked_by'].startswith('output records: cite')
+    board = load_board(store.home, 't')
+    [check] = next(n['checks'] for n in board['nodes'] if n['node_id'] == 'ev')
+    assert check['passed'] and check['review']['advisory'] and check['review']['blockers'] == ['no off switch']
     missing = checks(store, ccs, Reviewer(PASS)).start('t', 'ev', refs={'evidence_ids': ['nothing-here']}, background=False)
     assert not missing['passed']  # the host check still decides
 

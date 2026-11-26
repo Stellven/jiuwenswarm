@@ -269,6 +269,63 @@ def test_operator_argv_is_narrow(tmp_path):
         board.operator_argv(tmp_path, TASK, dict(action='release', node='a; rm -rf /'))
 
 
+def test_board_reads_cli_pause_revise_and_step_resume(store, tmp_path, monkeypatch):
+    from jiuwenswarm.factory import cli, taskgraph
+    from jiuwenswarm.factory.controller import Controller
+    from test_node_contracts import write_contract
+    from test_operator_revise import finish, v1, v2, write
+
+    path = write_contract(tmp_path, v1())
+    store.create_task(dict(task_id='rv', objective='scratch board drill', contract_id=path, constraints={}))
+    taskgraph.seed_plan(store, store.get_task('rv'))
+    store.advance_decision('rv', 0, {'hypothesis': 'work the planned nodes'})
+    finish(store, 'integrate')
+
+    def fail_if_started(*args, **kwargs):
+        pytest.fail('A board operator action tried to start the controller')
+
+    monkeypatch.setattr(cli, 'check_legacy_config_or_exit', lambda: None)
+    monkeypatch.setattr(Controller, 'run', fail_if_started)
+    monkeypatch.setenv('FACTORY_STEP', '1')
+
+    def operator(action, **fields):
+        argv = board.operator_argv(store.home, 'rv', dict(action=action, **fields))
+        cli.main(argv[3:])
+
+    operator('pause', reason='read the revised plan')
+    paused = board.load_board(store.home, 'rv')
+    assert paused['events'][-1]['run']['state'] == 'paused'
+    assert 'PAUSE.md' in paused['run_files']['files']
+    old_rev = paused['graph_rev']
+    write(path, v2())
+    cli.main(['--home', str(store.home), 'revise', 'rv', 'move the port to the lab', '--dry-run'])
+    assert not at(board.load_board(store.home, 'rv'), 'revise')
+    cli.main(['--home', str(store.home), 'revise', 'rv', 'move the port to the lab'])
+    cli.main(['--home', str(store.home), 'hold', 'rv', 'image', STEP])
+    operator('note', text='Keep the step checkpoint')
+
+    revised = board.load_board(store.home, 'rv')
+    [revise] = at(revised, 'revise')
+    assert revise['graph_rev'] == old_rev + 1 and revise['run']['state'] == 'paused'
+    assert revise['states']['port'] == 'removed'
+    assert revised['contract']['version'] == paused['contract']['version'] + 1
+    assert 'image' in revised['contract']['nodes']
+    assert next(n['title'] for n in revised['nodes'] if n['node_id'] == 'build') == 'Bundle the image for the lab.'
+    assert revised['graph_dependencies'][str(old_rev)]['build'] == ['port']
+    assert revised['graph_dependencies'][str(revise['graph_rev'])]['build'] == ['image']
+    assert revised['commands']['resume'][-1] == '--no-run'
+    assert any(note['detail'] == 'Keep the step checkpoint' for note in at(revised, 'note'))
+
+    operator('resume', reason='revision checked')
+    resumed = board.load_board(store.home, 'rv')
+    [resume] = at(resumed, 'resume')
+    assert resume['run']['state'] == 'step' and 'image' in resume['run']['text']
+    assert 'PAUSE.md' not in resumed['run_files']['files']
+    operator('release', node='image')
+    released = board.load_board(store.home, 'rv')
+    assert at(released, 'release')[-1]['states']['image'] == 'ready'
+
+
 @pytest.mark.parametrize('operator', [False, True])
 def test_operator_endpoint(tmp_path, operator):
     ran = []
