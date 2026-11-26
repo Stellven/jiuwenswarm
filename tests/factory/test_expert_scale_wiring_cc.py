@@ -1,4 +1,4 @@
-"""weights.build_expert_scale_wiring 1.1.0 as the factory calls it for node wire_expert_scales.
+"""weights.build_expert_scale_wiring 1.2.0 as the factory calls it for node wire_expert_scales.
 
 The contract muse-q2-ttft-v2 names verify for the `change` diff at stage runtime acceptance. These tests seal
 the capsule in a CC v2 Host with the verifier grants of node_check and judge receipts with node_check.assess.
@@ -28,7 +28,7 @@ def test_contract_names_the_capability_the_capsule_declares():
     import yaml
     from jiuwenswarm.factory.node_check import STAGES, VERIFIER_GRANTS
     declaration = yaml.safe_load((CAPSULE / 'cc.yaml').read_text(encoding='utf-8'))
-    assert declaration['id'] == 'weights.build_expert_scale_wiring' and declaration['version'] == '1.1.0'
+    assert declaration['id'] == 'weights.build_expert_scale_wiring' and declaration['version'] == '1.2.0'
     entry = contract_entry()
     assert entry['verifier'] == 'weights.build_expert_scale_wiring.verify' and entry['stage'] in STAGES
     verify = declaration['capabilities']['verify']

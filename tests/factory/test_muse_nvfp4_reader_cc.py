@@ -1,4 +1,4 @@
-"""weights.build_muse_nvfp4_reader 1.1.0 as the factory calls it for node ingest_nvfp4.
+"""weights.build_muse_nvfp4_reader 1.2.0 as the factory calls it for node ingest_nvfp4.
 
 The contract muse-q2-ttft-v2 names verify (converter diff; runtime acceptance is the bar) and verify_pack
 (nvfp4_pack evidence, stage native CC execution, judged against the checkpoint's own index and scale_2). These tests seal the capsule in a CC v2 Host, call it with the grants node_check

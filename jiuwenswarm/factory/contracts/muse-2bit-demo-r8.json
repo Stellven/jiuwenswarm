@@ -618,8 +618,11 @@
      ],
      "briefing": {
       "summary": "Implement and verify expert scales in the fresh owned checkout.",
-      "pitfalls": [
-       "The parity, KLD and slice checks use tiny CPU models. Require explicit operator clearance and the approved execution route before starting runtime verification."
+      "facts": [
+       "The operator approved seven tiny CPU processes once: two parity, three KLD including the stock control and two slice callbacks, in one 96 GiB capped scope after the machine gate."
+      ],
+      "how_to_fill": [
+       "Bind expert_scale_wiring, source_workbench and capped_runner. For the change output call factory.node_check.start on the owned checkout and omit verifier_inputs. The host submits the one-shot wire_fixture job, verifies the pinned tiny packs and records the capped attempt. Do not invoke the verifier directly."
       ]
      }
     },
