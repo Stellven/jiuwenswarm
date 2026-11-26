@@ -62,7 +62,7 @@ def replay_origin(source):
     return f'{run} ({details})' if details else run
 
 
-def load_source(source, home=None, *, records=None):
+def load_source(source, home=None, *, records=None, transcript_path=None):
     """records: an export.snapshot of this task already taken from a stable copy of home."""
     path = Path(source).expanduser()
     bundle = records is None and path.is_dir()
@@ -92,22 +92,27 @@ def load_source(source, home=None, *, records=None):
         else:
             raise ValueError('Factory evidence changed during read; retry the view')
     task = data['tasks'][0]
-    transcript = path / 'session.jsonl' if bundle else home / 'sessions' / (task['task_id'] + '.jsonl')
+    transcript = transcript_path or (path / 'session.jsonl' if bundle else home / 'sessions' / (task['task_id'] + '.jsonl'))
     turns, started, finished = 0, None, None
     turn_ends = []
     if transcript.is_file():
-        for line in transcript.read_text(encoding='utf-8').splitlines():
-            event = json.loads(line)
-            turns = max(turns, event.get('turn', 0))
-            if event.get('event') == 'turn.start':
-                try:
-                    remaining = json.loads(event['query'])['remaining_budget']['wall_clock_s']
-                    started = event['t'] - (task['budget']['wall_clock_s'] - remaining)
-                except (KeyError, TypeError, ValueError):
-                    pass
-            if event.get('event') == 'turn.end':
-                finished = event['t']
-                turn_ends.append(finished)
+        with transcript.open(encoding='utf-8') as stream:
+            for line in stream:
+                if not line.endswith('\n'):
+                    break  # The worker may be appending this line.
+                if '"turn"' not in line:
+                    continue
+                event = json.loads(line)
+                turns = max(turns, event.get('turn', 0))
+                if event.get('event') == 'turn.start':
+                    try:
+                        remaining = json.loads(event['query'])['remaining_budget']['wall_clock_s']
+                        started = event['t'] - (task['budget']['wall_clock_s'] - remaining)
+                    except (KeyError, TypeError, ValueError):
+                        pass
+                if event.get('event') == 'turn.end':
+                    finished = event['t']
+                    turn_ends.append(finished)
     contract_id = task.get('contract_id')
     if contract_id:
         if bundle:
@@ -282,7 +287,16 @@ def build_events(data):
         own = factory_record(kind, v)
         if own:
             label, summary, mark, noise = own
-            add(r.get('created'), r['obs_id'], label, summary, mark, noise=noise)
+            if kind == 'taskgraph_patch' and v.get('origin') == 'operator' and (changes := (v.get('patch') or {}).get('revise')):
+                add(r.get('created'), r['obs_id'], 'revise', 'Graph revision: ' + ', '.join(
+                    f"{c.get('action')} {c.get('node_id')}" for c in changes), rev=v.get('rev'), changes=changes,
+                    graph_nodes=[c['node_id'] for c in changes if c.get('node_id')])
+                continue
+            replayed = v.get('replayed_from') or (v.get('request') or {}).get('replayed_from')
+            node_id = v.get('node_id')
+            add(r.get('created'), r['obs_id'], label, summary, mark, noise=noise,
+                **(dict(node_id=node_id, graph_nodes=[node_id]) if node_id else {}),
+                **(dict(replayed_from=replayed, replay_source=replay_origin(replayed)) if replayed else {}))
             continue
         if failed:
             if kind.startswith('inspector.'):
@@ -339,7 +353,9 @@ def build_events(data):
             preliminary=kind == 'lab')
     for a in data.get('attempts', []):
         history = a.get('history', []) or [dict(state=a.get('state'), created=a.get('started'))]
-        replay = 'replay verification job' if (a.get('request') or {}).get('replayed_from') else 'durable job'
+        request = a.get('request') or {}
+        replayed = request.get('replayed_from')
+        replay = f'replay verification job from {replay_origin(replayed)}' if replayed else 'durable job'
         for index, h in enumerate(history):
             state = h.get('state', 'unknown')
             mark = '✓' if state == 'succeeded' else '✗' if state in {'failed', 'cancelled'} else '·'
@@ -349,7 +365,9 @@ def build_events(data):
             suffix = ' · survived turn end' if survived else ''
             add(h.get('created'), a['attempt_id'] + ':' + str(index), a.get('kind', 'job'),
                 f"{short(a['attempt_id'])} {state} · {replay}{suffix}", mark,
-                noise=state not in {'failed', 'cancelled'})
+                noise=state not in {'failed', 'cancelled'},
+                **(dict(node_id=request['node_id'], graph_nodes=[request['node_id']]) if request.get('node_id') else {}),
+                **(dict(replayed_from=replayed, replay_source=replay_origin(replayed)) if replayed else {}))
         admission = a.get('request', {}).get('admission')
         if admission:
             add(history[0].get('created'), a['attempt_id'] + ':admission', 'admit',
