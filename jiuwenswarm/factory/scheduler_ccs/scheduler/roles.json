@@ -1,6 +1,8 @@
 {
   "capabilities": {
     "brief": "tool",
+    "capsule": "tool",
+    "evidence": "tool",
     "propose": "tool"
   },
   "format": "factory-roles/1",

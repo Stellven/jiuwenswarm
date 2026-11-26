@@ -269,7 +269,8 @@ def test_the_brief_lists_operator_inputs_recorded_on_the_run(planned):
         results='about 6.3 s per question' + ' x' * 500)))
     brief = scheduler.finalize_brief(planned, 'pf', 'integrate')
     item = brief['operator_inputs']['earlier_accuracy_timing']
-    assert item['how'] == 'an earlier run' and item['results'].startswith('about 6.3 s') and len(item['results']) == 600
+    # The scheduler sees the whole result (up to the brief's record bound), not a 600-character summary.
+    assert item['how'] == 'an earlier run' and item['results'] == 'about 6.3 s per question' + ' x' * 500
 
 
 def test_retire_needs_a_contract_revision_and_unlinks_the_node(planned):

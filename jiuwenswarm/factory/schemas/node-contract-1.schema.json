@@ -105,6 +105,16 @@
         },
         "hands_to": {"type": "string", "pattern": "^([a-z][a-z0-9_]{0,31}|lab_manager)$",
                      "description": "The node that uses this node's outputs next, or lab_manager for the delivery node."},
+        "briefing": {
+          "type": "object", "additionalProperties": false,
+          "description": "The planner's notes for the scheduler (and the worker): why this node is in the plan, known facts and prior results with where they came from, pitfalls, and how to pick slot values. Advice, not a requirement: the criteria, verifiers and limits are what bind. The scheduler may keep or extend it in the final contract.",
+          "properties": {
+            "summary": {"type": "string", "minLength": 1, "maxLength": 2000, "description": "Why this node exists in the plan and what it must get right."},
+            "facts": {"type": "array", "maxItems": 24, "items": {"type": "string", "minLength": 1, "maxLength": 1000}, "description": "Known facts and prior results, each with where it came from."},
+            "pitfalls": {"type": "array", "maxItems": 16, "items": {"type": "string", "minLength": 1, "maxLength": 1000}, "description": "What went wrong before or is easy to get wrong."},
+            "how_to_fill": {"type": "array", "maxItems": 16, "items": {"type": "string", "minLength": 1, "maxLength": 1000}, "description": "How to pick the slot values: which evidence, which capsule, which bound."}
+          }
+        },
         "stage": {"enum": ["preliminary", "final"],
                   "description": "preliminary: written by the planner, finalized by the scheduler just before the node runs (node_finalize.py). final, or absent: ready to run as written."},
         "slots": {

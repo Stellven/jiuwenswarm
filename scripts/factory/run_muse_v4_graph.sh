@@ -10,7 +10,8 @@
 #   scripts/factory/run_muse_v4_graph.sh status
 #   TASK=muse-2bit-rehearsal-r1 FACTORY_HOME=~/muse-demo/rehearsal-r1 SESSION=reh ...   # the rehearsal
 #
-# The working agent and the scheduler agent are JiuwenSwarm agents with Codex (gpt-6.2-sol) as the model.
+# The working agent and the scheduler agent are JiuwenSwarm agents with Codex as the model: gpt-6.2-sol for
+# the worker and the reviewer (MODEL=...), gpt-6.2-astra for the scheduler (SCHEDULER_MODEL=...).
 # Everything that executes runs through factory.capped_runner as jobq jobs (cap + machine gate). The controller
 # pauses on a halt (HALT.md), a step checkpoint (STEP.md) or a node the scheduler could not finalize.
 set -euo pipefail
@@ -32,7 +33,9 @@ export JOBQ_DIR=$FACTORY_LAB_STATE/jobq  # one queue for the worker, the control
 export FACTORY_HOST_PYTHON=$PY
 CODEX=${CODEX:-$HOME/.local/bin/codex}  # Codex 0.171 knows gpt-6.2-sol; the bundled 0.163 does not
 export JIUWENSWARM_CODEX_BIN=$CODEX FACTORY_SCHEDULER_CODEX_BIN=$CODEX
-export JIUWENSWARM_CODEX_MODEL=${MODEL:-gpt-6.2-sol} FACTORY_SCHEDULER_MODEL=${MODEL:-gpt-6.2-sol}
+# The worker and the reviewer run gpt-6.2-sol (MODEL overrides both); the scheduler runs gpt-6.2-astra
+# (SCHEDULER_MODEL overrides it; MODEL does not touch it).
+export JIUWENSWARM_CODEX_MODEL=${MODEL:-gpt-6.2-sol} FACTORY_SCHEDULER_MODEL=${SCHEDULER_MODEL:-gpt-6.2-astra}
 export FACTORY_REVIEW_MODEL=${MODEL:-gpt-6.2-sol}
 export FACTORY_MACHINE_STATE=$FACTORY_HOME/machine.json
 export FACTORY_MEMORY_CAP_POLICY='Every model load runs through factory.capped_runner under systemd-run --user --scope -p MemoryMax=96G -p MemorySwapMax=0, and starts only when the machine gate passes (100 GiB available, no GPU process of another user).'

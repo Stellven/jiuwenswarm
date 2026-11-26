@@ -1,6 +1,6 @@
 cc: '2'
 id: factory.scheduler
-version: 1.0.0
+version: 1.1.0
 materials:
   skill:
     path: SKILL.md
@@ -19,7 +19,11 @@ capabilities:
   brief:
     does: What the scheduler reads before it finalizes one node - the preliminary node contract with its
       slots and bounds, a draft final contract, accepted upstream outputs, earlier failures, finals and
-      refused proposals, the capsules it may bind and the machine state.
+      refused proposals, the capsules it may bind and the machine state. It carries the whole task contract
+      and every node contract, the plan with this node's neighbours, the planner's briefing for this node,
+      the admitted finals, accepted checks, cited evidence and capped runs of the done nodes, the operator
+      records, halts and refusals of the run, the job queue, and per capsule its cc.yaml, docs, verification
+      units, files and where this run bound it before. Large items are cut with a note naming the read.
     takes:
       node_id: text
     gives:
@@ -38,6 +42,48 @@ capabilities:
       rationale: text
     gives:
       result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  capsule:
+    does: Read one capsule of the factory catalog - without path, the list of files in its folder; with path,
+      one text file from that folder (60000 characters from offset). Read-only; the path must stay inside the
+      capsule folder.
+    takes:
+      id: text
+      path:
+        kind: text
+        optional: true
+        description: A file path relative to the capsule folder, with / separators, as the file list gives it.
+      offset:
+        kind: json
+        optional: true
+        description: Character offset to read from (default 0); a cut file gives next_offset.
+        schema:
+          type: integer
+          minimum: 0
+    gives:
+      capsule: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  evidence:
+    does: Read one record of this task in full - an observation (node check, capped run, operator record,
+      final contract), an artifact's whole text, an attempt or a decision - 200000 characters from offset.
+      Read-only.
+    takes:
+      id: text
+      offset:
+        kind: json
+        optional: true
+        description: Character offset to read from (default 0); a cut record gives next_offset.
+        schema:
+          type: integer
+          minimum: 0
+    gives:
+      record: json
     needs:
     - python
     changes:

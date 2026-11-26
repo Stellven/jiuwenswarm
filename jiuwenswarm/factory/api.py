@@ -125,8 +125,17 @@ def _route(store, task_id, capability, packet, inputs):
     if capability.startswith('expert_streaming.'):
         from .expert_streaming import dispatch as streaming_dispatch
         return streaming_dispatch(store, task_id, capability.removeprefix('expert_streaming.'), inputs)
-    if capability in {'scheduler.brief', 'scheduler.propose'}:
+    if capability in {'scheduler.brief', 'scheduler.propose', 'scheduler.capsule', 'scheduler.evidence'}:
         from .scheduler import finalize, finalize_brief
+        from .scheduler_brief import capsule_read, evidence_read
+        if capability == 'scheduler.capsule':  # read-only: a catalog capsule's files, or one of them
+            fields(inputs, {'id', 'path', 'offset'}, {'id'})
+            if hasattr(store, '_check'):
+                store._check(task_id)
+            return {'capsule': capsule_read(inputs['id'], inputs.get('path'), inputs.get('offset', 0))}
+        if capability == 'scheduler.evidence':  # read-only: one record of this task in full
+            fields(inputs, {'id', 'offset'}, {'id'})
+            return {'record': evidence_read(store, task_id, inputs['id'], inputs.get('offset', 0))}
         if capability == 'scheduler.brief':
             fields(inputs, {'node_id'}, {'node_id'})
             return {'brief': finalize_brief(store, task_id, inputs['node_id'])}
