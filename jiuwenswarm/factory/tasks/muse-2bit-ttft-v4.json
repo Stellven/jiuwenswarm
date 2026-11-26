@@ -1,87 +1,111 @@
 {
-  "task_id": "muse-2bit-ttft-v4",
-  "objective": "Starting from stock llama.cpp 9048bad8 and the official Muse Spark Open NVFP4 checkpoint, work every node of contract muse-2bit-ttft-v4: the converter change and the NVFP4 pack it writes, the expert scale wiring and base engine E0, a new mixed 2-bit pack (routed gate and up experts IQ2_XXS, down experts Q2_K), the paired accuracy check, the routing profile, the seeded expert cache port and candidate E1, the prefill batch plan, and the hand-off of arms A to D to the lab. The planner's node contracts are preliminary: before each node runs, the scheduler agent finalizes its contract and binds its capsules. Everything that executes - builds, the conversion, the requantization, smoke runs, the accuracy run, the routing trace - runs here through factory.capped_runner; nothing built earlier by hand is reused. Every output is checked by its capsule verifier (and, for diffs, an independent reviewer) before the next node starts.",
-  "constraints": {
-    "owned_checkout_only": true,
-    "contract_immutable": true,
-    "local_commits_in_owned_checkout": true,
-    "local_commits": true,
-    "push_or_publish": false,
-    "model_runs": true,
-    "model_execution": "Run every build, conversion, requantization and model load with factory.capped_runner (recipes build, convert, quantize, serve, accuracy). Each model load runs under the 96 GiB memory cap after the machine gate; if the gate is closed the run waits, and if it stays closed it fails MACHINE_BUSY - report it, do not work around it. Name the node on every start.",
-    "build_jobs": "Builds use at most resources.build_jobs parallel jobs (the box is shared). Verifiers that compile take jobs of at most 4.",
-    "no_full_rehash": "Do not ask a verifier to hash a whole pack (pass hash: false): reading 500 GB takes the disk for an hour. The checkpoint shard digests come from the hub's download metadata (operator input checkpoint_digests); pack headers are checked live.",
-    "agent_tools": "Codex's own shell cannot start on this machine (its sandbox needs user namespaces the box does not allow). Read, edit and commit the owned checkout with factory.source_workbench (read, edit, write, localcommit); run everything else with capsule capabilities and factory.capped_runner. Do not retry the shell.",
-    "operator_records": "The operator imports a few inputs as records of kind operator_input (the checkpoint digests from the hub download metadata, the earlier lab measurements) and records a host_reading at each run start (free disk, available memory, the cgroup now and the memory cap policy). Capped runs end with host records of kind capped_run. Find them with factory.evidence.query kinds [\"operator_input\", \"host_reading\", \"capped_run\"] and cite their ids.",
-    "workspace_files": "Files you make (recipes, plans, profiles): give capsules an absolute path under resources.verifier_inputs.work_dir (FACTORY_HOME/agent-workspace/work, outside the checkout). Packs go under FACTORY_HOME/packs/<name>/: the convert and quantize recipes write there, so plan a recipe output as FACTORY_HOME/packs/<name>/<file>.gguf.",
-    "halt_policy": {"failed_checks_in_a_row": 2, "failed_runs_in_a_row": 2, "step": false}
-  },
-  "allowed_effects": ["process.exec", "workspace.read", "workspace.write"],
-  "target": "spark-gb10",
-  "budget": {"max_turns": 260, "wall_clock_s": 216000},
-  "contract_id": "muse-2bit-ttft-v4",
-  "initial_run_config": {"env": {}},
-  "component_cc": "weights.build_muse_nvfp4_reader",
+ "task_id": "muse-2bit-ttft-v4",
+ "objective": "Starting from stock llama.cpp 9048bad8 and the official Muse Spark Open NVFP4 checkpoint, work every node of contract muse-2bit-ttft-v4: the converter change and the NVFP4 pack it writes, the expert scale wiring and base engine E0, a new mixed 2-bit pack (routed gate and up experts IQ2_XXS, down experts Q2_K), the paired accuracy check, the routing profile, the seeded expert cache port and candidate E1, the prefill batch plan, and the hand-off of arms A to D to the lab. The planner's node contracts are preliminary: before each node runs, the scheduler agent finalizes its contract and binds its capsules. Everything that executes - builds, the conversion, the requantization, smoke runs, the accuracy run, the routing trace - runs here through factory.capped_runner; nothing built earlier by hand is reused. Every output is checked by its capsule verifier (and, for diffs, an independent reviewer) before the next node starts.",
+ "constraints": {
+  "owned_checkout_only": true,
+  "contract_immutable": true,
+  "local_commits_in_owned_checkout": true,
+  "local_commits": true,
+  "push_or_publish": false,
+  "model_runs": true,
+  "model_execution": "Run every build, conversion, requantization and model load with factory.capped_runner (recipes build, convert, quantize, serve, accuracy). Each model load runs under the 96 GiB memory cap after the machine gate; if the gate is closed the run waits, and if it stays closed it fails MACHINE_BUSY - report it, do not work around it. Name the node on every start.",
+  "build_jobs": "Builds use at most resources.build_jobs parallel jobs (the box is shared). Verifiers that compile take jobs of at most 4.",
+  "no_full_rehash": "Do not ask a verifier to hash a whole pack (pass hash: false): reading 500 GB takes the disk for an hour. The checkpoint shard digests come from the hub's download metadata (operator input checkpoint_digests); pack headers are checked live.",
+  "agent_tools": "Codex's own shell cannot start on this machine (its sandbox needs user namespaces the box does not allow). Read, edit and commit the owned checkout with factory.source_workbench (read, edit, write, localcommit); run everything else with capsule capabilities and factory.capped_runner. Do not retry the shell.",
+  "operator_records": "The operator imports a few inputs as records of kind operator_input (the checkpoint digests from the hub download metadata, the earlier lab measurements) and records a host_reading at each run start (free disk, available memory, the cgroup now and the memory cap policy). Capped runs end with host records of kind capped_run. Find them with factory.evidence.query kinds [\"operator_input\", \"host_reading\", \"capped_run\"] and cite their ids.",
+  "workspace_files": "Files you make (recipes, plans, profiles): give capsules an absolute path under resources.verifier_inputs.work_dir (FACTORY_HOME/agent-workspace/work, outside the checkout). Packs go under FACTORY_HOME/packs/<name>/: the convert and quantize recipes write there, so plan a recipe output as FACTORY_HOME/packs/<name>/<file>.gguf.",
+  "halt_policy": {
+   "failed_checks_in_a_row": 2,
+   "failed_runs_in_a_row": 2,
+   "step": false
+  }
+ },
+ "allowed_effects": [
+  "process.exec",
+  "workspace.read",
+  "workspace.write"
+ ],
+ "target": "spark-gb10",
+ "budget": {
+  "max_turns": 260,
+  "wall_clock_s": 216000
+ },
+ "contract_id": "muse-2bit-ttft-v4",
+ "initial_run_config": {
+  "env": {}
+ },
+ "component_cc": "weights.build_muse_nvfp4_reader",
+ "source": {
+  "subpath": "llama.cpp-muse",
+  "pre_integration_commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
+  "branch": "muse-2bit-ttft"
+ },
+ "operator_labels": {
+  "run": "First end-to-end run of the factory graph with preliminary node contracts: every node executed by JiuwenSwarm agents, a 2-bit pack not made before."
+ },
+ "resources": {
   "source": {
-    "subpath": "llama.cpp-muse",
-    "pre_integration_commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
-    "branch": "muse-2bit-ttft"
+   "checkout": "agent-workspace/llama.cpp-muse",
+   "base_commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
+   "upstream": "https://github.com/ggml-org/llama.cpp"
   },
-  "operator_labels": {
-    "run": "First end-to-end run of the factory graph with preliminary node contracts: every node executed by JiuwenSwarm agents, a 2-bit pack not made before."
+  "capsules": [
+   "weights.build_muse_nvfp4_reader",
+   "weights.build_expert_scale_wiring",
+   "weights.build_weight_pack_compiler",
+   "eval.paired_accuracy",
+   "analysis.expert_routing_profile",
+   "engine.build_expert_weight_cache",
+   "engine.size_prefill_batch",
+   "factory.engine_inspector",
+   "factory.source_workbench",
+   "factory.capped_runner",
+   "factory.lab_manager"
+  ],
+  "checkpoint_dir": "${FACTORY_MODELS}/muse-spark-open/NVFP4-st",
+  "converter_python": "${FACTORY_MUSE_SPIKES}/spike-muse-tiny/.venv/bin/python",
+  "pack_stem": "Muse-Spark-Open-816B-A42B",
+  "read_roots": [
+   "${FACTORY_MODELS}/muse-spark-open/NVFP4-st",
+   "${FACTORY_MODELS}/muse-spark-open/imatrix",
+   "${FACTORY_MUSE_DEMO}/acc/data",
+   "${FACTORY_REPO}/ops/spark/prompts",
+   "${FACTORY_MUSE_CAPS}/tiny"
+  ],
+  "build_jobs": 8,
+  "memory_cap": "96G",
+  "need_available_gib": 100,
+  "gate_wait_s": 28800,
+  "verifier_inputs": {
+   "note": "Inputs of the capsule verifiers; tiny packs and checkpoints are small test fixtures, not the model.",
+   "reader_python": "${FACTORY_MUSE_SPIKES}/spike-muse-tiny/.venv/bin/python",
+   "reader_tiny_checkpoint": "${FACTORY_MUSE_CAPS}/tiny/ckpt/nvfp4",
+   "wiring_tiny_dir": "${FACTORY_MUSE_CAPS}/tiny",
+   "wiring_work_dir": "${FACTORY_HOME}/work/wiring",
+   "checkpoint_index": "${FACTORY_MODELS}/muse-spark-open/NVFP4-st/model.safetensors.index.json",
+   "imatrix": "${FACTORY_MODELS}/muse-spark-open/imatrix/imatrix-ggml-org.gguf",
+   "disk_grant_bytes": 400000000000,
+   "mmlu_test": "${FACTORY_MUSE_DEMO}/acc/data/data/test",
+   "prompts_dir": "${FACTORY_REPO}/ops/spark/prompts/muse",
+   "work_dir": "${FACTORY_HOME}/agent-workspace/work",
+   "packs_dir": "${FACTORY_HOME}/packs"
   },
-  "resources": {
-    "source": {
-      "checkout": "agent-workspace/llama.cpp-muse",
-      "base_commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
-      "upstream": "https://github.com/ggml-org/llama.cpp"
-    },
-    "capsules": [
-      "weights.build_muse_nvfp4_reader",
-      "weights.build_expert_scale_wiring",
-      "weights.build_weight_pack_compiler",
-      "eval.paired_accuracy",
-      "analysis.expert_routing_profile",
-      "engine.build_expert_weight_cache",
-      "engine.size_prefill_batch",
-      "factory.engine_inspector",
-      "factory.source_workbench",
-      "factory.capped_runner",
-      "factory.lab_manager"
-    ],
-    "checkpoint_dir": "${FACTORY_MODELS}/muse-spark-open/NVFP4-st",
-    "converter_python": "${FACTORY_MUSE_SPIKES}/spike-muse-tiny/.venv/bin/python",
-    "pack_stem": "Muse-Spark-Open-816B-A42B",
-    "read_roots": [
-      "${FACTORY_MODELS}/muse-spark-open/NVFP4-st",
-      "${FACTORY_MODELS}/muse-spark-open/imatrix",
-      "${FACTORY_MUSE_DEMO}/acc/data",
-      "${FACTORY_REPO}/ops/spark/prompts",
-      "${FACTORY_MUSE_CAPS}/tiny"
-    ],
-    "build_jobs": 8,
-    "memory_cap": "96G",
-    "need_available_gib": 100,
-    "gate_wait_s": 28800,
-    "verifier_inputs": {
-      "note": "Inputs of the capsule verifiers; tiny packs and checkpoints are small test fixtures, not the model.",
-      "reader_python": "${FACTORY_MUSE_SPIKES}/spike-muse-tiny/.venv/bin/python",
-      "reader_tiny_checkpoint": "${FACTORY_MUSE_CAPS}/tiny/ckpt/nvfp4",
-      "wiring_tiny_dir": "${FACTORY_MUSE_CAPS}/tiny",
-      "wiring_work_dir": "${FACTORY_HOME}/work/wiring",
-      "checkpoint_index": "${FACTORY_MODELS}/muse-spark-open/NVFP4-st/model.safetensors.index.json",
-      "imatrix": "${FACTORY_MODELS}/muse-spark-open/imatrix/imatrix-ggml-org.gguf",
-      "disk_grant_bytes": 400000000000,
-      "mmlu_test": "${FACTORY_MUSE_DEMO}/acc/data/data/test",
-      "prompts_dir": "${FACTORY_REPO}/ops/spark/prompts/muse",
-      "work_dir": "${FACTORY_HOME}/agent-workspace/work",
-      "packs_dir": "${FACTORY_HOME}/packs"
-    },
-    "operator_inputs": {
-      "checkpoint_digests": {"path": "${FACTORY_MUSE_DEMO}/pins/pins.json", "how": "operator: sha256 of every checkpoint shard from the Hugging Face download metadata (LFS etag, checked by the hub client at download, 2026-11-24), direct sha256 of the index, config, tokenizer and imatrix; no shard re-read. An input, not a product of this run."},
-      "earlier_lab_report": {"path": "${FACTORY_MUSE_DEMO}/lab/report-abcde.json", "how": "measurements of the Nov 25 overnight lab (hand-built engines, Q2_K pack), arms A to E, warm medians: context for planning, not evidence for this run's outputs.",
-                             "results": "vs A (NVFP4 on E0): Q2_K (B) halves time to first token and lifts decode from 0.33 to 0.86 tok/s; the seeded cache (C) adds only on cold p512; the prefill batch (D) cuts p2048 TTFT from 607 s to 114 s. Arm E (D plus the decode expert fill, engine.build_expert_fill) is NEGATIVE: decode 0.25 tok/s against about 0.80 on B, C and D, because the fill re-reads experts the GPU cache already serves (5.55 TB read)."}
-    }
-  },
-  "plan": "muse-2bit-ttft-v4.plan.json"
+  "operator_inputs": {
+   "checkpoint_digests": {
+    "path": "${FACTORY_MUSE_DEMO}/pins/pins.json",
+    "how": "operator: sha256 of every checkpoint shard from the Hugging Face download metadata (LFS etag, checked by the hub client at download, 2026-11-24), direct sha256 of the index, config, tokenizer and imatrix; no shard re-read. An input, not a product of this run."
+   },
+   "earlier_lab_report": {
+    "path": "${FACTORY_MUSE_DEMO}/lab/report-abcde.json",
+    "how": "measurements of the Nov 25 overnight lab (hand-built engines, Q2_K pack), arms A to E, warm medians: context for planning, not evidence for this run's outputs.",
+    "results": "vs A (NVFP4 on E0): Q2_K (B) halves time to first token and lifts decode from 0.33 to 0.86 tok/s; the seeded cache (C) adds only on cold p512; the prefill batch (D) cuts p2048 TTFT from 607 s to 114 s. Arm E (D plus the decode expert fill, engine.build_expert_fill) is NEGATIVE: decode 0.25 tok/s against about 0.80 on B, C and D, because the fill re-reads experts the GPU cache already serves (5.55 TB read)."
+   },
+   "earlier_accuracy_timing": {
+    "path": "${FACTORY_MUSE_DEMO}/acc/run.log",
+    "how": "progress log of the Nov 25 paired MMLU run (hand-built E0, Q2_K pack against NVFP4, -np 32 -kvu -b 4096 -ub 4096, 32 questions per request): per-arm load and scoring seconds. Planning context for checkpoint timing, not evidence for this run.",
+    "results": "2-bit-class arm (Q2_K): load about 185 s, about 6.3 s per question (147 to 282 s per 32); NVFP4 arm: load 312 to 357 s, about 10.8 s per question (321 to 485 s per 32). Reaching the 250 checkpoint on both arms took about 80 min of scoring plus loads; 430 about 2.3 h."
+   }
+  }
+ },
+ "plan": "muse-2bit-ttft-v4.plan.json"
 }
