@@ -65,3 +65,17 @@ def test_blocking_verifier_refusal_and_advisory_failure_without_rows_survive():
     assert note['source'] == 'precise' and note['finding_ids'] == [verifier['id']]
     assert reviewer['actor'] == 'reviewer' and reviewer['advisory'] and reviewer['verdict'] == 'fail'
     assert passed['host_passed'] and passed['verifier_passed'] and passed['reviewer_verdict'] == 'fail'
+
+
+def test_repeated_findings_count_once_per_output_and_keep_source_events():
+    finding = {'severity': 'minor', 'problem': 'Missing source pin', 'file': 'recipe.json', 'line': 8}
+    first = check('first', 10, review={'verdict': 'fail', 'findings': [finding]})
+    repeat = check('repeat', 20, review={'verdict': 'fail', 'findings': [dict(finding, problem='Missing  source pin')]})
+    other = check('other', 30, review={'verdict': 'fail', 'findings': [finding]})
+    other['values']['output'] = 'pack'
+    data = dict(tasks=[{'task_id': 'case'}], observations=[first, repeat, other])
+    trail = corrections.project(data)['a']
+    assert trail['counts']['findings'] == 2
+    findings = [r for r in trail['events'] if r['kind'] == 'finding']
+    assert [r['source'] for r in findings] == ['first', 'repeat', 'other']
+    assert findings[0]['finding_key'] == findings[1]['finding_key'] != findings[2]['finding_key']

@@ -6,6 +6,7 @@ import {
   gateStatement,
   nodeActions,
   operatorEnabled,
+  outputCheckCounts,
   pauseStatement,
   primaryCapsule,
   resumeEnabled,
@@ -42,6 +43,17 @@ const view = (outputs) => ({
   helpful_ccs: ['weights.build_muse_nvfp4_reader', 'factory.source_workbench'],
   capability: 'weights.build_muse_nvfp4_reader.verify',
   outputs,
+});
+
+test('the node summary counts declared output checks once and uses their current result', () => {
+  const checks = view([
+    output('current', [check('failed', { passed: false }), check('passed')]),
+    output('reopened', [check('old', { superseded: true })]),
+    output('optional', [], { required: false }),
+    output('removed', [check('obsolete')], { declared: false }),
+  ]);
+  assert.deepEqual(outputCheckCounts(checks), { passed: 1, total: 3 });
+  assert.deepEqual(outputCheckCounts(undefined), { passed: 0, total: 0 });
 });
 
 test('a done node whose required outputs all passed reads as closed with a full badge', () => {

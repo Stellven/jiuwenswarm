@@ -151,6 +151,12 @@ def _notes_for(notes, finding, until, identifying_terms):
             yield note
 
 
+def _finding_key(finding):
+    identity = [finding.get(field) for field in ('node_id', 'output', 'actor', 'file', 'line')]
+    identity.append(' '.join(finding['text'].split()).casefold())
+    return json.dumps(identity, ensure_ascii=False, separators=(',', ':'))
+
+
 def project(data):
     """Return per-node counts and timeline. An unrelated or unchanged pass never resolves a finding."""
     tid = data['tasks'][0]['task_id']
@@ -182,6 +188,7 @@ def project(data):
     findings_by_check = Counter(f['check_id'] for f in findings)
     for finding in findings:
         node, check_id = finding['node_id'], finding['check_id']
+        finding['finding_key'] = _finding_key(finding)
         timeline.setdefault(node, []).append(finding)
         for note in notes:
             text = note['text']
@@ -230,7 +237,9 @@ def project(data):
                 node_id=node, output=output, text=label, finding_ids=verified.get(check_id, []),
                 evidence_ids=check.get('source_artifacts') or []))
     order = {'finding': 0, 'note': 1, 'repair': 2, 'passing_check': 3}
-    return {node: dict(counts={kind + 's': sum(r['kind'] == kind for r in events) for kind in ('finding', 'note', 'repair')},
+    return {node: dict(counts=dict(findings=len({r['finding_key'] for r in events if r['kind'] == 'finding'}),
+                                  notes=sum(r['kind'] == 'note' for r in events),
+                                  repairs=sum(r['kind'] == 'repair' for r in events)),
                        events=sorted(events, key=lambda r: (r['created'], order[r['kind']], r['id'])))
             for node, events in timeline.items()}
 

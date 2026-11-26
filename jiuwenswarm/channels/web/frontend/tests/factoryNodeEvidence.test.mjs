@@ -4,7 +4,9 @@ import test from 'node:test';
 import {
   artifactReplayOrigins,
   capsuleCard,
+  checkArtifactLabels,
   contractDiff,
+  labelCheckArtifact,
   nodeReplayOrigins,
   replayLabel,
   revisionEvent,
@@ -13,6 +15,23 @@ import {
 } from '../src/features/factoryRuns/views/nodeEvidenceModel.ts';
 import { readDiff } from '../src/features/factoryRuns/views/diffModel.ts';
 import { collapseEvents } from '../src/features/factoryRuns/views/storyModel.ts';
+
+test('patch labels use the originating check and full artifact identity', () => {
+  const artifact = 'node-check-011223340000000000000001-diff';
+  const sibling = 'node-check-011223340000000000000002-diff';
+  const check = (id, source, created, reused_from) => ({
+    obs_id: `node-check:wire_expert_scales:wiring:${id}:01122334`,
+    kind: 'node_check', values: { reused_from }, created, source_artifacts: [source],
+  });
+  const labels = checkArtifactLabels([
+    check(4, artifact, 40, 'check:1'), check(2, sibling, 20), check(3, artifact, 30), check(1, artifact, 10),
+  ]);
+  const file = { path: 'artifacts/patch', display_path: 'named in export', artifact_ids: [artifact] };
+  assert.equal(labelCheckArtifact(file, labels).display_path, 'Wire expert scales · wiring · check 1 · code diff · named in export');
+  assert.match(labelCheckArtifact({ ...file, artifact_ids: [sibling] }, labels).display_path, /check 2/);
+  const unlinked = { ...file, artifact_ids: [], display_path: artifact };
+  assert.equal(labelCheckArtifact(unlinked, labels), unlinked);
+});
 
 test('the contract model makes a readable preliminary-to-final patch with stable object ordering', () => {
   const { patch, before, after } = contractDiff({
@@ -65,7 +84,9 @@ test('the capsule card keeps checks and failed history attached to their capsule
 test('replayed outputs retain the source run and original duration across views', () => {
   const origin = { run_id: 'muse-2bit-ttft-v4', job_id: 'recorded-job', duration_seconds: 8197.1 };
   assert.equal(replayLabel(origin), 'Replayed from muse-2bit-ttft-v4, originally 136 min 37 s');
-  assert.equal(replayLabel({ run_id: 'brief', duration_seconds: 0.9 }), 'Replayed from brief, originally 1 s');
+  assert.equal(replayLabel({ run_id: 'brief', duration_seconds: 0.9 }), 'Replayed from brief, originally 0.9 s');
+  assert.equal(replayLabel({ ...origin, source_run: 'verification-run', seconds: 0.9 }), replayLabel(origin));
+  assert.equal(replayLabel({ run_id: 'original', seconds: 0.9 }), 'Replayed from original');
   assert.equal(replayLabel([]), undefined);
   assert.equal(replayLabel({}), undefined);
   const event = { kind: 'run', summary: 'Quantize', cursor: 1, created: 1 };

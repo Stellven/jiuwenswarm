@@ -77,6 +77,15 @@ test('separate correction records stay separate even when their story summaries 
   assert.equal(collapseEvents([story(first, 0), story(pending, 1)]).length, 2);
 });
 
+test('a replay tally counts a repeated finding once and preserves both reports', () => {
+  const report = { ...first, finding_key: 'missing-source-pin' };
+  const repeated = { ...report, id: 'repeated-finding', created: 4, source: 'later-check' };
+  const history = { counts: { findings: 1, notes: 0, repairs: 0 }, events: [report, repeated] };
+  const view = correctionAt(history, { id: repeated.id, created: repeated.created });
+  assert.equal(view.counts.findings, 1);
+  assert.equal(view.events.length, 2);
+});
+
 const recordedPath = process.env.FACTORY_CORRECTIONS_SAMPLE;
 if (recordedPath) {
   test('real R8 correction payload keeps its review findings and independently cited check', () => {
@@ -85,6 +94,7 @@ if (recordedPath) {
     assert.ok(history.counts.findings > 0);
     assert.ok(history.events.some((event) => event.kind === 'finding' && event.advisory && event.text && event.source));
     assert.ok(history.events.every((event) => event.source && event.text));
-    assert.equal(history.counts.findings, history.events.filter(({ kind }) => kind === 'finding').length);
+    const distinct = new Set(history.events.filter(({ kind }) => kind === 'finding').map(({ id, finding_key }) => finding_key ?? id));
+    assert.equal(history.counts.findings, distinct.size);
   });
 }

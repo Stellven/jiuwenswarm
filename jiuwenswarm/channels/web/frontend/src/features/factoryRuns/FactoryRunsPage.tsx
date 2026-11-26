@@ -21,7 +21,7 @@ import { isContractV2 } from './labModel';
 import { nodeActions, operatorEnabled, pauseStatement, type Controls, type NodeOperator, type PlanNode } from './views/checkModel';
 import { CapsuleOverviewStrip, NodeEvidence, ReplayLabel } from './views/NodeEvidence';
 import { RunState } from './views/RunState';
-import { artifactReplayOrigins, evidenceText, nodeReplayOrigins, revisionEvent, runOperations } from './views/nodeEvidenceModel';
+import { artifactReplayOrigins, checkArtifactLabels, evidenceText, labelCheckArtifact, nodeReplayOrigins, revisionEvent, runOperations } from './views/nodeEvidenceModel';
 import './labResults.css';
 import { Iterations } from './Iterations';
 import { FactoryReport } from './FactoryReport';
@@ -288,24 +288,9 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
     const timer = window.setTimeout(() => setPosition((old) => old + 1), 700);
     return () => window.clearTimeout(timer);
   }, [playing, position, events.length]);
-  const checkNames = useMemo(() => {
-    // obs_id node-check:<node>:<output>:<n>:<short id> names the files node-check-<id>-diff|review-*
-    const names = new Map<string, string>();
-    for (const row of detail?.records.observations ?? []) {
-      const id = typeof row.obs_id === 'string' ? row.obs_id : '';
-      const match = /^node-check:([^:]+):([^:]+):(\d+):([0-9a-f]{6,})$/.exec(id);
-      if (match) names.set(match[4], `${match[1].replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase())} · ${match[2].replace(/_/g, ' ')} · check ${match[3]}`);
-    }
-    return names;
-  }, [detail]);
+  const checkNames = useMemo(() => checkArtifactLabels(detail?.records.observations ?? []), [detail]);
   const matchingFiles = useMemo(() => {
-    const files = (detail?.files ?? []).map((item) => {
-      const match = /^node-check-([0-9a-f]+)-(diff|review-packet|review-reply)/.exec(item.display_path || '');
-      if (!match) return item;
-      const name = [...checkNames].find(([short]) => match[1].startsWith(short))?.[1];
-      const what = match[2] === 'diff' ? 'code diff' : match[2] === 'review-packet' ? 'review packet' : 'reviewer reply';
-      return name ? { ...item, display_path: `${name} · ${what} · ${item.display_path}` } : item;
-    });
+    const files = (detail?.files ?? []).map((item) => labelCheckArtifact(item, checkNames));
     return files.filter((item) => {
       if (panel === 'artifacts') return true;
       const kind = evidenceKind(item.path, item.display_path);

@@ -161,6 +161,12 @@ export function summarizeNode(view: NodeCheckView | undefined, node: PlanNode | 
   return { outputs, gate: gateStatement(view, node, outputs), badge: checkBadge(view, node, outputs) };
 }
 
+export function outputCheckCounts(view: NodeCheckView | undefined) {
+  const declared = (view?.outputs ?? []).filter((output) => output.declared);
+  const passed = declared.filter((output) => summarizeOutput(output).status === 'passed').length;
+  return { passed, total: declared.length };
+}
+
 export function gateStatement(
   view: NodeCheckView | undefined,
   node: PlanNode | undefined,

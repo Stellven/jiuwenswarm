@@ -7,6 +7,7 @@ import { collapseEvents, presentEvent } from './views/storyModel.ts';
 import { ReplayLabel } from './views/NodeEvidence';
 import { CorrectionRecord } from './views/CorrectionSequence';
 import { correctionStatusAt } from './views/correctionModel';
+import { outputCheckCounts } from './views/checkModel';
 import { revisionEvent } from './views/nodeEvidenceModel';
 import './story.css';
 
@@ -437,7 +438,10 @@ function RunBuilds({ detail, events }: { detail: RunDetail; events: StoryEvent[]
     (sum, c) => ({ findings: sum.findings + c.findings, notes: sum.notes + c.notes, repairs: sum.repairs + c.repairs }),
     { findings: 0, notes: 0, repairs: 0 },
   );
-  const checksPassed = Object.values(overview).flat().filter((cc) => cc.verdict === 'passed').length;
+  const checks = Object.entries(detail.node_checks ?? {}).flatMap(([node, view]) => {
+    const count = outputCheckCounts(view);
+    return count.total ? [{ node, ...count }] : [];
+  });
   const replays = [...new Map(events.filter((e) => e.replayed_from).map((e) => [JSON.stringify(e.replayed_from), e.replayed_from])).values()];
   const model = text(object(object(detail.contract.subject).model).name);
   const observations = Array.isArray(detail.records.observations) ? detail.records.observations.map(object) : [];
@@ -466,8 +470,16 @@ function RunBuilds({ detail, events }: { detail: RunDetail; events: StoryEvent[]
           </span>
         </div>
         <div>
-          <span className="factory-run-builds-label">Capsule checks passed</span>
-          <strong className="factory-run-builds-value">{checksPassed}</strong>
+          <span className="factory-run-builds-label">Output checks passed / total</span>
+          {checks.length ? (
+            <ul className="factory-run-builds-checks" data-testid="factory-runs-builds-checks">
+              {checks.map(({ node, passed, total }) => (
+                <li key={node} data-testid="factory-runs-builds-check" data-variant={node}>
+                  {node.replaceAll('_', ' ')} <strong>{passed}/{total}</strong>
+                </li>
+              ))}
+            </ul>
+          ) : <span className="factory-muted">No declared output checks</span>}
           <span className="factory-muted">
             {counts.findings} findings · {counts.notes} specific-fix notes · {counts.repairs} repairs
           </span>
