@@ -1,5 +1,6 @@
 """Capped runner and halt policy: argument checks, the machine gate, host-only records, and fake build, serve and
 accuracy runs end to end (a fake cmake and a fake llama-server; no GPU, no systemd, no model)."""
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -9,8 +10,10 @@ import sys
 
 import pytest
 
-from jiuwenswarm.factory import capped_run, halt_policy
+from jiuwenswarm.factory import capped_replay, capped_run, halt_policy
 from jiuwenswarm.factory.api import dispatch
+from jiuwenswarm.factory.ccs.weight_pack_compiler.helpers import gguf_pack
+from jiuwenswarm.factory.ccs.weight_pack_compiler.tests.wpc_gguf_fixture import make_q2, make_source
 from jiuwenswarm.factory.store import ScopeDenied, Store
 
 FAKE_SERVER = r'''#!{python}
@@ -276,7 +279,6 @@ def test_user_bus_env_fills_the_trimmed_agent_env(tmp_path, monkeypatch):
 
 
 def test_manifest_hashes_every_shard_without_a_gpu_launch(world):
-    import hashlib
     packs = world['store'].home / 'packs' / 'p'
     packs.mkdir(parents=True)
     shards = [packs / f'pack-{i:05d}-of-00002.gguf' for i in (1, 2)]
@@ -320,3 +322,191 @@ def test_request_errors_carry_the_server_error_line(tmp_path):
     assert capped_run.server_error(log) == 'Context size has been exceeded.'
     log.write_text('all fine\n')
     assert capped_run.server_error(log) is None and capped_run.server_error(tmp_path / 'missing') is None
+
+
+@pytest.fixture
+def historical_packs(world, monkeypatch):
+    store = world['store']
+    shared = world['models'] / 'historical-packs'
+    shared.mkdir()
+    packs = store.home / 'packs'
+    packs.symlink_to(shared, target_is_directory=True)
+    source_dir, quantized_dir = shared / 'source', shared / 'quantized'
+    source_dir.mkdir()
+    quantized_dir.mkdir()
+    originals = make_source(source_dir)
+    quantized = make_q2(quantized_dir)
+    checkpoint = world['models'] / 'checkpoint'
+    checkpoint.mkdir()
+    shard = checkpoint / 'source.safetensors'
+    shard.write_bytes(b'checkpoint')
+    pins = checkpoint / 'pins.json'
+    pins.write_text(json.dumps(dict(format='muse-pins/1', checkpoint=dict(
+        root=str(checkpoint), shards={shard.name: dict(sha256=capped_run._sha(shard), bytes=shard.stat().st_size)},
+        small_files_sha256={}))))
+    imatrix = world['models'] / 'imatrix.gguf'
+    imatrix.write_bytes(b'fixture imatrix')
+    resources = store.get_task('task')['resources']
+    resources['checkpoint_dir'] = str(checkpoint)
+    store._db.execute('UPDATE tasks SET resources=? WHERE task_id=?', (json.dumps(resources), 'task'))
+    store._db.commit()
+
+    def output_receipt(paths):
+        pack = gguf_pack.load_pack(paths[0], hash_files=True)
+        files = [{k: row[k] for k in ('name', 'bytes', 'sha256', 'header_sha256')} for row in pack['files']]
+        manifest = capped_replay.manifest_path(paths[0])
+        total = sum(file['bytes'] for file in files)
+        manifest.write_text(json.dumps(dict(format='factory.pack-manifest/1', bytes=total,
+                                           files=[{k: row[k] for k in ('name', 'bytes', 'sha256')} for row in files])))
+        return dict(pack_dir=str(paths[0].parent), first_shard=paths[0].name, manifest=manifest.name,
+                    manifest_sha256=capped_run._sha(manifest), files=files, bytes=total,
+                    tensors=len(pack['tensors']), census=gguf_pack.census(pack['tensors']))
+
+    source = output_receipt(originals)
+    destination = output_receipt(quantized)
+    convert_commit, quantize_commit = 'a' * 40, 'b' * 40
+    source_digest = gguf_pack.pack_digest(source['files'])
+    imatrix_sha256 = capped_run._sha(imatrix)
+    qp = store.home / 'agent-workspace' / 'plan.json'
+    output = packs / 'quantized' / destination['manifest'].replace('.manifest.json', '.gguf')
+    argv = ['llama-quantize', '--imatrix', str(imatrix), '--allow-requantize', '--keep-split',
+            str(packs / 'source' / originals[0].name), str(output), 'Q2_K']
+    plan = dict(format='factory.pack-recipe/1', source=dict(files=source['files'], digest=source_digest),
+                imatrix=dict(sha256=imatrix_sha256, path=str(imatrix)), target='q2_k', argv=argv,
+                estimate=dict(output_bytes=destination['bytes']), output=dict(keep_split=True, files=list(map(str, quantized))))
+    qp.write_text(json.dumps(plan))
+    receipts = {
+        'past-convert': dict(recipe='convert', output=source, inputs=dict(
+            producer_commit=convert_commit, checkpoint_manifest_sha256=capped_run._sha(pins), outtype='bf16',
+            split_max_size='50G')),
+        'past-quantize': dict(recipe='quantize', output=destination, inputs=dict(
+            producer_commit=quantize_commit, source_digest=source_digest, target='q2_k', imatrix_sha256=imatrix_sha256,
+            argv_sha256=capped_replay.quantize_argv_digest(argv))),
+    }
+    for receipt in receipts.values():
+        receipt.update(run_id='past', recorded_at='2026-11-26T09:00:00Z', duration_seconds=8197.1)
+    registry = world['tmp'] / 'registry.json'
+    registry.write_text(json.dumps(dict(schema=capped_replay.REGISTRY_SCHEMA, receipts=receipts)))
+    monkeypatch.setenv(capped_replay.REGISTRY_ENV, str(registry))
+
+    def no_launch(*args, **kwargs):
+        pytest.fail('replay must not launch or use the machine gate')
+    monkeypatch.setattr(capped_run.Run, 'gate', no_launch)
+    monkeypatch.setattr(capped_run.Run, 'run', no_launch)
+    return dict(
+        convert=dict(name='source', commit=convert_commit, checkpoint_manifest=str(pins), replay={'job_id': 'past-convert'}),
+        quantize=dict(name='quantized', commit=quantize_commit, recipe=str(qp), replay={'job_id': 'past-quantize'}),
+        source=source, destination=destination, files=originals + quantized, plan=plan, registry=registry)
+
+
+@pytest.mark.parametrize('recipe', ['convert', 'quantize'])
+def test_replay_records_pinned_provenance_and_keeps_shared_pack_unchanged(world, historical_packs, recipe):
+    args = historical_packs[recipe]
+    assert args['commit'] != world['base']
+    shared = historical_packs['files'][0].parent.parent
+    before = {p: capped_run._sha(p) for p in shared.rglob('*') if p.is_file()}
+    rc, doc, run_dir = run_now(world, recipe, args, kind=capped_run.REPLAY_KIND)
+    assert rc == 0, doc
+    source = dict(job_id='past-' + recipe, run_id='past', recorded_at='2026-11-26T09:00:00Z', duration_seconds=8197.1)
+    assert doc['replayed_from'] == doc['request']['replayed_from'] == doc['result']['replayed_from'] == source
+    assert doc['memory_cap'] is None and doc['result']['commit'] == args['commit']
+    stored = json.loads((run_dir / 'result.json').read_text())
+    assert stored == doc and doc['seconds'] < source['duration_seconds']
+    assert {p: capped_run._sha(p) for p in shared.rglob('*') if p.is_file()} == before
+    if recipe == 'quantize':
+        from jiuwenswarm.factory.ccs.weight_pack_compiler.helpers.pack_check import verify_pack
+
+        checks, _ = verify_pack(
+            doc['result']['first_shard'], historical_packs['plan'], historical_packs['files'][0],
+            [doc['result']['bytes'], doc['result']['bytes']], 'q2_k', hash_files=False)
+        assert checks and all(check['status'] == 'pass' for check in checks), checks
+
+
+@pytest.mark.parametrize('recipe', ['convert', 'quantize'])
+def test_replay_cannot_substitute_worker_commit_or_an_untrusted_receipt(world, historical_packs, recipe, monkeypatch):
+    store = world['store']
+    args = historical_packs[recipe]
+    with pytest.raises(ValueError, match='inputs differ'):
+        capped_run.validate(store, 'task', recipe, dict(args, commit=world['base']))
+    with pytest.raises(ValueError, match='no host replay receipt'):
+        capped_run.validate(store, 'task', recipe, dict(args, replay={'job_id': 'not-recorded'}))
+    forged = store.home / 'agent-workspace' / 'registry.json'
+    forged.write_bytes(historical_packs['registry'].read_bytes())
+    monkeypatch.setenv(capped_replay.REGISTRY_ENV, str(forged))
+    with pytest.raises(ValueError, match='outside FACTORY_HOME'):
+        capped_run.validate(store, 'task', recipe, args)
+
+
+def test_replay_cpu_submission_preserves_host_registry_on_the_job(world, historical_packs, monkeypatch):
+    from jiuwenswarm.factory.jobs import Jobs
+
+    seen = {}
+    def submit(self, task_id, kind, req, key, job_class, argv, timeout, env):
+        seen.update(kind=kind, job_class=job_class, registry=env.get(capped_replay.REGISTRY_ENV))
+        return dict(attempt_id='new-replay', state='queued')
+    monkeypatch.setattr(Jobs, 'submit', submit)
+    world['store']._db.execute('UPDATE tasks SET constraints=? WHERE task_id=?', ('{}', 'task'))
+    world['store']._db.commit()
+    queued = start(world, 'convert', historical_packs['convert'])['result']
+    assert seen == dict(kind=capped_run.REPLAY_KIND, job_class='cpu', registry=str(historical_packs['registry']))
+    assert queued['replayed_from']['job_id'] == 'past-convert'
+
+
+@pytest.mark.parametrize('damage, reason', [
+    ('manifest', 'manifest digest mismatch'),
+    ('size', 'shard size mismatch'),
+    ('header', 'header mismatch'),
+    ('payload', 'shard digest mismatch'),
+])
+def test_replay_fails_closed_if_pack_changes_after_submit(world, historical_packs, damage, reason):
+    store = world['store']
+    args = historical_packs['convert']
+    if damage == 'payload':
+        args['replay']['rehash'] = True
+    req = capped_run.validate(store, 'task', 'convert', args)
+    attempt = store.create_attempt('task', dict(kind=capped_run.REPLAY_KIND, request=req,
+                                   idem_key='damage', fingerprint='test', resources={}))
+    first = historical_packs['files'][0]
+    if damage == 'manifest':
+        manifest = capped_replay.manifest_path(first)
+        manifest.write_bytes(manifest.read_bytes() + b' ')
+    elif damage == 'size':
+        first.write_bytes(first.read_bytes() + b'x')
+    elif damage == 'header':
+        first.write_bytes(first.read_bytes().replace(b'muse-spark', b'muse-fault', 1))
+    else:
+        first.write_bytes(first.read_bytes()[:-1] + b'x')
+    assert capped_run.execute(store.home, 'task', attempt['attempt_id']) == 1
+    result = json.loads((store.home / 'runs' / attempt['attempt_id'] / 'result.json').read_text())
+    assert result['error']['code'] == 'REPLAY' and reason in result['error']['message']
+    assert result['replayed_from']['job_id'] == 'past-convert' and result['result'] is None
+
+
+@pytest.mark.parametrize('recipe', ['convert', 'quantize', 'manifest'])
+def test_shared_packs_refuse_fresh_writes_at_submission_and_execution(world, historical_packs, recipe):
+    store = world['store']
+    home = store.home
+    shared = home / 'packs'
+    first = shared / 'source' / historical_packs['files'][0].name
+    args = {
+        'convert': dict(name='source'),
+        'quantize': dict(name='quantized', recipe=historical_packs['quantize']['recipe'], build='new'),
+        'manifest': dict(pack=str(first)),
+    }
+    with pytest.raises(ScopeDenied, match='symlink'):
+        capped_run.validate(store, 'task', recipe, args[recipe])
+    # A job queued while packs was a directory must be refused if the operator links it before execution.
+    argv = historical_packs['plan']['argv']
+    requests = {
+        'convert': dict(name='source'),
+        'quantize': dict(output=argv[-2], argv=argv),
+        'manifest': dict(pack=str(first)),
+    }
+    attempt = store.create_attempt('task', dict(kind=capped_run.KIND.get(recipe, 'model_run'),
+                                   request=dict(recipe=recipe, **requests[recipe]), idem_key='queued-earlier',
+                                   fingerprint='test', resources={}))
+    before = first.read_bytes()
+    assert capped_run.execute(home, 'task', attempt['attempt_id']) == 1
+    doc = json.loads((home / 'runs' / attempt['attempt_id'] / 'result.json').read_text())
+    assert doc['error']['code'] == 'SCOPE_DENIED' and 'symlink' in doc['error']['message']
+    assert first.read_bytes() == before

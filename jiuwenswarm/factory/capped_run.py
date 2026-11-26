@@ -34,13 +34,16 @@ import subprocess
 import sys
 import time
 import urllib.request
+import uuid
 
+from . import capped_replay
 from .store import ScopeDenied, Store
 
 RECIPES = ('build', 'convert', 'quantize', 'serve', 'accuracy', 'manifest')
 MODEL_LOADS = {'convert', 'quantize', 'serve', 'accuracy'}
 # attempt kind: build counts against build_attempts, model_run against gpu_launches; manifest (hashing files) neither
 KIND = {'build': 'build', 'manifest': 'manifest'}
+REPLAY_KIND = 'pack_replay'
 CAP = '96G'
 NEED_GIB = 100       # available memory a model load needs before it starts
 FLOOR_GIB = 6        # a running load is stopped below this
@@ -117,6 +120,51 @@ def _bin(store, name, tool):
     return path
 
 
+def _pack_write_path(home, path):
+    """Only ordinary paths below this factory's own packs root are writable."""
+    packs = Path(os.path.abspath(home / 'packs'))
+    path = Path(os.path.abspath(path))
+    if not path.is_relative_to(packs) or path == packs:
+        raise ScopeDenied('Pack writes must be under FACTORY_HOME/packs')
+    for part in (path, *path.parents):
+        if part.is_symlink():
+            raise ScopeDenied(f'Writing a pack through a symlink is forbidden: {part}. Use replay for shared packs.')
+        if part == packs:
+            break
+    return path
+
+
+def _quantize_write_path(home, output):
+    path = _pack_write_path(home, output)
+    if Path(output).resolve() != path:
+        raise ScopeDenied('Quantize output must resolve to the checked pack path')
+    return path
+
+
+def _replay_admission(store, task, recipe, args, verify=False, expected_receipt_sha256=None):
+    def readable(value, what, kind='file'):
+        return _readable(store, task, value, what, kind)
+
+    try:
+        return capped_replay.admit(_home(store), task, recipe, args, readable, verify, expected_receipt_sha256)
+    except (OSError, TypeError, AttributeError, KeyError) as exc:
+        raise ValueError(f'Cannot validate replay inputs or receipt: {exc}') from exc
+
+
+def _validate_replay(store, task, recipe, args):
+    if recipe == 'convert':
+        _fields(args, {'name', 'commit', 'checkpoint_manifest', 'replay'}, {'outtype', 'split_max_size'})
+    elif recipe == 'quantize':
+        _fields(args, {'name', 'commit', 'recipe', 'replay'})
+    else:
+        raise ValueError('replay is supported only for convert and quantize')
+    if not isinstance(args['name'], str) or not NAME.fullmatch(args['name']):
+        raise ValueError('name: lower-case letters, digits and dashes')
+    provenance, receipt_sha256, _ = _replay_admission(store, task, recipe, args)
+    return dict(recipe=recipe, name=args['name'], replay_args=args, replay={'rehash': False, **args['replay']},
+                replayed_from=provenance, receipt_sha256=receipt_sha256)
+
+
 # ---- argument validation per recipe ---------------------------------------------------------------------
 def _fields(args, required, optional=()):
     if not isinstance(args, dict):
@@ -183,6 +231,8 @@ def validate(store, task_id, recipe, args):
     home = _home(store)
     if recipe not in RECIPES:
         raise ValueError(f'recipe is one of {RECIPES}')
+    if isinstance(args, dict) and 'replay' in args:
+        return _validate_replay(store, task, recipe, args)
     req = dict(recipe=recipe)
     if recipe == 'build':
         _fields(args, {'name'}, {'commit', 'targets', 'cuda'})
@@ -201,20 +251,22 @@ def validate(store, task_id, recipe, args):
     elif recipe == 'manifest':
         # sha256 of every shard of a pack this run wrote (packs written before host hashing, or to re-check one)
         _fields(args, {'pack'}, set())
-        first = Path(_expand(args['pack'])).resolve()
-        packs = (home / 'packs').resolve()
-        if packs not in first.parents or not first.is_file() or first.suffix != '.gguf':
+        first = Path(os.path.abspath(_expand(args['pack'])))
+        if (home / 'packs') not in first.parents or not first.is_file() or first.suffix != '.gguf':
             raise ValueError('pack is a .gguf file under FACTORY_HOME/packs')
+        _pack_write_path(home, first)
+        _pack_write_path(home, capped_replay.manifest_path(first))
         req.update(pack=str(first))
     elif recipe == 'convert':
         _fields(args, {'name'}, {'commit', 'split_max_size', 'outtype'})
+        if not isinstance(args['name'], str) or not NAME.fullmatch(args['name']):
+            raise ValueError('name: lower-case letters, digits and dashes')
+        _pack_write_path(home, home / 'packs' / args['name'])
         checkout = _checkout(store, task)
         commit = _git(checkout, 'rev-parse', '--verify', (args.get('commit') or 'HEAD') + '^{commit}')
         source = _resources(task).get('checkpoint_dir')
         if not source:
             raise ValueError('the task names no resources.checkpoint_dir to convert')
-        if not NAME.match(args['name']):
-            raise ValueError('name: lower-case letters, digits and dashes')
         req.update(name=args['name'], commit=commit, checkpoint=str(_readable(store, task, source, 'checkpoint', 'dir')),
                    outtype=args.get('outtype', 'bf16'), split_max_size=args.get('split_max_size', '50G'),
                    python=_expand(_resources(task).get('converter_python', sys.executable)))
@@ -222,20 +274,20 @@ def validate(store, task_id, recipe, args):
             raise ValueError('outtype bf16/f16/auto; split_max_size like 50G')
     elif recipe == 'quantize':
         _fields(args, {'name', 'recipe', 'build'}, {'probe', 'threads'})
-        if not NAME.match(args['name']):
+        if not isinstance(args['name'], str) or not NAME.fullmatch(args['name']):
             raise ValueError('name: lower-case letters, digits and dashes')
+        out_root = _pack_write_path(home, home / 'packs' / args['name'])
         plan = json.loads(_readable(store, task, args['recipe'], 'recipe').read_text(encoding='utf-8'))
         probe = bool(args.get('probe', False))
         argv = list((plan.get('probe') or {}).get('argv') or []) if probe else list(plan.get('argv') or [])
         if plan.get('format') != 'factory.pack-recipe/1' or not argv:
             raise ValueError('recipe is a factory.pack-recipe/1 from weights.build_weight_pack_compiler.plan_recipe'
                              + (' with a probe' if probe else ''))
-        sys.path.insert(0, str(Path(__file__).with_name('ccs') / 'weight_pack_compiler' / 'helpers'))
-        from stock_quantize import parse_argv
-        call = parse_argv(argv)  # raises where stock would refuse
-        out_root = (home / 'packs' / args['name']).resolve()
-        output = Path(call['output']).resolve()
-        if not output.is_relative_to(out_root):
+        call = capped_replay.parse_quantize_argv(argv)  # raises where stock would refuse
+        if not call['output']:
+            raise ValueError('quantize recipe must name an output file')
+        output = _quantize_write_path(home, call['output'])
+        if not output.is_relative_to(out_root) or output == out_root:
             raise ScopeDenied(f'the recipe writes {output}; plan it with output under {out_root}/')
         _readable(store, task, call['input'], 'source pack')
         argv[0] = str(_bin(store, args['build'], 'llama-quantize'))
@@ -294,13 +346,15 @@ def dispatch(store, task_id, operation, inputs):
         _fields(inputs, {'recipe', 'args', 'idem_key'}, {'node_id'})
         if 'process.exec' not in task.get('allowed_effects', []):
             raise ScopeDenied('Capped runs need the process.exec effect')
-        if inputs['recipe'] in MODEL_LOADS and not (task.get('constraints') or {}).get('model_runs'):
+        replaying = isinstance(inputs['args'], dict) and 'replay' in inputs['args']
+        if not replaying and inputs['recipe'] in MODEL_LOADS and not (task.get('constraints') or {}).get('model_runs'):
             raise ScopeDenied('This task does not allow model runs (constraints.model_runs)')
         req = validate(store, task_id, inputs['recipe'], inputs['args'])
+        kind = REPLAY_KIND if replaying else KIND.get(req['recipe'], 'model_run')
         if inputs.get('node_id'):
             req['node_id'] = inputs['node_id']
             from .scheduler import charge
-            charge(host, task_id, inputs['node_id'], KIND.get(req['recipe'], 'model_run'), inputs['idem_key'])
+            charge(host, task_id, inputs['node_id'], kind, inputs['idem_key'])
         argv = [os.environ.get('FACTORY_HOST_PYTHON', sys.executable), '-m', 'jiuwenswarm.factory.capped_run',
                 '_exec', task_id, '{attempt_id}']
         env = {k: v for k, v in os.environ.items() if k in {'PATH', 'HOME', 'PYTHONPATH', 'LD_LIBRARY_PATH',
@@ -308,15 +362,23 @@ def dispatch(store, task_id, operation, inputs):
         env['FACTORY_HOME'] = str(host.home)
         timeout = int(_resources(task).get('run_timeout_s', {}).get(req['recipe'], 12 * 3600)) \
             if isinstance(_resources(task).get('run_timeout_s'), dict) else 12 * 3600
-        attempt = jobs.submit(task_id, KIND.get(req['recipe'], 'model_run'), req, inputs['idem_key'],
-                              'build' if req['recipe'] in {'build', 'manifest'} else 'gpu', argv, timeout + GATE_WAIT_S, env)
-        return {'result': dict(attempt_id=attempt['attempt_id'], state=attempt['state'],
-                               run_dir=str(host.home / 'runs' / attempt['attempt_id']),
-                               note='The controller waits while the run is active; read capped_runner.status '
-                                    'for progress and, once it ends, its capped_run observation.')}
+        job_class = 'build' if req['recipe'] in {'build', 'manifest'} else 'gpu'
+        if replaying:
+            env[capped_replay.REGISTRY_ENV] = os.environ[capped_replay.REGISTRY_ENV]
+            job_class = 'cpu'
+        else:
+            timeout += GATE_WAIT_S
+        attempt = jobs.submit(task_id, kind, req, inputs['idem_key'], job_class, argv, timeout, env)
+        result = dict(attempt_id=attempt['attempt_id'], state=attempt['state'],
+                      run_dir=str(host.home / 'runs' / attempt['attempt_id']),
+                      note='The controller waits while the run is active; read capped_runner.status '
+                           'for progress and, once it ends, its capped_run observation.')
+        if replaying:
+            result['replayed_from'] = req['replayed_from']
+        return {'result': result}
     _fields(inputs, {'attempt_id'}, {'node_id'})
     attempt = jobs.status(inputs['attempt_id'])
-    if attempt['task_id'] != task_id or attempt['kind'] not in {'build', 'model_run', 'manifest'}:
+    if attempt['task_id'] != task_id or attempt['kind'] not in {'build', 'model_run', 'manifest', REPLAY_KIND}:
         raise ScopeDenied('Not a capped run of this task')
     if operation == 'cancel':
         return {'result': {k: jobs.cancel(inputs['attempt_id'])[k] for k in ('attempt_id', 'state')}}
@@ -326,6 +388,8 @@ def dispatch(store, task_id, operation, inputs):
         result = run / 'result.json'
         out = dict(attempt_id=attempt['attempt_id'], state=attempt['state'], recipe=attempt['request']['recipe'],
                    started=attempt.get('started'), ended=attempt.get('ended'), progress=progress)
+        if 'replay' in attempt['request']:
+            out['replayed_from'] = attempt['request']['replayed_from']
         if result.exists():
             doc = json.loads(result.read_text(encoding='utf-8'))
             out['result'] = _clip(doc)
@@ -487,21 +551,27 @@ def _shards(first):
 def write_manifest(run, first, rows):
     """factory.pack-manifest/1 next to the pack (names relative to its folder), from the host's own digests: the
     file the weight pack compiler takes as pack_manifest so a recipe carries every source sha256."""
-    stem = re.sub(r'-00001-of-\d{5}$', '', first.name.removesuffix('.gguf'))
-    path = first.parent / f'{stem}.manifest.json'
+    path = _pack_write_path(run.store.home, capped_replay.manifest_path(first))
     doc = dict(format='factory.pack-manifest/1', files=[dict(name=r['name'], bytes=r['bytes'], sha256=r['sha256']) for r in rows],
                bytes=sum(r['bytes'] for r in rows), written_by='factory.capped_runner (host sha256)',
                attempt_id=run.attempt['attempt_id'])
-    tmp = path.with_suffix('.json.tmp')
-    tmp.write_text(json.dumps(doc, indent=1), encoding='utf-8')
-    os.replace(tmp, path)
+    tmp = path.with_name(f'.{path.name}.{uuid.uuid4().hex}.tmp')
+    handle = tmp.open('x', encoding='utf-8')
+    try:
+        with handle:
+            json.dump(doc, handle, indent=1)
+        _pack_write_path(run.store.home, path)
+        os.replace(tmp, path)
+    finally:
+        tmp.unlink(missing_ok=True)
     run.log('manifest', path)
     return str(path)
 
 
 def recipe_manifest(run):
-    first = Path(run.req['pack'])
-    files = _shards(first)
+    first = _pack_write_path(run.store.home, run.req['pack'])
+    _pack_write_path(run.store.home, capped_replay.manifest_path(first))
+    files = [_pack_write_path(run.store.home, f) for f in _shards(first)]
     missing = [f.name for f in files if not f.is_file()]
     if missing:
         raise RunError('SOURCE', f'missing shards: {missing[:5]}')
@@ -579,7 +649,10 @@ def _disk_check(run, need, where):
 
 def recipe_convert(run):
     r = run.req
-    out_dir = run.store.home / 'packs' / r['name']
+    out_dir = _pack_write_path(run.store.home, run.store.home / 'packs' / r['name'])
+    stem = (_resources(run.task).get('pack_stem') or 'model') + '-' + r['name']
+    if Path(stem).name != stem:
+        raise RunError('SOURCE', 'pack_stem must be a basename')
     if any(out_dir.glob('*.gguf')):
         run.log('removing a partial or earlier output in', out_dir)
         shutil.rmtree(out_dir)
@@ -589,7 +662,7 @@ def recipe_convert(run):
     need = sum(p.stat().st_size for p in ckpt.glob('*.safetensors'))
     free = _disk_check(run, need, out_dir)
     run.gate()
-    stem = (_resources(run.task).get('pack_stem') or 'model') + '-' + r['name']
+    _pack_write_path(run.store.home, out_dir)
     rc, seconds = run.run(['nice', '-n', '10', 'ionice', '-c3', r['python'], str(src / 'convert_hf_to_gguf.py'),
                            str(ckpt), '--outfile', str(out_dir / f'{stem}.gguf'), '--outtype', r['outtype'],
                            '--split-max-size', r['split_max_size']], 'convert.log', unit='convert')
@@ -605,13 +678,17 @@ def recipe_convert(run):
 
 def recipe_quantize(run):
     r = run.req
-    output = Path(r['output'])
+    output = _pack_write_path(run.store.home, r['output'])
+    call = capped_replay.parse_quantize_argv(r['argv'])
+    if not call['output'] or _quantize_write_path(run.store.home, call['output']) != output:
+        raise ScopeDenied('Quantize command output differs from the checked pack path')
     output.parent.mkdir(parents=True, exist_ok=True)
     for old in output.parent.glob(output.name.removesuffix('.gguf') + '*'):
         run.log('removing an earlier output', old)
         old.unlink()
     free = _disk_check(run, r['need_bytes'], output.parent)
     run.gate()
+    _quantize_write_path(run.store.home, call['output'])
     rc, seconds = run.run(['nice', '-n', '10', 'ionice', '-c3', *r['argv']], 'quantize.log', unit='quantize')
     if rc:
         raise RunError('QUANTIZE', f'llama-quantize exited {rc}; see quantize.log')
@@ -887,6 +964,24 @@ def recipe_accuracy(run):
                 server_logs={a: st['arms'][a]['server_log'] for a in st['arms']}, active_s=round(st['active_s']))
 
 
+def _run_replay(run):
+    req = run.req
+    if req['recipe'] not in {'convert', 'quantize'}:
+        raise RunError('REPLAY', 'Unknown pack replay recipe')
+    started = time.monotonic()
+    run.log('verifying historical pack for replay of job', req['replay']['job_id'])
+    try:
+        source, _, result = _replay_admission(
+            run.store, run.task, req['recipe'], req['replay_args'], verify=True,
+            expected_receipt_sha256=req['receipt_sha256'])
+    except (ValueError, ScopeDenied) as exc:
+        raise RunError('REPLAY', str(exc)) from exc
+    if source != req['replayed_from']:
+        raise RunError('REPLAY', 'Host replay receipt changed after submission')
+    run.log('replay verified', result['bytes'], 'bytes and', result['tensors'], 'tensors')
+    return dict(result, replayed_from=source, seconds=round(time.monotonic() - started, 1))
+
+
 def execute(home, task_id, attempt_id):
     store = Store(Path(home))
     attempt = store._decode('attempts', store._db.execute(
@@ -895,17 +990,23 @@ def execute(home, task_id, attempt_id):
     req = run.req
     started = time.time()
     outcome, error, result = 'ok', None, None
+    replaying = 'replay' in req or attempt['kind'] == REPLAY_KIND
     try:
-        result = globals()['recipe_' + req['recipe']](run)
+        result = _run_replay(run) if replaying else globals()['recipe_' + req['recipe']](run)
+    except ScopeDenied as exc:
+        outcome, error = 'error', dict(code='SCOPE_DENIED', message=str(exc))
     except RunError as exc:
         outcome, error = 'error', dict(code=exc.code, message=str(exc))
     except Exception as exc:  # noqa: BLE001 - every failure is recorded as evidence
         outcome, error = 'error', dict(code='UNEXPECTED', message=f'{type(exc).__name__}: {exc}')
     run.log('outcome', outcome, error or '')
     doc = dict(format='factory.capped-run/1', recipe=req['recipe'], request=req, outcome=outcome, error=error,
-               result=result, seconds=round(time.time() - started, 1), memory_cap=run.cap if req['recipe'] in MODEL_LOADS else None,
+               result=result, seconds=round(time.time() - started, 1),
+               memory_cap=run.cap if req['recipe'] in MODEL_LOADS and not replaying else None,
                peak_memory_bytes=run.peak or None,
                min_available_bytes=run.low, node_id=req.get('node_id'), attempt_id=attempt_id)
+    if replaying:
+        doc['replayed_from'] = req.get('replayed_from')
     (run.dir / 'result.json').write_text(json.dumps(doc, indent=1))
     artifacts = []
     for name, path in {**run.files, 'progress.log': run.dir / 'progress.log', 'result.json': run.dir / 'result.json'}.items():
@@ -917,7 +1018,8 @@ def execute(home, task_id, attempt_id):
     store.append_observation(task_id, dict(
         kind='capped_run', values=doc, source_artifacts=artifacts,
         host_run=dict(by='capped runner', module='jiuwenswarm.factory.capped_run', attempt_id=attempt_id),
-        limitations='Host record of one capped run; the command line was built by the recipe from checked arguments.'))
+        limitations=('Host pack replay verification; original production provenance is in replayed_from.'
+                     if replaying else 'Host record of one capped run; the recipe built the command from checked arguments.')))
     return 0 if outcome == 'ok' else 1
 
 

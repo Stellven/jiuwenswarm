@@ -6,7 +6,7 @@
     {
       "id": "recipes-and-gate",
       "command": "pytest tests/factory/test_capped_run.py",
-      "checks": "Argument checks per recipe, refused flags and paths, model runs only when the task allows them, node limits, the machine gate, host-only capped_run records, a fake build and serve end to end"
+      "checks": "Argument checks per recipe, refused flags and paths, model runs only when the task allows them, node limits, the machine gate, host-only capped_run records, a fake build and serve end to end, pinned replay identity and GGUF inspection, and refusal to write through shared pack symlinks"
     }
   ],
   "limitations": [

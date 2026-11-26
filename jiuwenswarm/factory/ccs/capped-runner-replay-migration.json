@@ -1,0 +1,20 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "capped_runner/cc.yaml",
+      "from_version": "1.4.0",
+      "from_release": "26f3c42d0e42170f5b971a94d2ae45bc0e30c1cc0aff258e0a449d637f4228b3",
+      "from_commit": "6bb05dae39c8352f554dadd265d5ae2b762445f8",
+      "to_version": "1.5.0",
+      "to_release": "021a130c6ed6f907abca5b2a09b0937dafa03d261fc1b2f2c394a0a82ed128b2",
+      "changed_files": [
+        "METHOD.md",
+        "VERIFICATION-UNITS.json",
+        "cc.yaml"
+      ],
+      "unrecorded_versions": [],
+      "reason": "Replay pinned historical convert and quantize packs with read-only host checks and explicit provenance"
+    }
+  ]
+}

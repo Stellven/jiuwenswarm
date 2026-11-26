@@ -1,6 +1,6 @@
 cc: '2'
 id: factory.capped_runner
-version: 1.4.0
+version: 1.5.0
 materials:
   methodology:
     path: METHOD.md
@@ -20,7 +20,8 @@ capabilities:
       serve (llama-server on a pack, greedy requests, -lv 4 log, optional routing trace) or accuracy (paired MMLU,
       two arms, planned checkpoints, resumable) or manifest (sha256 of every shard of a pack, no model load).
       Model loads run under the memory cap after the machine gate; convert and quantize hash what they write.
-      The controller waits while it runs; the run ends with a host capped_run observation.
+      Convert and quantize also accept an explicit replay job ID. Replay verifies the pinned pack read-only.
+      The controller waits while it runs and the run ends with a host capped_run observation.
     takes:
       recipe: text
       args: json
