@@ -252,3 +252,78 @@ def test_reopen_needs_a_check_recorded_after_it(setup):
     again = checks(store, ccs, Reviewer(PASS)).start('t', 'integrate', checkout=checkout, background=False)
     assert again['passed'] and again['obs_id'] != passed['obs_id']
     assert next(n for n in done(store, [again['obs_id']], graph['rev'])['nodes'] if n['node_id'] == 'integrate')['state'] == 'done'
+
+
+# ---- advisory reviews: recorded and shown, the verifier and host checks decide ----------------------------
+BLOCKER = dict(verdict='fail', summary='the gate is missing',
+               findings=[dict(severity='blocker', file='a.c', line=1, problem='no off switch')])
+
+
+class BrokenReviewer:
+    identity = 'broken-reviewer'
+
+    def __call__(self, prompt):
+        raise RuntimeError('reviewer endpoint unreachable')
+
+
+@pytest.fixture
+def advisory(setup):
+    store, ccs, checkout = setup
+    plan_patch(store, 't', {'add': [
+        dict(node_id='adv', kind='integrate', title='Integrate the thing (advisory review)',
+             check=dict(verifier='test.build_thing.verify', stage='native CC execution', review='advisory')),
+        dict(node_id='ev', kind='report', title='Report records',
+             check={'outputs': [dict(name='records', kind='evidence', review='advisory')]})]}, 1, 1)
+    return store, ccs, checkout
+
+
+@pytest.mark.parametrize('reviewer,reason', [
+    (Reviewer(BLOCKER), 'blocker'),
+    (Reviewer('I think it is fine'), 'not JSON'),
+    (BrokenReviewer(), 'could not run: RuntimeError'),
+])
+def test_an_advisory_review_is_recorded_but_does_not_decide(advisory, reviewer, reason):
+    store, ccs, checkout = advisory
+    (checkout / 'a.c').write_text('int a = 7;\n')
+    result = checks(store, ccs, reviewer).start('t', 'adv', checkout=checkout, background=False)
+    assert result['passed'] and result['verifier']['passed']
+    review = result['review']
+    assert review['advisory'] is True and not review['passed'] and reason in review['reason']
+    assert result['reason'].startswith('passed; advisory review (does not decide)')
+    if isinstance(reviewer, Reviewer) and isinstance(reviewer.reply, dict):
+        assert review['findings'][0]['problem'] == 'no off switch' and review['verdict'] == 'fail'
+    graph = plan_patch(store, 't', {'update': [dict(node_id='adv', state='done', evidence_ids=[result['obs_id']])]}, 2, 1)
+    assert next(n for n in graph['nodes'] if n['node_id'] == 'adv')['state'] == 'done'
+
+
+def test_an_advisory_review_runs_without_a_reviewer_and_the_verifier_still_decides(advisory, monkeypatch):
+    store, ccs, checkout = advisory
+    monkeypatch.setattr(node_check, 'default_reviewer', lambda: None)
+    (checkout / 'a.c').write_text('int a = 8;\n')
+    result = checks(store, ccs, None).start('t', 'adv', checkout=checkout, background=False)
+    assert result['passed'] and result['review']['advisory'] and 'no reviewer is configured' in result['review']['reason']
+    (checkout / 'a.c').write_text('int a = 9;\n')
+    with pytest.raises(node_check.CheckError, match='No reviewer is configured'):  # a blocking review still needs one
+        checks(store, ccs, None).start('t', 'integrate', checkout=checkout, background=False)
+    (checkout / 'a.c').write_text('int a = 2; /* BAD */\n')
+    failed = checks(store, ccs, Reviewer(PASS)).start('t', 'adv', checkout=checkout, background=False)
+    assert not failed['passed'] and 'no_bad_marker' in failed['reason'] and failed['review'] is None
+
+
+def test_an_advisory_review_of_evidence_and_the_status_shows_the_mode(advisory):
+    store, ccs, checkout = advisory
+    result = checks(store, ccs, Reviewer(BLOCKER)).start('t', 'ev', refs={'evidence_ids': ['t']}, background=False)
+    assert result['passed'] and result['review']['advisory'] and result['review']['verdict'] == 'fail'
+    status = checks(store, ccs, Reviewer(BLOCKER)).status('t', 'ev')
+    assert status['outputs']['records']['review'] == 'advisory' and status['done_blocked_by'].startswith('output records: cite')
+    missing = checks(store, ccs, Reviewer(PASS)).start('t', 'ev', refs={'evidence_ids': ['nothing-here']}, background=False)
+    assert not missing['passed']  # the host check still decides
+
+
+def test_advisory_spec_validation():
+    validate_spec(dict(verifier='a.b.verify', review='advisory'))
+    validate_spec({'outputs': [dict(name='r', kind='evidence', review='advisory')]})
+    for bad in (dict(review='advisory'), dict(verifier='a.b.verify', review='maybe'),
+                {'outputs': [dict(name='i', kind='image', review='advisory')]}):
+        with pytest.raises(ValueError):
+            validate_spec(bad)

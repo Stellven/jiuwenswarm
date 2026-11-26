@@ -351,9 +351,23 @@ def test_a_diff_needs_a_real_check():
     from jiuwenswarm.factory.node_check import validate_spec
     document = tiny_nodes()
     document['nodes'][0]['verifiers'] = [{'output': 'change'}]
-    assert any('needs a capsule verifier, a review or both' in p for p in node_contract.problems(document))
+    assert any('needs a capsule verifier, a blocking review or both' in p for p in node_contract.problems(document))
     with pytest.raises(ValueError, match='needs a capsule verifier'):
         validate_spec({'outputs': [{'name': 'change', 'kind': 'diff'}]})
+    # An advisory review decides nothing, so it cannot be a diff's only check.
+    document['nodes'][0]['verifiers'] = [{'output': 'change', 'review': 'advisory'}]
+    assert any('an advisory review decides nothing' in p for p in node_contract.problems(document))
+    with pytest.raises(ValueError, match='advisory review decides nothing'):
+        validate_spec({'review': 'advisory'})
+
+
+def test_advisory_reviews_are_valid_contract_values():
+    document = tiny_nodes()
+    document['nodes'][0]['verifiers'][0]['review'] = 'advisory'
+    assert node_contract.problems(document) == []
+    assert node_contract.check_spec(document['nodes'][0])['outputs'][0]['review'] == 'advisory'
+    document['nodes'][0]['verifiers'][0]['review'] = 'sometimes'
+    assert any('review' in p for p in node_contract.problems(document))
 
 
 def test_authority_ceiling_and_idempotent_limits(pipeline):

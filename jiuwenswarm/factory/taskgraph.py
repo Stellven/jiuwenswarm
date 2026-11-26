@@ -18,7 +18,11 @@ NODE_FIELDS = {'node_id', 'kind', 'title', 'capability', 'inputs', 'depends_on',
                'attempt_ids', 'evidence_ids', 'created_by_decision_rev', 'reason',
                'outcome', 'entities', 'requires_evidence', 'resources', 'engine_slice', 'branch', 'check',
                'node_contract', 'hold', 'retry_from', 'checks_after', 'final_contract'}
-OPERATOR_OPS = ('hold', 'release', 'reopen', 'retire')  # host-recorded operator patches; agents cannot issue them
+OPERATOR_OPS = ('hold', 'release', 'reopen', 'retire', 'revise')  # host-recorded operator patches; agents cannot issue them
+# revise: one patch applying a task contract revision to the graph (operator_revise). Each change is
+# {node_id, reason, action} with action cancel, add (+ node) or update (+ depends_on, optional fresh contract
+# fields, unfinalize, state, was: the values before, kept for the history only).
+REVISE_UPDATE_FIELDS = {'depends_on', 'title', 'kind', 'capability', 'check', 'resources', 'state', 'unfinalize', 'was'}
 SCHEDULER_OPS = ('finalize',)  # host-recorded after scheduler.finalize admits a final node contract
 
 
@@ -156,6 +160,9 @@ def _apply_operator(nodes, patch, component_cc=None):
     for op, changes in patch.items():
         if not isinstance(changes, list):
             raise ValueError('Plan operations must be lists')
+        if op == 'revise':
+            _apply_revise(nodes, changes)
+            continue
         for change in changes:
             _object(change, {'node_id', 'reason', 'since'}, {'node_id', 'reason'})
             key = identifier(change['node_id'])
@@ -196,6 +203,58 @@ def _apply_operator(nodes, patch, component_cc=None):
                     if nodes[child]['state'] not in TERMINAL | {'proposed'}:
                         _restart(nodes[child], f'upstream {key} reopened by operator', since)
     _validate(nodes, component_cc)
+
+
+def _apply_revise(nodes, changes):
+    """Apply the explicit changes of one operator revise (computed by revise_changes; replay reads only these)."""
+    seen = set()
+    for change in changes:
+        if not isinstance(change, dict) or change.get('action') not in {'cancel', 'add', 'update'}:
+            raise ValueError('A revise change is {node_id, reason, action: cancel|add|update}')
+        action = change['action']
+        allowed = {'node_id', 'reason', 'action'} | ({'node'} if action == 'add' else
+                                                     REVISE_UPDATE_FIELDS if action == 'update' else set())
+        _object(change, allowed, {'node_id', 'reason', 'action'} | ({'node'} if action == 'add' else
+                                                                    {'depends_on'} if action == 'update' else set()))
+        key = identifier(change['node_id'])
+        reason = change['reason']
+        if not isinstance(reason, str) or not reason.strip():
+            raise ValueError('Operator patches need a reason')
+        if key in seen:
+            raise ValueError('Multiple revise changes of one node: ' + key)
+        seen.add(key)
+        if action == 'add':
+            value = change['node']
+            if not isinstance(value, dict) or value.get('node_id') != key:
+                raise ValueError(f'Revise add {key}: the node must carry the same node_id')
+            if key in nodes:
+                raise ValueError('Plan node already exists: ' + key)
+            if 'final_contract' in value or value.get('state', 'proposed') != 'proposed' or value.get('attempt_ids')                     or value.get('evidence_ids'):
+                raise ValueError(f'Revise add {key}: a new node starts proposed, with no attempts, evidence or final contract')
+            nodes[key] = _node(value, 0)
+            continue
+        if key not in nodes:
+            raise ValueError('Unknown plan node: ' + key)
+        node = nodes[key]
+        if node['state'] in TERMINAL:
+            raise ValueError('Cancelled/superseded nodes are terminal')
+        if node['state'] in {'running', 'done'}:
+            raise ValueError(f"Node {key} is {node['state']}; revise changes only nodes that have not run")
+        if action == 'cancel':
+            node.update(state='cancelled', reason='retired by operator revise: ' + reason)
+            node.pop('hold', None)
+            continue
+        _ids(change['depends_on'])
+        node['depends_on'] = list(change['depends_on'])
+        for field in ('title', 'kind', 'capability', 'check', 'resources'):
+            if field in change:
+                node[field] = change[field]
+        if change.get('unfinalize'):
+            node.pop('final_contract', None)  # its contract changed: the scheduler finalizes it again
+        if 'state' in change:
+            if change['state'] != 'proposed':
+                raise ValueError('A revise only sends a node back to proposed')
+            node['state'] = 'proposed'
 
 
 def _apply_scheduler(nodes, patch, component_cc=None):
@@ -414,6 +473,8 @@ def operator_patch(store, task_id, op, node_id, reason, expected_graph_rev=None)
     """Record one operator hold, release or reopen (see _apply_operator) as a new graph revision."""
     if op not in OPERATOR_OPS:
         raise ValueError('Operator operation must be one of ' + ', '.join(OPERATOR_OPS))
+    if op == 'revise':
+        raise ValueError('revise applies a whole contract revision to the graph; use operator_revise')
     host = _host(store, task_id, write=True)
     with host._transaction():
         rev = plan_get(host, task_id)['rev'] if expected_graph_rev is None else expected_graph_rev
@@ -429,6 +490,213 @@ def operator_patch(store, task_id, op, node_id, reason, expected_graph_rev=None)
                                  'retire only work a contract revision removed')
         return _apply_patch(host, task_id, {op: [change]}, rev, 0,
                             readable=getattr(store, 'readable', ()), operator=True)
+
+
+def revise_changes(task, nodes, contracts, finals, reason, busy=()):
+    """(changes, problems): what bringing the graph to the task contract's current node contracts takes. Pure.
+
+    * A node whose node contract the revision removed is cancelled, unless it is done or running (a problem).
+    * A node contract no active node covers gets a new node, made as the planner makes one (planner.graph_nodes):
+      proposed, depending on the nodes covering its predecessors, with no final contract yet.
+    * Every other node that is not done gets its contract's predecessors as its dependencies (dependencies on the
+      agent's own uncontracted nodes stay) and the contract's kind, capability and checks; a finalized node whose
+      preliminary contract changed loses its final contract, so the scheduler finalizes it again.
+    * A done node keeps everything; its contract must keep its predecessors (other changes are text for it).
+    * A running node must not change. ``busy`` names nodes with a queued or running attempt: they count as
+      running even before the graph has reconciled them.
+    """
+    from .node_contract import check_spec, order
+    from .node_finalize import digest, is_preliminary
+    from .planner import graph_nodes
+    by_id = {c['node_id']: c for c in contracts['nodes']}
+    finals_by = {(r['node_id'], r['digest']): r for r in finals}
+    problems, changes = [], []
+    nodes = {k: (dict(n, state='running') if k in busy and n['state'] not in TERMINAL | {'done'} else n)
+             for k, n in nodes.items()}
+    active = {k: n for k, n in nodes.items() if n['state'] not in TERMINAL}
+    cancel = []
+    for key, node in active.items():
+        name = node.get('node_contract')
+        if name is None or name in by_id:
+            continue
+        if node['state'] == 'done':
+            problems.append(f'{key} is done but the revision removed its node contract {name}; '
+                            'a revision cannot take back finished work')
+        elif node['state'] == 'running':
+            problems.append(f'{key} is running but the revision removed its node contract {name}; cancel its attempts first')
+        else:
+            cancel.append(key)
+            changes.append(dict(node_id=key, reason=reason, action='cancel'))
+    remaining = {k: n for k, n in active.items() if k not in cancel}
+    covering = {}
+    for key, node in remaining.items():
+        if node.get('node_contract'):
+            covering.setdefault(node['node_contract'], []).append(key)
+    new = {}
+    for name in order(contracts['nodes']):
+        if name in covering:
+            continue
+        key, n = name, 2
+        while key in nodes or key in new.values():  # the id of a cancelled node is not reused
+            key, n = f'{name}_{n}', n + 1
+        new[name] = key
+        covering[name] = [key]
+
+    def dependencies(name, current):
+        wanted = [d for p in by_id[name].get('predecessors', []) for d in covering[p]]
+        kept = [d for d in current if d in remaining and not remaining[d].get('node_contract')]
+        return list(dict.fromkeys(wanted + kept))
+
+    if new:
+        plan = dict(planner='operator revise', nodes=[dict(node_id=key, node_contract=name, depends_on=dependencies(name, []))
+                                                      for name, key in new.items()])
+        for item in graph_nodes(task, plan, contracts):
+            changes.append(dict(node_id=item['node_id'], reason=reason, action='add', node=item))
+    done_after = {k for k, n in remaining.items() if n['state'] == 'done'}
+    for key, node in remaining.items():
+        name = node.get('node_contract')
+        if name is None:  # the agent's own node: only its links to cancelled nodes go
+            depends = [d for d in node['depends_on'] if d not in cancel]
+            if depends != node['depends_on']:
+                fields = {'state': 'proposed'} if node['state'] == 'ready' and not set(depends) <= done_after else {}
+                changes.append(dict(node_id=key, reason=reason, action='update', depends_on=depends, **fields,
+                                    was=dict(depends_on=node['depends_on'], **({'state': node['state']} if fields else {}))))
+            continue
+        if name not in by_id:  # a removed contract on a done or running node: already a problem
+            continue
+        contract = by_id[name]
+        if node['state'] == 'done':
+            have = {nodes[d].get('node_contract') for d in node['depends_on'] if nodes[d].get('node_contract')}
+            wanted = set(contract.get('predecessors', []))
+            if have != wanted:
+                problems.append(f'{key} is done and the revision changed its predecessors from {sorted(have)} to '
+                                f'{sorted(wanted)}; reopen it first to rerun it under the revision')
+            # Text changes (objective, requirement ids, hands_to, criteria of a finalized node) leave a done node as it
+            # is. A done node that no longer carries its contract's kind and checks is refused by contract_gate.
+            continue
+        fields, unfinalize = {}, False
+        check = check_spec(contract)
+        if is_preliminary(contract) and node.get('final_contract'):
+            final = finals_by.get((key, node['final_contract']))
+            if final is not None and final.get('preliminary_digest') == digest(contract):
+                check = node.get('check')  # finalized under this very preliminary contract: it stands
+            else:
+                unfinalize = True
+        depends = dependencies(name, node['depends_on'])
+        capability = (contract.get('work') or {}).get('capability')
+        if node['title'] != contract['objective']:  # the planner's title: the contract objective
+            fields['title'] = contract['objective']
+        if node['kind'] != contract['kind']:
+            fields['kind'] = contract['kind']
+        if node.get('capability') != capability:
+            fields['capability'] = capability
+        if node.get('check') != check:
+            fields['check'] = check
+        if contract['kind'] == 'build' and 'resources' not in node:
+            fields['resources'] = {'class': 'build'}
+        if unfinalize:
+            fields['unfinalize'] = True
+        if not fields and depends == node['depends_on']:
+            continue
+        if node['state'] == 'running':
+            what = sorted(set(fields) | ({'depends_on'} if depends != node['depends_on'] else set()))
+            problems.append(f'{key} is running and the revision changes its {", ".join(what)}; cancel its attempts first')
+            continue
+        if node['state'] == 'ready' and not set(depends) <= done_after:
+            fields['state'] = 'proposed'
+        was = dict(depends_on=node['depends_on'], **{f: node.get(f) for f in fields if f not in {'unfinalize', 'state'}})
+        if unfinalize:
+            was['final_contract'] = node['final_contract']
+        if 'state' in fields:
+            was['state'] = node['state']
+        changes.append(dict(node_id=key, reason=reason, action='update', depends_on=depends, **fields, was=was))
+    return changes, problems
+
+
+def operator_revise(store, task_id, reason, *, dry_run=False, expected_graph_rev=None):
+    """Apply the task contract's current revision to the live graph as ONE operator graph revision.
+
+    Refused (nothing changes) when revise_changes finds a problem or the result is not a valid graph that
+    covers the contract (a cycle, a missing dependency). A dry run computes and checks the same changes
+    without recording them. With nothing to change no revision is recorded, so a second revise is a no-op.
+    """
+    if not isinstance(reason, str) or not reason.strip():
+        raise ValueError('Operator patches need a reason')
+    from .contract import load
+    from .node_contract import for_task
+    from .planner import contract_gate
+    from .scheduler import recorded_finals
+    host = _host(store, task_id, write=not dry_run)
+    with host._transaction():
+        graph = plan_get(host, task_id)
+        if expected_graph_rev is not None and expected_graph_rev != graph['rev']:
+            raise StaleRevision('Current plan revision differs from expected_graph_rev')
+        task = host.get_task(task_id)
+        if not task.get('contract_id'):
+            raise ValueError(f'Task {task_id} has no task contract to revise against')
+        contracts = for_task(task)
+        if contracts is None:
+            raise ValueError(f'Contract {task["contract_id"]} has no node contracts to revise against')
+        contract = load(task['contract_id'])
+        contract_id = contract.get('contract_id', task['contract_id'])
+        stated = f'{reason.strip()} (contract {contract_id} version {contract.get("version", "?")})'
+        nodes = {n['node_id']: n for n in graph['nodes']}
+        busy = set()  # nodes with live attempts (capped jobs of other nodes may keep running through a revise)
+        for attempt_id, request in host._db.execute(
+                "SELECT attempt_id, request FROM attempts WHERE task_id=? AND state IN ('queued','running','cancel_requested')",
+                (task_id,)):
+            busy |= {k for k, n in nodes.items() if attempt_id in n['attempt_ids']}
+            busy.add(json.loads(request or '{}').get('node_id'))
+        changes, problems = revise_changes(task, nodes, contracts, recorded_finals(host, task_id), stated, busy)
+        if problems:
+            raise ValueError('Revise refused, nothing changed: ' + '; '.join(problems))
+        result = dict(schema='factory.revise/1', task_id=task_id, contract_id=contract_id,
+                      contract_version=contract.get('version'), graph_rev_before=graph['rev'], changes=changes,
+                      dry_run=bool(dry_run), applied=False)
+        if not changes:
+            return dict(result, graph_rev=graph['rev'], graph=graph)
+        try:
+            if dry_run:  # the same checks as a recorded revision, on a detached copy
+                trial = json.loads(encoded(nodes))
+                _apply(trial, {'revise': changes}, 0, task.get('component_cc'), operator=True)
+                contract_gate(host, task_id, trial)
+                return dict(result, graph_rev=graph['rev'], graph=_view(task_id, graph['rev'], trial, graph['history']))
+            view = _apply_patch(host, task_id, {'revise': changes}, graph['rev'], 0,
+                                readable=getattr(store, 'readable', ()), operator=True)
+        except ValueError as exc:
+            raise ValueError(f'Revise refused, nothing changed: {exc}') from None
+    return dict(result, applied=True, graph_rev=view['rev'], graph=view)
+
+
+def format_revise(result):
+    """Plain lines naming each planned or recorded change."""
+    if not result['changes']:
+        state = 'nothing to change; the graph already follows it'
+    elif result['dry_run']:
+        state = 'dry run, nothing written'
+    else:
+        state = f"graph rev {result['graph_rev_before']} -> {result['graph_rev']}"
+    lines = [f"revise {result['task_id']} to contract {result['contract_id']} version {result['contract_version']}: {state}"]
+    for change in result['changes']:
+        key = change['node_id']
+        if change['action'] == 'cancel':
+            lines.append(f'  cancel {key}: the revision removed its node contract')
+        elif change['action'] == 'add':
+            node = change['node']
+            lines.append(f"  add    {key} ({node['kind']}, node contract {node['node_contract']}) after "
+                         + (', '.join(node['depends_on']) or '(nothing)'))
+        else:
+            was = change['was']
+            parts = []
+            if change['depends_on'] != was['depends_on']:
+                parts.append(f"depends_on [{', '.join(was['depends_on'])}] -> [{', '.join(change['depends_on'])}]")
+            parts += [f'{field} from the contract' for field in ('title', 'kind', 'capability', 'check', 'resources') if field in change]
+            if change.get('unfinalize'):
+                parts.append('final contract dropped (its preliminary contract changed); the scheduler finalizes it again')
+            if 'state' in change:
+                parts.append(f"state {was['state']} -> proposed")
+            lines.append(f'  update {key}: ' + '; '.join(parts))
+    return '\n'.join(lines)
 
 
 def apply_decision_patch(store, task_id, decision, readable=()):
