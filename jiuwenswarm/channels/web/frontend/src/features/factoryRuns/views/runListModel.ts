@@ -27,10 +27,12 @@ type Entry = ReturnType<typeof runListEntries>[number];
 
 /** Curated demo replays first (in their declared order); every other run below. */
 export function groupRunEntries(entries: Entry[], showEverything = false) {
+  const featured = entries.filter(({ run }) => run.featured);
+  const history = entries.filter(({ run }) => run.read_only && !run.featured && !run.demo);
   const demo = entries
-    .filter(({ run }) => run.demo)
+    .filter(({ run }) => run.demo && !run.featured)
     .sort((a, b) => (a.run.demo_order ?? 0) - (b.run.demo_order ?? 0) || a.run.name.localeCompare(b.run.name));
-  const others = entries.filter(({ run }) => !run.demo);
+  const others = entries.filter(({ run }) => !run.featured && !run.demo && !run.read_only);
   const rest = showEverything ? others : others.filter(({ run }) => !run.scratch && !run.duplicate);
-  return { demo, rest, hidden: others.length - rest.length };
+  return { featured, history, demo, rest, hidden: others.length - rest.length };
 }

@@ -1,6 +1,6 @@
 import { getApiBase } from '../../utils/env';
 import type { CuratedReplay } from './views/storyModel.ts';
-import type { Controls, NodeCheckIndex, OperatorOp } from './views/checkModel.ts';
+import type { CheckOutput, Controls, NodeCheckIndex, OperatorOp } from './views/checkModel.ts';
 
 export type JsonRecord = Record<string, unknown>;
 export type Run = {
@@ -8,6 +8,8 @@ export type Run = {
   name: string;
   kind: 'bundle' | 'live';
   source_name?: string;
+  read_only?: boolean;
+  featured?: boolean;
   task_id: string;
   objective?: string;
   status: string;
@@ -36,6 +38,7 @@ export type StoryEvent = JsonRecord & {
   summary: string;
   created: number;
   rev?: number;
+  replayed_from?: unknown;
 };
 export type RunDetail = {
   run: Run;
@@ -53,7 +56,80 @@ export type RunDetail = {
   node_checks?: NodeCheckIndex;
   /** Live homes only: what an operator may do now. */
   controls?: Controls;
+  run_state?: RunState;
+  cc_overview?: Record<string, CapsuleOverview[]>;
 };
+export type RunState = {
+  state: string;
+  reason?: string;
+  by?: string;
+  since?: number | string;
+  node_id?: string;
+  job?: {
+    attempt_id?: string;
+    effect?: string;
+    state?: string;
+    since?: number | string;
+    elapsed_seconds?: number;
+    replayed_from?: unknown;
+  };
+  source?: string;
+  markers?: Record<string, { text: string; mtime: number }>;
+};
+export type CapsuleOverview = {
+  id: string;
+  version?: string;
+  kind?: string;
+  title?: string;
+  purpose?: string;
+  verdict?: string;
+};
+export type NodeOutput = {
+  id: string;
+  name: string;
+  kind: string;
+  artifact_ids?: string[];
+  evidence_ids?: string[];
+  summary?: unknown;
+  replayed_from?: unknown;
+  source?: unknown;
+};
+export type NodeCapsule = CapsuleOverview & {
+  materials?: Record<string, string>;
+  sections?: Record<string, string>;
+  files?: EvidenceFile[];
+  catalog_name?: string;
+  material_source?: 'sealed' | 'catalog';
+  material_version?: string;
+  material_digest?: string;
+  calls?: { count: number; first?: unknown; last?: unknown; failures?: number | unknown[]; records?: unknown[] };
+  runs?: JsonRecord[];
+  outputs?: NodeOutput[];
+  checks?: CheckOutput[];
+  comparison?: unknown;
+  evidence_fact?: { text: string; source: unknown };
+};
+export type NodeContract = {
+  preliminary?: JsonRecord | null;
+  final?: JsonRecord | null;
+  briefing?: unknown;
+  refusals?: unknown;
+  scheduler?: unknown;
+  rationale?: unknown;
+  source?: unknown;
+  final_source?: unknown;
+};
+export type NodeDetail = {
+  node_id: string;
+  contract?: NodeContract;
+  capsules: NodeCapsule[];
+  outputs?: NodeOutput[];
+  runs?: JsonRecord[];
+};
+export type NodeDiff = { content: string; source?: unknown; path?: string; base?: string; head?: string; truncated?: boolean };
+export type RunOperation = 'pause' | 'resume' | 'revise-preview' | 'revise-apply';
+export type RunOperationResult = JsonRecord & { pid?: number };
+
 export type SessionSnapshot = {
   status: 'running' | 'waiting' | 'finished' | 'idle' | 'unknown';
   elapsed_s: number | null;
@@ -86,7 +162,20 @@ export const factoryApi = {
     request<{ events: StoryEvent[]; cursor: number; total: number; reset?: boolean }>(
       `/runs/${encodeURIComponent(id)}/story?since=${since}`,
     ),
+  state: (id: string) => request<{ run_state: RunState; controls: Controls }>(`/runs/${encodeURIComponent(id)}/state`),
   session: (id: string) => request<SessionSnapshot>(`/runs/${encodeURIComponent(id)}/session`),
+  node: (id: string, nodeId: string, signal?: AbortSignal) =>
+    request<NodeDetail>(`/runs/${encodeURIComponent(id)}/nodes/${encodeURIComponent(nodeId)}`, { signal }),
+  diff: (id: string, nodeId: string, output: string, signal?: AbortSignal) =>
+    request<NodeDiff>(
+      `/runs/${encodeURIComponent(id)}/nodes/${encodeURIComponent(nodeId)}/diff?output=${encodeURIComponent(output)}`,
+      { signal },
+    ),
+  material: (id: string, nodeId: string, cc: string, path: string, signal?: AbortSignal) =>
+    request<FileContent & { parsed: unknown }>(
+      `/runs/${encodeURIComponent(id)}/nodes/${encodeURIComponent(nodeId)}/material?cc=${encodeURIComponent(cc)}&path=${encodeURIComponent(path)}`,
+      { signal },
+    ),
   file: (id: string, path: string, signal?: AbortSignal) =>
     request<FileContent>(`/runs/${encodeURIComponent(id)}/file?path=${encodeURIComponent(path)}`, { signal }),
   launch: (template_id: string) =>
@@ -100,10 +189,12 @@ export const factoryApi = {
       `/runs/${encodeURIComponent(id)}/nodes/${encodeURIComponent(node)}/${op}`,
       { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason }) },
     ),
-  resume: (id: string) =>
-    request<{ id: string; task_id: string; pid: number }>(`/runs/${encodeURIComponent(id)}/resume`, {
+  runOperation: (id: string, action: RunOperation, reason: string) => {
+    const revise = action === 'revise-preview' || action === 'revise-apply';
+    return request<RunOperationResult>(`/runs/${encodeURIComponent(id)}/${revise ? 'revise' : action}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: '{}',
-    }),
+      body: JSON.stringify({ reason, confirm: true, ...(revise && { dry_run: action === 'revise-preview' }) }),
+    });
+  },
 };

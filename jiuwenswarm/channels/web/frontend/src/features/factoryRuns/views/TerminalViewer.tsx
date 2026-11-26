@@ -3,6 +3,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { useTranslation } from 'react-i18next';
 import type { StoryEvent } from '../api';
 import { filterLogRows, logLevels, parseLog, projectStoryLog, type LogLevel } from './logModel';
+import { ReplayLabel } from './NodeEvidence';
 import './terminalViewer.css';
 
 const labels = {
@@ -145,7 +146,7 @@ export function TerminalViewer({ content, events, activeCursor, onSeek }: Termin
                     {row.source && <span className="factory-terminal-source">{row.source}</span>}
                     {row.kind && row.kind !== row.source && <small className="factory-original-kind factory-inline-kind" data-testid="factory-runs-terminal-kind">{row.kind}</small>}
                     {row.source && row.message && ' '}
-                    <span>{row.message}</span>
+                    <span>{row.message}<ReplayLabel value={row.replayedFrom} /></span>
                   </>
                 );
                 return (

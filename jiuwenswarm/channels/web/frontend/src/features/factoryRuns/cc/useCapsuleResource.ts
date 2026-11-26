@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 type LoadResult<T> = { data?: T; error?: string };
-export function useCapsuleResource<T>(key: string | undefined, load: (key: string, signal: AbortSignal) => Promise<T>) {
+export function useCapsuleResource<T>(key: string | undefined, load: (key: string, signal: AbortSignal) => Promise<T>, refresh?: unknown) {
   const [result, setResult] = useState<LoadResult<T> & { key?: string; attempt?: number }>({});
   const [attempt, setAttempt] = useState(0);
 
@@ -18,7 +18,7 @@ export function useCapsuleResource<T>(key: string | undefined, load: (key: strin
         }
       });
     return () => controller.abort();
-  }, [key, load, attempt]);
+  }, [key, load, attempt, refresh]);
 
   const current = result.key === key && result.attempt === attempt ? result : {};
   return { ...current, retry: () => setAttempt((previous) => previous + 1) };
