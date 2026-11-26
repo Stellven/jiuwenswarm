@@ -965,7 +965,8 @@
       ],
       "how_to_fill": [
        "batch_choice: try 2048 first (one micro-batch per lab prompt); name a smaller fallback only if the default-batch log shows 2048 does not fit the budget with a cache at least as large as arm B gets.",
-       "bind: engine.size_prefill_batch for the plan and verify, factory.capped_runner for the two loads."
+       "bind: engine.size_prefill_batch for the plan and verify, factory.capped_runner for the two loads.",
+       "Plan from this run\u2019s default log. Supply matched historical_prefill_B and historical_prefill_Bub logs as measured_reference baseline_log and candidate_log for KV and compute buffer deltas. The fresh planned log and matching prompt results decide acceptance."
       ]
      }
     },
@@ -1091,7 +1092,7 @@
        "Do not load the model in the image here: Docker containers are not under the capped runner's cgroup. Model loads from the image are the lab's, with a container memory cap."
       ],
       "how_to_fill": [
-       "Bind factory.builder for the image and cite verified manifests from upstream replays."
+       "Bind factory.builder. Submit verify_image: true with target spark-gb10 and build_target llama-server. Cite the offline image-check artifact, actual commit, executable SHA-256 and upstream replay receipts."
       ]
      }
     },
@@ -1186,7 +1187,8 @@
        "A mismatched pack or image digest must block delivery; do not ship a pack without its manifest."
       ],
       "how_to_fill": [
-       "bind: factory.lab_manager."
+       "bind: factory.lab_manager.",
+       "Verify the image against the succeeded build attempt. Attach the run configuration and both small manifests by artifact identity after comparing their SHA-256 values to the host replay receipts."
       ]
      }
     }

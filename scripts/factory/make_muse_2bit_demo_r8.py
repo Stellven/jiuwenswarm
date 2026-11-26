@@ -71,10 +71,18 @@ def generate(root):
     delivery['predecessors'].remove('record_profile')
     delivery['inputs'] = [i for i in delivery['inputs'] if i['name'] != 'profile']
     image = nodes['build_image']['briefing']
+    prefill['briefing']['how_to_fill'].append(
+        'Plan from this run’s default log. Supply matched historical_prefill_B and historical_prefill_Bub logs '
+        'as measured_reference baseline_log and candidate_log for KV and compute buffer deltas. The fresh '
+        'planned log and matching prompt results decide acceptance.')
+    delivery['briefing']['how_to_fill'].append(
+        'Verify the image against the succeeded build attempt. Attach the run configuration and '
+        'both small manifests by artifact identity after comparing their SHA-256 values to the host replay receipts.')
     image['facts'][0] = ('The original Nov 26 E0 build took about four minutes. Resolve the fresh checkout commit '
                          'and binary digest from this run’s base_engine evidence.')
     image['facts'][2] = 'Both manifests come from verified replay receipts. Treat linked packs as read-only.'
-    image['how_to_fill'] = ['Bind factory.builder for the image and cite verified manifests from upstream replays.']
+    image['how_to_fill'] = ['Bind factory.builder. Submit verify_image: true with target spark-gb10 and build_target llama-server. '
+                            'Cite the offline image-check artifact, actual commit, executable SHA-256 and upstream replay receipts.']
     plan = dict(format='factory.plan/1', planner='Muse demo revision 8', nodes=[
         dict(node_id=k, node_contract=k, depends_on=n.get('predecessors', []), title=n['objective'])
         for k, n in nodes.items()])
