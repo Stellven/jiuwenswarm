@@ -99,8 +99,12 @@ class ProcessCPU:
 def cpu_issues(cpu, limits):
     if not isinstance(cpu, dict) or not cpu.get('interval_s') or not cpu.get('measured_pids'):
         return ['missing timed process CPU evidence']
+    if cpu['interval_s'] < limits.get('min_cpu_window_s', 0):
+        return []
+    exempt = set(cpu.get('runner_tree', [])) if limits.get('exempt_runner_tree') else set()
     return [f"foreign PID {p['pid']} ({p['name']}) above {limits['max_foreign_cpu_percent']:g}% of one core"
-            for p in cpu['active'] if not p['measured'] and p['percent_one_core'] > limits['max_foreign_cpu_percent']]
+            for p in cpu['active'] if not p['measured'] and p['pid'] not in exempt
+            and p['percent_one_core'] > limits['max_foreign_cpu_percent']]
 
 
 
