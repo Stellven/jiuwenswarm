@@ -117,12 +117,14 @@ def server_peak_rss(pid, proc_root=Path('/proc')):
     return None
 
 
-def request(server, prompt, n_predict):
+def request(server, prompt, n_predict, *, benchmark=False):
     body = dict(prompt=prompt, n_predict=n_predict, temperature=0, seed=1, cache_prompt=False, stream=True)
+    if benchmark:
+        body.update(ignore_eos=True, return_progress=True, return_tokens=True)
     t0 = time.monotonic()
 
     def consume(response):
-        first, text, final = None, [], None
+        first, text, final, progress = None, [], None, []
         for raw in response:
             line = raw.decode().strip()
             if not line.startswith('data:'):
@@ -133,7 +135,9 @@ def request(server, prompt, n_predict):
             d = json.loads(data)
             if d.get('error'):
                 raise ValueError(d['error'])
-            if first is None and d.get('content'):
+            if 'prompt_progress' in d:
+                progress.append(d['prompt_progress'])
+            if first is None and (d.get('content') or benchmark and d.get('tokens') and not d.get('stop')):
                 first = time.monotonic()
             text.append(d.get('content', ''))
             if d.get('stop'):
@@ -141,10 +145,12 @@ def request(server, prompt, n_predict):
         if final is None:
             raise ValueError('completion stream ended before the terminal event')
         t1, tm, output = time.monotonic(), final['timings'], ''.join(text)
-        return dict(client_ttft_ms=round(((first or t1) - t0) * 1000, 1), request_total_ms=round((t1 - t0) * 1000, 1),
+        ttft = None if benchmark and first is None else round(((first or t1) - t0) * 1000, 1)
+        return dict(client_ttft_ms=ttft, request_total_ms=round((t1 - t0) * 1000, 1),
                     prompt_tokens=tm['prompt_n'], prompt_ms=tm['prompt_ms'], prompt_tokens_per_second=tm['prompt_per_second'],
                     generated_tokens=tm['predicted_n'], decode_tokens_per_second=tm['predicted_per_second'],
-                    output_sha256=hashlib.sha256(output.encode()).hexdigest(), text_head=output[:160])
+                    output_sha256=hashlib.sha256(output.encode()).hexdigest(), text_head=output[:160],
+                    **({'prompt_progress': progress} if benchmark else {}))
 
     return server.post(body, consume=consume)
 
@@ -257,13 +263,20 @@ def aggregate(report, reference):
         report['comparison'] = comparison(report['rows'], reference, limits)
 
 
-def measure(server, prompt, n_predict, expected_tokens, quiet):
+def measure(server, prompt, n_predict, expected_tokens, quiet, *, benchmark=False):
     if quiet is None:
         return request(server, prompt, n_predict), None, None
     first, _ = quiet.wait('start', 'during', log)
     metrics, error = {}, None
     try:
-        metrics = request(server, prompt, n_predict)
+        if benchmark:
+            metrics = request(server, prompt, n_predict, benchmark=True)
+            if metrics['generated_tokens'] != n_predict:
+                raise ValueError(f'Server generated {metrics["generated_tokens"]} tokens, expected {n_predict}')
+            if metrics['client_ttft_ms'] is None:
+                raise ValueError('Server stream lacks a first token event')
+        else:
+            metrics = request(server, prompt, n_predict)
         if metrics['prompt_tokens'] != expected_tokens:
             raise ValueError(f'Server reported {metrics["prompt_tokens"]} prompt tokens, expected {expected_tokens}')
     except BaseException as exc:
