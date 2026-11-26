@@ -135,7 +135,7 @@ def configure_agent(task, grants=(), home=None):
     # default queue, which the operator's worker does not read.
     for key in ('FACTORY_BRIDGE_DIR', 'FACTORY_HOST_PYTHON', 'FACTORY_JOBQ_BIN', 'JOBQ_DIR', 'FACTORY_LAB_STATE',
                 'FACTORY_YIELD_ON_JOBS', 'FACTORY_BUILD_RECIPE', 'FACTORY_NATIVE_BUILDER_IMAGE',
-                'FACTORY_CAPPED_REPLAY_REGISTRY'):
+                'FACTORY_CAPPED_REPLAY_REGISTRY', 'FACTORY_LAB_ROUTE', 'FACTORY_LAB_MAILBOX'):
         if key in os.environ:
             env[key] = os.environ[key]
     # The user's runtime dir and session bus, so systemd-run --user (the memory cap of capped runs and of capsule

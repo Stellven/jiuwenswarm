@@ -21,6 +21,8 @@ TASK=${TASK:?set TASK (the task id, e.g. muse-2bit-ttft-v4 or muse-2bit-rehearsa
 export FACTORY_HOME=${FACTORY_HOME:?set FACTORY_HOME (e.g. ~/muse-demo/graph-v4)}
 SESSION=${SESSION:?set SESSION (tmux prefix, e.g. muse or reh)}
 if [[ "$TASK" == muse-2bit-demo-r8 ]]; then
+  # The fast B/P lab consumes the delivered package once, after the graph finishes.
+  export FACTORY_LAB_ROUTE=mailbox FACTORY_LAB_MAILBOX="$FACTORY_HOME/lab-mailbox"
   export FACTORY_CAPPED_REPLAY_REGISTRY="${FACTORY_CAPPED_REPLAY_REGISTRY:-$HOME/muse-demo/replay-r8/registry.json}"
   if [[ "$SESSION" != r8 || ( "${1:-}" == run || "${1:-}" == _run ) && "${STEP:-0}" != 1 ]]; then
     echo "The fresh Muse demo requires SESSION=r8 and STEP=1 for execution." >&2
