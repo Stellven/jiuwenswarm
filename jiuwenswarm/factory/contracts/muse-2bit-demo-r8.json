@@ -1,0 +1,1187 @@
+{
+ "schema": "factory.contract/2",
+ "contract_id": "muse-2bit-demo-r8",
+ "version": 8,
+ "title": "Muse Spark Open on DGX Spark: a mixed 2-bit pack (IQ2_XXS and Q2_K) and a prefill batch plan, built into an engine image",
+ "purpose": "Starting from stock llama.cpp and the official Muse Spark Open NVFP4 checkpoint, build an engine image that runs a mixed 2-bit requantization of the model (IQ2_XXS for the routed gate and up projections, Q2_K for down) with a prefill batch sized so a 2048-token prompt streams the experts once. The factory graph does the implementation: the converter and expert scale wiring the checkpoint needs, the base engine, the 2-bit pack, the batch plan, the image. The lab then measures once how much time to first token, decode rate and total request time change against the NVFP4 baseline. The two full weight production steps already ran twice. Verify their recorded outputs with read-only manifest, shard size and header census checks. Record the original job and duration separately from the verification time. All other work runs in this demo.",
+ "scope": {
+  "covers": [
+   "the NVFP4 GGUF pack built from the official checkpoint, with the converter and expert scale wiring stock llama.cpp 9048bad8 needs for it",
+   "a mixed 2-bit requantization of that pack (IQ2_XXS gate and up, Q2_K down, other tensors unchanged)",
+   "the server prefill batch, micro-batch and MoE cache size chosen by engine.size_prefill_batch",
+   "an engine image (Docker, sm_121) built from the owned checkout, and the run configuration for the lab",
+   "in the lab, once: client time to first token, decode tokens per second and total request time at 512 and 2048 rendered prompt tokens, cold and warm, for arms B and P against baseline A (Nov 25)"
+  ],
+  "excludes": [
+   "an accuracy test of the 2-bit pack (the Q2_K paired MMLU result of Nov 25 is shown as indicative only)",
+   "the seeded expert cache and other expert caching changes",
+   "image, audio and video inputs",
+   "throughput under concurrent requests",
+   "hardware other than one DGX Spark"
+  ]
+ },
+ "target": {
+  "profile": "spark-gb10",
+  "requires": {
+   "machine": "DGX Spark GB10",
+   "cuda": "13",
+   "sm": "121",
+   "arch": "arm64",
+   "memory_gb": 128
+  }
+ },
+ "subject": {
+  "engine": {
+   "name": "llama.cpp",
+   "source": "https://github.com/ggml-org/llama.cpp",
+   "revision": "9048bad8d6e3a0f9f1726e238e451181c7e02613"
+  },
+  "model": {
+   "name": "Muse Spark Open 816B-A42B, official NVFP4 checkpoint (unsloth/Muse-Spark-Open-816B-A42B-NVFP4)",
+   "files": [
+    {
+     "name": "model.safetensors.index.json",
+     "size": 230613,
+     "sha256": null
+    }
+   ],
+   "digest_status": "Shard digests are pinned by node pin_inputs; the GGUF packs are named by the manifests their nodes publish."
+  }
+ },
+ "inputs": {
+  "prompt_512": {
+   "media_type": "text/plain",
+   "sha256": "980524e65ec3e2de160ada7210bbcb8b4af6cf2218a8eb4f09c2f4876012c575",
+   "size": 1983,
+   "description": "Fixed text that renders to 512 tokens with the Muse no-thinking chat template.",
+   "repo_path": "ops/spark/prompts/muse/512.txt"
+  },
+  "prompt_2048": {
+   "media_type": "text/plain",
+   "sha256": "cdd5010713af776ea7711a30a490479b33781335a1c63672aa8547a096b2833d",
+   "size": 10234,
+   "description": "Fixed text that renders to 2048 tokens with the Muse no-thinking chat template.",
+   "repo_path": "ops/spark/prompts/muse/2048.txt"
+  },
+  "mmlu_test": {
+   "media_type": "application/x-tar",
+   "sha256": "bec563ba4bac1d6aaf04141cd7d1605d7a5ca833e38f994051e818489592989b",
+   "size": 166184960,
+   "description": "MMLU (Hendrycks et al.) data.tar from https://people.eecs.berkeley.edu/~hendrycks/data.tar; the test split, 57 subjects, 14,042 questions."
+  },
+  "calibration_prompts": {
+   "media_type": "application/jsonl",
+   "sha256": "713de85b047440f346faaeb3212e61622202308710ec7e79f08be2daa74d389a",
+   "size": 1667,
+   "description": "Calibration requests for the routing profile; disjoint from the lab prompts.",
+   "repo_path": "ops/spark/prompts/muse/calibration.jsonl"
+  }
+ },
+ "workload": {
+  "tool": "llama-server",
+  "argv": [
+   "-m",
+   "{model}",
+   "-lm",
+   "mmap",
+   "-c",
+   "4096",
+   "-np",
+   "1",
+   "--moe-cache-mib",
+   "61440"
+  ],
+  "env": {},
+  "requests": [
+   {
+    "id": "p512",
+    "input": "prompt_512",
+    "params": {
+     "n_predict": 32,
+     "temperature": 0,
+     "seed": 1,
+     "cache_prompt": false,
+     "chat_template_kwargs": {
+      "reasoning_effort": "low",
+      "current_date": "2026-11-30"
+     }
+    },
+    "expect": {
+     "rendered_prompt_tokens": 512
+    }
+   },
+   {
+    "id": "p2048",
+    "input": "prompt_2048",
+    "params": {
+     "n_predict": 32,
+     "temperature": 0,
+     "seed": 1,
+     "cache_prompt": false,
+     "chat_template_kwargs": {
+      "reasoning_effort": "low",
+      "current_date": "2026-11-30"
+     }
+    },
+    "expect": {
+     "rendered_prompt_tokens": 2048
+    }
+   }
+  ]
+ },
+ "arms": [
+  {
+   "id": "A",
+   "role": "baseline",
+   "summary": "Base engine E0 (stock plus expert scale wiring) on the NVFP4 pack. Measured on Nov 25 and not rerun: the lab reuses that result.",
+   "deviations": [
+    "Expert scale wiring, needed for stock to run the official NVFP4 weights correctly",
+    "--moe-cache-mib 61440 under the 110000 MiB device budget (its NVFP4 compute buffer of about 8 GiB leaves no more)"
+   ]
+  },
+  {
+   "id": "B",
+   "role": "candidate",
+   "from": "A",
+   "summary": "The engine image on the mixed 2-bit pack at the default batch: the quantization change alone.",
+   "deviations": [
+    "Routed experts IQ2_XXS for the gate and up projections, Q2_K for down, instead of NVFP4",
+    "--moe-cache-mib from the size_prefill_batch plan (device budget filled)"
+   ]
+  },
+  {
+   "id": "P",
+   "role": "combined",
+   "from": "B",
+   "summary": "Arm B plus the planned prefill batch (-b and -ub from the batch plan), so a 2048-token prompt is prefilled in one micro-batch.",
+   "deviations": [
+    "Routed experts IQ2_XXS for the gate and up projections, Q2_K for down, instead of NVFP4",
+    "Server batch and micro-batch from the size_prefill_batch plan",
+    "--moe-cache-mib from the size_prefill_batch plan (device budget filled)"
+   ]
+  }
+ ],
+ "measurement": {
+  "primary": "client_ttft_ms",
+  "metrics": {
+   "client_ttft_ms": {
+    "unit": "ms",
+    "better": "lower",
+    "how": "Client clock from sending the request to the first streamed token."
+   },
+   "decode_tokens_per_second": {
+    "unit": "tokens/s",
+    "better": "higher",
+    "how": "Generated tokens after the first, over the time they took, from the server's timings."
+   },
+   "request_total_ms": {
+    "unit": "ms",
+    "better": "lower",
+    "how": "Client clock from sending the request to the last streamed token (32 generated tokens)."
+   },
+   "prompt_tokens_per_second": {
+    "unit": "tokens/s",
+    "better": "higher",
+    "how": "Prompt tokens over prompt processing time, from the server's timings."
+   },
+   "sampled_peak_memory_bytes": {
+    "unit": "bytes",
+    "better": "lower",
+    "how": "Highest sampled resident memory of the engine process group under the cap."
+   },
+   "load_seconds": {
+    "unit": "s",
+    "better": "lower",
+    "how": "From engine start to the health endpoint answering ready."
+   }
+  },
+  "derived": {
+   "ttft_change_vs_A": {
+    "formula": "(TTFT_X - TTFT_A) / TTFT_A",
+    "uses": [
+     "client_ttft_ms",
+     "A"
+    ],
+    "unit": "ratio"
+   },
+   "decode_change_vs_A": {
+    "formula": "(DECODE_X - DECODE_A) / DECODE_A",
+    "uses": [
+     "decode_tokens_per_second",
+     "A"
+    ],
+    "unit": "ratio"
+   },
+   "total_change_vs_A": {
+    "formula": "(TOTAL_X - TOTAL_A) / TOTAL_A",
+    "uses": [
+     "request_total_ms",
+     "A"
+    ],
+    "unit": "ratio"
+   }
+  },
+  "protocol": {
+   "repeats": 1,
+   "order": "sequential",
+   "discard_first_request": false,
+   "cold_load": "separate",
+   "quiet": {
+    "max_load": 1.0,
+    "no_builds": true
+   },
+   "notes": "One server load per arm (B then P) from the engine image under the memory cap. Per prompt size: one cold request (pack pages evicted with posix_fadvise DONTNEED before it, reported separately) then one warm request, 32 generated tokens each. Arm A is the Nov 25 result."
+  }
+ },
+ "correctness": {
+  "equivalence": "approximate",
+  "reference": {
+   "arm": "A",
+   "output_sha256": null,
+   "frozen_at": null,
+   "run_ref": null
+  },
+  "checks": [
+   {
+    "id": "server_token_count",
+    "does": "The server's prompt token count equals the request's rendered prompt token count.",
+    "applies_to": [
+     "baseline",
+     "candidate",
+     "combined"
+    ]
+   },
+   {
+    "id": "scale_free_parity",
+    "does": "E0 on a pack without expert .scale tensors gives the same greedy output as stock.",
+    "applies_to": [
+     "A"
+    ]
+   },
+   {
+    "id": "nvfp4_numerics",
+    "does": "An expert matmul and a layer slice of the NVFP4 pack match a torch dequantization of the checkpoint within tolerance.",
+    "applies_to": [
+     "A"
+    ]
+   },
+   {
+    "id": "nvfp4_pack_census",
+    "does": "Every routed expert weight of the NVFP4 pack is NVFP4 with its .scale tensor.",
+    "applies_to": [
+     "A"
+    ]
+   },
+   {
+    "id": "pack_2bit_census",
+    "does": "Every routed gate and up expert weight of the 2-bit pack is IQ2_XXS and every down expert weight Q2_K; other tensors keep their NVFP4-pack type.",
+    "applies_to": [
+     "B",
+     "P"
+    ]
+   },
+   {
+    "id": "prefill_batch_applied",
+    "does": "The arm P server prints the planned n_batch and n_ubatch, its device buffers fit the plan budget, and its greedy outputs agree with arm B (byte-identical or a common prefix of at least 64 characters, since a different micro-batch split changes the float summation order).",
+    "applies_to": [
+     "P"
+    ]
+   },
+   {
+    "id": "cold_smoke",
+    "does": "One cold request under the memory cap returns coherent text.",
+    "applies_to": [
+     "baseline",
+     "candidate",
+     "combined"
+    ]
+   },
+   {
+    "id": "image_starts",
+    "does": "The engine image starts its llama-server without a model (--version) and reports the build of the owned checkout commit; its binary digest equals the build record.",
+    "applies_to": [
+     "B",
+     "P"
+    ]
+   }
+  ]
+ },
+ "acceptance": {
+  "rules": [
+   "A timed cell counts only when the machine is quiet: load below 1.0 and no builds running.",
+   "B and P differ from A in their weights, so their outputs are not expected to match A; correctness for B and P is the pack census, the image check, coherent text, and for P agreement with B.",
+   "Speed is reported as change against A (Nov 25), per prompt size, cold and warm separately.",
+   "Accuracy of the 2-bit pack is not claimed; the Q2_K paired MMLU result is labelled indicative.",
+   "Failures and no-gain results are reported, not dropped."
+  ]
+ },
+ "limits": {
+  "memory_bytes": 103079215104,
+  "cpus": 16,
+  "start_available_bytes": 107374182400,
+  "watchdog_available_bytes": 8589934592
+ },
+ "execution": {
+  "by": "factory_lab",
+  "lab_profile": "spark-gb10",
+  "notes": "Every model load runs under a 96 GiB cgroup cap with no swap, one heavy job at a time."
+ },
+ "revisions": [],
+ "provenance": {
+  "notes": [
+   "Derived from muse-2bit-ttft-v4 revision 8.",
+   "The two full weight production steps already ran twice. Verify their recorded outputs with read-only manifest, shard size and header census checks. Record the original job and duration separately from the verification time. All other work runs in this demo."
+  ]
+ },
+ "extensions": {
+  "factory.node-contracts": {
+   "format": "factory.node-contracts/1",
+   "nodes": [
+    {
+     "node_id": "pin_inputs",
+     "kind": "inspect",
+     "objective": "Pin the stock llama.cpp tree, the official Muse NVFP4 checkpoint, the imatrix and the prompts by digest, and record the disk grant and memory cap.",
+     "requirement_ids": [
+      "A"
+     ],
+     "inputs": [
+      {
+       "name": "source",
+       "from": "task:source"
+      },
+      {
+       "name": "prompt_512",
+       "from": "contract:prompt_512"
+      },
+      {
+       "name": "prompt_2048",
+       "from": "contract:prompt_2048"
+      }
+     ],
+     "outputs": [
+      {
+       "name": "pins",
+       "kind": "evidence",
+       "criteria": [
+        "Names the stock commit 9048bad8 and the sha256 of every checkpoint shard, the index, the imatrix and each prompt.",
+        "Record free disk, expected new writes, cgroup cap and available memory. Allow 100 GB free beyond new writes. The two packs are linked read-only.",
+        "Records the checkpoint scale-plane layout per tensor role: packed weight, block scale, global scale_2, input scale."
+       ]
+      }
+     ],
+     "evidence_obligations": [
+      "captured_input_and_output",
+      "invocation_observation"
+     ],
+     "node_limits": {
+      "turns": 15
+     },
+     "authority_ceiling": {
+      "effects": [
+       "workspace.read",
+       "process.exec"
+      ],
+      "workspace": "read"
+     },
+     "work": {
+      "helpful_ccs": [
+       "factory.engine_inspector",
+       "weights.build_muse_nvfp4_reader"
+      ],
+      "eligible_ccs": [
+       "factory.engine_inspector",
+       "weights.build_muse_nvfp4_reader"
+      ]
+     },
+     "verifiers": [
+      {
+       "output": "pins",
+       "review": true
+      }
+     ],
+     "hands_to": "ingest_nvfp4",
+     "stage": "preliminary",
+     "slots": [
+      {
+       "id": "bind",
+       "at": "work.bound_ccs",
+       "kind": "ccs",
+       "from": "The capsule catalog, what the upstream nodes were built with and what failed before for this node."
+      }
+     ]
+    },
+    {
+     "node_id": "ingest_nvfp4",
+     "kind": "integrate",
+     "objective": "Implement the converter in the owned checkout, test it on the tiny fixture, and verify the recorded full NVFP4 conversion through capped_runner replay.",
+     "requirement_ids": [
+      "A",
+      "nvfp4_pack_census"
+     ],
+     "predecessors": [
+      "pin_inputs"
+     ],
+     "inputs": [
+      {
+       "name": "pins",
+       "from": "pin_inputs.pins"
+      }
+     ],
+     "outputs": [
+      {
+       "name": "converter",
+       "kind": "diff",
+       "criteria": [
+        "Splits experts.gate_up_proj into gate and up halves in the source order (gate first) and keeps NVFP4 blocks bit-for-bit (no dequantize and requantize).",
+        "Writes one [n_expert] .scale tensor per routed expert weight from weight_scale_2: gate takes column 0 and up column 1 of the [n_expert, 2] gate_up scale, down its [n_expert] scale.",
+        "Repacks lazily, one tensor at a time, and finishes under the 96 GiB memory cap (the stacked BF16 experts of the excluded layers 0 and 61 are the peak; 32 and 64 GiB caps were not enough).",
+        "Leaves the BF16 modules the checkpoint excludes (layers 0 and 61, self attention, lm_head) at their source type.",
+        "Times one expert before the full conversion and prints the projected total.",
+        "Touches only the files its capsule source map allows."
+       ]
+      },
+      {
+       "name": "nvfp4_pack",
+       "kind": "evidence",
+       "criteria": [
+        "Every routed expert weight in layers 1 to 60 is NVFP4 (ggml type 40) with a matching [n_expert] F32 .scale tensor.",
+        "The pack manifest lists per-file sha256, tensor census by type and total bytes.",
+        "Cite the successful host replay receipt and original production job."
+       ]
+      }
+     ],
+     "evidence_obligations": [
+      "captured_input_and_output",
+      "mandatory_checks",
+      "semantic_assessment"
+     ],
+     "node_limits": {
+      "turns": 60,
+      "time_s": 36000
+     },
+     "authority_ceiling": {
+      "effects": [
+       "process.exec",
+       "workspace.read",
+       "workspace.write"
+      ],
+      "workspace": "write"
+     },
+     "work": {
+      "helpful_ccs": [
+       "weights.build_muse_nvfp4_reader",
+       "factory.source_workbench",
+       "factory.integration_skill"
+      ],
+      "capability": "weights.build_muse_nvfp4_reader.verify",
+      "eligible_ccs": [
+       "weights.build_muse_nvfp4_reader",
+       "factory.source_workbench",
+       "factory.integration_skill",
+       "factory.capped_runner"
+      ]
+     },
+     "verifiers": [
+      {
+       "output": "converter",
+       "verifier": "weights.build_muse_nvfp4_reader.verify",
+       "stage": "runtime acceptance",
+       "review": "advisory",
+       "inputs": {
+        "require_stage": "runtime acceptance"
+       }
+      },
+      {
+       "output": "nvfp4_pack",
+       "verifier": "weights.build_muse_nvfp4_reader.verify_pack",
+       "stage": "native CC execution",
+       "review": "advisory",
+       "inputs": {
+        "expect_bytes_range": [
+         480000000000,
+         560000000000
+        ]
+       }
+      }
+     ],
+     "hands_to": "wire_expert_scales",
+     "stage": "preliminary",
+     "slots": [
+      {
+       "id": "bind",
+       "at": "work.bound_ccs",
+       "kind": "ccs",
+       "from": "The capsule catalog, what the upstream nodes were built with and what failed before for this node."
+      }
+     ],
+     "bounds": {
+      "verifiers.nvfp4_pack.inputs.expect_bytes_range": "inside"
+     },
+     "briefing": {
+      "summary": "The two full weight production steps already ran twice. Verify their recorded outputs with read-only manifest, shard size and header census checks. Record the original job and duration separately from the verification time. All other work runs in this demo.",
+      "facts": [
+       "muse-2bit-ttft-v4 conversion 1a040f7126cb485581b3b317932290f4, producer 6eeca78bd8c74744b8d6bc04b9eaf151dc089195, bf16, 50G splits.",
+       "The fixture exercises the fresh implementation. The recorded producer owns the production pack."
+      ],
+      "how_to_fill": [
+       "Bind the reader, source workbench and capped runner. Replay the named job with its original commit, checkpoint_manifest from checkpoint_digests, bf16, split_max_size 50G and name muse-nvfp4-v4."
+      ]
+     }
+    },
+    {
+     "node_id": "wire_expert_scales",
+     "kind": "integrate",
+     "objective": "Apply the per-expert NVFP4 scale tensors in the Muse graph so the NVFP4 pack computes the same values as the checkpoint.",
+     "requirement_ids": [
+      "A",
+      "scale_free_parity",
+      "nvfp4_numerics"
+     ],
+     "predecessors": [
+      "ingest_nvfp4"
+     ],
+     "inputs": [
+      {
+       "name": "nvfp4_pack",
+       "from": "ingest_nvfp4.nvfp4_pack"
+      }
+     ],
+     "outputs": [
+      {
+       "name": "change",
+       "kind": "diff",
+       "criteria": [
+        "Passes the loaded ffn_gate_exps, ffn_up_exps and ffn_down_exps .scale tensors to the Muse mixture-of-experts block.",
+        "A pack without .scale tensors (the IQ2_XXS pack) gives byte-identical greedy output to stock.",
+        "One expert matmul and one layer slice of the NVFP4 pack match a torch dequantization of the checkpoint within the numerics tolerance.",
+        "Touches only the files its capsule source map allows.",
+        "With its switch unset (or the tensors it reads absent), the engine behaves exactly like stock: no new work, no changed output.",
+        "Errors and limits fall back to stock behaviour instead of crashing."
+       ]
+      }
+     ],
+     "evidence_obligations": [
+      "captured_input_and_output",
+      "mandatory_checks",
+      "semantic_assessment"
+     ],
+     "node_limits": {
+      "turns": 40,
+      "build_attempts": 4,
+      "gpu_launches": 6
+     },
+     "authority_ceiling": {
+      "effects": [
+       "process.exec",
+       "workspace.read",
+       "workspace.write"
+      ],
+      "workspace": "write"
+     },
+     "work": {
+      "helpful_ccs": [
+       "weights.build_expert_scale_wiring",
+       "factory.source_workbench",
+       "factory.integration_skill"
+      ],
+      "capability": "weights.build_expert_scale_wiring.verify",
+      "eligible_ccs": [
+       "weights.build_expert_scale_wiring",
+       "factory.source_workbench",
+       "factory.integration_skill",
+       "factory.capped_runner"
+      ]
+     },
+     "verifiers": [
+      {
+       "output": "change",
+       "verifier": "weights.build_expert_scale_wiring.verify",
+       "stage": "runtime acceptance",
+       "review": "advisory"
+      }
+     ],
+     "hands_to": "build_base_engine",
+     "stage": "preliminary",
+     "slots": [
+      {
+       "id": "bind",
+       "at": "work.bound_ccs",
+       "kind": "ccs",
+       "from": "The capsule catalog, what the upstream nodes were built with and what failed before for this node."
+      }
+     ],
+     "briefing": {
+      "summary": "Implement and verify expert scales in the fresh owned checkout.",
+      "pitfalls": [
+       "The parity, KLD and slice checks use tiny CPU models. Require explicit operator clearance and the approved execution route before starting runtime verification."
+      ]
+     }
+    },
+    {
+     "node_id": "build_base_engine",
+     "kind": "build",
+     "objective": "Build the base engine E0 (stock plus scale wiring) and run one cold, capped NVFP4 inference.",
+     "requirement_ids": [
+      "A",
+      "cold_smoke"
+     ],
+     "predecessors": [
+      "wire_expert_scales"
+     ],
+     "inputs": [
+      {
+       "name": "change",
+       "from": "wire_expert_scales.change"
+      }
+     ],
+     "outputs": [
+      {
+       "name": "base_engine",
+       "kind": "source_bundle",
+       "criteria": [
+        "A source bundle of E0 against stock 9048bad8 with the sm_121 lab recipe, plus its build receipt."
+       ]
+      },
+      {
+       "name": "smoke",
+       "kind": "evidence",
+       "criteria": [
+        "One cold NVFP4 request under the 96 GiB cap returns coherent text; peak memory and available memory are recorded."
+       ]
+      }
+     ],
+     "evidence_obligations": [
+      "captured_input_and_output",
+      "invocation_observation"
+     ],
+     "node_limits": {
+      "turns": 15,
+      "build_attempts": 3,
+      "gpu_launches": 1
+     },
+     "authority_ceiling": {
+      "effects": [
+       "process.exec",
+       "workspace.read",
+       "workspace.write"
+      ],
+      "workspace": "read"
+     },
+     "work": {
+      "helpful_ccs": [
+       "factory.builder",
+       "factory.lab_manager"
+      ],
+      "eligible_ccs": [
+       "factory.builder",
+       "factory.lab_manager",
+       "factory.capped_runner"
+      ]
+     },
+     "verifiers": [
+      {
+       "output": "base_engine"
+      },
+      {
+       "output": "smoke",
+       "review": true
+      }
+     ],
+     "hands_to": "requant_2bit",
+     "stage": "preliminary",
+     "slots": [
+      {
+       "id": "bind",
+       "at": "work.bound_ccs",
+       "kind": "ccs",
+       "from": "The capsule catalog, what the upstream nodes were built with and what failed before for this node."
+      }
+     ]
+    },
+    {
+     "node_id": "requant_2bit",
+     "kind": "build",
+     "objective": "Plan and verify the mixed precision recipe, replay the matching production quantization through capped_runner, then run the real E0 smoke on the accepted pack.",
+     "requirement_ids": [
+      "B",
+      "pack_2bit_census",
+      "cold_smoke"
+     ],
+     "predecessors": [
+      "build_base_engine",
+      "ingest_nvfp4",
+      "pin_inputs"
+     ],
+     "inputs": [
+      {
+       "name": "nvfp4_pack",
+       "from": "ingest_nvfp4.nvfp4_pack"
+      },
+      {
+       "name": "base_engine",
+       "from": "build_base_engine.base_engine"
+      },
+      {
+       "name": "imatrix",
+       "from": "pin_inputs.pins"
+      }
+     ],
+     "outputs": [
+      {
+       "name": "recipe",
+       "kind": "evidence",
+       "criteria": [
+        "Names the source pack digest, the target type per tensor role and the imatrix digest; every chosen type has a GB10 kernel.",
+        "Match the production receipt to the source digest, imatrix, target and quantizer commit. Report its original elapsed time and replay time."
+       ]
+      },
+      {
+       "name": "pack_2bit",
+       "kind": "evidence",
+       "criteria": [
+        "Every routed gate and up expert weight is IQ2_XXS and every down expert weight Q2_K; attention, norms, router, embeddings and output keep their NVFP4-pack type; .scale tensors carried unchanged.",
+        "Total size between 240 and 290 GB; the temporary disk peak stayed inside the grant.",
+        "Eight held-out prompts give coherent text on E0.",
+        "Cite the successful host replay receipt and original production job."
+       ]
+      }
+     ],
+     "evidence_obligations": [
+      "captured_input_and_output",
+      "mandatory_checks",
+      "semantic_assessment"
+     ],
+     "node_limits": {
+      "turns": 30,
+      "time_s": 57600,
+      "gpu_launches": 1
+     },
+     "authority_ceiling": {
+      "effects": [
+       "process.exec",
+       "workspace.read",
+       "workspace.write"
+      ],
+      "workspace": "read"
+     },
+     "work": {
+      "helpful_ccs": [
+       "weights.build_weight_pack_compiler",
+       "engine.precision_lab"
+      ],
+      "capability": "weights.build_weight_pack_compiler.verify_pack",
+      "eligible_ccs": [
+       "weights.build_weight_pack_compiler",
+       "engine.precision_lab",
+       "factory.capped_runner"
+      ]
+     },
+     "verifiers": [
+      {
+       "output": "recipe",
+       "verifier": "weights.build_weight_pack_compiler.verify_recipe",
+       "stage": "fixture",
+       "review": "advisory",
+       "inputs": {
+        "target": "iq2_xxs,down=q2_k"
+       }
+      },
+      {
+       "output": "pack_2bit",
+       "verifier": "weights.build_weight_pack_compiler.verify_pack",
+       "stage": "native CC execution",
+       "review": "advisory",
+       "inputs": {
+        "target": "iq2_xxs,down=q2_k",
+        "expect_bytes_range": [
+         240000000000,
+         290000000000
+        ]
+       }
+      }
+     ],
+     "hands_to": "size_prefill_batch",
+     "stage": "preliminary",
+     "slots": [
+      {
+       "id": "bind",
+       "at": "work.bound_ccs",
+       "kind": "ccs",
+       "from": "The capsule catalog, what the upstream nodes were built with and what failed before for this node."
+      },
+      {
+       "id": "size_criterion",
+       "at": "outputs.pack_2bit.criteria",
+       "kind": "criteria",
+       "from": "The census of the accepted NVFP4 pack and the disk grant: one criterion naming the expected 2-bit pack size."
+      }
+     ],
+     "bounds": {
+      "verifiers.pack_2bit.inputs.expect_bytes_range": "inside"
+     },
+     "briefing": {
+      "summary": "The two full weight production steps already ran twice. Verify their recorded outputs with read-only manifest, shard size and header census checks. Record the original job and duration separately from the verification time. All other work runs in this demo.",
+      "facts": [
+       "muse-2bit-ttft-v4 full quantization b117d0f1e0e3428ebba1b7c681277d8b, producer cd8937e4f2bdd85f2a3a1e165ea73bc0df32f46f.",
+       "Use IQ2_XXS for gate and up, Q2_K for down. Preserve all eight real smoke prompts."
+      ],
+      "how_to_fill": [
+       "Bind the weight pack compiler and capped runner. Cite the trusted quantize receipt and current manifest census. Use the original producer commit, verified precision recipe and name muse-2bit-v4."
+      ]
+     }
+    },
+    {
+     "node_id": "size_prefill_batch",
+     "kind": "tune",
+     "evidence_obligations": [
+      "captured_input_and_output",
+      "invocation_observation",
+      "mandatory_checks"
+     ],
+     "objective": "Size the server prefill batch so each lab prompt is prefilled in one micro-batch if the device budget allows, give the rest of the budget to the MoE expert cache, and confirm the plan on one capped load of E0 with the 2-bit pack. This is configuration, not timing: the lab times it.",
+     "requirement_ids": [
+      "P",
+      "prefill_batch_applied",
+      "cold_smoke"
+     ],
+     "predecessors": [
+      "build_base_engine",
+      "requant_2bit"
+     ],
+     "inputs": [
+      {
+       "name": "base_engine",
+       "from": "build_base_engine.base_engine"
+      },
+      {
+       "name": "pack_2bit",
+       "from": "requant_2bit.pack_2bit"
+      },
+      {
+       "name": "prompt_512",
+       "from": "contract:prompt_512"
+      },
+      {
+       "name": "prompt_2048",
+       "from": "contract:prompt_2048"
+      }
+     ],
+     "outputs": [
+      {
+       "name": "batch_plan",
+       "kind": "evidence",
+       "criteria": [
+        "A factory.prefill-batch-plan/1 from a -lv 4 load log of E0 on the 2-bit pack at the default batch: the batch and micro-batch sizes, the device estimate against the budget, and micro-batches per lab prompt before and after.",
+        "One capped load of E0 on the 2-bit pack with the planned arguments: the server applied them, its device buffers fit the budget, and greedy outputs of the lab requests agree with the default batch (byte-identical or a long common prefix).",
+        "The plan sizes the MoE cache (--moe-cache-mib in its args) and the capped load with the planned arguments uses the device budget to within headroom plus 2 GiB; if the linear compute estimate left more, the plan is redone from that load's log and loaded again."
+       ]
+      }
+     ],
+     "node_limits": {
+      "turns": 20,
+      "gpu_launches": 2,
+      "time_s": 3600
+     },
+     "authority_ceiling": {
+      "effects": [
+       "process.exec",
+       "workspace.read",
+       "workspace.write"
+      ],
+      "workspace": "read"
+     },
+     "work": {
+      "helpful_ccs": [
+       "engine.size_prefill_batch",
+       "factory.capped_runner"
+      ],
+      "capability": "engine.size_prefill_batch.verify",
+      "eligible_ccs": [
+       "engine.size_prefill_batch",
+       "factory.capped_runner"
+      ]
+     },
+     "verifiers": [
+      {
+       "output": "batch_plan",
+       "verifier": "engine.size_prefill_batch.verify",
+       "stage": "runtime acceptance",
+       "review": "advisory",
+       "inputs": {
+        "device_budget_mib": 110000,
+        "prompt_tokens": [
+         511,
+         2047
+        ],
+        "min_agree_chars": 64,
+        "fill_moe_cache_headroom_mib": 2048
+       }
+      }
+     ],
+     "hands_to": "build_image",
+     "stage": "preliminary",
+     "slots": [
+      {
+       "id": "bind",
+       "at": "work.bound_ccs",
+       "kind": "ccs",
+       "from": "The capsule catalog and the capsule docs in the brief, what the upstream nodes were built with and what failed before for this node."
+      },
+      {
+       "id": "batch_choice",
+       "at": "outputs.batch_plan.criteria",
+       "kind": "criteria",
+       "from": "The compute and KV buffers in the default-batch load log and the free memory now: one criterion naming the micro-batch sizes to try, in order."
+      }
+     ],
+     "bounds": {
+      "verifiers.batch_plan.inputs.device_budget_mib": "lower",
+      "verifiers.batch_plan.inputs.min_agree_chars": "higher",
+      "verifiers.batch_plan.inputs.fill_moe_cache_headroom_mib": "lower"
+     },
+     "briefing": {
+      "summary": "The one CC after the quantization. Prefill on the GB10 streams every routed expert once per micro-batch, so fewer micro-batches per prompt means less streaming and a shorter time to first token. The plan must leave the expert cache as large as the budget allows, or decode gets slower.",
+      "facts": [
+       "Nov 25 lab, by hand (Q2_K pack): -b 2048 -ub 2048 cut warm 2048-token TTFT from 287 s to 114 s; decode unchanged at about 0.85 tok/s (report-abcde.json, arms C and D).",
+       "The lab prompts render to 511 and 2047 tokens, so -ub 2048 prefills either in one micro-batch.",
+       "Device budget 110000 MiB (128 GiB less 14 GiB). On the GB10 device memory is system memory and is not charged to the cgroup: factory.capped_runner adds -fitt so the llama.cpp fit stays in budget.",
+       "Q2_K, Nov 25 -lv 4 logs: model 37397 MiB on device, KV 716 MiB; compute buffer 1539 MiB at the default batch, 2128 MiB at -ub 2048. The 2-bit pack on E0 (Nov 26): compute 1.5 GiB at the default batch, load 164 s.",
+       "engine.size_prefill_batch 1.2.0: fill_moe_cache_headroom_mib gives the rest of the budget to --moe-cache-mib after the planned compute and KV buffers."
+      ],
+      "pitfalls": [
+       "An agent sweep (Nov 25) took -ub 4096 with a smaller 48 GiB cache: decode fell to 0.55-0.61 tok/s. Larger micro-batches than the prompt need buy nothing here and cost cache.",
+       "The SWA KV buffer grows with the micro-batch (460 MiB at the default, 1104 MiB at 4096): read it from the log, do not assume it is fixed.",
+       "Each load takes about 3 minutes and needs the machine gate (100 GiB available, no other GPU job); a MEMORY_LOW stop is a host fault to report, not a plan failure.",
+       "Two loads are approved: default and planned. If the verified budget needs a retune, stop at the checkpoint and ask the operator before another load. Keep the failed measurement."
+      ],
+      "how_to_fill": [
+       "batch_choice: try 2048 first (one micro-batch per lab prompt); name a smaller fallback only if the default-batch log shows 2048 does not fit the budget with a cache at least as large as arm B gets.",
+       "bind: engine.size_prefill_batch for the plan and verify, factory.capped_runner for the two loads."
+      ]
+     }
+    },
+    {
+     "node_id": "build_image",
+     "kind": "build",
+     "objective": "Compile the owned checkout (stock 9048bad8 plus the converter and the expert scale wiring) into an engine image for the Spark with factory.builder, check that the image starts, and record the run configuration the lab uses: the image, the 2-bit pack and its manifest, and the batch plan arguments.",
+     "requirement_ids": [
+      "B",
+      "P",
+      "image_starts"
+     ],
+     "predecessors": [
+      "wire_expert_scales",
+      "build_base_engine",
+      "requant_2bit",
+      "size_prefill_batch"
+     ],
+     "inputs": [
+      {
+       "name": "change",
+       "from": "wire_expert_scales.change"
+      },
+      {
+       "name": "base_engine",
+       "from": "build_base_engine.base_engine"
+      },
+      {
+       "name": "pack_2bit",
+       "from": "requant_2bit.pack_2bit"
+      },
+      {
+       "name": "batch_plan",
+       "from": "size_prefill_batch.batch_plan"
+      }
+     ],
+     "outputs": [
+      {
+       "name": "image",
+       "kind": "image",
+       "criteria": [
+        "One factory.builder build (target spark-gb10, build_target llama-server, delivery image) of the owned checkout at the commit E0 was built from; its build receipt names the image."
+       ]
+      },
+      {
+       "name": "image_check",
+       "kind": "evidence",
+       "criteria": [
+        "The image runs llama-server --version with no network and no model, and the reported build matches the owned checkout commit; the binary digest in the build record is cited.",
+        "No model is loaded in this node."
+       ]
+      },
+      {
+       "name": "run_config",
+       "kind": "evidence",
+       "criteria": [
+        "One JSON evidence record for the lab: image id and tag, the 2-bit pack path and the digest of its manifest, the device budget arguments, and for arm P the batch plan's -b, -ub and --moe-cache-mib (arm B: the plan's --moe-cache-mib at the default batch)."
+       ]
+      }
+     ],
+     "evidence_obligations": [
+      "captured_input_and_output",
+      "invocation_observation"
+     ],
+     "node_limits": {
+      "turns": 15,
+      "build_attempts": 3,
+      "gpu_launches": 0,
+      "time_s": 7200
+     },
+     "authority_ceiling": {
+      "effects": [
+       "process.exec",
+       "workspace.read",
+       "workspace.write"
+      ],
+      "workspace": "read"
+     },
+     "work": {
+      "helpful_ccs": [
+       "factory.builder",
+       "factory.capped_runner"
+      ],
+      "eligible_ccs": [
+       "factory.builder",
+       "factory.capped_runner",
+       "factory.lab_manager"
+      ]
+     },
+     "verifiers": [
+      {
+       "output": "image"
+      },
+      {
+       "output": "image_check",
+       "review": "advisory"
+      },
+      {
+       "output": "run_config",
+       "review": "advisory"
+      }
+     ],
+     "hands_to": "deliver_to_lab",
+     "stage": "preliminary",
+     "slots": [
+      {
+       "id": "bind",
+       "at": "work.bound_ccs",
+       "kind": "ccs",
+       "from": "The capsule catalog and the capsule docs in the brief, what the upstream nodes were built with and what failed before for this node."
+      }
+     ],
+     "briefing": {
+      "summary": "The end of the implementation: the code the graph changed becomes an engine image the lab can run. Nothing is measured here.",
+      "facts": [
+       "The original Nov 26 E0 build took about four minutes. Resolve the fresh checkout commit and binary digest from this run\u2019s base_engine evidence.",
+       "factory.builder with target spark-gb10 and build_target llama-server compiles with the sm_121 flags and packages /opt/llamacpp/llama-server on the cached runtime base image (docker build --network=none --pull=false), then tags it factory/llamacpp:artifact-<id>.",
+       "Both manifests come from verified replay receipts. Treat linked packs as read-only."
+      ],
+      "pitfalls": [
+       "For spark-gb10 the builder requires a clean `dependency` {path, commit} even for llama-server, whose flags ignore it: pass the owned checkout and the same commit.",
+       "The source must be clean with HEAD equal to the commit; the tag must be factory/llamacpp:<name>; the Spark build deadline is at most 5400 s.",
+       "Do not load the model in the image here: Docker containers are not under the capped runner's cgroup. Model loads from the image are the lab's, with a container memory cap."
+      ],
+      "how_to_fill": [
+       "Bind factory.builder for the image and cite verified manifests from upstream replays."
+      ]
+     }
+    },
+    {
+     "node_id": "deliver_to_lab",
+     "kind": "deliver",
+     "objective": "The gate: ship the image once, with its run configuration, both replayed pack manifests, and the lab task for arms B and P, to the lab manager. Delivery is refused unless every upstream check passed and the shipped digests match the recorded ones.",
+     "requirement_ids": [
+      "B",
+      "P",
+      "server_token_count",
+      "prefill_batch_applied",
+      "image_starts",
+      "client_ttft_ms",
+      "decode_tokens_per_second",
+      "request_total_ms",
+      "prompt_tokens_per_second",
+      "sampled_peak_memory_bytes",
+      "load_seconds",
+      "cold_smoke"
+     ],
+     "predecessors": [
+      "build_image",
+      "build_base_engine"
+     ],
+     "inputs": [
+      {
+       "name": "image",
+       "from": "build_image.image"
+      },
+      {
+       "name": "run_config",
+       "from": "build_image.run_config"
+      },
+      {
+       "name": "sources",
+       "from": "build_base_engine.base_engine"
+      }
+     ],
+     "outputs": [
+      {
+       "name": "lab_request",
+       "kind": "lab_request",
+       "criteria": [
+        "The lab task fills arms B and P with the shipped image and run configuration and runs every check and metric, cold and warm, at 512 and 2048 tokens. Arm A is the Nov 25 baseline result, cited, not rerun. No accuracy test: the Q2_K paired MMLU result is cited as indicative."
+       ]
+      }
+     ],
+     "evidence_obligations": [
+      "captured_input_and_output",
+      "invocation_observation"
+     ],
+     "node_limits": {
+      "turns": 10
+     },
+     "authority_ceiling": {
+      "effects": [
+       "process.exec"
+      ],
+      "workspace": "none"
+     },
+     "work": {
+      "helpful_ccs": [
+       "factory.lab_manager"
+      ],
+      "eligible_ccs": [
+       "factory.lab_manager"
+      ]
+     },
+     "verifiers": [
+      {
+       "output": "lab_request"
+      }
+     ],
+     "hands_to": "lab_manager",
+     "stage": "preliminary",
+     "slots": [
+      {
+       "id": "bind",
+       "at": "work.bound_ccs",
+       "kind": "ccs",
+       "from": "The capsule catalog and the capsule docs in the brief, what the upstream nodes were built with and what failed before for this node."
+      }
+     ],
+     "briefing": {
+      "summary": "The last node of the graph and the release gate. After it the lab runs once.",
+      "facts": [
+       "Baseline A (Nov 25, E0 on NVFP4, warm): TTFT 201.6 s at 512 and 606.7 s at 2048 tokens; decode 0.326 tok/s; total 996.8 s at 2048 (report-abcde.json).",
+       "Indicative accuracy (Q2_K pack, Nov 25): paired MMLU zero-shot at 250 questions, loss +0.8 points, interval [-2.9, +4.7], pass at margin 5."
+      ],
+      "pitfalls": [
+       "A mismatched pack or image digest must block delivery; do not ship a pack without its manifest."
+      ],
+      "how_to_fill": [
+       "bind: factory.lab_manager."
+      ]
+     }
+    }
+   ]
+  }
+ }
+}

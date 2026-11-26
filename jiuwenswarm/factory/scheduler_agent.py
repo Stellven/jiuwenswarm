@@ -61,7 +61,7 @@ def configure(home, task_id):
            'FACTORY_AGENT_ROLE': 'scheduler',
            'PYTHONPATH': os.pathsep.join(dict.fromkeys([str(ROOT), *filter(None, os.environ.get('PYTHONPATH', '').split(os.pathsep))])),
            'CCV2_PYTHON': sys.executable, 'FACTORY_PYTHON': sys.executable, 'PATH': os.environ.get('PATH', '')}
-    for key in ('FACTORY_MACHINE_STATE', 'FACTORY_READ_TASKS', 'JOBQ_DIR'):  # JOBQ_DIR: the brief lists the queue
+    for key in ('FACTORY_MACHINE_STATE', 'FACTORY_READ_TASKS', 'JOBQ_DIR', 'FACTORY_SCHEDULER_PREVIEW'):  # JOBQ_DIR: the brief lists the queue
         if key in os.environ:
             env[key] = os.environ[key]
     quote = json.dumps
@@ -84,6 +84,11 @@ def configure(home, task_id):
 def query(task_id, node_id, attempt):
     message = dict(role='scheduler', task_id=task_id, node_id=node_id, attempt=attempt,
                    instructions=Path(__file__).with_name('SCHEDULER.md').read_text(encoding='utf-8'))
+    if os.environ.get('FACTORY_SCHEDULER_PREVIEW') == '1':
+        message['rehearsal'] = ('This is a scheduler-only rehearsal. Read the real brief and use propose for a '
+                                'schema-validated draft. Cite the historical evidence as historical. Describe pending '
+                                'measurements as future obligations. A validated proposal ends this turn. '
+                                'No predecessor completion or graph admission is expected in preview mode.')
     if attempt > 1:
         message['host_observation'] = ('Your earlier proposal for this node was refused or not made. '
                                        'Read the refusal reasons in the brief (earlier proposals) and fix them.')

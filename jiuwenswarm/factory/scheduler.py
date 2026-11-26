@@ -238,6 +238,22 @@ def admitted(store, task_id, capability, inputs):
     contracts = _contracts(host, task)
     capsule, cap, kind = NODE_CAPABILITIES[capability]
     node_id = inputs.get('node_id')
+    approved = (task.get('constraints') or {}).get('approved_model_packs')
+    if approved is not None and capability == 'capped_runner.start':
+        if not node_id:
+            raise ValueError('The model-load ledger requires a node on every capped run')
+        recipe = inputs.get('recipe')
+        args = inputs.get('args') or {}
+        if recipe in {'convert', 'quantize'} and not args.get('replay'):
+            raise ValueError('The model-load ledger requires a receipt replay for production')
+        if recipe == 'accuracy':
+            raise ValueError('Accuracy loads are outside the model-load ledger')
+        if recipe == 'serve':
+            from pathlib import Path
+            expected = approved.get(node_id)
+            actual = Path(os.path.expandvars(str(args.get('model', '')))).expanduser().resolve()
+            if not expected or actual != (host.home / 'packs' / expected).resolve():
+                raise ValueError('This server load does not match the node and pack in the model-load ledger')
     if contracts is not None and capability == 'lab_manager.compose' and not node_id:
         raise ValueError('This task has node contracts: compose the lab package from its deliver node (node_id)')
     if not node_id:
@@ -400,6 +416,39 @@ def finalize_brief(store, task_id, node_id):
     return build(store, task_id, node_id)
 
 
+def proposal_problems(contract, document, prelim, final, known):
+    from .node_contract import problems
+    from .node_finalize import check_final
+    found = check_final(prelim, final, known_ccs=set(known))
+    if found:
+        return found
+    replaced = [final if n['node_id'] == prelim['node_id'] else n for n in document['nodes']]
+    return problems(dict(document, nodes=replaced), contract)
+
+
+def preview_proposal(store, task_id, node_id, final, rationale):
+    """Validate a rehearsal proposal without admitting work or changing graph state."""
+    from .contract import load
+    from .node_contract import node as lookup
+    if hasattr(store, '_check'):
+        store._check(task_id, write=True)
+    host = getattr(store, '_store', store)
+    task = host.get_task(task_id)
+    document = _contracts(host, task)
+    graph_node = next((n for n in _graph(host, task_id)['nodes'] if n['node_id'] == node_id), None)
+    if not graph_node:
+        raise ValueError(f'Unknown plan node: {node_id}')
+    prelim = lookup(document, graph_node['node_contract'])
+    found = proposal_problems(load(task['contract_id']), document, prelim, final, catalog())
+    if not isinstance(rationale, str) or not rationale.strip():
+        found.append('A final node contract needs a rationale')
+    result = dict(node_id=node_id, validated=not found, admitted=False, problems=found,
+                  final=final, rationale=rationale)
+    host.append_observation(task_id, dict(kind='scheduler_dry_run_proposal', values=result,
+        limitations='Planning rehearsal only. Predecessor evidence may still be pending.'))
+    return {k: result[k] for k in ('node_id', 'validated', 'admitted', 'problems')}
+
+
 def finalize(store, task_id, node_id, final, rationale, by='scheduler-agent'):
     """Admit or refuse a proposed final node contract. Control code: it never edits the proposal.
 
@@ -409,8 +458,8 @@ def finalize(store, task_id, node_id, final, rationale, by='scheduler-agent'):
     node contract (same contract, inputs and capsule versions) is refused: something must change.
     """
     from .contract import load
-    from .node_contract import check_spec, node as contract_node_of, problems as document_problems
-    from .node_finalize import check_final, diff, digest, is_preliminary
+    from .node_contract import check_spec, node as contract_node_of
+    from .node_finalize import diff, digest, is_preliminary
     from .taskgraph import _apply_patch
     if not isinstance(rationale, str) or not rationale.strip():
         raise ValueError('A final node contract needs a rationale')
@@ -438,10 +487,7 @@ def finalize(store, task_id, node_id, final, rationale, by='scheduler-agent'):
         if unfinished:
             raise ValueError('Finalize a node when it can run; waiting for ' + ', '.join(unfinished))
         known = catalog()
-        found = check_final(prelim, final, known_ccs=set(known))
-        if not found:
-            document = dict(contracts, nodes=[final if n['node_id'] == prelim['node_id'] else n for n in contracts['nodes']])
-            found = document_problems(document, load(task['contract_id']))
+        found = proposal_problems(load(task['contract_id']), contracts, prelim, final, known)
         inputs = _resolve(host, task, prelim, graph['nodes'])
         bound = ((final.get('work') or {}).get('bound_ccs') or []) if isinstance(final, dict) else []
         versions = {cc: known.get(cc, {}).get('version') for cc in bound if isinstance(cc, str)}

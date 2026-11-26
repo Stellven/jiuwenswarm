@@ -20,6 +20,13 @@ PY=${PY:-$HOME/predemo-spark/jiuwenswarm/.venv/bin/python}
 TASK=${TASK:?set TASK (the task id, e.g. muse-2bit-ttft-v4 or muse-2bit-rehearsal-r1)}
 export FACTORY_HOME=${FACTORY_HOME:?set FACTORY_HOME (e.g. ~/muse-demo/graph-v4)}
 SESSION=${SESSION:?set SESSION (tmux prefix, e.g. muse or reh)}
+if [[ "$TASK" == muse-2bit-demo-r8 ]]; then
+  export FACTORY_CAPPED_REPLAY_REGISTRY="${FACTORY_CAPPED_REPLAY_REGISTRY:-$HOME/muse-demo/replay-r8/registry.json}"
+  if [[ "$SESSION" != r8 || ( "${1:-}" == run || "${1:-}" == _run ) && "${STEP:-0}" != 1 ]]; then
+    echo "The fresh Muse demo requires SESSION=r8 and STEP=1 for execution." >&2
+    exit 1
+  fi
+fi
 export FACTORY_REPO=$REPO
 export PYTHONPATH=$REPO
 export PATH=$HOME/.local/bin:/usr/local/cuda/bin:$PATH
