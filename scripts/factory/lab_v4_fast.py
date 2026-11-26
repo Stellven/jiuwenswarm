@@ -1,17 +1,17 @@
 """Fast lab for the Muse v4 delivery (lab tooling, outside the factory graph; owner 2026-11-26: the lab is not the
 contribution area, speed it up and collect time to first token and decode from the same requests).
 
-    python scripts/factory/lab_v4_fast.py CONFIG.json [A B C D]
+    python scripts/factory/lab_v4_fast.py CONFIG.json [ARM ...]
 
 CONFIG names, per arm, the engine binary directory (or `image`: an engine image whose /opt/llamacpp is copied
-out and run natively under the cap, with optional `expect_sha256`), the first pack shard, the MoE cache size, extra server args and
-env (the delivered E0/E1 builds, packs, profile and batch plan). Protocol, one capped server load per arm:
+out and run natively, with optional `expect_sha256`), the first pack shard, the MoE cache size, extra server args and
+env (the delivered builds, packs and batch plan). Protocol, one capped server load per arm:
 per prompt size one cold request (pack pages evicted with POSIX_FADV_DONTNEED first) and, unless the arm lists the
 size in skip_warm, one warm request; 32 generated tokens; each streamed request gives client time to first token,
 server prefill rate and decode rate together. Rows are written as they finish and a rerun skips rows already done.
 
-Memory: every load runs under systemd-run MemoryMax=96G; device memory (not charged to the cgroup on the GB10) is
-kept inside total memory less 14 GiB with -fitt, and the run stops below 8 GiB available.
+Every load uses factory.capped_runner's machine gate and 96 GiB scope. The runner uses -fitt to keep device memory
+within total memory less 14 GiB by default, or CONFIG.device_budget_mib. The lab stops below 8 GiB available.
 """
 import glob
 import hashlib
@@ -23,18 +23,18 @@ import signal
 import statistics
 import subprocess
 import sys
+from tempfile import TemporaryDirectory
 import time
-import urllib.request
+from uuid import uuid4
 
-PORT, HOST_RESERVE_MIB, FLOOR_GIB = 8097, 14336, 8.0
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from jiuwenswarm.factory import capped_run
+
+FLOOR_GIB = 8.0
 
 
 def log(*a):
     print(time.strftime('%H:%M:%S'), *a, flush=True)
-
-
-def meminfo():
-    return {l.split(':')[0]: int(l.split()[1]) * 1024 for l in open('/proc/meminfo')}
 
 
 def evict(model):
@@ -46,82 +46,72 @@ def evict(model):
             os.close(fd)
 
 
-def stop(proc):
-    try:
-        os.killpg(proc.pid, signal.SIGINT)
-        proc.wait(90)
-    except Exception:  # noqa: BLE001
-        os.killpg(proc.pid, signal.SIGKILL)
-        proc.wait()
-    time.sleep(5)
-
-
 def from_image(name, arm, out):
-    """An arm may name an engine image instead of a binary directory: its /opt/llamacpp is copied out and run natively
-    under the same memory cap (a container would sit outside the systemd scope). Returns the directory and a record
-    of the image id and the server binary digest, so the lab result names exactly what it ran."""
-    directory = out / f'bin-{name}'
+    """Extract once per immutable image ID in this invocation and record the executed binary's digest."""
     image = subprocess.run(['docker', 'image', 'inspect', '--format', '{{.Id}}', arm['image']], check=True,
                            capture_output=True, text=True).stdout.strip()
-    if not (directory / 'llama-server').exists():
+    if not re.fullmatch(r'sha256:[0-9a-f]{64}', image):
+        raise SystemExit(f'{name}: Docker returned an invalid image ID: {image!r}')
+    directory = out / image.removeprefix('sha256:')
+    server = directory / 'llama-server'
+    if not server.is_file():
         container = subprocess.run(['docker', 'create', image], check=True, capture_output=True, text=True).stdout.strip()
         try:
             subprocess.run(['docker', 'cp', f'{container}:/opt/llamacpp/.', str(directory)], check=True)
         finally:
             subprocess.run(['docker', 'rm', container], check=True, capture_output=True)
-    digest = hashlib.sha256((directory / 'llama-server').read_bytes()).hexdigest()
+    with server.open('rb') as handle:
+        digest = hashlib.file_digest(handle, 'sha256').hexdigest()
     if arm.get('expect_sha256') and digest != arm['expect_sha256']:
         raise SystemExit(f'{name}: llama-server in {arm["image"]} has sha256 {digest}, expected {arm["expect_sha256"]}')
     return str(directory), dict(image=arm['image'], image_id=image, llama_server_sha256=digest)
 
 
-def start(name, arm, out):
-    mem = meminfo()
-    avail, total = mem['MemAvailable'] // 2**20, mem['MemTotal'] // 2**20
-    margin = max(1024, avail - (total - HOST_RESERVE_MIB))
-    argv = ['systemd-run', '--user', '--scope', '--quiet', '-p', 'MemoryMax=96G', '-p', 'MemorySwapMax=0',
-            '--unit', f'muse-lab-v4-{name}-{int(time.time())}', str(Path(arm['bin']) / 'llama-server'), '-m', arm['model'],
-            '-lm', 'mmap', '--cpu-moe', '--moe-cache-mib', str(arm['cache_mib']), '-c', '4096', '-np', '1',
-            '--host', '127.0.0.1', '--port', str(PORT), '-lv', '4', '-fitt', str(margin), *arm.get('args', [])]
-    env = dict(os.environ, LD_LIBRARY_PATH=str(arm['bin']), **arm.get('env', {}))
+def start(name, arm, out, device_budget_mib):
+    task = dict(resources=dict(memory_cap=capped_run.CAP, device_budget_mib=device_budget_mib, floor_gib=FLOOR_GIB))
+    run = capped_run.RunScope(out, out, task, uuid4().hex, f'{name}.progress.log')
+    gate = run.gate()
     evict(arm['model'])
-    t0 = time.time()
-    proc = subprocess.Popen(argv, env=env, stdout=subprocess.DEVNULL, stderr=open(out / f'{name}.server.log', 'wb'),
-                            start_new_session=True)
-    while True:
-        time.sleep(3)
-        if proc.poll() is not None:
-            raise SystemExit(f'{name}: server exited {proc.returncode}')
-        if meminfo()['MemAvailable'] / 2**30 < FLOOR_GIB:
-            stop(proc)
-            raise SystemExit(f'{name}: available memory below {FLOOR_GIB} GiB, stopped')
-        try:
-            if urllib.request.urlopen(f'http://127.0.0.1:{PORT}/health', timeout=2).status == 200:
-                return proc, time.time() - t0, argv, margin
-        except Exception:  # noqa: BLE001
-            pass
+    args = ['-lm', 'mmap', '--cpu-moe', '--moe-cache-mib', str(arm['cache_mib']), '-c', '4096', '-np', '1',
+            *arm.get('args', []), '-fit', 'on']
+    env = {**capped_run.user_bus_env(), **arm.get('env', {})}
+    server_path = Path(arm['bin']).resolve() / 'llama-server'
+    log_name = f'{name}.server.log'
+    (out / log_name).write_bytes(b'')
+    server = capped_run.Server(run, str(server_path), arm['model'], args, env, log_name)
+    return server, gate
 
 
-def request(prompt, n_predict):
-    body = json.dumps(dict(prompt=prompt, n_predict=n_predict, temperature=0, seed=1, cache_prompt=False, stream=True)).encode()
-    req = urllib.request.Request(f'http://127.0.0.1:{PORT}/completion', data=body, headers={'Content-Type': 'application/json'})
-    t0, first, text, final = time.time(), None, [], {}
-    with urllib.request.urlopen(req, timeout=7200) as r:
-        for raw in r:
+def request(server, prompt, n_predict):
+    body = dict(prompt=prompt, n_predict=n_predict, temperature=0, seed=1, cache_prompt=False, stream=True)
+    t0 = time.monotonic()
+
+    def consume(response):
+        first, text, final = None, [], None
+        for raw in response:
             line = raw.decode().strip()
             if not line.startswith('data:'):
                 continue
-            d = json.loads(line[5:])
+            data = line[5:].strip()
+            if data == '[DONE]':
+                break
+            d = json.loads(data)
+            if d.get('error'):
+                raise ValueError(d['error'])
             if first is None and d.get('content'):
-                first = time.time()
+                first = time.monotonic()
             text.append(d.get('content', ''))
             if d.get('stop'):
                 final = d
-    t1, tm = time.time(), final.get('timings', {})
-    return dict(client_ttft_ms=round(((first or t1) - t0) * 1000, 1), request_total_ms=round((t1 - t0) * 1000, 1),
-                prompt_tokens=tm.get('prompt_n'), prompt_ms=tm.get('prompt_ms'), prompt_tokens_per_second=tm.get('prompt_per_second'),
-                generated_tokens=tm.get('predicted_n'), decode_tokens_per_second=tm.get('predicted_per_second'),
-                output_sha256=hashlib.sha256(''.join(text).encode()).hexdigest(), text_head=''.join(text)[:160])
+        if final is None:
+            raise ValueError('completion stream ended before the terminal event')
+        t1, tm, output = time.monotonic(), final['timings'], ''.join(text)
+        return dict(client_ttft_ms=round(((first or t1) - t0) * 1000, 1), request_total_ms=round((t1 - t0) * 1000, 1),
+                    prompt_tokens=tm['prompt_n'], prompt_ms=tm['prompt_ms'], prompt_tokens_per_second=tm['prompt_per_second'],
+                    generated_tokens=tm['predicted_n'], decode_tokens_per_second=tm['predicted_per_second'],
+                    output_sha256=hashlib.sha256(output.encode()).hexdigest(), text_head=output[:160])
+
+    return server.post(body, consume=consume)
 
 
 def summary(rows):
@@ -135,6 +125,45 @@ def summary(rows):
             for k, v in sorted(out.items())}
 
 
+def save(report_path, report):
+    temporary = report_path.with_suffix('.json.tmp')
+    temporary.write_text(json.dumps(report, indent=1))
+    temporary.replace(report_path)
+
+
+def run_arm(name, arm, out, plan, prompts, report_path, report, config):
+    progress = out / f'{name}.progress.log'
+    log(f'{name}: waiting for the machine; progress in {progress}')
+    server, gate = start(name, arm, out, config.get('device_budget_mib'))
+    try:
+        with server.log.open(errors='replace') as handle:
+            markers = [line.strip()[:240] for line in handle if re.search(
+                r'expert_weight_cache.*(active|inactive)|MoE cache size|n_ubatch|compute buffer size', line)][:20]
+        arm_record = dict(argv=server.argv, env=arm.get('env', {}), load_seconds=round(server.ready_s, 1),
+                          **server.placement, machine_gate=gate, memory_cap=server.run.cap, markers=markers,
+                          started=time.strftime('%Y-%m-%dT%H:%M:%S', time.localtime(server.started)))
+        report['arms'][name] = arm_record
+        log(f'{name}: ready {server.ready_s:.0f}s')
+        n_predict = config.get('n_predict', 32)
+        for size, state in plan:
+            if state == 'cold':
+                evict(arm['model'])
+            elif (size, 'cold') not in plan:
+                # A resumed warm cell needs a preceding request on this load.
+                evict(arm['model'])
+                request(server, prompts[size], n_predict)
+            row = dict(arm=name, request=size, state=state, **request(server, prompts[size], n_predict))
+            report['rows'].append(row)
+            report['summary'] = summary(report['rows'])
+            arm_record.update(sampled_peak_memory_bytes=server.run.peak or None,
+                              min_available_bytes=server.run.low)
+            save(report_path, report)
+            log(json.dumps({key: value for key, value in row.items() if key != 'text_head'}))
+    finally:
+        server.close()
+        save(report_path, report)
+
+
 def main(config_path, names):
     config = json.loads(Path(config_path).read_text())
     out = Path(config['out_dir'])
@@ -145,36 +174,33 @@ def main(config_path, names):
         config=config, rows=[], arms={})
     prompts = {size: Path(path).read_text() for size, path in config['prompts'].items()}
     done = {(r['arm'], r['request'], r['state']) for r in report['rows']}
-    for name in names or list(config['arms']):
-        arm = config['arms'][name]
-        plan = [(size, state) for size in prompts for state in ('cold', 'warm')
-                if not (state == 'warm' and size in arm.get('skip_warm', [])) and (name, size, state) not in done]
-        if not plan:
-            continue
-        if arm.get('image') and not arm.get('bin'):
-            arm['bin'], image_record = from_image(name, arm, out)
-            report.setdefault('images', {})[name] = image_record
-        log(f'{name}: start', arm['model'])
-        proc, ready_s, argv, margin = start(name, arm, out)
-        markers = [l.strip()[:240] for l in open(out / f'{name}.server.log', errors='replace')
-                   if re.search(r'expert_weight_cache.*(active|inactive)|MoE cache size|compute buffer size', l)][:6]
-        report['arms'][name] = dict(argv=argv, env=arm.get('env', {}), load_seconds=round(ready_s, 1), fit_margin_mib=margin,
-                                    markers=markers, started=time.strftime('%Y-%m-%dT%H:%M:%S'))
-        log(f'{name}: ready {ready_s:.0f}s')
-        try:
-            for size, state in plan:
-                if state == 'cold':
-                    evict(arm['model'])
-                row = dict(arm=name, request=size, state=state, **request(prompts[size], config.get('n_predict', 32)))
-                report['rows'].append(row)
-                report['summary'] = summary(report['rows'])
-                report_path.write_text(json.dumps(report, indent=1))
-                log(json.dumps({k: v for k, v in row.items() if k != 'text_head'}))
-        finally:
-            stop(proc)
-            report_path.write_text(json.dumps(report, indent=1))
+    with TemporaryDirectory(prefix='image-bins-', dir=out) as extracted:
+        pending = []
+        for name in dict.fromkeys(names or config['arms']):
+            arm = dict(config['arms'][name])
+            plan = [(size, state) for size in prompts for state in ('cold', 'warm')
+                    if not (state == 'warm' and size in arm.get('skip_warm', [])) and (name, size, state) not in done]
+            if not plan:
+                continue
+            if arm.get('image'):
+                arm['bin'], image_record = from_image(name, arm, Path(extracted))
+                images = report.setdefault('images', {})
+                if any(key[0] == name for key in done):
+                    previous = images.get(name, {})
+                    if any(previous.get(field) != image_record[field] for field in ('image_id', 'llama_server_sha256')):
+                        raise SystemExit(f'{name}: image identity differs from the partial report; use a new out_dir')
+                images[name] = image_record
+            pending.append((name, arm, plan))
+        for name, arm, plan in pending:
+            run_arm(name, arm, out, plan, prompts, report_path, report, config)
     log('lab done', json.dumps(report.get('summary', {}), indent=1))
 
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2:])
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(143))
+    if len(sys.argv) < 2:
+        raise SystemExit('usage: python scripts/factory/lab_v4_fast.py CONFIG.json [ARM ...]')
+    try:
+        main(sys.argv[1], sys.argv[2:])
+    except capped_run.RunError as exc:
+        raise SystemExit(f'{exc.code}: {exc}') from exc
