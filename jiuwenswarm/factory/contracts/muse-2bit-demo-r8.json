@@ -768,7 +768,7 @@
        "workspace.read",
        "workspace.write"
       ],
-      "workspace": "read"
+      "workspace": "write"
      },
      "work": {
       "helpful_ccs": [
@@ -832,7 +832,7 @@
        "Use IQ2_XXS for gate and up, Q2_K for down. Preserve all eight real smoke prompts."
       ],
       "how_to_fill": [
-       "Bind the weight pack compiler and capped runner. Cite the trusted quantize receipt and current manifest census. Use the original producer commit, verified precision recipe and name muse-2bit-v4."
+       "Bind the weight pack compiler and capped runner. Cite the trusted quantize receipt and current manifest census. Write the new recipe JSON under the owned work directory. Linked packs are read-only. Use the original producer commit, verified precision recipe and name muse-2bit-v4."
       ]
      }
     },

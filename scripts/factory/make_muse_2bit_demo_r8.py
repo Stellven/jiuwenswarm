@@ -38,6 +38,7 @@ def generate(root):
         f'{BASE} conversion {CONVERT}, producer 6eeca78bd8c74744b8d6bc04b9eaf151dc089195, bf16, 50G splits.',
         'The fixture exercises the fresh implementation. The recorded producer owns the production pack.'])
     requant = nodes['requant_2bit']
+    requant['authority_ceiling']['workspace'] = 'write'
     requant['objective'] = ('Plan and verify the mixed precision recipe, replay the matching production quantization '
                             'through capped_runner, then run the real E0 smoke on the accepted pack.')
     requant['outputs'][0]['criteria'][1] = ('Match the production receipt to the source digest, imatrix, target '
@@ -100,6 +101,7 @@ def generate(root):
         'checkpoint_manifest from checkpoint_digests, bf16, split_max_size 50G and name muse-nvfp4-v4.']
     requant['briefing']['how_to_fill'] = [
         'Bind the weight pack compiler and capped runner. Cite the trusted quantize receipt and current manifest census. '
+        'Write the new recipe JSON under the owned work directory. Linked packs are read-only. '
         'Use the original producer commit, verified precision recipe and name muse-2bit-v4.']
     caps = task['resources']['capsules']
     task['resources']['capsules'] = [c for c in caps if c not in {
