@@ -47,3 +47,24 @@ def test_native_replay_keeps_revision_and_verified_keys_in_recorded_order():
     assert revision['graph_rev'] == 2 and revision['primary_record'] == 'revision'
     assert step['event_cursor'] == 2 and step['node_id'] == 'wiring' and step['graph_nodes'] == ['wiring']
     assert step['key_files'] == [dict(path='artifacts/diff', label='Retained change')]
+
+
+def test_stopped_run_cites_latest_matching_terminal_decision_and_is_not_curated():
+    task = dict(task_id='r8', contract_id='muse-2bit-demo-r8', objective='demo')
+    outcome = 'stop_missing_prerequisite'
+    reason = 'The required eight-prompt suite is missing; the downstream checks remain open.'
+    decision = dict(decision_id='r8:decision:17', rev=17, created=20, action={'type': outcome},
+                    reason_for_change=reason, observations={'node_id': 'requant_2bit'})
+    old_stop = dict(decision, rev=12, decision_id='r8:decision:12', reason_for_change='An older stop.')
+    unrelated = dict(decision, rev=18, decision_id='r8:decision:18', reason_for_change='Unrelated evidence.',
+                     action={'type': 'investigate'})
+    controller_state = dict(finished=21, stop_reason='paused at a previous step checkpoint (STEP.md)')
+    data = dict(tasks=[task], decisions=[unrelated, decision, old_stop], observations=[],
+                _meta=dict(outcome=outcome, controller_state=controller_state))
+    complete = dict(node_id='requant_2bit', state='done', title='Quantize', evidence_ids=['check'])
+    assert factory_nodes.run_state(data, {'nodes': [dict(complete, state='proposed')]}, {}, False, 30) == dict(
+        state='stopped', outcome=outcome, reason=reason, by=None, since=21, node_id='requant_2bit',
+        job=None, markers={}, source='r8:decision:17')
+    assert factory_nodes.native_replay(data, {'nodes': [complete]}, [], 'graph-r8') is None
+    data['decisions'] = []
+    assert factory_nodes.run_state(data, {'nodes': [complete]}, {}, False, 30)['reason'] is None

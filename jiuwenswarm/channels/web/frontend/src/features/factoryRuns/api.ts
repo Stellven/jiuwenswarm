@@ -61,6 +61,7 @@ export type RunDetail = {
 };
 export type RunState = {
   state: string;
+  outcome?: string;
   reason?: string;
   by?: string;
   since?: number | string;

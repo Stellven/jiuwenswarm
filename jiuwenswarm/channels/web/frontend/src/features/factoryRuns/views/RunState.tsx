@@ -63,11 +63,16 @@ function RunStateBanner({ status, live }: { status: RunStateRecord; live: boolea
   const since = timestamp(status.since ?? marker?.mtime);
   const jobSince = timestamp(status.job?.since ?? status.since);
   const elapsed = live && Number.isFinite(jobSince) ? (now - jobSince) / 1000 : status.job?.elapsed_seconds;
+  const stopped = status.state === 'stopped';
+  const outcomeLabel =
+    status.outcome === 'stop_missing_prerequisite'
+      ? 'Missing prerequisite'
+      : status.outcome?.replace(/^stop_/, '').replaceAll('_', ' ');
   const Icon = waiting
     ? Hourglass
     : status.state === 'paused'
       ? Pause
-      : status.state === 'halted'
+      : status.state === 'halted' || stopped
         ? Square
         : status.state.includes('step') || status.state === 'checkpoint'
           ? GitBranch
@@ -79,6 +84,11 @@ function RunStateBanner({ status, live }: { status: RunStateRecord; live: boolea
         <strong data-testid="factory-runs-state-label">
           {stateLabels[status.state] ?? status.state.replaceAll('_', ' ')}
         </strong>
+        {stopped && outcomeLabel && (
+          <span className="factory-node-evidence-kind" data-testid="factory-runs-state-outcome">
+            {outcomeLabel}
+          </span>
+        )}
         {status.node_id && <code data-testid="factory-runs-state-node">{status.node_id}</code>}
         <ReplayLabel value={status.job?.replayed_from} />
       </div>

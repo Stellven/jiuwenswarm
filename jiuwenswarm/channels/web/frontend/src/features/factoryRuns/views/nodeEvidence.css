@@ -95,6 +95,10 @@
   color: var(--color-feedback-danger);
 }
 
+.factory-run-state[data-variant='stopped'] {
+  border-color: var(--color-feedback-warning);
+}
+
 .factory-replay-label,
 .factory-run-state[data-variant='paused'] {
   color: var(--color-text-primary);
