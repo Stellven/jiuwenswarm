@@ -70,6 +70,12 @@ SOURCE_DEFAULTS = {
     'FACTORY_MODELS': '~/models',
     'FACTORY_STRATA_PACK': '~/strata-baseline/Strata-data/packs/deepseek-v4.1-flash-ist-das-2.00bpw',
     'FACTORY_ONE_SHOT': '~/predemo/one_shot.sh',
+    # Muse demo (Spark): the demo directory, the spike checkouts' parent and the capsule test fixtures
+    'FACTORY_MUSE_DEMO': '~/muse-demo',
+    'FACTORY_MUSE_SPIKES': '~',
+    'FACTORY_MUSE_CAPS': '/tmp/cc-muse-caps',
+    'FACTORY_HOME': '~/.jiuwenswarm-factory',
+    'FACTORY_REPO': str(Path(__file__).resolve().parents[2]),
 }
 
 

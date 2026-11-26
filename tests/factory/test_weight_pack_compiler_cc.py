@@ -48,7 +48,7 @@ def packs(tmp_path):
 def test_contract_names_capabilities_the_capsule_declares():
     import yaml
     declaration = yaml.safe_load((CAPSULE / 'cc.yaml').read_text(encoding='utf-8'))
-    assert declaration['id'] == 'weights.build_weight_pack_compiler' and declaration['version'] == '2.1.0'
+    assert declaration['id'] == 'weights.build_weight_pack_compiler' and declaration['version'] == '2.2.0'
     contract = json.loads(CONTRACT.read_text(encoding='utf-8'))
     text = json.dumps(contract)
     for capability in ('verify_recipe', 'verify_pack'):
