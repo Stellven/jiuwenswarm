@@ -129,6 +129,43 @@ def test_events_are_ordered_and_plain():
     assert 'never weaker' in refusal['title'] and 'operator-test' in refusal['detail']
 
 
+@pytest.mark.parametrize('recipe, name', [('convert', 'NVFP4 weight pack'), ('quantize', '2-bit weight pack')])
+def test_replay_keeps_source_and_verification_separate(recipe, name):
+    data, current = fixture()
+    source = dict(job_id='production-job', run_id='earlier-run', recorded_at='2026-11-26T01:00:00Z',
+                  duration_seconds=8160)
+    attempt = data['attempts'][0]
+    attempt['request'].update(recipe=recipe, replayed_from=source)
+    attempt['ended'] = attempt['history'][-1]['created'] = T0 + 84.1
+    observation = next(o for o in data['observations'] if o['kind'] == 'capped_run')
+    observation['created'] = attempt['ended']
+    record = observation['values']
+    record.update(recipe=recipe, replayed_from=source, seconds=4.1, memory_cap=None)
+    record['result']['seconds'] = 3.7
+    result = board.build_replay(data, current=current)
+    [queued] = at(result, 'run_queued')
+    [started] = at(result, 'run_start')
+    [ended] = at(result, 'run')
+    assert 'Queued' in queued['title'] and 'earlier-run' in queued['detail']
+    assert 'replay verification' in started['title'] and 'earlier-run' in started['detail']
+    assert 'replayed from earlier-run' in ended['title'] and 'originally 136 min' in ended['title']
+    assert '2026-11-26' in ended['title'] and '3.7 s' in ended['title'] and 'wrote' not in ended['title']
+    [run] = next(n['runs'] for n in result['nodes'] if n['node_id'] == 'a')
+    assert run['bytes'] is None and run['verified_bytes'] == 267_217_592_800
+    assert run['replayed_from'] == source and run['seconds'] == 4.1 and run['verification_duration'] == '3.7 s'
+    [product] = result['products']
+    assert product['what'] == name and 'earlier-run' in product['replay_source']
+
+    observation['values'] = dict(record, outcome='error', error=dict(code='PACK_MISMATCH', message='wrong shard size'),
+                                 result=None)
+    failed = board.build_replay(data, current=current)
+    assert failed['products'] == []
+    [stopped] = at(failed, 'run')
+    assert 'PACK_MISMATCH' in stopped['title'] and 'earlier-run' in stopped['detail']
+    live = board.run_view(dict(attempt, state='running', ended=None, history=attempt['history'][:-1]), None)
+    assert 'replay verification' in live['what'] and live['replayed_from'] == source
+
+
 def test_node_states_follow_the_run():
     result = build()
     state = lambda kind, node='a', n=0: at(result, kind, node)[n]['states'][node]

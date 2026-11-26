@@ -10,7 +10,7 @@ from .migration import check_legacy_config_or_exit
 
 
 def format_status(value, plain=False, evidence=None):
-    from .story import duration, evaluation_summary, paint, wrap
+    from .story import duration, evaluation_summary, paint, replay_origin, wrap
     import time
     decision = value.get('latest_decision') or {}
     used = value.get('budget_used', {})
@@ -35,7 +35,10 @@ def format_status(value, plain=False, evidence=None):
     for job in jobs[:5]:
         history = job.get('history', [])
         since = job.get('started') or (history[0].get('created') if history else time.time())
-        lines += wrap(f"{job.get('kind', '?')} · {job.get('state', '?')} · age {duration(time.time() - since)}", '  ')
+        origin = replay_origin((job.get('request') or {}).get('replayed_from'))
+        kind = 'replay verification' if origin else job.get('kind', '?')
+        source = f' · source {origin}' if origin else ''
+        lines += wrap(f"{kind} · {job.get('state', '?')} · age {duration(time.time() - since)}{source}", '  ')
     if len(jobs) > 5:
         lines += [f'  +{len(jobs) - 5} more jobs']
     if not jobs:

@@ -273,13 +273,16 @@ def capped_runs(host, task_id, node_id, limit):
     for obs_id, doc, artifacts, _ in _observations(host, task_id, 'capped_run'):
         if doc.get('node_id') != node_id:
             continue
-        runs.append(dict(id=obs_id, recipe=doc.get('recipe'), args=_bounded((doc.get('request') or {}).get('args'), limit,
-                                                                              _evidence_how(obs_id)),
-                         outcome=doc.get('outcome'), error=doc.get('error'), seconds=doc.get('seconds'),
-                         memory_cap=doc.get('memory_cap'), peak_memory_bytes=doc.get('peak_memory_bytes'),
-                         min_available_bytes=doc.get('min_available_bytes'), attempt_id=doc.get('attempt_id'),
-                         result=_bounded(doc.get('result'), limit, _evidence_how(obs_id)),
-                         artifacts=_artifact_sizes(host, task_id, artifacts)))
+        run = dict(id=obs_id, recipe=doc.get('recipe'), args=_bounded((doc.get('request') or {}).get('args'), limit,
+                                                                    _evidence_how(obs_id)),
+                   outcome=doc.get('outcome'), error=doc.get('error'), seconds=doc.get('seconds'),
+                   memory_cap=doc.get('memory_cap'), peak_memory_bytes=doc.get('peak_memory_bytes'),
+                   min_available_bytes=doc.get('min_available_bytes'), attempt_id=doc.get('attempt_id'),
+                   result=_bounded(doc.get('result'), limit, _evidence_how(obs_id)),
+                   artifacts=_artifact_sizes(host, task_id, artifacts))
+        if doc.get('replayed_from'):
+            run['replayed_from'] = doc['replayed_from']
+        runs.append(run)
     return runs
 
 

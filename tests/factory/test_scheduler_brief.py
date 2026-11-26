@@ -114,8 +114,13 @@ def test_the_brief_records_where_a_capsule_was_bound_and_the_done_nodes(planned)
     planned.append_observation('pf', dict(kind='capped_run', host_run=dict(by='test'), values=dict(
         recipe='build', request=dict(recipe='build', args=dict(jobs=4)), outcome='ok', seconds=12.5, node_id='integrate',
         result=dict(binary='/x/llama-server'), attempt_id='a1')))
+    source = dict(job_id='original', run_id='earlier-run', recorded_at='2026-11-26T01:00:00Z', duration_seconds=1080)
+    planned.append_observation('pf', dict(kind='capped_run', host_run=dict(by='test'), values=dict(
+        recipe='convert', request=dict(recipe='convert'), outcome='ok', seconds=3.5, node_id='integrate',
+        result=dict(census='x' * 200), attempt_id='a2', replayed_from=source)))
     runs = scheduler_brief.capped_runs(planned, 'pf', 'integrate', 8000)
     assert runs[0]['recipe'] == 'build' and runs[0]['args'] == {'jobs': 4} and runs[0]['seconds'] == 12.5
+    assert runs[1]['replayed_from'] == source and runs[1]['seconds'] == 3.5
 
 
 def test_the_brief_history_lists_operator_records_and_all_refusals(planned):

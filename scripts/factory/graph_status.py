@@ -13,6 +13,7 @@ import sys
 import time
 
 from jiuwenswarm.factory.store import Store
+from jiuwenswarm.factory.story import replay_duration, replay_origin
 
 
 def main(task_id, brief=False):
@@ -45,9 +46,13 @@ def main(task_id, brief=False):
                                  'ORDER BY rowid DESC LIMIT 4', (task_id,)):
         attempt_id, kind, st, req, started, ended = row
         req = json.loads(req)
-        took = f"{((ended or time.time()) - started) / 60:.0f} min" if started else ''
-        print(f"run {attempt_id[:8]} {kind} {req.get('recipe', '')} {req.get('name', req.get('label', ''))} "
-              f"node={req.get('node_id')} {st} {took}")
+        elapsed = (ended or time.time()) - started if started else None
+        origin = replay_origin(req.get('replayed_from'))
+        took = (replay_duration(elapsed) if origin else f'{elapsed / 60:.0f} min') if elapsed is not None else ''
+        note = f' · {"replayed from" if st == "succeeded" else "replay source"} {origin}' if origin else ''
+        label = 'replay verification' if origin else kind
+        print(f"run {attempt_id[:8]} {label} {req.get('recipe', '')} {req.get('name', req.get('label', ''))} "
+              f"node={req.get('node_id')} {st} {took}{note}")
         if st in ('queued', 'running') and not brief:
             progress = home / 'runs' / attempt_id / 'progress.log'
             if progress.exists():

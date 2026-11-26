@@ -31,6 +31,7 @@ import re
 import statistics
 
 from .node_finalize import digest
+from .story import replay_duration, replay_origin
 
 DEFAULT_PORT = 5175
 
@@ -311,6 +312,7 @@ def run_view(attempt, capped):
     request = (attempt or {}).get('request') or (capped or {}).get('request') or {}
     result, error = (capped or {}).get('result') or {}, (capped or {}).get('error') or {}
     history = (attempt or {}).get('history') or []
+    queued = next((h.get('created') for h in history if h.get('state') == 'queued'), None)
     started = next((h.get('created') for h in history if h.get('state') == 'running'), None) or (attempt or {}).get('started')
     ended = (attempt or {}).get('ended')
     seconds = (capped or {}).get('seconds')
@@ -325,12 +327,18 @@ def run_view(attempt, capped):
         state = 'failed'
     recipe = request.get('recipe') or (capped or {}).get('recipe')
     written = result.get('bytes') if recipe in {'convert', 'quantize', 'build'} else None
+    source = (capped or {}).get('replayed_from') or request.get('replayed_from')
+    origin = replay_origin(source)
+    what = RECIPE_WORDS.get(recipe, recipe)
     return dict(attempt_id=(attempt or {}).get('attempt_id') or (capped or {}).get('attempt_id'),
                 node_id=request.get('node_id') or (capped or {}).get('node_id'), recipe=recipe,
-                what=RECIPE_WORDS.get(recipe, recipe), label=request.get('label') or request.get('name'),
-                state=state, t_start=started, t_end=ended, seconds=seconds,
+                what=f'{what} replay verification' if origin else what, label=request.get('label') or request.get('name'),
+                state=state, t_queued=queued, t_start=started, t_end=ended, seconds=seconds,
                 memory_cap=(capped or {}).get('memory_cap'), peak_memory_bytes=(capped or {}).get('peak_memory_bytes'),
-                min_available_bytes=(capped or {}).get('min_available_bytes'), bytes=written,
+                min_available_bytes=(capped or {}).get('min_available_bytes'), bytes=None if origin else written,
+                verified_bytes=written if origin and state == 'succeeded' else None,
+                replayed_from=source, replay_source=origin,
+                verification_duration=replay_duration(result.get('seconds', seconds)) if origin else None,
                 bytes_read=result.get('bytes') if recipe == 'manifest' else None,
                 probe=result.get('probe'), load_seconds=result.get('ready_s'), rows=result.get('rows'),
                 commit=result.get('commit'), error=dict(code=error.get('code'), message=_clip(error.get('message'), 300)) if error else None,
@@ -678,25 +686,35 @@ def build_replay(data, *, telemetry=(), notes=(), contracts=(), manifests=(), cu
     for run in runs:
         label = f" ({run['label']})" if run['label'] else ''
         cap = f" under a {run['memory_cap']} memory cap" if run['memory_cap'] else ''
+        origin = run['replay_source']
+        detail = f'Replay source {origin}' if origin else ''
+        if origin and run['t_queued'] is not None:
+            add(run['t_queued'], 'run_queued', 'runner', f"Queued {run['what']}{label} for {run['node_id']}",
+                node=run['node_id'], detail=detail, ref=run['attempt_id'], attempt=run['attempt_id'], run_state='queued')
         if run['t_start'] is not None:
             add(run['t_start'], 'run_start', 'runner', f"Started {run['what']}{label} for {run['node_id']}{cap}",
-                node=run['node_id'], ref=run['attempt_id'], attempt=run['attempt_id'], run_state='running')
+                node=run['node_id'], detail=detail, ref=run['attempt_id'], attempt=run['attempt_id'], run_state='running')
         if run['t_end'] is not None:
             size = f", wrote {human_bytes(run['bytes'])}" if run['bytes'] and run['bytes'] > 1e6 else ''
-            took = f" in {human_seconds(run['seconds'])}" if run['seconds'] is not None else ''
+            duration = run['verification_duration'] if origin else human_seconds(run['seconds'])
+            took = f' in {duration}' if duration else ''
             if run['bytes_read']:
                 size = f", hashed {human_bytes(run['bytes_read'])}"
             if run['probe']:
                 label += ' (one-layer probe)'
             if run['state'] == 'succeeded':
                 title, tone = f"{run['what'].capitalize()}{label} finished{took}{size}", 'good'
+                if origin:
+                    title += f', replayed from {origin}'
+                    detail = f"Verified {human_bytes(run['verified_bytes'])}" if run['verified_bytes'] else 'Pack verified'
             elif run['state'] == 'cancelled':
-                title, tone = f"{run['what'].capitalize()}{label} cancelled after {human_seconds(run['seconds'])}", 'warn'
+                title, tone = f"{run['what'].capitalize()}{label} cancelled" + (f' after {duration}' if duration else ''), 'warn'
             else:
                 code = (run['error'] or {}).get('code') or 'failed'
                 title, tone = f"{run['what'].capitalize()}{label} stopped: {code}", 'bad'
             add(run['t_end'], 'run', 'runner', title, node=run['node_id'],
-                detail=(run['error'] or {}).get('message') or '', tone=tone, ref=run['attempt_id'],
+                detail=' · '.join(filter(None, (detail, (run['error'] or {}).get('message')))),
+                tone=tone, ref=run['attempt_id'],
                 attempt=run['attempt_id'], run_state=run['state'])
     for o in by_kind.get('operator_halt', []):
         v = o['values']
@@ -809,12 +827,15 @@ def build_replay(data, *, telemetry=(), notes=(), contracts=(), manifests=(), cu
     for run in runs:
         if run['state'] != 'succeeded':
             continue
-        if run['recipe'] == 'convert':
-            products.append(dict(t=run['t_end'], node=run['node_id'], what='NVFP4 weight pack (converted checkpoint)',
-                                 size=human_bytes(run['bytes']), name=run['label']))
-        elif run['recipe'] == 'quantize' and not run['probe']:
-            products.append(dict(t=run['t_end'], node=run['node_id'], what='New 2-bit weight pack', size=human_bytes(run['bytes']),
-                                 name=run['label']))
+        if run['recipe'] == 'convert' or (run['recipe'] == 'quantize' and not run['probe']):
+            origin = run['replay_source']
+            if run['recipe'] == 'convert':
+                what = 'NVFP4 weight pack' if origin else 'NVFP4 weight pack (converted checkpoint)'
+            else:
+                what = '2-bit weight pack' if origin else 'New 2-bit weight pack'
+            products.append(dict(t=run['t_end'], node=run['node_id'], what=what,
+                                 size=human_bytes(run['verified_bytes'] if origin else run['bytes']),
+                                 name=run['label'], replay_source=origin))
         elif run['recipe'] == 'build':
             products.append(dict(t=run['t_end'], node=run['node_id'], what='Engine build ' + str(run['label'] or ''),
                                  size=None, name=f"commit {short(run['commit'], 9)}" if run['commit'] else None))

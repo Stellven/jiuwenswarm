@@ -1,4 +1,5 @@
 """The story renders the factory's own records by what they say (node, output, outcome, reason)."""
+from jiuwenswarm.factory import story
 from jiuwenswarm.factory.story import factory_record
 
 
@@ -23,3 +24,22 @@ def test_factory_records_say_what_happened():
                                                        diff=[dict(path='stage'), dict(path='outputs.pack_2bit.criteria')]))
     assert final[1] == 'requant_2bit finalized by scheduler-agent · binds weights.x, factory.capped_runner · filled outputs.pack_2bit.criteria'
     assert factory_record('taskgraph_patch', {})[3] and factory_record('something_else', {}) is None
+
+
+def test_replay_stays_labelled_in_plain_and_demo_story(monkeypatch, capsys):
+    source = dict(job_id='prior-quantize', run_id='muse-prior', recorded_at='2026-11-26T01:02:03Z',
+                  duration_seconds=8160)
+    values = dict(recipe='quantize', outcome='ok', seconds=4.3, replayed_from=source,
+                  request=dict(name='muse-2bit'), result=dict(bytes=267e9, seconds=3.5))
+    data = dict(tasks=[dict(task_id='scratch', created=100)], observations=[
+        dict(obs_id='replay-ok', kind='capped_run', values=values, created=105),
+        dict(obs_id='replay-fail', kind='capped_run', created=110,
+             values=dict(values, outcome='error', error=dict(code='REPLAY', message='bad shard'), result=None)),
+    ], _meta=dict(outcome=None, budget_used=dict(turns=0, wall_clock_s=10)))
+    monkeypatch.setattr(story, 'load_source', lambda *args: data)
+    for demo in (False, True):
+        story.show_story('scratch', plain=True, demo=demo)
+        output = ' '.join(capsys.readouterr().out.split())
+        assert 'replayed from muse-prior (job prior-qu, 2026-11-26, originally 136 min)' in output
+        assert 'pack verified · 267 GB · verification 3.5 s' in output
+        assert 'replay verification stopped: REPLAY bad shard' in output

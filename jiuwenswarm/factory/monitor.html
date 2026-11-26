@@ -146,7 +146,8 @@ async function now(s) {
   $('job').replaceChildren(...jobs.map(([a, j]) => {
     const c = el('div', 'job'), head = el('div', 'head');
     const since = a.started || (a.history && a.history[0] && a.history[0].created) || Date.now() / 1000;
-    head.append(el('span', '', `${a.kind} · ${a.state}`), el('span', '', mmss(Date.now() / 1000 - since)));
+    const kind = (a.request || {}).replayed_from ? 'replay verification' : a.kind;
+    head.append(el('span', '', `${kind} · ${a.state}`), el('span', '', mmss(Date.now() / 1000 - since)));
     c.append(head, el('pre', '', j.log.length ? j.log.join('\n') : '(waiting for output)'));
     return c;
   }));

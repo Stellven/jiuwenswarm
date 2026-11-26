@@ -378,15 +378,23 @@ function renderContract() {
 
 // ---- panel 3: capsules in action -----------------------------------------------------------------------
 function renderCCs() {
-  const t = T(), runs = B.nodes.flatMap(n => n.runs).filter(r => (r.t_start ?? r.t_end) <= t + 1e-6).sort((a, b) => (b.t_start || 0) - (a.t_start || 0));
+  const t = T(), runs = B.nodes.flatMap(n => n.runs)
+    .filter(r => (r.t_queued ?? r.t_start ?? r.t_end ?? Infinity) <= t + 1e-6)
+    .sort((a, b) => (b.t_start ?? b.t_queued ?? 0) - (a.t_start ?? a.t_queued ?? 0));
   const rows = runs.map(r => {
-    const running = r.t_end == null || r.t_end > t + 1e-6;
-    const result = running ? h('span', {class: 'wait'}, `running ${dur(t - r.t_start)}`) :
-      r.state === 'succeeded' ? h('span', {class: 'ok'}, '✓ ok') : h('span', {class: 'no'}, r.state === 'cancelled' ? '■ cancelled' : '✗ ' + ((r.error || {}).code || r.state));
-    const out = running ? '' : r.bytes ? 'wrote ' + bytes(r.bytes) : r.bytes_read ? 'hashed ' + bytes(r.bytes_read) : r.rows != null ? r.rows + ' replies' : '';
-    return h('tr', {class: running ? 'live' : null}, h('td', {}, h('b', {}, r.what), r.label ? h('div', {class: 'small'}, r.label) : null),
+    const pending = r.t_end == null || r.t_end > t + 1e-6;
+    const queued = r.t_start == null || r.t_start > t + 1e-6;
+    const replay = r.replay_source;
+    const result = pending ? h('span', {class: 'wait'}, queued ? 'queued' : `${replay ? 'verifying' : 'running'} ${dur(t - r.t_start)}`) :
+      r.state === 'succeeded' ? h('span', {class: 'ok'}, replay ? '✓ replay verified' : '✓ ok') :
+        h('span', {class: 'no'}, r.state === 'cancelled' ? '■ cancelled' : '✗ ' + ((r.error || {}).code || r.state));
+    const out = pending ? '' : replay ? (r.verified_bytes ? 'verified ' + bytes(r.verified_bytes) : '') :
+      r.bytes ? 'wrote ' + bytes(r.bytes) : r.bytes_read ? 'hashed ' + bytes(r.bytes_read) : r.rows != null ? r.rows + ' replies' : '';
+    const from = replay ? h('div', {class: 'small'}, `${!pending && r.state === 'succeeded' ? 'Replayed from' : 'Replay source'} ${replay}`) : null;
+    const elapsed = pending ? '…' : replay ? r.verification_duration : dur(r.seconds);
+    return h('tr', {class: pending ? 'live' : null}, h('td', {}, h('b', {}, r.what), r.label ? h('div', {class: 'small'}, r.label) : null, from),
       h('td', {}, r.node_id), h('td', {}, r.memory_cap ? r.memory_cap.replace('G', ' GiB') : 'no model load'),
-      h('td', {}, running ? '…' : dur(r.seconds)), h('td', {}, out), h('td', {}, result));
+      h('td', {}, elapsed), h('td', {}, out), h('td', {}, result));
   });
   const calls = B.calls.filter(c => c.t <= t + 1e-6), by = {};
   for (const c of calls) { const k = c.capsule || '?'; (by[k] = by[k] || {n: 0, ms: 0, err: 0}); by[k].n++; by[k].ms += c.ms || 0; if (c.outcome !== 'ok') by[k].err++; }
@@ -455,8 +463,10 @@ function renderGate() {
   put($('gate'),
     h('div', {class: 'small'}, 'A step closes when every required output passes its gate checks. Advisory reviews record findings.'),
     h('table', {}, h('tr', {}, h('th', {}, 'step'), h('th', {}, 'outputs at the gate'), h('th', {}, 'gate')), rows),
-    h('h3', {}, 'Built so far'),
-    products.length ? h('ul', {}, products.map(p => h('li', {}, h('b', {}, p.what), p.size ? ` · ${p.size}` : '', p.name ? ` · ${p.name}` : '', h('span', {class: 'small'}, ` (${p.node}, ${clock(p.t)})`)))) : h('div', {class: 'empty'}, 'Nothing built yet.'),
+    h('h3', {}, 'Output packs and images'),
+    products.length ? h('ul', {}, products.map(p => h('li', {}, h('b', {}, p.what), p.size ? ` · ${p.size}` : '', p.name ? ` · ${p.name}` : '',
+      p.replay_source ? h('div', {class: 'small'}, `Replayed from ${p.replay_source}`) : null,
+      h('span', {class: 'small'}, ` (${p.node}, ${clock(p.t)})`)))) : h('div', {class: 'empty'}, 'No output packs or images yet.'),
     h('h3', {}, `Delivery: ${last.node_id}`),
     h('div', {class: 'card ' + (ls === 'done' ? 'good' : 'warn')}, h('div', {class: 'h'}, `${GLYPH[ls] || ''} ${label(ls)}`),
       h('div', {class: 'small'}, (last.preliminary || {}).objective || last.title),

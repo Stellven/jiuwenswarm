@@ -38,6 +38,27 @@ def duration(seconds):
     return f'{seconds // 60:02d}:{seconds % 60:02d}'
 
 
+def replay_duration(seconds):
+    """Keep sub-minute verification visible alongside the original production duration."""
+    if not isinstance(seconds, (int, float)) or isinstance(seconds, bool) or seconds < 0:
+        return None
+    return f'{seconds / 60:.0f} min' if seconds >= 60 else f'{seconds:g} s'
+
+
+def replay_origin(source):
+    """Human-readable provenance from the host-admitted replay source."""
+    if not isinstance(source, dict) or not source:
+        return None
+    original = replay_duration(source.get('duration_seconds'))
+    recorded_at = source.get('recorded_at')
+    details = [f"job {short(source['job_id'])}" if source.get('job_id') else None,
+               recorded_at[:10] if isinstance(recorded_at, str) and recorded_at else None,
+               f"originally {original}" if original else None]
+    run = source.get('run_id') or 'recorded run'
+    details = ', '.join(value for value in details if value)
+    return f'{run} ({details})' if details else run
+
+
 def load_source(source, home=None, *, records=None):
     """records: an export.snapshot of this task already taken from a stable copy of home."""
     path = Path(source).expanduser()
@@ -170,6 +191,15 @@ def factory_record(kind, v):
         req, result, err = v.get('request') or {}, v.get('result') or {}, v.get('error') or {}
         what = req.get('label') or req.get('name') or ''
         size = f" · {result['bytes'] / 1e9:.0f} GB" if isinstance(result.get('bytes'), (int, float)) and result.get('bytes') > 1e9 else ''
+        origin = replay_origin(v.get('replayed_from') or req.get('replayed_from'))
+        if origin:
+            name = f"{v.get('recipe')} {what}".strip()
+            checked = replay_duration(result.get('seconds', v.get('seconds')))
+            elapsed = f' · verification {checked}' if checked else ''
+            if v.get('outcome') == 'ok':
+                return 'run', f"{name} · replayed from {origin} · pack verified{size}{elapsed}", '✓', False
+            return ('run', f"{name} replay verification stopped: {err.get('code')} {str(err.get('message') or '')[:200]}"
+                    f" · source {origin}{elapsed}", '✗', False)
         cap = f" · cap {v.get('memory_cap')}" if v.get('memory_cap') else ''
         took = f" · {v['seconds'] / 60:.0f} min" if isinstance(v.get('seconds'), (int, float)) else ''
         if v.get('outcome') == 'ok':
@@ -306,6 +336,7 @@ def build_events(data):
             preliminary=kind == 'lab')
     for a in data.get('attempts', []):
         history = a.get('history', []) or [dict(state=a.get('state'), created=a.get('started'))]
+        replay = 'replay verification job' if (a.get('request') or {}).get('replayed_from') else 'durable job'
         for index, h in enumerate(history):
             state = h.get('state', 'unknown')
             mark = '✓' if state == 'succeeded' else '✗' if state in {'failed', 'cancelled'} else '·'
@@ -314,7 +345,7 @@ def build_events(data):
                 for end in data.get('_meta', {}).get('turn_ends', []))
             suffix = ' · survived turn end' if survived else ''
             add(h.get('created'), a['attempt_id'] + ':' + str(index), a.get('kind', 'job'),
-                f"{short(a['attempt_id'])} {state} · durable job{suffix}", mark,
+                f"{short(a['attempt_id'])} {state} · {replay}{suffix}", mark,
                 noise=state not in {'failed', 'cancelled'})
         admission = a.get('request', {}).get('admission')
         if admission:
