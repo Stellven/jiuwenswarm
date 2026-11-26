@@ -363,10 +363,9 @@ def legacy_smoke(root):
                  metrics=metrics(load=log["details"].get("server_ready_s")), raw=log)
 
 
-def phase_four(path):
+def phase_four(path, run="r8-lab"):
     doc = read_json(path)
     identity = doc["factory_provenance"]
-    run = "r8-lab"
     shared = {}
     for arm, config in doc["config"]["arms"].items():
         raw = doc["arms"].get(arm, {})
@@ -406,7 +405,28 @@ def phase_four(path):
             raw_row["quiet"] = {key: value for key, value in raw_evidence.items() if key != "samples"}
         yield record(date, run, arm, "performance", source(path, record=f"/rows/{index}"),
                      key=str(index), **(shared[arm] | {"sources": row_refs}), request=request(row), quiet=evidence,
-                     metrics=metrics(row, raw.get("load_seconds")), raw=raw_row, error=row.get("error"))
+                     metrics=metrics(row, raw.get("load_seconds")), raw=raw_row, error=row.get("error"),
+                     **{k: row[k] for k in ("launch_verdict", "corrected_verdict") if k in row})
+
+
+def final_slice(rows, directory):
+    selected = [row for row in rows if row['run'] == 'r8-lab'
+                or (row['run'], row['arm']) == ('nov25-lab-abcde', 'A')
+                or (row['run'], row['arm'], row.get('n')) == ('nov25-mmlu-q2', 'B', 250)]
+    if len(selected) != 18:
+        raise ValueError('Final slice requires eight B/P requests, two load rows, seven baseline A rows and one paired accuracy result')
+    sources = [directory / name for name in ('report.json', 'B.server.log', 'P.server.log')]
+    sources.extend((directory / 'baseline').glob('*'))
+    sources.extend((directory / 'manifests').glob('*.json'))
+    locations = {digest(path.read_bytes()): str(path) for path in sources if path.is_file()}
+    for row in selected:
+        for citation in [row['source'], *row.get('sources', []), row.get('quiet', {}).get('source')]:
+            if citation and citation['sha256'] in locations:
+                citation['path'] = locations[citation['sha256']]
+    target = directory / 'engine-bench.jsonl'
+    temp = target.with_suffix('.tmp')
+    temp.write_text(''.join(json.dumps(row, ensure_ascii=False, allow_nan=False) + '\n' for row in selected))
+    temp.replace(target)
 
 
 def main():
@@ -414,10 +434,14 @@ def main():
     parser.add_argument("--root", type=Path, default=Path.home() / "muse-demo")
     parser.add_argument("--out", type=Path)
     parser.add_argument("--phase-four-report", type=Path, help="Include the r8 B/P report after the lab exit")
+    parser.add_argument("--strict-history-report", type=Path, help="Retain the separate strict-rule campaign as history")
+    parser.add_argument("--final-directory", type=Path, help="Write a consolidated demo slice with local source paths")
     args = parser.parse_args()
     root = args.root.resolve()
     out = args.out or root / "bench/engine-bench.jsonl"
     rows = [*historical(root), *legacy_smoke(root), *accuracy(root), *live_receipts(root)]
+    if args.strict_history_report is not None:
+        rows.extend(phase_four(args.strict_history_report.resolve(), run="r8-lab-strict-history"))
     if args.phase_four_report is not None:
         rows.extend(phase_four(args.phase_four_report.resolve()))
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -427,6 +451,8 @@ def main():
             print(json.dumps(row, ensure_ascii=False, allow_nan=False), file=temp)
     temporary_path.chmod(0o644)
     temporary_path.replace(out)
+    if args.final_directory:
+        final_slice(rows, args.final_directory.resolve())
     print(f"Wrote {len(rows)} rows to {out}")
 
 
