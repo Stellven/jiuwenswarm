@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import time
 from tempfile import TemporaryDirectory
 from datetime import datetime, timezone
 from uuid import uuid4
@@ -148,20 +149,22 @@ def run_load(out, p, leg, image_dir, identity, plan, prepared):
     record(f'Final benchmark {role} (load {lid}) completed. Receipt {receipt.name}.')
 
 
-def main(execute, diagnostic):
+def main(execute, diagnostic, diagnostic_file=None):
     from scripts.factory import r8_bench_score
     p, identity, plan = check_inputs()
     prepared = r8_bench_score.prepare(p)
-    if not diagnostic:
-        for name in ('speed_full', 'speed_A'):
-            p['request_plans'][name] = [c for c in p['request_plans'][name] if c.get('role') != 'decode']
+    from scripts.factory import r8_bench_cells
+    r8_bench_cells.read_prompts(p)
+    for leg in p['required_loads']:
+        if leg['recipe'] == 'speed':
+            r8_bench_cells.speed_schedule(p, leg)
     if not execute:
         print('Validated proposal, manifests, image and graph records, prompt hashes, scoring cases.')
         return
     OUT.mkdir(exist_ok=True)
     with (OUT/'campaign.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        config = dict(proposal_sha256=PROPOSAL_SHA, order=ORDER, diagnostic_128=diagnostic,
+        config = dict(proposal_sha256=PROPOSAL_SHA, order=ORDER, diagnostic_128=diagnostic if not diagnostic_file else str(diagnostic_file),
                       approval='Owner approved the single eight-load final benchmark.',
                       calibration_mapping='PC coordinator clarification within the owner-approved benchmark.',
                       identity=identity, policy=quiet.policy(quiet.EMPTY))
@@ -182,6 +185,20 @@ def main(execute, diagnostic):
             lab.save(OUT/'image.json', image)
             loads = {leg['id']:leg for leg in p['required_loads']}
             for lid in ORDER:
+                if lid == '3':
+                    if diagnostic_file:
+                        if not diagnostic_file.is_file():
+                            record('Calibration complete. Waiting for clarification of the separate p512 decode diagnostic before speed cells.')
+                        while not diagnostic_file.is_file():
+                            time.sleep(5)
+                        choice = read(diagnostic_file)['include_p512_decode_128']
+                        if type(choice) is not bool:
+                            raise ValueError('Expected true or false for the separate decode diagnostic')
+                        diagnostic = choice
+                    if not diagnostic:
+                        for name in ('speed_full', 'speed_A'):
+                            p['request_plans'][name] = [cell for cell in p['request_plans'][name] if cell.get('role') != 'decode']
+                    lab.save(OUT/'speed-schedule.json', {name: p['request_plans'][name] for name in ('speed_full', 'speed_A')})
                 run_load(OUT, p, settings(loads[lid], OUT), Path(directory), identity, plan, prepared)
         record('Final eight-load benchmark completed. All eight load receipts are durable; starting evidence integration.')
 
@@ -190,5 +207,6 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--execute', action='store_true')
     ap.add_argument('--diagnostic-128', action='store_true')
+    ap.add_argument('--diagnostic-file', type=Path)
     opts = ap.parse_args()
-    main(opts.execute, opts.diagnostic_128)
+    main(opts.execute, opts.diagnostic_128, opts.diagnostic_file)
