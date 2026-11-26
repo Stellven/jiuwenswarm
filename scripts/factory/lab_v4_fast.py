@@ -134,7 +134,6 @@ def summary(rows):
             for k, v in sorted(out.items())}
 
 
-
 COMPARISON_METRICS = ('client_ttft_ms', 'decode_tokens_per_second', 'request_total_ms')
 COMPARISON_PROVENANCE = ('image_id', 'llama_server_sha256', 'pack_manifest_sha256', 'batch_plan', 'n_batch',
                          'n_ubatch', 'moe_cache_mib', 'requested_moe_cache_mib', 'prompt_sha256')
@@ -200,6 +199,7 @@ def validate_settings(name, observed, plan):
     cache = observed['moe_cache_mib']
     if cache is None or not plan['moe_cache_mib'] - 1024 <= cache <= plan['moe_cache_mib']:
         raise ValueError(f'{name}: server MoE cache {cache} MiB differs from plan {plan["moe_cache_mib"]} MiB')
+
 
 def save(report_path, report):
     temporary = report_path.with_suffix('.json.tmp')
