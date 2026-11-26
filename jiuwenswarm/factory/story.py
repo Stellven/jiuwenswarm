@@ -145,6 +145,46 @@ def evaluation_summary(record):
             + (f" · engagement {sum(v is True for v in checks.values())}/{len(checks)}" if checks else ''))
 
 
+def factory_record(kind, v):
+    """(label, summary, mark, noise) for the factory's own record kinds, or None. What the record says happened
+    (which node, which output, pass or fail, the recipe and its outcome, why a run stopped), not its kind's
+    standing description."""
+    if kind in {'taskgraph_patch', 'host_reading'}:
+        return kind, kind, '·', True
+    if kind == 'node_contract_final':
+        final = v.get('final') or {}
+        changed = [d.get('path') for d in v.get('diff') or [] if d.get('path') not in {'slots', 'stage', 'bounds', 'work.bound_ccs'}]
+        ccs = ', '.join((final.get('work') or {}).get('bound_ccs') or [])
+        return ('contract', f"{v.get('node_id')} finalized by {v.get('by', 'the scheduler')} · binds {ccs or 'no capsule'}"
+                + (f" · filled {', '.join(changed)}" if changed else ' · criteria as planned'), '✓', False)
+    if kind == 'node_contract_refusal':
+        return 'contract', f"{v.get('node_id')} not finalized: " + '; '.join(v.get('problems') or [])[:300], '✗', False
+    if kind == 'node_check':
+        if v.get('state') != 'finished':
+            return 'check', f"{v.get('node_id')}.{v.get('output', 'change')} check started", '·', True
+        passed = bool(v.get('passed'))
+        return ('check', f"{v.get('node_id')}.{v.get('output', 'change')} "
+                + ('passed' + (f" ({(v.get('verifier') or {}).get('stage_reached')})" if (v.get('verifier') or {}).get('stage_reached') else '')
+                   if passed else 'NOT passed: ' + str(v.get('reason') or '')[:240]), '✓' if passed else '✗', False)
+    if kind == 'capped_run':
+        req, result, err = v.get('request') or {}, v.get('result') or {}, v.get('error') or {}
+        what = req.get('label') or req.get('name') or ''
+        size = f" · {result['bytes'] / 1e9:.0f} GB" if isinstance(result.get('bytes'), (int, float)) and result.get('bytes') > 1e9 else ''
+        cap = f" · cap {v.get('memory_cap')}" if v.get('memory_cap') else ''
+        took = f" · {v['seconds'] / 60:.0f} min" if isinstance(v.get('seconds'), (int, float)) else ''
+        if v.get('outcome') == 'ok':
+            return 'run', f"{v.get('recipe')} {what}{size}{took}{cap}".strip(), '✓', False
+        return 'run', f"{v.get('recipe')} {what} stopped: {err.get('code')} {str(err.get('message') or '')[:200]}", '✗', False
+    if kind == 'operator_halt':
+        return 'halt', f"run halted for an operator: {str(v.get('reason') or '')[:260]}", '✗', False
+    if kind == 'attempt_excused':
+        reason = re.sub(r'^host (fault|policy gap|recipe gap):\s*', '', str(v.get('reason') or ''))
+        return 'operator', f"excused run {short(v.get('attempt_id'))} of {v.get('node_id')} as a host fault: {reason[:220]}", '·', False
+    if kind == 'operator_input':
+        return 'operator', f"operator input {v.get('name') or ''}".strip(), '·', True
+    return None
+
+
 def build_events(data):
     events = []
 
@@ -206,6 +246,11 @@ def build_events(data):
         failed = bool(error.get('code') or v.get('code') or v.get('state') == 'failed')
         kind, summary = r.get('kind', 'observation'), ''
         mark = '✗' if failed else '·'
+        own = factory_record(kind, v)
+        if own:
+            label, summary, mark, noise = own
+            add(r.get('created'), r['obs_id'], label, summary, mark, noise=noise)
+            continue
         if failed:
             if kind.startswith('inspector.'):
                 kind = 'inspect'
@@ -336,11 +381,11 @@ def demo_lines(event, created, data):
         return out
     if '✗' in lines[0] or event['mark'] == '✗':
         color = RED
-    elif event.get('confirmed') or kind == 'contract' and event['mark'] == '✓':
+    elif event.get('confirmed') or kind in {'contract', 'check'} and event['mark'] == '✓':
         color = GREEN
     elif event.get('preliminary'):
         color = BOLD
-    elif kind in {'build', 'integrate'}:
+    elif kind in {'build', 'integrate', 'run', 'operator'}:
         color = AMBER
     else:
         color = GREY
@@ -360,7 +405,7 @@ def header(data):
         name = Path(contract.get('model', {}).get('path', 'model unknown')).stem
         name = re.sub(r'-(?:UD-)?(?:I?Q\d.*|F(?:16|32)|BF16)$', '', name, flags=re.I)
     used = meta['budget_used']
-    return wrap(f" factory · {short(task['task_id'])} · {name} on {task.get('target', '?')} · "
+    return wrap(f" factory · {task['task_id']} · {name} on {task.get('target', '?')} · "
                 f"{(meta['outcome'] or 'in progress').upper()} · {used['turns']} turns · "
                 f"{duration(round(used['wall_clock_s']))}") + [' ' + '─' * 98]
 
