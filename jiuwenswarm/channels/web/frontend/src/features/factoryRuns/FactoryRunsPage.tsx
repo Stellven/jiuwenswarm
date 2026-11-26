@@ -80,16 +80,18 @@ const patterns: Partial<Record<Panel, RegExp>> = {
   terminal: /session|\.log$|stdout|stderr|terminal/i,
   report: /report|summary.*\.md/i,
 };
-export function FactoryRunsPage({ entry }: { entry?: Extract<FactoryEntry, { view: 'factoryRuns' }> }) {
-  const capsuleCatalog = useCapsuleResource('catalog', catalogRequest);
+type FactoryRunsProps = { entry?: Extract<FactoryEntry, { view: 'factoryRuns' }>; engineViewer?: boolean };
+
+export function FactoryRunsPage({ entry, engineViewer = false }: FactoryRunsProps) {
+  const capsuleCatalog = useCapsuleResource(engineViewer ? undefined : 'catalog', catalogRequest);
   return (
     <CapsuleLinksContext.Provider value={capsuleCatalog.data?.capsules ?? emptyCapsules}>
-      <FactoryReplay key={JSON.stringify(entry)} entry={entry} />
+      <FactoryReplay key={JSON.stringify(entry)} entry={entry} engineViewer={engineViewer} />
     </CapsuleLinksContext.Provider>
   );
 }
 
-function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'factoryRuns' }> }) {
+function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   const { t } = useTranslation();
   const copy = useCapsuleCopy();
   const { label } = useViewerLabels();
@@ -101,7 +103,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
   }, [selected]);
   const [loadedDetail, setDetail] = useState<RunDetail | null>(null);
   const detail = loadedDetail?.run.id === selected ? loadedDetail : null;
-  const [panel, setPanel] = useState<Panel>(entry?.file ? 'artifacts' : 'overview');
+  const [panel, setPanel] = useState<Panel>(entry?.file ? 'artifacts' : entry?.node ? entry.panel ?? 'capsules' : 'overview');
   const [events, setEvents] = useState<StoryEvent[]>([]);
   const [position, setPosition] = useState(0);
   const [live, setLive] = useState(false);
@@ -110,7 +112,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
   const [loading, setLoading] = useState(false);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [refreshVersion, setRefreshVersion] = useState(0);
-  const finalHeadlines = useFinalHeadlines(true, refreshVersion);
+  const finalHeadlines = useFinalHeadlines(!engineViewer, refreshVersion);
   const observedStory = useRef('');
   const [file, setFile] = useState<FileContent | null>(null);
   const [filePath, setFilePath] = useState(entry?.file || '');
@@ -122,7 +124,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
   const [launchOpen, setLaunchOpen] = useState(false);
   const [session, setSession] = useState<SessionSnapshot | null>(null);
   const [sessionStale, setSessionStale] = useState(false);
-  const [selectedNode, setSelectedNode] = useState<string>();
+  const [selectedNode, setSelectedNode] = useState(entry?.node);
   const nodeEvidenceSection = useRef<HTMLDivElement>(null);
   const [runStatus, setRunStatus] = useState<{ id: string; run_state?: RunStateRecord; controls?: Controls }>();
   // Demo build: light theme only. The scoped dark palette had unreadable
@@ -196,7 +198,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
   const runKind = detail ? { kind: detail.run.kind, curated: Boolean(detail.curated) } : undefined;
   const operator = useMemo<NodeOperator | undefined>(() => {
     const kind = detail ? { kind: detail.run.kind, curated: Boolean(detail.curated) } : undefined;
-    if (!detail || !kind || position !== events.length || !operatorEnabled(kind, controls)) return undefined;
+    if (engineViewer || !detail || !kind || position !== events.length || !operatorEnabled(kind, controls)) return undefined;
     return {
       actions: (node: PlanNode) => nodeActions(kind, controls, node),
       run: async (nodeId, op, reason) => {
@@ -204,13 +206,13 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
         await reloadDetail();
       },
     };
-  }, [detail, selected, position, events.length, controls, reloadDetail]);
+  }, [engineViewer, detail, selected, position, events.length, controls, reloadDetail]);
   const planNodes = useMemo(
     () => (Array.isArray(detail?.graph?.nodes) ? (detail.graph.nodes as PlanNode[]) : []),
     [detail],
   );
   const fallbackStatus = detail && !detail.curated ? pauseStatement(planNodes, controls)?.text : undefined;
-  const availableOperations = runKind && position === events.length ? runOperations(runKind, controls) : [];
+  const availableOperations = !engineViewer && runKind && position === events.length ? runOperations(runKind, controls) : [];
   const runOperation = async (action: RunOperation, reason: string) => {
     const result = await factoryApi.runOperation(selected, action, reason);
     if (action === 'resume' && selectedRef.current === selected) setLive(true);
@@ -501,7 +503,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
             <RefreshCw aria-hidden size={16} />
           </button>
         </div>
-        <button
+        {!engineViewer && <button
           className="factory-story-launch-button"
           type="button"
           data-testid="factory-runs-launch-button"
@@ -509,15 +511,15 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
           onClick={() => setLaunchOpen(true)}
         >
           <Plus aria-hidden size={17} /> {t('factoryRuns.launch')}
-        </button>
-        {!catalogLoading && !listing.launch_enabled && !listing.launch_templates.length && (
+        </button>}
+        {!engineViewer && !catalogLoading && !listing.launch_enabled && !listing.launch_templates.length && (
           <p className="factory-muted" data-testid="factory-runs-launch-disabled">
             {t('factoryRuns.launchDisabled')}
           </p>
         )}
         <div aria-busy={catalogLoading}>
           {listing.runs.length > 0 || !catalogLoading ? (
-            <FactoryRunList runs={listing.runs} selected={selected} onSelect={selectRun} />
+            <FactoryRunList runs={listing.runs} selected={selected} onSelect={selectRun} engineViewer={engineViewer} />
           ) : null}
           {!listing.runs.length && catalogLoading && (
             <p className="factory-muted">{t('factoryRuns.story.loadingCatalog')}</p>
@@ -587,7 +589,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
               </p>
             )}
             {isLiveHome && (live || panel === 'overview' || panel === 'terminal') && (
-              <LiveSession session={session} stale={sessionStale} />
+              <LiveSession session={session} stale={sessionStale} engineViewer={engineViewer} />
             )}
             <section className="factory-replay" data-testid="factory-runs-replay">
               <div className="factory-replay-controls">
@@ -654,7 +656,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
               </p>
             </section>
             <nav className="factory-tabs" data-testid="factory-runs-tabs" aria-label={t('factoryRuns.panels')}>
-              {(detail.curated ? curatedPanels : detail.cc_overview ? graphRunPanels : panels).map((value) => (
+              {(detail.curated && (!engineViewer || !detail.curated.native) ? curatedPanels : engineViewer || detail.cc_overview ? graphRunPanels : panels).map((value) => (
                 <button
                   key={value}
                   data-testid="factory-runs-panel-tab"
@@ -774,10 +776,10 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
               {panel === 'terminal' && (
                 <TerminalViewer
                   key={selected}
-                  events={visibleEvents}
-                  activeCursor={cursor?.cursor}
+                  events={engineViewer ? detail.engine_log ?? [] : visibleEvents}
+                  activeCursor={engineViewer ? undefined : cursor?.cursor}
                   onSeek={
-                    live
+                    live || engineViewer
                       ? undefined
                       : (next) => {
                           setPlaying(false);
@@ -809,7 +811,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                   onOpenReport={(runId, reportId, sha256) => openIterationChild(runId, 'report', reportId, sha256)}
                 />
               )}
-              {!['overview','graph','report','iterations','measurements'].includes(panel) && (
+              {!['overview','graph','report','iterations','measurements'].includes(panel) && !(engineViewer && panel === 'terminal') && (
                 <EvidenceFileBrowser
                   key={`${selected}:${panel}`}
                   files={matchingFiles}

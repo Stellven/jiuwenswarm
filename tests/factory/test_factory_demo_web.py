@@ -18,7 +18,7 @@ def test_native_factory_and_fallback_routes_share_the_shell(tmp_path, monkeypatc
             store.create_task(dict(task_id=tid, objective='Local fixture', budget={}, source={}, allowed_effects=[]))
     monkeypatch.setenv('FACTORY_LAUNCH_ROOT', str(tmp_path / 'unexpected-templates'))
     monkeypatch.setenv('FACTORY_LAUNCH_HOME_ROOT', str(live / 'unexpected-launches'))
-    with TestClient(make_app(dist, live, history), base_url='http://localhost') as api:
+    with TestClient(make_app(dist, live, history), base_url='http://localhost', client=('127.0.0.1', 50000)) as api:
         entry = api.get('/factory', follow_redirects=False)
         assert entry.headers['location'] == '/#factory-run'
         assert 'Demo shell' in api.get('/').text
@@ -58,3 +58,56 @@ def test_native_websocket_adapter_accepts_a_unix_listener():
     adapter = StarletteWsAdapter(WebSocket(scope, unused, unused))
     assert adapter.path == '/ws'
     assert adapter.local_address is None and adapter.remote_address is None
+
+
+def test_engine_viewer_uses_only_public_reads(tmp_path):
+    import pytest
+    from starlette.websockets import WebSocketDisconnect
+    from scripts.spark.r8_engine_site import HISTORY_TASK, LIVE_TASK, TAILSCALE_HOST, make_app as make_engine
+
+    dist = tmp_path / 'dist'
+    dist.mkdir()
+    (dist / 'index.html').write_text('<title>Engine Factory</title>')
+    live, history, replay = (tmp_path / name for name in ('live', 'history', 'replay'))
+    for home, tasks in ((live, (LIVE_TASK, 'another-task')), (history, (HISTORY_TASK,))):
+        with Store(home) as store:
+            for task in tasks:
+                store.create_task(dict(task_id=task, objective='Fixture', budget={}, source={}, allowed_effects=[]))
+
+    site = make_engine(dist, live, history, replay)
+    forwarded = {'X-Forwarded-For': '127.0.0.1', 'Forwarded': 'for=127.0.0.1'}
+    with TestClient(site, base_url=f'http://{TAILSCALE_HOST}', client=('100.64.0.9', 50000)) as api:
+        assert 'Engine Factory' in api.get('/').text
+        listing = api.get('/api/factory/runs').json()
+        assert set(row['task_id'] for row in listing['runs']) == {LIVE_TASK, HISTORY_TASK}
+        assert listing['launch_enabled'] is False
+        run = next(row['id'] for row in listing['runs'] if row['task_id'] == LIVE_TASK)
+        for path in ('/api/factory/launch', f'/api/factory/runs/{run}/pause', f'/api/factory/runs/{run}/resume',
+                     f'/api/factory/runs/{run}/revise', f'/api/factory/runs/{run}/nodes/n/release',
+                     f'/api/factory/runs/{run}/nodes/n/note', '/file-api/file-content', '/api/operator'):
+            assert api.post(path, headers=forwarded).status_code == 403
+        for path in ('/file-api/raw-file', '/openapi.json', '/api/factory/capsules', '/api/tasks'):
+            assert api.get(path, headers=forwarded).status_code == 403
+        with pytest.raises(WebSocketDisconnect), api.websocket_connect('/ws', headers=forwarded):
+            pass
+
+
+def test_operator_peer_must_be_actual_loopback(tmp_path):
+    import pytest
+    from starlette.websockets import WebSocketDisconnect
+
+    dist = tmp_path / 'dist'
+    dist.mkdir()
+    (dist / 'index.html').write_text('<title>Demo</title>')
+    live, history = tmp_path / 'live', tmp_path / 'history'
+    for home, task in ((live, 'live'), (history, 'history')):
+        with Store(home) as store:
+            store.create_task(dict(task_id=task, objective='Fixture', budget={}, source={}, allowed_effects=[]))
+
+    app = make_app(dist, live, history)
+    for peer in [('100.64.0.9', 50000), None]:
+        with TestClient(app, base_url='http://localhost', client=peer) as api:
+            headers = {'X-Forwarded-For': '127.0.0.1', 'Forwarded': 'for=127.0.0.1'}
+            assert api.post('/api/factory/launch', headers=headers).status_code == 403
+            with pytest.raises(WebSocketDisconnect), api.websocket_connect('/ws', headers=headers):
+                pass

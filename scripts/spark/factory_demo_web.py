@@ -25,7 +25,25 @@ DEFAULT_DIST = Path(__file__).resolve().parents[2] / 'jiuwenswarm/channels/web/f
 BOARD_HEADERS = {'Cache-Control': 'no-store'}
 
 
-def make_app(dist, live, history, *, extra_roots=()):
+class LoopbackOperatorBoundary:
+    """The operator service trusts only its actual IPv4 loopback peer."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        kind, peer = scope['type'], scope.get('client')
+        if kind not in {'http', 'websocket'} or (peer and peer[0] == '127.0.0.1'):
+            await self.app(scope, receive, send)
+        elif kind == 'websocket':
+            await send({'type': 'websocket.close', 'code': 1008})
+        else:
+            await JSONResponse({'detail': 'This listener requires a loopback peer.'}, status_code=403)(
+                scope, receive, send,
+            )
+
+
+def make_app(dist, live, history, *, extra_roots=(), require_loopback=True):
     dist, live, history = (Path(path).expanduser().resolve() for path in (dist, live, history))
     if not (dist / 'index.html').is_file():
         raise ValueError(f'Offline web build is missing: {dist / "index.html"}')
@@ -43,6 +61,8 @@ def make_app(dist, live, history, *, extra_roots=()):
     _register_web_handlers(WebHandlersBindParams(channel=channel))
     app = build_web_channel_app(channel, factory_service=service)
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1', 'localhost'])
+    if require_loopback:
+        app.add_middleware(LoopbackOperatorBoundary)
 
     @app.get('/factory', include_in_schema=False)
     def factory_entry():
@@ -95,7 +115,8 @@ def main(argv=None):
     os.environ['JIUWENSWARM_ENABLE_ORIGIN_CHECK'] = '1'
     os.environ['JIUWENSWARM_WS_ALLOWED_ORIGIN_HOSTS'] = '127.0.0.1,localhost,none'
     try:
-        app = make_app(args.dist, args.live, args.history, extra_roots=args.extra_root)
+        app = make_app(args.dist, args.live, args.history, extra_roots=args.extra_root,
+                       require_loopback=not args.socket)
     except ValueError as exc:
         parser.error(str(exc))
     binding = {'uds': str(args.socket)} if args.socket else {'host': '127.0.0.1', 'port': DEMO_PORT}
