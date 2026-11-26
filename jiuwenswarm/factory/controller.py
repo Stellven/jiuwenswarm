@@ -581,6 +581,10 @@ class Controller:
                         state['stop_reason'] = ('paused: the scheduler could not finalize the node contract of '
                                                 + ', '.join(stuck) + ' (see node_contract_refusal records)')
                         return self._finish(task_id, state, 'paused')
+                    halted = self._halt(task_id, state)
+                    if halted:
+                        state['stop_reason'] = 'halted for an operator: ' + '; '.join(h['reason'] for h in halted) + ' (HALT.md)'
+                        return self._finish(task_id, state, 'paused')
                     paused = self._paused_at(task_id)
                     if paused:
                         # Nothing can run and the frontier is held or failed: stop without spending turns.
@@ -615,6 +619,27 @@ class Controller:
                 if self.facade is None:
                     from jiuwenswarm.server.runtime.codex_subscription.service import get_service
                     await get_service().transport.close()
+
+    def _halt(self, task_id, state):
+        """Halt policy and step checkpoints (halt_policy.py): new halts, or nodes held at their step checkpoint."""
+        from . import halt_policy
+        from .scheduler import next_work
+        task = self.store.get_task(task_id)
+        from .taskgraph import plan_get
+        try:
+            nodes = plan_get(self.store, task_id)['nodes']
+        except Exception:  # noqa: BLE001 - a task without a plan has nothing to halt on
+            return []
+        new = halt_policy.halt(self.store, task_id, state, halt_policy.find(self.store, task_id, nodes, task))
+        self._save(task_id, state)
+        if new:
+            return new
+        if halt_policy.policy(task)['step']:
+            held = halt_policy.step_holds(self.store, task_id, state, next_work(self.store, task_id)['runnable'])
+            self._save(task_id, state)
+            if held:
+                return [dict(reason='step checkpoint before ' + ', '.join(held) + ' (STEP.md)')]
+        return []
 
     def _paused_at(self, task_id):
         from .scheduler import next_work

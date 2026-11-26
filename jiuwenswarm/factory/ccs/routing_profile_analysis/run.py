@@ -23,6 +23,9 @@ def dispatch(packet):
                 return {'report': report}
             saved = json.dumps(inputs['report'], sort_keys=True, allow_nan=False)
             return {'verified': saved == json.dumps(report, sort_keys=True)}
+    if capability == 'rank_trace':
+        from trace_rank import rank_trace
+        return rank_trace(inputs['trace'], inputs['pack'], inputs.get('profile_out'), inputs.get('prompt_set_sha256'))
     artifacts = {name: inputs[name] for name in ('before', 'after', 'tensor_index')}
     request = {
         **inputs['configuration'],

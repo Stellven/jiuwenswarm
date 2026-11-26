@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from gguf_pack import census, load_pack, pack_digest, read_tensor, role_of, type_name  # noqa: E402
+from gguf_pack import canonical_target, census, expert_type, load_pack, pack_digest, read_tensor, role_of, type_name  # noqa: E402
 
 STAGE = "native CC execution"
 MANIFEST = "factory.pack-manifest/1"
@@ -56,7 +56,7 @@ def verify_pack(pack_path, recipe, source_pack, expect_bytes_range, target, hash
     else:
         add("source_readable", False, "no source_pack: tensor types cannot be judged (fails closed)")
     try:
-        target = type_name(target) if target else None
+        target = canonical_target(target) if target else None
         if not target:
             add("target_given", False, "no target: the requested routed-expert type must come from the caller, "
                 "not from the recipe (fails closed)")
@@ -64,16 +64,19 @@ def verify_pack(pack_path, recipe, source_pack, expect_bytes_range, target, hash
         add("target_given", False, str(exc))
         target = None
     if recipe is not None and target:
-        planned = str(recipe.get("target", "")).lower()
+        try:
+            planned = canonical_target(recipe.get("target", ""))
+        except ValueError:
+            planned = str(recipe.get("target", "")).lower()
         add("target_matches", planned == target, f"recipe target {planned!r}, requested {target}")
     reference = None
     if source is not None and target:
-        reference = {n: (target if role_of(n) == "routed_expert" else r["type"], r["shape"])
+        reference = {n: (expert_type(target, n) if role_of(n) == "routed_expert" else r["type"], r["shape"])
                      for n, r in source["tensors"].items()}
     basis = "source headers"
 
     routed = [r for r in out.values() if role_of(r["name"]) == "routed_expert"]
-    wrong = [f"{r['name']}={r['type']}" for r in routed if r["type"] != target]
+    wrong = [f"{r['name']}={r['type']}" for r in routed if not target or r["type"] != expert_type(target, r["name"])]
     same = [f"{r['name']} is still {r['type']}" for r in routed if source is not None and r["name"] in source["tensors"]
             and source["tensors"][r["name"]]["type"] == r["type"]]
     add("expert_types", bool(routed) and bool(target) and not wrong and not same,

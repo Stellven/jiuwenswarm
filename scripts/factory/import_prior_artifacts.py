@@ -45,13 +45,19 @@ def describe(path):
 def main(task_id):
     store = Store(Path(os.environ['FACTORY_HOME']))
     task = store.get_task(task_id)
-    prior = (task.get('resources') or {}).get('prior_artifacts') or {}
+    resources = task.get('resources') or {}
+    for group, kind in (('prior_artifacts', 'prior_artifact'), ('operator_inputs', 'operator_input')):
+        _import(store, task_id, resources.get(group) or {}, kind)
+
+
+def _import(store, task_id, prior, kind):
     done = {json.loads(r[0])['key'] for r in store._db.execute(
-        'SELECT "values" FROM observations WHERE task_id=? AND kind=?', (task_id, 'prior_artifact'))}
+        'SELECT "values" FROM observations WHERE task_id=? AND kind=?', (task_id, kind))}
     for key, entry in prior.items():
         if key in done:
             continue
-        values = dict(entry, key=key, reused=True, **describe(entry['path']))
+        entry = dict(entry, path=os.path.expandvars(entry['path']))
+        values = dict(entry, key=key, **({'reused': True} if kind == 'prior_artifact' else {}), **describe(entry['path']))
         artifacts = []
         if values['kind'] == 'file' and values['bytes'] <= KEEP_MAX:
             artifact = store.put_artifact(task_id, f'prior-{key}', Path(entry['path']),
@@ -59,9 +65,10 @@ def main(task_id):
             values['artifact_id'] = f'prior-{key}'
             artifacts.append(values['artifact_id'])
         record = store.append_observation(task_id, dict(
-            kind='prior_artifact', values=values, source_artifacts=artifacts,
+            kind=kind, values=values, source_artifacts=artifacts,
             host_run=dict(by='operator import', script='scripts/factory/import_prior_artifacts.py'),
-            limitations='Made before this task by an earlier run (see made and how); reused here, not remade.'))
+            limitations='Made before this task by an earlier run (see made and how); reused here, not remade.'
+            if kind == 'prior_artifact' else 'An input the operator supplies (see how); not a product of this run.'))
         print(key, record['obs_id'], values['kind'], values['bytes'], values.get('sha256') or '')
 
 
@@ -78,8 +85,8 @@ def host_reading(task_id):
             reading.setdefault('cgroup_now', {})[name] = (Path('/sys/fs/cgroup') / slice_.lstrip('/') / name).read_text().strip()
         except OSError:
             pass
-    reading['memory_cap_policy'] = ('Every model load runs under systemd-run --user -p MemoryMax=96G -p MemorySwapMax=0 '
-                                    'with -lm mmap; this run loads no model.')
+    reading['memory_cap_policy'] = os.environ.get('FACTORY_MEMORY_CAP_POLICY') or (
+        'Every model load runs under systemd-run --user -p MemoryMax=96G -p MemorySwapMax=0 with -lm mmap; this run loads no model.')
     record = store.append_observation(task_id, dict(
         kind='host_reading', values=reading,
         host_run=dict(by='operator', script='scripts/factory/import_prior_artifacts.py --host-reading'),

@@ -10,7 +10,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from gguf_pack import TYPE_ID, block_of, load_pack, nbytes, padded, role_of, type_name  # noqa: E402
+from gguf_pack import (TYPE_ID, block_of, canonical_target, expert_type, load_pack, nbytes, padded,  # noqa: E402
+                       role_of, target_types, type_name)
 from stock_quantize import parse_argv, predict  # noqa: E402
 
 STAGE = "native CC execution"
@@ -68,8 +69,16 @@ def verify_recipe(recipe, target, pack_manifest, disk_grant_bytes=None, gb10_typ
         f"format={recipe.get('format')!r}" + (f"; missing {missing}" if missing else ""))
     if missing:
         return checks
-    target = type_name(target)
-    planned_target = str(recipe["target"]).lower()
+    try:
+        target = canonical_target(target)
+    except ValueError as exc:
+        add("target_given", False, str(exc))
+        return checks
+    lowest = min(target_types(target), key=bpw)
+    try:
+        planned_target = canonical_target(recipe["target"])
+    except ValueError:
+        planned_target = str(recipe["target"]).lower()
     add("target_matches", planned_target == target,
         f"recipe target {planned_target}, requested {target}" if planned_target != target else f"recipe targets {target}")
     tensors = recipe["tensors"]
@@ -97,8 +106,8 @@ def verify_recipe(recipe, target, pack_manifest, disk_grant_bytes=None, gb10_typ
         return live[t["name"]][0] if t["name"] in live else t["source_type"]
 
     routed = [t for t in tensors if role_of(t["name"]) == "routed_expert"]
-    wrong = [f"{t['name']}={t['target_type']}" for t in routed if t["target_type"] != target]
-    unchanged = [f"{t['name']} is already {source_type(t)}" for t in routed if source_type(t) == target]
+    wrong = [f"{t['name']}={t['target_type']}" for t in routed if t["target_type"] != expert_type(target, t["name"])]
+    unchanged = [f"{t['name']} is already {source_type(t)}" for t in routed if source_type(t) == expert_type(target, t["name"])]
     add("expert_targets", bool(routed) and not wrong and not unchanged,
         f"{len(routed)} routed expert weights {sorted({source_type(t) for t in routed})} -> {target}" if routed and not (wrong or unchanged)
         else "no routed expert weights" if not routed else
@@ -151,16 +160,16 @@ def verify_recipe(recipe, target, pack_manifest, disk_grant_bytes=None, gb10_typ
         if call["output"] and call["output"] in {f.get("path") for f in files}:
             add("argv_output_not_source", False, "output path overwrites a source file")
 
-    low = bpw(target) < LOW_BIT
+    low = bpw(lowest) < LOW_BIT
     imatrix = recipe.get("imatrix") or {}
     named = bool(imatrix.get("path")) and bool(HEX64.match(str(imatrix.get("sha256", ""))))
     in_argv = bool(call) and call["imatrix"] is not None and Path(call["imatrix"]).name == Path(imatrix.get("path", "")).name
     if low:
-        add("imatrix_named", named and in_argv, f"{target} is {bpw(target):.3f} bpw; imatrix "
+        add("imatrix_named", named and in_argv, f"{target} is down to {bpw(lowest):.3f} bpw; imatrix "
             + (f"{Path(imatrix['path']).name} sha256 {imatrix['sha256'][:12]}" if named else "not named with sha256")
             + ("" if in_argv else "; --imatrix missing or a different file in argv"))
     else:
-        add("imatrix_named", True, f"{target} is {bpw(target):.3f} bpw; no imatrix required", "info")
+        add("imatrix_named", True, f"{target} is {bpw(lowest):.3f} bpw; no imatrix required", "info")
 
     est = recipe["estimate"]
     try:

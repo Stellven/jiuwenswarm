@@ -317,3 +317,42 @@ def test_unknown_capability_is_an_error():
     proc = subprocess.run([sys.executable, str(CAPSULE / "run.py")], capture_output=True, text=True,
                           input=json.dumps({"capability": "verify", "inputs": {}}))
     assert json.loads(proc.stdout)["outcome"] == "error"
+
+
+# ---- mixed 2-bit target: base type plus per-projection overrides -------------------------------------------
+MIXED = "iq2_xxs,down=q2_k"
+
+
+def test_plan_and_verify_recipe_with_a_mixed_target(world, tmp_path):
+    recipe_path = tmp_path / "mixed-recipe.json"
+    out = call("plan_recipe", pack_manifest=str(world["src"][0]), imatrix=str(world["imatrix"]), hash=True,
+               recipe_out=str(recipe_path), target="IQ2_XXS, down=Q2_K", llama_quantize="/opt/llama.cpp/bin/llama-quantize")
+    assert out["done"], out["checks"]
+    recipe = json.loads(recipe_path.read_text())
+    assert recipe["target"] == MIXED and recipe["argv"][-1] == "IQ2_XXS"
+    assert recipe["roles"]["routed_expert_by_projection"] == {"gate": "iq2_xxs", "up": "iq2_xxs", "down": "q2_k"}
+    pins = [recipe["argv"][i + 1] for i, a in enumerate(recipe["argv"]) if a == "--tensor-type"]
+    assert "^blk\.(0|1|2)\.ffn_down_exps\.weight$=q2_k" in pins
+    assert "^blk\.(0|1|2)\.ffn_gate_exps\.weight$=iq2_xxs" in pins
+    routed = sum(t["target_bytes"] for t in recipe["tensors"] if t["role"] == "routed_expert")
+    assert routed == 3 * (256 * 256 * 4 // 256 * 84) + 6 * (256 * 256 * 4 // 256 * 66)
+    checks = call("verify_recipe", recipe=str(recipe_path), target=MIXED, pack_manifest=str(world["src"][0]))
+    assert checks["done"], checks["checks"]
+    # the same recipe judged against a uniform target fails: the caller's target is the reference
+    uniform = call("verify_recipe", recipe=str(recipe_path), target="iq2_xxs", pack_manifest=str(world["src"][0]))
+    assert not uniform["done"] and {"target_matches", "expert_targets"} <= set(failed(uniform))
+    bad = call("verify_recipe", recipe=str(recipe_path), target="down=q2_k", pack_manifest=str(world["src"][0]))
+    assert not bad["done"] and "target_given" in failed(bad)
+
+
+def test_verify_pack_with_a_mixed_target(world, tmp_path):
+    out_dir = tmp_path / "mixed"
+    out_dir.mkdir()
+    down = {f"blk.{n}.ffn_down_exps.weight": "q2_k" for n in range(3)}
+    fx.make_q2(out_dir, expert_type="iq2_xxs", overrides=down)
+    common = dict(pack=str(out_dir), source_pack=str(world["src"][0]), expect_bytes_range=[1, 1 << 30])
+    out = call("verify_pack", target=MIXED, **common)
+    assert out["done"], out["checks"]
+    assert out["manifest"]["census"]["routed_expert"] == {"iq2_xxs": 6, "q2_k": 3}
+    wrong = call("verify_pack", target="iq2_xxs", **common)
+    assert not wrong["done"] and "expert_types" in failed(wrong)

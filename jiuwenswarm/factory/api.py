@@ -70,6 +70,7 @@ def _route(store, task_id, capability, packet, inputs):
     node_link = {'node_id': inputs['node_id']} if 'node_id' in inputs else {}
     for prefix, module in (('evidence_digest.', 'evidence_digest'),
                            ('source_workbench.', 'source_workbench'),
+                           ('capped_runner.', 'capped_run'),
                            ('branch_workbench.', 'branch_workbench'),
                            ('lab_evidence.', 'lab_evidence'),
                            ('throughput_workbench.', 'throughput_workbench'),

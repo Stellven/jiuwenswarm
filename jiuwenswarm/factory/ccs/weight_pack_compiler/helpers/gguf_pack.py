@@ -38,6 +38,46 @@ def type_name(name):
     return key
 
 
+PROJECTIONS = ("gate", "up", "down", "gate_up")
+
+
+def parse_target(spec):
+    """A routed-expert target: one type for every projection (`q2_k`), or a base type with per-projection
+    overrides (`iq2_xxs,down=q2_k`: gate and up IQ2_XXS, down Q2_K). Returns {projection: type}."""
+    parts = [p.strip() for p in str(spec).strip().lower().split(",") if p.strip()]
+    if not parts or "=" in parts[0]:
+        raise ValueError(f"target {spec!r}: start with the base type, e.g. iq2_xxs,down=q2_k")
+    out = {p: type_name(parts[0]) for p in PROJECTIONS}
+    for part in parts[1:]:
+        key, _, value = part.partition("=")
+        if key not in PROJECTIONS or not value:
+            raise ValueError(f"target {spec!r}: override {part!r} must be one of {PROJECTIONS} = type")
+        out[key] = type_name(value)
+        if key == "gate":  # a fused gate_up tensor follows its gate half
+            out["gate_up"] = out["gate"]
+    return out
+
+
+def canonical_target(spec):
+    """One spelling per target: `q2_k`, or the base then overrides in projection order."""
+    types = parse_target(spec)
+    base = str(spec).strip().lower().split(",")[0].strip()
+    extra = [f"{p}={types[p]}" for p in ("gate", "up", "down") if types[p] != base]
+    return ",".join([base] + extra)
+
+
+def expert_type(target, name):
+    """The type `target` asks for on routed expert tensor `name` (blk.N.ffn_<proj>_exps.weight)."""
+    types = target if isinstance(target, dict) else parse_target(target)
+    match = re.match(r"^blk\.\d+\.ffn_(gate_up|gate|up|down)_exps\.weight$", name)
+    return types[match[1]] if match else None
+
+
+def target_types(target):
+    types = target if isinstance(target, dict) else parse_target(target)
+    return sorted({types[p] for p in ("gate", "up", "down")})
+
+
 def block_of(name):
     _, block, size = GGML_TYPES[TYPE_ID[type_name(name)]]
     return block, size

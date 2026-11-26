@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "package": "factory.capped_runner",
+  "scope": "Capped builds, conversions, requantizations, server runs and paired accuracy as durable jobs of the task",
+  "units": [
+    {
+      "id": "recipes-and-gate",
+      "command": "pytest tests/factory/test_capped_run.py",
+      "checks": "Argument checks per recipe, refused flags and paths, model runs only when the task allows them, node limits, the machine gate, host-only capped_run records, a fake build and serve end to end"
+    }
+  ],
+  "limitations": [
+    "The memory cap is a cgroup limit on the scope, not a reservation: the gate checks available memory first",
+    "A recipe is as good as the command it builds; the capsule verifiers judge what the run produced"
+  ]
+}

@@ -14,7 +14,7 @@ import shutil
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from gguf_pack import (TYPE_ID, block_of, load_pack, nbytes, pack_digest, padded, role_of,  # noqa: E402
+from gguf_pack import (TYPE_ID, block_of, canonical_target, expert_type, parse_target, target_types, load_pack, nbytes, pack_digest, padded, role_of,  # noqa: E402
                        sha256_file, type_name)
 
 FORMAT = "factory.pack-recipe/1"
@@ -120,7 +120,9 @@ def plan_recipe(pack_manifest, target="q2_k", imatrix=None, output=None, llama_q
     def add(name, status, detail):
         checks.append({"name": name, "status": status, "stage": "native CC execution", "detail": detail})
 
-    target = type_name(target)
+    target = canonical_target(target)
+    types = parse_target(target)
+    lowest = min(target_types(types), key=bits_per_weight)
     pack, problems = load_source(pack_manifest, want_hash)
     add("source_manifest", "fail" if problems else "pass", "; ".join(problems) or
         f"{len(pack['files'])} file(s), {len(pack['tensors'])} tensors")
@@ -130,13 +132,13 @@ def plan_recipe(pack_manifest, target="q2_k", imatrix=None, output=None, llama_q
     keep_split = split if keep_split is None else bool(keep_split)
     if output is None:
         stem = re.sub(r"-\d{5}-of-\d{5}$", "", first.stem)
-        output = str(first.parent / f"{stem}-{target.upper()}.gguf")
+        output = str(first.parent / f"{stem}-{target.upper().replace(',', '-').replace('=', '_')}.gguf")
     out_prefix = output[:-5] if keep_split and output.endswith(".gguf") else output
 
     tensors, refusals, pinned, experts = [], [], [], []
     for row in pack["tensors"].values():
         role = role_of(row["name"])
-        want = target if role == "routed_expert" else row["type"]
+        want = expert_type(types, row["name"]) if role == "routed_expert" else row["type"]
         entry = {"name": row["name"], "role": role, "shape": row["shape"], "shard": row["shard"],
                  "source_type": row["type"], "target_type": want, "source_bytes": row["nbytes"]}
         if want != row["type"]:
@@ -154,7 +156,7 @@ def plan_recipe(pack_manifest, target="q2_k", imatrix=None, output=None, llama_q
         if quantizable(row):
             (experts if role == "routed_expert" else pinned).append((row["name"], want))
     add("block_divisibility", "fail" if refusals else "pass",
-        "; ".join(refusals[:20]) or f"every tensor sent to {target} has whole {block_of(target)[0]}-value rows")
+        "; ".join(refusals[:20]) or f"every tensor sent to {target} has whole " + "/".join(str(block_of(t)[0]) for t in target_types(types)) + "-value rows")
     unsafe = [name for name, _ in pinned + experts if not SAFE_NAME.match(name)]
     add("pattern_safe_names", "fail" if unsafe else "pass",
         ", ".join(unsafe[:20]) or "tensor names need no regex escaping beyond '.'")
@@ -163,12 +165,12 @@ def plan_recipe(pack_manifest, target="q2_k", imatrix=None, output=None, llama_q
 
     overrides = pins(experts) + pins(pinned)
     imatrix_record = file_record(imatrix, True) if imatrix else None
-    low_bit = bits_per_weight(target) < 3.5
+    low_bit = bits_per_weight(lowest) < 3.5
     add("imatrix_named", "fail" if low_bit and not imatrix_record else "pass",
-        (f"{target} is {bits_per_weight(target):.3f} bpw; " + ("imatrix " + imatrix_record["name"]
+        (f"{target} is down to {bits_per_weight(lowest):.3f} bpw; " + ("imatrix " + imatrix_record["name"]
          if imatrix_record else "no imatrix given")) if low_bit else f"{target} does not need one")
 
-    ftype = FTYPE.get(target, "Q8_0")
+    ftype = FTYPE.get(lowest, "Q8_0")  # every quantizable tensor is pinned; the file type only labels the file
     flags = ["--allow-requantize"]
     if imatrix:
         flags += ["--imatrix", str(imatrix)]
@@ -228,7 +230,8 @@ def plan_recipe(pack_manifest, target="q2_k", imatrix=None, output=None, llama_q
                    "digest": pack_digest(files), "tensors": len(tensors), "bytes": source_bytes, "alignment": alignment,
                    "architecture": pack["metadata"].get("general.architecture")},
         "target": target, "ftype": ftype,
-        "roles": {"routed_expert": target, "*": "source type"},
+        "roles": {"routed_expert": target, "routed_expert_by_projection": {k: types[k] for k in ("gate", "up", "down")},
+                  "*": "source type"},
         "role_census": by_role,
         "imatrix": imatrix_record,
         "overrides": overrides,

@@ -1,0 +1,52 @@
+cc: '2'
+id: factory.capped_runner
+version: 1.0.0
+materials:
+  methodology:
+    path: METHOD.md
+  verification:
+    path: VERIFICATION-UNITS.json
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/run.py']
+capabilities:
+  start:
+    does: Start one capped run as a durable job of the task - recipe build (the owned checkout at a commit, CUDA
+      sm_121), convert (the agent's converter on the task's checkpoint), quantize (a weight pack compiler recipe),
+      serve (llama-server on a pack, greedy requests, -lv 4 log, optional routing trace) or accuracy (paired MMLU,
+      two arms, planned checkpoints, resumable). Model loads run under the memory cap after the machine gate.
+      The controller waits while it runs; the run ends with a host capped_run observation.
+    takes:
+      recipe: text
+      args: json
+      idem_key: text
+      node_id: {kind: text, optional: true}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec]
+  status:
+    does: State, the last progress lines and, once ended, the result of a capped run.
+    takes:
+      attempt_id: text
+      node_id: {kind: text, optional: true}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec]
+  cancel:
+    does: Stop a capped run (the server or tool gets SIGINT, then SIGKILL).
+    takes:
+      attempt_id: text
+      node_id: {kind: text, optional: true}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec]
+  machine:
+    does: The machine gate now - available memory, GPU processes of other users, free disk, the memory cap.
+    takes: {}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec]

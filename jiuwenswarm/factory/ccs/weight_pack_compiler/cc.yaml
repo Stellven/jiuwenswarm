@@ -1,6 +1,6 @@
 cc: '2'
 id: weights.build_weight_pack_compiler
-version: 2.1.0
+version: 2.2.0
 materials:
   guide:
     path: GUIDE.md
@@ -85,7 +85,8 @@ capabilities:
       target:
         kind: text
         optional: true
-        description: ggml type for routed expert weights; default q2_k.
+        description: ggml type for routed expert weights (default q2_k), or a base type with per-projection
+          overrides, e.g. iq2_xxs,down=q2_k (gate and up IQ2_XXS, down Q2_K).
       imatrix:
         kind: text
         optional: true
@@ -161,8 +162,8 @@ capabilities:
           table and source types are judged against these headers.
       target:
         kind: text
-        description: Requested ggml type for routed experts (the contract pins it, e.g. q2_k); the recipe must
-          agree.
+        description: Requested routed-expert target (the contract pins it, e.g. q2_k or iq2_xxs,down=q2_k); the
+          recipe must agree.
       disk_grant_bytes:
         kind: json
         optional: true
@@ -215,7 +216,7 @@ capabilities:
           maxItems: 2
       target:
         kind: text
-        description: Requested ggml type for routed experts (the contract pins it, e.g. q2_k).
+        description: Requested routed-expert target (the contract pins it, e.g. q2_k or iq2_xxs,down=q2_k).
       hash:
         kind: json
         optional: true

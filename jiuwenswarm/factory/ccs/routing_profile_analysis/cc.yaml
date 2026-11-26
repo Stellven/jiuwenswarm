@@ -1,6 +1,6 @@
 cc: '2'
 id: analysis.expert_routing_profile
-version: 1.3.0
+version: 1.4.0
 materials:
   method:
     path: METHOD.md
@@ -54,6 +54,25 @@ defs:
           uniqueItems: true
           items: {type: integer, minimum: 1, maximum: 4096}
 capabilities:
+  rank_trace:
+    does: Rank routed experts per layer from an LLAMA_MOE_CACHE_TRACE routing trace (a capped_runner serve run with
+      trace true) and write the seeded expert cache profile (spark-expert-residency-nominations/1, target
+      muse-spark-open, mode 0400) with the payload bytes from the pack's own expert sizes. Also returns the per
+      layer and expert hit counts for the prompt and decode phases. Done when the trace matches the pack, every
+      layer is routed, every id is in range and the profile was written.
+    takes:
+      trace: {kind: text, description: Path of the routing trace (trace.mct of a serve run).}
+      pack: {kind: text, description: First shard (or directory) of the pack the trace was recorded on.}
+      profile_out: {kind: text, optional: true, description: Absolute path to write the profile.}
+      prompt_set_sha256: {kind: text, optional: true, description: Digest of the calibration prompt set, recorded with the hits.}
+    gives:
+      done: json
+      checks: json
+      profile: json
+      summary: json
+      hits: json
+    needs: [python]
+    changes: [workspace.read, workspace.write]
   analyze:
     does: Rank experts from prior Strata counts, then compute subsequent
       route-count coverage and indexed payload bytes across placement sizes.

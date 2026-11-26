@@ -24,12 +24,14 @@ import json
 import os
 import time
 
-LIMIT_KINDS = {'build_attempts': ('build',), 'gpu_launches': ('lab',)}
+LIMIT_KINDS = {'build_attempts': ('build',), 'gpu_launches': ('lab', 'model_run')}
 # API capabilities that may name a node: (capsule, capsule capability, attempt kind charged).
 NODE_CAPABILITIES = {'builder.submit': ('builder', 'submit', 'build'),
                      'lab.submit': ('lab_client', 'submit', 'lab'),
                      'lab.ab_submit': ('lab_client', 'ab_submit', 'lab'),
-                     'lab_manager.compose': ('lab_manager', 'compose', None)}
+                     'lab_manager.compose': ('lab_manager', 'compose', None),
+                     # charged per recipe inside capped_run.dispatch (build_attempts or gpu_launches)
+                     'capped_runner.start': ('capped_runner', 'start', None)}
 WORKSPACE_EFFECTS = {'none': set(), 'read': {'workspace.read'}, 'write': {'workspace.read', 'workspace.write'}}
 
 
