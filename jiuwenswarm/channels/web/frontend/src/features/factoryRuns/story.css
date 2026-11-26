@@ -365,3 +365,25 @@
 .factory-curated-quotes small { font-family: inherit; color: var(--color-text-primary); }
 .factory-curated-step-key { justify-self: start; margin-left: 34px; padding: 2px 8px; border: 1px solid var(--color-border-warning); border-radius: 999px; background: transparent; color: var(--color-text-primary); font-size: 0.78rem; cursor: pointer; }
 .factory-curated-more summary { cursor: pointer; font-size: 0.85rem; color: var(--color-text-link); }
+
+.factory-detail-subtitle { margin: 2px 0 8px; color: #5a6676; font-size: 15px; max-width: 80ch; }
+.factory-run-builds { display: grid; gap: 14px; }
+.factory-run-builds-model { margin: 0; font-weight: 600; }
+.factory-run-builds-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.factory-run-builds-grid > div { display: grid; gap: 4px; align-content: start; padding: 12px 14px; border: 1px solid #e3e8ef; border-radius: 8px; background: #fafbfd; }
+.factory-run-builds-label { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: #5a6676; }
+.factory-run-builds-value { font-size: 28px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.factory-run-builds-replays { display: flex; flex-wrap: wrap; gap: 6px; }
+.factory-run-builds-ccs { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.factory-run-builds-ccs li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; padding: 8px 12px; border: 1px solid #e3e8ef; border-radius: 8px; }
+.factory-run-builds-ccs li[data-featured] { border-color: #2563eb; background: #eff4ff; }
+.factory-run-builds-feature { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #fff; background: #2563eb; border-radius: 4px; padding: 1px 6px; }
+.factory-run-builds-nodes { flex: 1 1 200px; min-width: 0; }
+.factory-run-builds-verdict { font-size: 12px; padding: 1px 8px; border-radius: 999px; background: #eef1f4; color: #5a6676; }
+.factory-run-builds-verdict[data-passed="true"] { background: #e3f4ea; color: #1d7a3e; }
+
+.factory-live { white-space: nowrap; }
+.factory-pick-node { margin: 0; padding: 14px 16px; border: 1px dashed #b9c4d3; border-radius: 8px; color: #44505f; background: #fafbfd; }
+.factory-story-question[data-long="true"] { font-size: 18px; line-height: 1.55; }
+.factory-run-builds-grid > div { min-width: 0; }
+.factory-run-builds-replays .factory-replay-label { white-space: normal; overflow-wrap: anywhere; max-width: 100%; }

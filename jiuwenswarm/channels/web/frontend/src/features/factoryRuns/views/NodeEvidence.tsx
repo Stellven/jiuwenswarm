@@ -363,9 +363,6 @@ export function NodeEvidence({
       ) : (
         <>
           {evidence.data.contract && <ContractEvidence {...links} contract={evidence.data.contract} />}
-          {evidence.data.corrections && (
-            <CorrectionSequence {...links} corrections={evidence.data.corrections} cursor={correctionCursor} />
-          )}
           <div className="factory-node-evidence-cards" data-testid="factory-runs-node-capsules">
             {!evidence.data.capsules.length && (
               <p className="factory-muted">No capsule bindings are recorded for this node.</p>
@@ -455,6 +452,9 @@ export function NodeEvidence({
               );
             })}
           </div>
+          {evidence.data.corrections && (
+            <CorrectionSequence {...links} corrections={evidence.data.corrections} cursor={correctionCursor} />
+          )}
           <CappedRuns {...links} runs={otherRuns} />
           {unassigned.length > 0 && (
             <section className="factory-node-evidence-fields">

@@ -604,6 +604,7 @@ class FactoryHttpService:
                              graph=curated_graph(bundled, item['task_id']) if bundled else plan,
                              recorded_plan=plan if bundled else None, node_checks=checks,
                              cc_overview=factory_nodes.overview(data, plan, checks, self.capsule_catalog),
+                             scheduler_models=self._scheduler_models(path, item['task_id']),
                              correction_overview={n['node_id']: trails.get(n['node_id'], {}).get('counts',
                                  dict(findings=0, notes=0, repairs=0)) for n in plan['nodes']},
                              **self._state(item, path, data, plan), stack=monitor.engine_stack(data),
@@ -611,6 +612,21 @@ class FactoryHttpService:
                              summary=dict(meta=data.get('_meta', {}), telemetry=telemetry.summary(trace)),
                              session=self._session(item, path, data) if item['kind'] == 'live' else None,
                              curated=replay))
+
+    @staticmethod
+    def _scheduler_models(path, task_id):
+        """Models the scheduler agent ran with, read from its session file; empty when there is none."""
+        try:
+            session = _inside(path, f'sessions/{task_id}.scheduler.jsonl')
+        except Exception:  # noqa: BLE001 - a bundle or an unexpected task id has no scheduler session
+            return []
+        if not session.is_file():
+            return []
+        found = []
+        for model in re.findall(r'"model":\s*"([^"]{1,80})"', session.read_text(errors='replace')):
+            if model not in found:
+                found.append(model)
+        return found
 
     @staticmethod
     def _running(path):

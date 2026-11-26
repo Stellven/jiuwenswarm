@@ -392,3 +392,13 @@
   white-space: normal;
   overflow-wrap: anywhere;
 }
+
+.factory-graph-node-replay {
+  margin-inline-start: 4px;
+  padding: 0 5px;
+  border-radius: 3px;
+  background: #fbefdc;
+  color: #8a4f00;
+  font-size: 10px;
+  font-weight: 600;
+}
