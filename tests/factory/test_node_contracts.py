@@ -387,3 +387,12 @@ def test_renamed_plan_nodes_still_receive_their_inputs(pipeline):
     plan_patch(store, 'rn', {'update': [dict(node_id='p_integrate', state='done', evidence_ids=[passed['obs_id']])]}, 1, 1)
     build = scheduler.next_work(store, 'rn')['runnable'][0]
     assert build['node_id'] == 'p_build' and build['inputs']['change']['value']['check'] == passed['obs_id']
+
+
+def test_blocked_verifier_reason_carries_the_diagnostics():
+    from jiuwenswarm.factory.node_check import assess
+    receipt = dict(state='blocked', reason='INVALID_INPUT',
+                   diagnostics=[dict(code='INVALID_INPUT', message="Missing input ports: ['pack', 'source_pack']")])
+    passed, _, reason = assess(receipt, 'native CC execution')
+    assert not passed and reason == "verifier call blocked: INVALID_INPUT (Missing input ports: ['pack', 'source_pack'])"
+    assert assess(dict(state='failed', reason='X'), 'fixture')[2] == 'verifier call failed: X'

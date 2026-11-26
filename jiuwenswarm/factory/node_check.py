@@ -267,7 +267,9 @@ def assess(receipt, stage):
     """Pass/fail from a verifier receipt; never from the agent's account of it."""
     outputs = receipt.get('outputs') or {}
     if receipt.get('state') != 'succeeded':
-        return False, None, f"verifier call {receipt.get('state')}: {receipt.get('reason')}"
+        # Carry the diagnostics (for example "Missing input ports: [...]") so the worker can repair the call.
+        said = '; '.join(str(d.get('message')) for d in receipt.get('diagnostics') or [] if isinstance(d, dict) and d.get('message'))
+        return False, None, f"verifier call {receipt.get('state')}: {receipt.get('reason')}" + (f' ({said[:600]})' if said else '')
     flag = outputs.get('done', outputs.get('verified'))
     if type(flag) is not bool:
         return False, None, 'the verifier gave no pass/fail output (done or verified)'
