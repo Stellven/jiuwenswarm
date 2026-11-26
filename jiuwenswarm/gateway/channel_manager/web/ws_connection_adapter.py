@@ -33,7 +33,8 @@ class StarletteWsAdapter:
         )
         self.local_address: tuple[str, int] | None = None
         scope_server = websocket.scope.get("server")
-        if isinstance(scope_server, (list, tuple)) and len(scope_server) >= 2:
+        # Uvicorn reports a Unix listener as (socket path, None).
+        if isinstance(scope_server, (list, tuple)) and len(scope_server) >= 2 and scope_server[1] is not None:
             self.local_address = (str(scope_server[0]), int(scope_server[1]))
         # Headers containers used by WebChannel._extract_ws_header_user_id / Origin helpers.
         self.request_headers = websocket.headers

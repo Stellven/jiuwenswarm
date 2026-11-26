@@ -300,9 +300,11 @@ class FactoryHttpService:
                            (roots if roots is not None else os.environ.get('FACTORY_RUN_ROOTS', default).split(os.pathsep)) if p)
         self.measurements = MeasurementEvidence(measurement_root or os.environ.get(
             'FACTORY_MEASUREMENT_ROOT', Path.home() / 'predemo-spark/OPS'))
-        launch_root = launch_root or os.environ.get('FACTORY_LAUNCH_ROOT')
+        if launch_root is None:
+            launch_root = os.environ.get('FACTORY_LAUNCH_ROOT')
         self.launch_root = Path(launch_root).expanduser().resolve() if launch_root else None
-        launch_home_root = launch_home_root or os.environ.get('FACTORY_LAUNCH_HOME_ROOT')
+        if launch_home_root is None:
+            launch_home_root = os.environ.get('FACTORY_LAUNCH_HOME_ROOT')
         self.launch_home_root = Path(launch_home_root).expanduser().resolve() if launch_home_root else None
         self.capsule_catalog = capsule_catalog or CapsuleCatalog()
         # Per-file caches keyed by _identity: valid JSON verdicts and SHA256 digests.

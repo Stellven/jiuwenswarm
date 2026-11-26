@@ -108,6 +108,29 @@ def job(home, attempt_id):
     raise ValueError('Attempt not found')
 
 
+API_PATHS = ('/api/tasks', '/api/plan', '/api/story', '/api/telemetry', '/api/job')
+READ_ERRORS = (FactoryError, ValueError, OSError, sqlite3.Error, KeyError)
+
+
+def read_api(home, path, *, task='', since='', attempt=''):
+    """Return the same evidence for the standalone monitor and its browser hosts."""
+    if path == '/api/tasks':
+        return tasks(home)
+    if path == '/api/plan':
+        from .taskgraph import from_records, to_json
+        return to_json(from_records(load_source(task, home)))
+    if path == '/api/story':
+        data = load_source(task, home)
+        return dict(events=build_events(data), task=data['tasks'][0], meta=data['_meta'], chain=chain_links(data),
+                    engine_stack=engine_stack(data), latest_decision=max(data.get('decisions', []), key=lambda d: d['rev'], default=None),
+                    active_jobs=[a for a in data.get('attempts', []) if a['state'] in ACTIVE])
+    if path == '/api/telemetry':
+        return read_events(home, task or None, since)
+    if path == '/api/job':
+        return job(home, attempt)
+    raise KeyError(path)
+
+
 def make_handler(home=None):
     home = home_path(home)
     class Handler(BaseHTTPRequestHandler):
@@ -122,32 +145,19 @@ def make_handler(home=None):
             try:
                 if url.path == '/':
                     body, mime = HTML.encode(), 'text/html; charset=utf-8'
-                else:
-                    if url.path == '/api/tasks':
-                        value = tasks(home)
-                    elif url.path == '/api/plan':
-                        from .taskgraph import from_records, to_json
-                        value = to_json(from_records(load_source(arg('task'), home)))
-                    elif url.path == '/api/story':
-                        data = load_source(arg('task'), home)
-                        value = dict(events=build_events(data), task=data['tasks'][0], meta=data['_meta'], chain=chain_links(data),
-                                     engine_stack=engine_stack(data), latest_decision=max(data.get('decisions', []), key=lambda d: d['rev'], default=None),
-                                     active_jobs=[a for a in data.get('attempts', []) if a['state'] in ACTIVE])
-                    elif url.path == '/api/telemetry':
-                        value = read_events(home, arg('task') or None, arg('since'))
-                    elif url.path == '/api/job':
-                        value = job(home, arg('attempt'))
-                    else:
-                        self.send_error(404)
-                        return
+                elif url.path in API_PATHS:
+                    value = read_api(home, url.path, task=arg('task'), since=arg('since'), attempt=arg('attempt'))
                     body, mime = json.dumps(sanitize(value), ensure_ascii=False).encode(), 'application/json; charset=utf-8'
+                else:
+                    self.send_error(404)
+                    return
                 self.send_response(200)
                 self.send_header('Content-Type', mime)
                 self.send_header('Content-Length', str(len(body)))
                 self.send_header('Cache-Control', 'no-store')
                 self.end_headers()
                 self.wfile.write(body)
-            except (FactoryError, ValueError, OSError, sqlite3.Error, KeyError) as exc:
+            except READ_ERRORS as exc:
                 body = json.dumps(dict(error=sanitize(str(exc)))).encode()
                 self.send_response(400)
                 self.send_header('Content-Type', 'application/json')

@@ -1147,6 +1147,11 @@ HTML_PATH = Path(__file__).with_name('demo_board.html')
 LOOPBACK = {'127.0.0.1', 'localhost', '::1'}
 
 
+def board_payload(home, task_id, contracts=(), contract=None, *, operator=False):
+    board = load_board(home, task_id, contracts, contract)
+    return dict(board, operator_enabled=bool(operator))
+
+
 def make_handler(home, task_id=None, contracts=(), contract=None, operator=False, runner=run_operator):
     """The monitor's read-only handler (/api/tasks, plan, story, telemetry, job) plus /, /api/board and, only
     with operator=True, POST /api/operator (pause, resume, release, note through the factory CLI)."""
@@ -1183,8 +1188,7 @@ def make_handler(home, task_id=None, contracts=(), contract=None, operator=False
                 return self._send(200, HTML_PATH.read_text(encoding='utf-8').encode('utf-8'), 'text/html; charset=utf-8')
             if url.path == '/api/board':
                 try:
-                    board = load_board(home, self._task(url.query), contracts, contract)
-                    board['operator_enabled'] = bool(operator)
+                    board = board_payload(home, self._task(url.query), contracts, contract, operator=operator)
                     return self._send(200, board)
                 except Exception as exc:  # the board stays up; the page shows the error
                     return self._send(400, dict(error=f'{type(exc).__name__}: {exc}'))
