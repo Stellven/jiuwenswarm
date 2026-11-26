@@ -422,16 +422,17 @@ def _meminfo():
 def _gpu_apps():
     try:
         rows = subprocess.run(['nvidia-smi', '--query-compute-apps=pid,process_name,used_memory',
-                               '--format=csv,noheader'], capture_output=True, text=True, timeout=30).stdout
-    except (OSError, subprocess.TimeoutExpired):
-        return []
+                               '--format=csv,noheader'], capture_output=True, text=True, timeout=30, check=True).stdout
+    except (OSError, subprocess.SubprocessError) as exc:
+        return [f'GPU process list unavailable ({type(exc).__name__})']
     return [r.strip() for r in rows.splitlines() if r.strip()]
 
 
 def machine(task, home, own_pids=()):
     mem = _meminfo()
     apps = _gpu_apps()
-    foreign = [a for a in apps if int(a.split(',')[0]) not in set(own_pids)]
+    owned = {str(pid) for pid in own_pids}
+    foreign = [a for a in apps if a.split(',', 1)[0].strip() not in owned]
     disk = shutil.disk_usage(home)
     need = float(_resources(task).get('need_available_gib', NEED_GIB))
     ok = mem['MemAvailable'] / 2**30 >= need and not foreign
