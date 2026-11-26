@@ -311,3 +311,15 @@ def test_placement_keeps_the_server_inside_the_device_budget():
     assert args[-2:] == ['-fitt', '30000'] and args.count('-fitt') == 1
     # never below llama.cpp's own 1 GiB margin
     assert capped_run.placement_args([], dict(resources={'device_budget_mib': 200000}), avail_mib=120000, total_mib=124608)[0][-1] == '1024'
+
+
+def test_request_errors_carry_the_server_error_line(tmp_path):
+    log = tmp_path / 'server.log'
+    log.write_text('8.11.319.140 E srv    send_error: task id = 63, error: Context size has been exceeded.
+'
+                   '8.11.404.814 I common_memory_breakdown_print: | memory breakdown |
+')
+    assert capped_run.server_error(log) == 'Context size has been exceeded.'
+    log.write_text('all fine
+')
+    assert capped_run.server_error(log) is None and capped_run.server_error(tmp_path / 'missing') is None

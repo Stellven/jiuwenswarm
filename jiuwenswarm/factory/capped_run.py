@@ -661,6 +661,21 @@ def placement_args(server_args, task, avail_mib=None, total_mib=None):
     return [*out, '-fitt', str(margin)], dict(device_budget_mib=budget, fit_margin_mib=margin, available_mib=avail_mib)
 
 
+def server_error(log, tail_bytes=200_000):
+    """The last error a llama-server log printed (send_error / decode failures), or None."""
+    try:
+        with open(log, 'rb') as handle:
+            handle.seek(max(0, Path(log).stat().st_size - tail_bytes))
+            lines = handle.read().decode(errors='replace').splitlines()
+    except OSError:
+        return None
+    for line in reversed(lines):
+        m = re.search(r'(?:send_error: .*?error: |decode\(\) failed: |E srv .*?: )(.+)$', line)
+        if m:
+            return m.group(1).strip()[:300]
+    return None
+
+
 class Server:
     def __init__(self, run, server, model, server_args, env, log_name):
         self.run, self.port = run, _free_port()
@@ -712,7 +727,9 @@ class Server:
             if self.proc.poll() is not None:
                 raise RunError('SERVER_EXIT', f'llama-server exited {self.proc.returncode} during a request')
         if 'error' in box:
-            raise RunError('REQUEST', f'request failed: {box["error"]}')
+            # The HTTP status alone does not say why; the server's own error line does (e.g. context exceeded).
+            said = server_error(self.log)
+            raise RunError('REQUEST', f'request failed: {box["error"]}' + (f'; the server said: {said}' if said else ''))
         return box['out']
 
     def close(self):
