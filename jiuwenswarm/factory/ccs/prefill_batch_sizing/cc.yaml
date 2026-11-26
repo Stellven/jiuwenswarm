@@ -1,6 +1,6 @@
 cc: '2'
 id: engine.size_prefill_batch
-version: 1.2.0
+version: 1.3.0
 materials:
   method:
     path: METHOD.md
@@ -86,16 +86,34 @@ bindings:
 capabilities:
   plan:
     does: Pick -b/-ub for llama-server so each expected prompt is prefilled in as few micro-batches as the device
-      budget allows, from one -lv 4 load log at the current batch. With CPU-resident experts (mmap, --cpu-moe)
-      every micro-batch streams the routed experts again, so fewer micro-batches is the lever on time to first
-      token. Model, MoE cache and KV buffers are taken from the log; the compute buffers are scaled linearly with
-      the ubatch (an overestimate); steps down by halves to 512 when the estimate exceeds the budget. The log must
-      be at the target context (baseline_context fails otherwise).
+      budget allows, using a fresh -lv 4 load log at the current batch. The estimate can use measured KV and
+      compute deltas from an optional reference pair at the target layout and context. Otherwise the plan keeps
+      the baseline KV size and scales compute linearly. It halves the ubatch to 512 when the estimate exceeds
+      the budget.
     takes:
       baseline_log:
         kind: text
-        description: Path to (or text of) a llama-server -lv 4 log of a load at the current batch with the same
+        description: Path to (or text of) the fresh llama-server -lv 4 log at the current batch for the target
           model, context, cache and placement flags.
+      measured_reference:
+        kind: json
+        optional: true
+        description: Two historical llama-server -lv 4 logs (paths or text) from the same known build, model
+          and cache size, at the baseline and candidate micro-batches. The default buffer sizes and layout
+          must match the fresh baseline. The measured deltas apply only to the pair's exact candidate batch.
+        schema:
+          type: object
+          required:
+          - baseline_log
+          - candidate_log
+          additionalProperties: false
+          properties:
+            baseline_log:
+              type: string
+              minLength: 1
+            candidate_log:
+              type: string
+              minLength: 1
       prompt_tokens: $prompts
       device_budget_mib: $budget
       n_ctx:
@@ -125,7 +143,7 @@ capabilities:
       plan:
         kind: json
         description: factory.prefill-batch-plan/1 - batch, ubatch, args, estimate_mib, micro_batches per prompt
-          before and after, rationale.
+          before and after, rationale, and input digests and buffer deltas when using measured_reference.
     needs:
     - python
     changes:

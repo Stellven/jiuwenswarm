@@ -26,14 +26,43 @@ Decode speed is unchanged (single-token batches).
    `-lv 4`, under the memory cap. Keep its log (it prints `n_batch`, `n_ubatch` and every device buffer).
 2. Call `plan` with that log, the prompt sizes the workload sends and the device budget. It picks the
    smallest power of two that covers the longest prompt (capped by `n_ctx`) and halves it while the estimate
-   exceeds the budget. Model, MoE cache and KV buffers are taken as measured (KV is sized by `n_ctx`, not by
-   the ubatch); the compute buffers are scaled linearly, which overestimates them. Measured: compute buffer
-   1538.5 MiB at 512, 2128.1 MiB at 2048.
+   exceeds the budget. The default estimate keeps the measured model, MoE cache and KV sizes and scales
+   the compute buffers linearly with the ubatch. With `measured_reference`, the exact candidate batch uses
+   the fresh default load's measured device buffers plus the historical change in KV and in CUDA and host
+   compute. Other batches use the default estimate.
    The baseline load must use the target context: KV and the attention part of the compute buffer grow with
    `n_ctx`, so `plan` fails `baseline_context` when the target is larger than the log's.
 3. Load the server with the plan's `args` added (same everything else, same cap) and run the same requests
    the baseline ran: one cold and at least one warm per prompt size, greedy, a fixed seed.
 4. Call `verify` with the plan, the new log and the two sets of rows.
+
+## Measured reference for the Muse mixed 2-bit pack
+
+Use the fresh capped mixed-pack log as `baseline_log`. The historical Q2_K logs from November 25 at
+`/home/user2/muse-demo/lab/B.stderr.log` and `/home/user2/muse-demo/lab/Bub.stderr.log` can be passed as
+`measured_reference.baseline_log` and `measured_reference.candidate_log`. They are stock build `9048bad8d`
+loads at context 4096, one sequence, logical batch 2048, and ubatch 512 and 2048 respectively. The separate
+`C.stderr.log` and `D.stderr.log` pair from build `56afc3581` measured the same deltas. Each reference pair
+uses one build and cache size.
+
+| Buffer | ubatch 512 (MiB) | ubatch 2048 (MiB) | Increase (MiB) |
+|---|---:|---:|---:|
+| CUDA0 KV | 716.00 | 992.00 | 276.00 |
+| CUDA0 compute | 1538.51 | 2128.05 | 589.54 |
+| CUDA_Host compute | 70.53 | 288.10 | 217.57 |
+
+The increase in KV is in the sliding-window buffer. The previous mixed load at
+`graph-v4/runs/fd07412594dd4491864b5fddfbf37b2f/server.log` matched the reference at ubatch 512 for all
+three buffers and for the GPU model allocation, board, architecture, KV layout and scheduler graph. Its
+expert weights and cache slots differed, so the estimate uses the fresh mixed load's model and does the
+cache calculation for the target budget. With a budget of 110000 MiB, headroom of 2048 MiB and prompts of
+511 and 2047 tokens, the historical mixed log projects `-b 2048 -ub 2048 --moe-cache-mib 66560` and
+107364.8 MiB before expert slot rounding.
+
+This is a cross-pack planning estimate. The exact candidate buffer usage on the mixed pack is measured
+by the fresh planned load. The plan records each input log's SHA-256, log-reported model and build, batch
+and allocations. The planner checks layout and measured default allocations. The caller supplies the
+provenance of the fresh capped runs and uses their request rows for `verify`.
 
 ## Budget
 

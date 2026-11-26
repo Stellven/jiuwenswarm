@@ -18,11 +18,13 @@ import json
 import math
 import re
 import sys
+from hashlib import sha256
 from pathlib import Path
 
 STATIC, NATIVE, RUNTIME = 'fixture', 'native CC execution', 'runtime acceptance'
 ORDER = (STATIC, NATIVE, 'compile', RUNTIME)
 MIN_UBATCH = 512
+RESIZABLE_BUFFERS = ('kv', 'compute', 'host_compute')
 
 
 def check(name, status, detail, stage):
@@ -88,14 +90,85 @@ def _budget(inputs):
 
 # ---- plan ------------------------------------------------------------------------------------
 def estimate(base, ubatch):
-    """Device MiB at ``ubatch`` scaled from a load at the reference ubatch and the same context. Model, MoE cache
-    and KV buffers do not depend on the ubatch (KV is sized by n_ctx) and are taken as measured; the compute
-    buffers (CUDA0 and host) are scaled linearly, which overestimates them: measured on Muse, the CUDA0 compute
-    buffer was 1538.5 MiB at 512 and 2128.1 MiB at 2048."""
+    """Legacy estimate with fixed measured model, cache and KV and linearly scaled compute."""
     d, scale = base['device_mib'], ubatch / base['n_ubatch']
     fixed = d.get('model', 0) + d.get('moe_cache', 0) + d.get('kv', 0)
     scaled = sum(d.get(k, 0) for k in ('compute', 'host_compute')) * max(1.0, scale)
     return round(fixed + scaled, 1)
+
+
+def _log_evidence(value, name):
+    if not isinstance(value, str) or not value:
+        raise ValueError(f'{name} is a path or the log text')
+    if '\n' in value:
+        raw, source = value.encode('utf-8'), {'source': 'inline text'}
+    else:
+        path = Path(value)
+        raw, source = path.read_bytes(), {'path': str(path.resolve())}
+    return raw.decode('utf-8', errors='replace'), dict(source, sha256=sha256(raw).hexdigest())
+
+
+def _reference_layout(log, parsed, name):
+    def field(pattern):
+        matches = re.findall(pattern, log)
+        if len(matches) != 1:
+            raise ValueError(f'{name} must contain one load with complete layout metadata: {pattern}')
+        return matches[0]
+
+    architecture = {key: field(rf'print_info: {key}\s+= ([^\r\n]+)') for key in
+                    ('arch', 'n_layer', 'n_embd', 'n_head', 'n_head_kv', 'n_swa')}
+    context = {key: field(rf'llama_context: {key}\s+= ([^\r\n]+)') for key in
+               ('n_ctx', 'n_seq_max', 'causal_attn', 'flash_attn', 'kv_unified')}
+    kv_layout = re.findall(r'llama_kv_cache: size = [^\r\n]+?,\s*(\d+ layers,\s*\d+/\d+ seqs)\), '
+                           r'K \(([^)]+)\):[^\r\n]+?, V \(([^)]+)\):', log)
+    graph_ubatch, graph = field(r'sched_reserve: graph \(pp bs=(\d+), (tg bs=[^\r\n]+)')
+    device = parsed['device_mib']
+    if (not kv_layout or not all(device.get(key, 0) > 0 for key in ('model', 'moe_cache', *RESIZABLE_BUFFERS))
+            or int(graph_ubatch) != parsed['n_ubatch']):
+        raise ValueError(f'{name} lacks comparable device buffers, KV layout or prefill graph')
+    return dict(architecture=architecture, context=context, kv_layout=kv_layout, graph=graph,
+                cuda_device=field(r'common_param:\s+- CUDA0\s+: ([^\r\n]+?) \('),
+                cuda_build=field(r'system_info: [^\r\n]+?\| CUDA : ([^\r\n]+?) \| CPU :'),
+                load_mode=field(r'load_tensors: loading model tensors[^\r\n]+\(load_mode = ([^)]+)\)'),
+                offload=field(r'load_tensors: offloaded (\d+/\d+) layers to GPU'),
+                flash_attention=field(r'resolve_fused_ops: Flash Attention ([^\r\n]+)'),
+                cpu_misses=field(r'CUDA0 MoE cache size = [^\r\n]+?, (\d+)% of the misses on the CPU'))
+
+
+def _measured_reference(reference, baseline_text, base, baseline_source, n_ctx):
+    if not isinstance(reference, dict) or reference.keys() != {'baseline_log', 'candidate_log'}:
+        raise ValueError('measured_reference requires baseline_log and candidate_log')
+    low_text, low_source = _log_evidence(reference['baseline_log'], 'measured_reference.baseline_log')
+    high_text, high_source = _log_evidence(reference['candidate_log'], 'measured_reference.candidate_log')
+    low, high = parse_log(low_text), parse_log(high_text)
+    layouts = [_reference_layout(log, parsed, name) for log, parsed, name in
+               ((baseline_text, base, 'baseline_log'), (low_text, low, 'measured_reference.baseline_log'),
+                (high_text, high, 'measured_reference.candidate_log'))]
+    if layouts[0] != layouts[1] or layouts[1] != layouts[2] or n_ctx != base['n_ctx']:
+        raise ValueError('measured_reference layout or target context differs from the fresh baseline')
+    if not base['n_batch'] or (base['n_batch'], base['n_ubatch']) != (low['n_batch'], low['n_ubatch']):
+        raise ValueError('measured_reference baseline batch differs from the fresh baseline')
+    if not low['n_ubatch'] < high['n_ubatch'] or high['n_batch'] != max(low['n_batch'], high['n_ubatch']):
+        raise ValueError('measured_reference candidate must increase ubatch with the planned logical batch')
+
+    def origin(log):
+        build = re.findall(r'common_params_print_info: build (\d+ \([^)]+\))', log)
+        model = re.findall(r"srv\s+load_model: loading model '([^'\r\n]+)'", log)
+        if len(build) != 1 or len(model) != 1:
+            raise ValueError('measured_reference requires each log to identify its build and model')
+        return dict(build=build[0], model=model[0])
+
+    low_origin, high_origin = origin(low_text), origin(high_text)
+    if (low_origin != high_origin or '(unknown)' in low_origin['build'] or low['mapped_mib'] != high['mapped_mib']
+            or any(low['device_mib'][k] != high['device_mib'][k] for k in ('model', 'moe_cache'))):
+        raise ValueError('measured_reference pair must use the same identifiable build, model and cache size')
+    if any(base['device_mib'][k] != low['device_mib'][k] for k in ('model', *RESIZABLE_BUFFERS)):
+        raise ValueError('measured_reference baseline model, KV or compute MiB differs from the fresh baseline')
+
+    delta = {k: round(high['device_mib'][k] - low['device_mib'][k], 2) for k in RESIZABLE_BUFFERS}
+    return dict(fresh_baseline=dict(baseline_source, **origin(baseline_text), **base),
+                baseline=dict(low_source, **low_origin, **low), candidate=dict(high_source, **high_origin, **high),
+                delta_mib=delta)
 
 
 def _headroom(inputs, key='fill_moe_cache_headroom_mib'):
@@ -108,7 +181,12 @@ def _headroom(inputs, key='fill_moe_cache_headroom_mib'):
 
 
 def plan(inputs):
-    base = parse_log(_text(inputs['baseline_log'], 'baseline_log'))
+    reference, baseline_source = None, None
+    if 'measured_reference' in inputs:
+        baseline_text, baseline_source = _log_evidence(inputs['baseline_log'], 'baseline_log')
+    else:
+        baseline_text = _text(inputs['baseline_log'], 'baseline_log')
+    base = parse_log(baseline_text)
     if not base['n_ubatch'] or not base['device_mib'].get('compute'):
         raise ValueError('baseline_log lacks n_ubatch or the CUDA0 compute buffer line (run the server at -lv 4)')
     prompts, budget = _prompts(inputs), _budget(inputs)
@@ -116,11 +194,16 @@ def plan(inputs):
     # KV and the attention part of the compute buffer grow with the context; a log at a smaller context cannot
     # bound them. The estimate is only trusted from a baseline at (at least) the target context.
     ctx_ok = not base['n_ctx'] or n_ctx <= base['n_ctx']
+    if baseline_source is not None:
+        reference = _measured_reference(inputs['measured_reference'], baseline_text, base, baseline_source, n_ctx)
     want = min(n_ctx, 2 ** math.ceil(math.log2(max(prompts))))
     ubatch, tried = max(want, MIN_UBATCH), []
     while True:
-        need = estimate(base, ubatch)
-        tried.append(dict(ubatch=ubatch, estimate_mib=need, fits=need <= budget))
+        measured = reference is not None and ubatch == reference['candidate']['n_ubatch']
+        need = (round(sum(base['device_mib'].values()) + sum(reference['delta_mib'].values()), 1)
+                if measured else estimate(base, ubatch))
+        tried.append(dict(ubatch=ubatch, estimate_mib=need, fits=need <= budget,
+                          **({'estimate_method': 'measured_reference' if measured else 'linear'} if reference else {})))
         if need <= budget or ubatch <= MIN_UBATCH:
             break
         ubatch //= 2
@@ -138,6 +221,7 @@ def plan(inputs):
                reference=dict(n_ubatch=base['n_ubatch'], n_batch=base['n_batch'], n_ctx=n_ctx, device_mib=base['device_mib']),
                device_budget_mib=budget, estimate_mib=tried[-1]['estimate_mib'], tried=tried, prompt_tokens=prompts,
                micro_batches=passes, fits=fits,
+               **({'measured_reference': reference} if reference else {}),
                **(dict(moe_cache_mib=cache, headroom_mib=headroom,
                        moe_cache_from_mib=base['device_mib'].get('moe_cache', 0)) if cache else {}),
                rationale=(f'Each prefill micro-batch streams the CPU-resident experts again; ubatch {ubatch} prefills '
@@ -148,6 +232,9 @@ def plan(inputs):
     checks = [check('baseline_log', 'pass', f"ubatch {base['n_ubatch']}, device {sum(base['device_mib'].values()):.0f} MiB", NATIVE),
               check('baseline_context', 'pass' if ctx_ok else 'fail',
                     f"baseline n_ctx {base['n_ctx']}, target {n_ctx}" + ('' if ctx_ok else ': load the baseline at the target context'), NATIVE),
+              *([check('measured_reference', 'pass',
+                       f"matched load layout; KV and compute deltas (MiB): {json.dumps(reference['delta_mib'])}; "
+                       f"selected estimate: {tried[-1]['estimate_method']}", NATIVE)] if reference else []),
               check('fits_budget', 'pass' if fits else 'fail',
                     f"{tried[-1]['estimate_mib']:.0f} MiB estimated vs {budget:.0f} MiB budget at ubatch {ubatch}", NATIVE),
               *([check('moe_cache_filled', 'pass' if cache else 'fail',

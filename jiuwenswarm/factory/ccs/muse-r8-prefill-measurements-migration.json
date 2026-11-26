@@ -1,0 +1,25 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "prefill_batch_sizing/cc.yaml",
+      "from_version": "1.2.0",
+      "from_release": "07136e639226c7f38ebec436a505ad21d1746d1f274ca01ad9d6f7c54750ec30",
+      "from_commit": "954787e2630fdc229a7913e01779381387c4375e",
+      "to_version": "1.3.0",
+      "to_release": "26b5893f616ae3df96dbf75cc254bf035974b04ba20e3bafb568639907e9997c",
+      "changed_files": [
+        "METHOD.md",
+        "VALIDATION.md",
+        "cc.yaml",
+        "run.py",
+        "tests/fixtures/measured-mixed-default.server.log",
+        "tests/fixtures/measured-q2-candidate.server.log",
+        "tests/fixtures/measured-q2-default.server.log",
+        "tests/test_prefill_batch_capabilities.py"
+      ],
+      "unrecorded_versions": [],
+      "reason": "Calibrate candidate KV and compute from matched measured loads while preserving fresh verification"
+    }
+  ]
+}

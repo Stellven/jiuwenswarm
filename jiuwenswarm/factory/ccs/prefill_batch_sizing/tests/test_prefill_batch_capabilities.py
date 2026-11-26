@@ -1,5 +1,6 @@
 """engine.size_prefill_batch on real Spark fixtures: a Muse Q2_K server load at the default batch (B) and at
 -b 2048 -ub 2048 (Bub), and the lab rows of the same requests. Planted faults must fail."""
+from hashlib import sha256
 import json
 from pathlib import Path
 import subprocess
@@ -11,6 +12,11 @@ HERE = Path(__file__).resolve().parent
 RUN = HERE.parent / 'run.py'
 FIX = HERE / 'fixtures'
 ROWS = json.loads((FIX / 'rows.json').read_text())
+# Selected lines from Nov 25 lab/B.stderr.log and lab/Bub.stderr.log and the Nov 26 historical
+# mixed-pack load at graph-v4/runs/fd07412594dd4491864b5fddfbf37b2f/server.log.
+MIXED_DEFAULT = FIX / 'measured-mixed-default.server.log'
+MEASURED_PAIR = dict(baseline_log=str(FIX / 'measured-q2-default.server.log'),
+                     candidate_log=str(FIX / 'measured-q2-candidate.server.log'))
 
 
 def call(capability, **inputs):
@@ -100,6 +106,55 @@ def test_fill_gives_the_rest_of_the_budget_to_the_moe_cache(tmp_path):
     assert 110000 - 2048 - 1024 < doc['estimate_mib'] <= 110000 - 2048
     # without the input the plan is unchanged (1.1.0 behaviour)
     assert 'moe_cache_mib' not in planned(tmp_path)['plan']
+
+
+def test_measured_reference_transfers_only_buffer_deltas(tmp_path):
+    out = planned(tmp_path, baseline_log=str(MIXED_DEFAULT), measured_reference=MEASURED_PAIR,
+                  fill_moe_cache_headroom_mib=2048)
+    assert out['done'], out['not_done_because']
+    doc = out['plan']
+    assert doc['args'] == ['-b', '2048', '-ub', '2048', '--moe-cache-mib', '66560']
+    assert doc['estimate_mib'] == 107364.8 and doc['moe_cache_from_mib'] == 61438.5
+    assert doc['tried'][0]['estimate_method'] == 'measured_reference'
+    evidence = doc['measured_reference']
+    assert evidence['delta_mib'] == {'kv': 276.0, 'compute': 589.54, 'host_compute': 217.57}
+    assert evidence['baseline']['device_mib']['moe_cache'] == 61425.0
+    for name, path in [('fresh_baseline', MIXED_DEFAULT), ('baseline', Path(MEASURED_PAIR['baseline_log'])),
+                       ('candidate', Path(MEASURED_PAIR['candidate_log']))]:
+        assert evidence[name]['sha256'] == sha256(path.read_bytes()).hexdigest()
+    assert doc['micro_batches']['2047'] == {'before': 4, 'after': 1}
+    linear = planned(tmp_path, baseline_log=str(MIXED_DEFAULT), fill_moe_cache_headroom_mib=2048)['plan']
+    assert linear['moe_cache_mib'] == 62464
+
+
+def test_measured_reference_does_not_extrapolate(tmp_path):
+    options = dict(baseline_log=str(MIXED_DEFAULT), prompt_tokens=[511, 1000])
+    out = planned(tmp_path, measured_reference=MEASURED_PAIR, **options)
+    assert out['done'], out['not_done_because']
+    doc = out['plan']
+    assert doc['ubatch'] == 1024 and doc['tried'][0]['estimate_method'] == 'linear'
+    assert doc['estimate_mib'] == planned(tmp_path, **options)['plan']['estimate_mib']
+
+
+@pytest.mark.parametrize('source, old, new, message', [
+    ('fresh', 'n_ctx                 = 4096', 'n_ctx                 = 8192', 'layout or target context'),
+    ('fresh', 'K (f16)', 'K (q8_0)', 'layout or target context'),
+    ('fresh', '1538.51 MiB', '8386.51 MiB', 'model, KV or compute MiB'),
+    ('candidate', '(9048bad8d)', '(56afc3581)', 'same identifiable build'),
+    ('candidate', 'sched_reserve: graph', 'missing graph', 'complete layout metadata'),
+])
+def test_incompatible_reference_fails_the_plan(tmp_path, source, old, new, message):
+    baseline, pair = MIXED_DEFAULT.read_text(), dict(MEASURED_PAIR)
+    if source == 'fresh':
+        assert old in baseline
+        baseline = baseline.replace(old, new)
+    else:
+        candidate = Path(pair['candidate_log']).read_text()
+        assert old in candidate
+        pair['candidate_log'] = candidate.replace(old, new)
+    out = planned(tmp_path, baseline_log=baseline, measured_reference=pair)
+    assert not out['done'] and message in out['not_done_because'][0]
+    assert not (tmp_path / 'plan.json').exists()
 
 
 def test_fill_verify_checks_the_server_cache(tmp_path):
