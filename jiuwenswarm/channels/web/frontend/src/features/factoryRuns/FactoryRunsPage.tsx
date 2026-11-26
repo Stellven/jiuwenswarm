@@ -425,6 +425,9 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
   };
   const openEvidenceFile = (path: string) =>
     selectPanel(/(?:^|\/)report[^/]*\.md$/i.test(path) ? 'report' : 'artifacts', path);
+  const correctionCursor = cursor && (detail?.curated || position < events.length)
+    ? { created: cursor.created, id: (curatedStep?.correction ?? cursor.correction)?.id }
+    : undefined;
   const nodeEvidence = detail && focusedNode ? (
     <div ref={nodeEvidenceSection} className="factory-node-evidence-slot">
       <NodeEvidence
@@ -435,6 +438,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
         checks={detail.node_checks?.[focusedNode]}
         files={detail.files}
         revision={detail}
+        correctionCursor={correctionCursor}
         onOpenFile={openEvidenceFile}
         onClose={selectedNode ? () => setSelectedNode(undefined) : undefined}
       />
@@ -552,6 +556,11 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
               resumeMode={controls?.resume_mode}
               onRun={runOperation}
             />
+            {detail.contract.contract_id === 'muse-2bit-demo-r8' && (
+              <p className="factory-correction-explanation" data-testid="factory-runs-correction-explanation">
+                Node verifiers are experimental; reviews are advisory and agents help the graph keep going.
+              </p>
+            )}
             {isLiveHome && (live || panel === 'overview' || panel === 'terminal') && (
               <LiveSession session={session} stale={sessionStale} />
             )}
@@ -638,6 +647,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                   nodes={detail.cc_overview}
                   labels={nodeLabels}
                   replayByNode={replayByNode}
+                  corrections={detail.correction_overview}
                   selected={focusedNode}
                   onSelect={(id) => setSelectedNode((old) => old === id ? undefined : id)}
                 />

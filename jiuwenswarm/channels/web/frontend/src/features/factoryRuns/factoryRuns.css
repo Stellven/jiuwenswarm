@@ -205,7 +205,7 @@
   padding: 0;
   list-style: none;
 }
-.factory-timeline li {
+.factory-timeline > li {
   display: grid;
   grid-template-columns: 90px minmax(110px, 180px) 1fr;
   gap: 14px;
@@ -302,10 +302,10 @@
   .factory-file-grid {
     grid-template-columns: 1fr;
   }
-  .factory-timeline li {
+  .factory-timeline > li {
     grid-template-columns: 70px 1fr;
   }
-  .factory-timeline li span {
+  .factory-timeline > li > :is(span, .factory-correction-record) {
     grid-column: 1 / -1;
   }
 }

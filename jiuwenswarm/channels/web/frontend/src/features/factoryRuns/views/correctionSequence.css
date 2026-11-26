@@ -1,0 +1,135 @@
+.factory-correction-tally {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 7px;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.factory-correction-tally div {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: var(--color-surface-muted);
+}
+
+.factory-correction-tally dt,
+.factory-correction-tally dd {
+  margin: 0;
+}
+
+.factory-correction-tally dd {
+  font-weight: 650;
+  color: var(--color-text-primary);
+}
+
+.factory-correction-explanation {
+  max-width: 1420px;
+  margin: 0 auto 12px;
+  color: var(--color-text-secondary);
+}
+
+.factory-correction-sequence {
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+  padding: 12px;
+  min-width: 0;
+}
+
+.factory-correction-sequence > header,
+.factory-correction-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.factory-correction-sequence > header {
+  justify-content: space-between;
+}
+
+.factory-correction-sequence ol {
+  list-style: none;
+  padding: 0 0 0 12px;
+  margin: 10px 0 0;
+  border-inline-start: 2px solid var(--color-border-default);
+}
+
+.factory-correction-sequence > ol > li + li {
+  margin-top: 8px;
+}
+
+.factory-correction-sequence > ol > li {
+  position: relative;
+}
+
+.factory-correction-sequence > ol > li::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: -17px;
+  top: 13px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-border-strong);
+}
+
+.factory-correction-sequence > ol > li[data-kind='finding']::before {
+  background: var(--color-feedback-warning);
+}
+
+.factory-correction-sequence > ol > li[data-kind='passing_check']::before {
+  background: var(--color-feedback-success-text);
+}
+
+.factory-correction-record {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  border-radius: 8px;
+  background: var(--color-surface-page);
+  border: 1px solid var(--color-border-default);
+  padding: 8px 10px;
+}
+
+.factory-correction-record[data-kind='finding'] {
+  border-inline-start: 3px solid var(--color-feedback-warning);
+}
+
+.factory-correction-record[data-kind='passing_check'] {
+  border-inline-start: 3px solid var(--color-feedback-success-text);
+}
+
+.factory-correction-header strong {
+  color: var(--color-text-primary);
+}
+
+.factory-correction-header time {
+  margin-inline-start: auto;
+}
+
+.factory-correction-text {
+  white-space: pre-wrap;
+}
+
+.factory-correction-text,
+.factory-correction-meta {
+  margin: 5px 0;
+}
+
+.factory-correction-meta,
+.factory-correction-header time {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.factory-correction-badge {
+  padding: 3px 6px;
+  border-radius: 5px;
+  color: var(--color-text-primary);
+  background: var(--color-surface-muted);
+  font-size: 12px;
+}
