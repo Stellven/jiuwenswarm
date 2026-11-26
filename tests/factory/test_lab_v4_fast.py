@@ -3,6 +3,7 @@ import hashlib
 import io
 import json
 from pathlib import Path
+from threading import Event
 from types import SimpleNamespace
 from uuid import uuid4
 
@@ -10,7 +11,7 @@ import pytest
 
 from jiuwenswarm.factory import capped_run, node_check
 from jiuwenswarm.factory.store import Store
-from scripts.factory import lab_v4_fast, lab_v4_inputs
+from scripts.factory import lab_v4_fast, lab_v4_inputs, lab_v4_quiet
 
 
 @pytest.fixture
@@ -154,7 +155,10 @@ def test_binary_directory_and_skip_warm_still_work(lab):
 
 
 @pytest.fixture(params=['inline', 'artifact'])
-def factory(lab, tmp_path, request):
+def factory(lab, tmp_path, request, monkeypatch):
+    monkeypatch.setattr(lab_v4_quiet.os, 'getloadavg', lambda: (0.1, 0.2, 0.3))
+    monkeypatch.setattr(lab_v4_quiet, 'processes', lambda: dict(process_count=1, processes=[
+        dict(pid=101, ppid=1, state='R', kind='helper', own_lab=True)]))
     home = tmp_path / 'factory'
     store = Store(home)
     task = lab_v4_inputs.TASK
@@ -259,6 +263,9 @@ def test_factory_rows_use_delivered_identity_and_server_settings(lab, factory):
         assert row['moe_cache_mib'] == 63.0
         assert row['batch_plan'] == dict(batch=2048, ubatch=2048, moe_cache_mib=64)
         assert row['cache_prompt'] is False
+        assert row['quiet']['status'] == 'accepted'
+        assert [sample['phase'] for sample in row['quiet']['samples']] == ['start', 'end']
+        assert row['quiet']['samples'][0]['load_averages'] == [0.1, 0.2, 0.3]
     computed = lab_v4_fast.comparison(report['rows'], lab_v4_fast.baseline(factory.reference))
     assert report['comparison'] == computed
     assert len(computed['cells']) == 8
@@ -290,3 +297,125 @@ def test_factory_plan_must_be_the_accepted_verifier_input(lab, factory):
     with pytest.raises(ValueError, match='verifier inputs differ'):
         lab_v4_fast.main(lab.path, ['P'])
     assert not lab.events
+
+
+def test_quiet_preflight_prevents_image_extraction_and_model_load(lab, factory, monkeypatch):
+    monkeypatch.setattr(lab_v4_quiet.os, 'getloadavg', lambda: (1.0, 0.1, 0.1))
+    with pytest.raises(lab_v4_quiet.Breach, match='one-minute load at or above limit'):
+        lab_v4_fast.main(lab.path, ['B', 'P'])
+    report = json.loads((lab.out / 'report.json').read_text())
+    assert report['quiet_admissions'][0]['load_averages'] == [1.0, 0.1, 0.1]
+    assert report['rows'] == []
+    assert not lab.events
+
+
+def test_quiet_rechecked_after_machine_gate_and_after_loading(lab, factory, monkeypatch):
+    original = lab_v4_quiet.snapshot
+    waited = set()
+    monkeypatch.setattr(lab_v4_quiet, 'WAIT_SECONDS', 0.001)
+
+    def sample(limits, phase):
+        result = original(limits, phase)
+        if phase not in waited:
+            if phase == 'pre_launch_wait':
+                result.update(ok=False, reasons=['foreign build process present'])
+                result['process_count'] += 1
+                result['processes'].append(dict(pid=102, ppid=1, state='R', kind='build', own_lab=False))
+            elif phase in {'ready', 'start_wait'}:
+                result['load_averages'][0] = 1.2
+                result.update(ok=False, reasons=['one-minute load at or above limit'])
+        waited.add(phase)
+        return result
+
+    monkeypatch.setattr(lab_v4_quiet, 'snapshot', sample)
+    lab_v4_fast.main(lab.path, ['B'])
+    report = json.loads((lab.out / 'report.json').read_text())
+    assert len(report['rows']) == 4 and all(row['quiet']['status'] == 'accepted' for row in report['rows'])
+    outside = report['quiet_arms'][0]['samples']
+    assert {sample['phase'] for sample in outside if not sample['ok']} >= {'pre_launch_wait', 'ready', 'start_wait'}
+    assert sum(event[0] == 'launch' for event in lab.events) == 1
+    assert sum(event[0] == 'gate' for event in lab.events) == 3
+
+
+def test_mid_request_violation_excludes_only_its_cell_and_keeps_warm_predecessor(lab, factory, monkeypatch):
+    real_sample = lab_v4_quiet.snapshot
+    real_request = lab_v4_fast.request
+    sampled_during, waited_before_warm = Event(), Event()
+    monkeypatch.setattr(lab_v4_quiet, 'INTERVAL_SECONDS', 0.05)
+    monkeypatch.setattr(lab_v4_quiet, 'WAIT_SECONDS', 0.001)
+
+    def sample(limits, phase):
+        result = real_sample(limits, phase)
+        if phase == 'during' and not sampled_during.is_set():
+            result['ok'] = False
+            result['reasons'] = ['foreign test process present']
+            result['process_count'] += 1
+            result['processes'].append(dict(pid=102, ppid=1, state='R', kind='test', own_lab=False))
+            sampled_during.set()
+        elif phase == 'start_wait' and sampled_during.is_set() and not waited_before_warm.is_set():
+            result['load_averages'][0] = 1.1
+            result.update(ok=False, reasons=['one-minute load at or above limit'])
+            waited_before_warm.set()
+        return result
+
+    def capture_then_finish(*args):
+        metrics = real_request(*args)
+        assert sampled_during.wait(5)
+        return metrics
+
+    monkeypatch.setattr(lab_v4_quiet, 'snapshot', sample)
+    monkeypatch.setattr(lab_v4_fast, 'request', capture_then_finish)
+    with pytest.raises(capped_run.RunError, match='excluded timed cells'):
+        lab_v4_fast.main(lab.path, ['B', 'P'])
+    report = json.loads((lab.out / 'report.json').read_text())
+    assert len(report['rows']) == 8
+    row, warm = report['rows'][:2]
+    assert (row['arm'], row['state'], row['request']) == ('B', 'cold', 'p512')
+    assert row['decode_tokens_per_second'] == 1.5
+    phases = [sample['phase'] for sample in row['quiet']['samples']]
+    assert phases[0] == 'start' and phases[-1] == 'end' and 'during' in phases
+    assert row['quiet']['status'] == 'excluded'
+    assert (warm['arm'], warm['state'], warm['request']) == ('B', 'warm', 'p512')
+    assert warm['quiet']['status'] == 'accepted' and waited_before_warm.is_set()
+    assert len(report['summary']) == len(report['comparison']['cells']) == 7
+    assert report['comparison']['excluded'] == [dict(arm='B', request='p512', state='cold',
+                                                     reasons=['foreign test process present'])]
+    assert sum(event[0] == 'request' for event in lab.events) == 8
+    assert sum(event[0] == 'launch' for event in lab.events) == 2
+
+    previous = lab.events[:]
+    with pytest.raises(capped_run.RunError, match='excluded timed cells'):
+        lab_v4_fast.main(lab.path, ['B', 'P'])
+    assert lab.events == previous
+
+
+def test_resume_does_not_replay_a_cold_cell_to_create_a_warm_predecessor(lab, factory):
+    lab_v4_fast.main(lab.path, ['B'])
+    report_path = lab.out / 'report.json'
+    report = json.loads(report_path.read_text())
+    cold = report['rows'][0]
+    report['rows'] = [cold]
+    report_path.write_text(json.dumps(report))
+    lab.events.clear()
+
+    with pytest.raises(capped_run.RunError, match='excluded timed cells'):
+        lab_v4_fast.main(lab.path, ['B'])
+    updated = json.loads(report_path.read_text())
+    assert updated['rows'][0] == cold
+    assert len(updated['rows']) == 4
+    assert [event[1]['prompt'] for event in lab.events if event[0] == 'request'] == ['p2048', 'p2048']
+    assert updated['comparison']['excluded'] == [dict(arm='B', request='p512', state='warm', reasons=[
+        'warm state unavailable after restart; cold predecessor ran on another load'])]
+
+
+def test_offline_comparison_excludes_partial_factory_evidence(lab, factory):
+    lab_v4_fast.main(lab.path, ['B'])
+    report = json.loads((lab.out / 'report.json').read_text())
+    missing, incomplete, accepted, *_ = report['rows']
+    missing.pop('quiet')
+    incomplete['quiet']['samples'].pop()
+    result = lab_v4_fast.comparison([missing, incomplete, accepted], lab_v4_fast.baseline(factory.reference))
+    assert len(result['cells']) == 1
+    assert result['cells'][0]['request'] == accepted['request']
+    assert [item['reasons'] for item in result['excluded']] == [
+        ['missing quiet evidence'], ['missing start, periodic or end quiet evidence']]
