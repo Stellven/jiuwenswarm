@@ -1,0 +1,19 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "capped_runner/cc.yaml",
+      "from_version": "1.1.0",
+      "from_release": "e0a9dd8017a11abfc009e7dcbebd3d043a93cad2ca42ed0eec20960d4762587d",
+      "from_commit": "68acd0e632e2b029998b03772f6c6ce6137a51c6",
+      "to_version": "1.2.0",
+      "to_release": "702d8b7ada0d65929e6b88d564a20e32dec5c68b79029ab2864f21a76e658718",
+      "changed_files": [
+        "METHOD.md",
+        "cc.yaml"
+      ],
+      "unrecorded_versions": [],
+      "reason": "convert and quantize hash their outputs; manifest recipe"
+    }
+  ]
+}
