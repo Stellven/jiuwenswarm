@@ -109,6 +109,27 @@ def test_weaker_is_refused(change, message):
     assert any(message in f for f in found), found
 
 
+def test_an_advisory_review_may_only_become_blocking():
+    blocking = prelim()  # review: true
+    final = good_final(blocking)
+    final['verifiers'][0]['review'] = 'advisory'
+    assert any('stays blocking' in f for f in check_final(blocking, final, known_ccs={CC}))
+    advisory = prelim()
+    advisory['verifiers'][0]['review'] = 'advisory'
+    assert preliminary_problems(advisory) == []
+    final = good_final(advisory)
+    assert check_final(advisory, final, known_ccs={CC}) == []          # stays advisory
+    final['verifiers'][0]['review'] = True
+    assert check_final(advisory, final, known_ccs={CC}) == []          # stricter: blocking
+    final['verifiers'][0]['review'] = False
+    assert any('review stays on' in f for f in check_final(advisory, final, known_ccs={CC}))
+    unreviewed = prelim()
+    unreviewed['verifiers'][0].pop('review')
+    final = good_final(unreviewed)
+    final['verifiers'][0]['review'] = 'advisory'
+    assert check_final(unreviewed, final, known_ccs={CC}) == []        # adding a review is stricter
+
+
 def test_unknown_capsules_are_refused():
     p = prelim()
     p['work'].pop('eligible_ccs')

@@ -19,6 +19,7 @@ def format_status(value, plain=False, evidence=None):
     lines = wrap(f"Task: {value['task_id']} · {value.get('outcome') or 'in progress'} · rev {decision.get('rev', 0)}")
     lines += wrap(f"Budget: {used.get('turns', 0)}/{limit.get('max_turns', '?')} turns · "
                   f"{duration(used.get('wall_clock_s', 0))}/{duration(limit['wall_clock_s']) if 'wall_clock_s' in limit else '?'}")
+    lines += _operator_lines(value)
     action = decision.get('action', {})
     def compact(text):
         parts = wrap(text, '  ')
@@ -72,7 +73,39 @@ def readonly_status(data):
                                evaluations_present=bool(data.get('evaluations'))),
                 budget_used=dict(turns=state.get('turns', 0), wall_clock_s=state['active_s'] if 'active_s' in state else max(0,
                     (state.get('finished') or time.time()) - state['started']) if state.get('started') is not None else 0),
-                pending_attempts=state.get('pending_attempts', []), pending_questions=state.get('pending_questions', []))
+                pending_attempts=state.get('pending_attempts', []), pending_questions=state.get('pending_questions', []),
+                stop_reason=state.get('stop_reason'), **_operator_view(data))
+
+
+def _operator_view(data):
+    from .run_pause import current_in
+    pause = current_in(data)
+    held = {}
+    try:
+        from .taskgraph import from_records
+        held = {n['node_id']: n['hold'] for n in from_records(data)['nodes'] if n.get('hold')}
+    except Exception:  # noqa: BLE001 - a task without a plan holds nothing
+        pass
+    return dict(paused=None if pause is None else {k: pause.get(k) for k in ('reason', 'by', 'at', 'cancel_jobs', 'obs_id')},
+                held_nodes=held)
+
+
+def _operator_lines(value):
+    from .story import wrap
+    lines = []
+    pause = value.get('paused')
+    if pause:
+        import time
+        lines += wrap(f"PAUSED by {pause['by']} at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(pause['at']))}: "
+                      f"{pause['reason']} (resume: jiuwenswarm-factory resume {value['task_id']} \"<reason>\")")
+    elif value.get('outcome') == 'paused' and value.get('stop_reason'):
+        lines += wrap('Stopped: ' + value['stop_reason'])
+    for node_id, reason in (value.get('held_nodes') or {}).items():
+        lines += wrap(f'Held: {node_id} ({reason})', '  ')
+    notes = value.get('pending_operator_notes') or []
+    if notes:
+        lines += wrap(f'Operator notes waiting for the agent: {len(notes)}', '  ')
+    return lines
 
 
 async def auth(command, home):
@@ -165,6 +198,13 @@ def main(argv=None):
         command.add_argument('--plain', action='store_true')
         if name == 'show':
             command.add_argument('id', nargs='?', help='evidence record ID; omit to show all records')
+        if name == 'resume':
+            command.add_argument('reason', nargs='?', default='', help='why the run resumes (lifts an operator pause)')
+            command.add_argument('--no-run', action='store_true', help='lift the pause only; do not run the controller')
+    pause = sub.add_parser('pause', help='operator: pause the run; a running controller stops at its next check, jobs finish')
+    pause.add_argument('task_id')
+    pause.add_argument('reason')
+    pause.add_argument('--cancel-jobs', action='store_true', help='also cancel the running jobs of the task')
     ask = sub.add_parser('ask', help='tell the agent what to do in plain words: create the task from a template and run it (no web frontend)')
     ask.add_argument('instruction', help='the objective, e.g. "integrate expert_fill ... build once ... screen once"')
     ask.add_argument('--template', help='task JSON supplying contract, source, resources (default: tasks/direct.json)')
@@ -194,6 +234,12 @@ def main(argv=None):
         command.add_argument('task_id')
         command.add_argument('node_id')
         command.add_argument('reason')
+    revise = sub.add_parser('revise', help='operator: apply the task contract\'s current revision to the graph in one revision '
+                                           '(cancel removed nodes, add new ones, rewire pending ones)')
+    revise.add_argument('task_id')
+    revise.add_argument('reason')
+    revise.add_argument('--dry-run', action='store_true', help='print the planned changes and write nothing')
+    revise.add_argument('--json', action='store_true')
     plan = sub.add_parser('plan', help='show revisable task graph and decision-linked history')
     plan.add_argument('task_id')
     plan.add_argument('--rev', type=int)
@@ -299,7 +345,14 @@ def main(argv=None):
         controller = Controller(home, grants=getattr(args, 'grant', []))
         if args.command == 'init':
             print(controller.init_task(args.task_file))
+        elif args.command == 'pause':
+            print(json.dumps(scrub(controller.pause(args.task_id, args.reason, cancel_jobs=args.cancel_jobs)), indent=2))
+        elif args.command == 'resume' and args.no_run:
+            lifted = controller.lift_pause(args.task_id, args.reason)
+            print(json.dumps(scrub(lifted), indent=2) if lifted else f'{args.task_id} is not paused')
         elif args.command in {'run', 'resume'}:
+            if args.command == 'resume':
+                controller.lift_pause(args.task_id, args.reason)
             result = asyncio.run(getattr(controller, args.command)(args.task_id))
             print(format_status(scrub(result), args.plain, controller._snapshot(args.task_id)))
         elif args.command == 'note':
@@ -310,6 +363,15 @@ def main(argv=None):
         elif args.command in {'hold', 'release', 'reopen', 'retire'}:
             from .taskgraph import render_text
             print(render_text(controller.operator(args.task_id, args.command, args.node_id, args.reason)))
+        elif args.command == 'revise':
+            from .taskgraph import format_revise, render_text
+            result = controller.revise(args.task_id, args.reason, dry_run=args.dry_run)
+            if args.json:
+                print(json.dumps(scrub({k: v for k, v in result.items() if k != 'graph'}), indent=2))
+            else:
+                print(format_revise(result))
+                if result['changes']:
+                    print(render_text(result['graph']))
         elif args.command == 'baseline-import':
             print(json.dumps(controller.import_baseline(args.task_id, args.from_task, args.attempt), indent=2))
         elif args.command == 'show':

@@ -18,7 +18,10 @@ How each output kind is checked, cheapest first:
   the capsule's method materials, the verifier's checks and the diff. It runs in its own
   process and session, in an empty directory, with no factory environment, so the agent
   that made a change never approves it. A blocker finding fails the check. Review runs
-  only after the verifier passes. A reviewer needs no capsule: the node's criteria are
+  only after the verifier passes. ``review: "advisory"`` runs the same reviewer and records its
+  verdict and findings on the check (``review.advisory: true``), but only the capsule verifier
+  and the host checks decide pass or fail; a reviewer that is missing or errors out does not
+  block it either. A reviewer needs no capsule: the node's criteria are
   enough, and the capsule's method makes it sharper when there is one.
 * ``source_bundle``: each named lab source bundle is stored, readable and intact.
 * ``image``: a successful build attempt of this task whose receipt names the image.
@@ -59,6 +62,7 @@ MAX_DIFF = int(os.environ.get('FACTORY_REVIEW_MAX_DIFF', 120_000))
 MAX_MATERIAL = 24_000
 REVIEW_MATERIALS = ('method', 'validation', 'guide')
 SEVERITIES = ('blocker', 'major', 'minor')
+ADVISORY = 'advisory'  # review: "advisory": recorded and shown, never decides the check
 REVIEW_SCHEMA = {
     'type': 'object', 'additionalProperties': False, 'required': ['verdict', 'summary', 'findings'],
     'properties': {
@@ -92,11 +96,13 @@ def _check_output(entry):
         raise ValueError('A check verifier is a capsule capability such as engine.build_x.verify')
     if entry.get('stage') is not None and (entry['stage'] not in STAGES or not entry.get('verifier')):
         raise ValueError(f'A check stage needs a verifier and is one of: {", ".join(STAGES)}')
-    for flag in ('review', 'required'):
-        if flag in entry and type(entry[flag]) is not bool:
-            raise ValueError(f'Check {flag} must be true or false')
-    if entry['kind'] == 'diff' and not entry.get('verifier') and not entry.get('review'):
-        raise ValueError(f'Check output {entry["name"]}: a diff needs a capsule verifier, a review or both')
+    if 'required' in entry and type(entry['required']) is not bool:
+        raise ValueError('Check required must be true or false')
+    if 'review' in entry and type(entry['review']) is not bool and entry['review'] != ADVISORY:
+        raise ValueError(f'Check review must be true, false or "{ADVISORY}"')
+    if entry['kind'] == 'diff' and not entry.get('verifier') and entry.get('review') is not True:
+        raise ValueError(f'Check output {entry["name"]}: a diff needs a capsule verifier, a blocking review or both '
+                         '(an advisory review decides nothing)')
     if entry['kind'] not in ('diff', 'evidence') and entry.get('verifier'):
         raise ValueError(f'Check output {entry["name"]}: capsule verifiers check diff and evidence outputs')
     if entry.get('review') and entry['kind'] not in ('diff', 'evidence'):
@@ -137,7 +143,7 @@ def validate_spec(spec):
     if not isinstance(spec, dict) or set(spec) - SHORT_FIELDS:
         raise ValueError('Node check fields are outputs, or verifier, stage and review')
     if not spec.get('verifier') and not spec.get('review'):
-        raise ValueError('A node check needs a verifier, a review or both')
+        raise ValueError('A node check needs a verifier, a review or both')  # an advisory-only one is refused below
     _check_output(dict(name='change', kind='diff', **spec))
     return spec
 
@@ -509,11 +515,7 @@ class NodeChecks:
         if not diff.strip():
             raise CheckError('There is no change to check')
         verifier = self._prepare_verifier(entry)
-        reviewer = None
-        if entry.get('review'):
-            if self.reviewer is None:
-                raise CheckError('No reviewer is configured (FACTORY_REVIEW_CMD, FACTORY_REVIEW_OPENAI_BASE_URL or codex on PATH)')
-            reviewer = self.reviewer.identity
+        reviewer = self._reviewer_identity(entry)
         diff_sha = _sha(diff)
         key = _sha(dict(task=task_id, node=node_id, entry=entry, head=head, diff=diff_sha, working=not diff_path,
                         verifier=verifier, inputs=verifier_inputs or {}, reviewer=reviewer))
@@ -521,6 +523,23 @@ class NodeChecks:
                        kind='diff', checkout=str(checkout), head=head, working=not diff_path, diff_sha256=diff_sha,
                        diff_bytes=len(diff), verifier=verifier, verifier_inputs=verifier_inputs or {}, reviewer=reviewer)
         return self._launch(request, diff, background)
+
+    def _reviewer_identity(self, entry):
+        """Who reviews this output: None without a review. A blocking review needs a configured reviewer; an
+        advisory one runs without (the check records that no reviewer was there)."""
+        if not entry.get('review'):
+            return None
+        try:
+            reviewer = self.reviewer
+        except CheckError:
+            if entry['review'] == ADVISORY:
+                return None
+            raise
+        if reviewer is None:
+            if entry['review'] == ADVISORY:
+                return None
+            raise CheckError('No reviewer is configured (FACTORY_REVIEW_CMD, FACTORY_REVIEW_OPENAI_BASE_URL or codex on PATH)')
+        return reviewer.identity
 
     def _prepare_verifier(self, entry):
         """The sealed capsule release that verifies this output, or None when the output names no verifier."""
@@ -549,10 +568,8 @@ class NodeChecks:
                           key=_sha(dict(node=node['node_id'], entry=entry, refs=refs)), state='finished', passed=False,
                           refs=refs, reason=str(exc), seconds={}, started=time.time())
             return self._result(self._close(task['task_id'], node['node_id'], values, []))
-        if entry.get('review') and self.reviewer is None:
-            raise CheckError('No reviewer is configured (FACTORY_REVIEW_CMD, FACTORY_REVIEW_OPENAI_BASE_URL or codex on PATH)')
+        reviewer = self._reviewer_identity(entry)
         verifier = self._prepare_verifier(entry)
-        reviewer = self.reviewer.identity if entry.get('review') else None
         records = [self.store.read(task['task_id'], ref) for ref in refs['evidence_ids']]
         subject = json.dumps(records, indent=1, sort_keys=True, default=str).encode()
         key = _sha(dict(task=task['task_id'], node=node['node_id'], entry=entry, records=_sha(subject),
@@ -640,17 +657,23 @@ class NodeChecks:
                 if not values['verifier']['passed']:
                     values['reason'] = values['verifier']['reason']
                     return self._close(task_id, node_id, values, artifacts, work)
+            advisory = entry.get('review') == ADVISORY
             if entry.get('review'):
                 t = time.time()
-                values['review'], reply_artifacts = self._review(request, diff, values['verifier'])
+                if advisory:
+                    values['review'], reply_artifacts = self._advisory_review(request, diff, values['verifier'])
+                else:
+                    values['review'], reply_artifacts = self._review(request, diff, values['verifier'])
                 artifacts += reply_artifacts
                 values['seconds']['review'] = round(time.time() - t, 3)
-                if not values['review']['passed']:
+                if not values['review']['passed'] and not advisory:
                     values['reason'] = values['review']['reason']
                     return self._close(task_id, node_id, values, artifacts, work)
             if request['kind'] == 'diff':
                 self._same_work(request)  # after the review too: the pass is for the work as it stands
             values.update(passed=True, reason='passed')
+            if advisory:
+                values['reason'] = 'passed; advisory review (does not decide): ' + values['review']['reason']
         except (CheckError, OSError, subprocess.TimeoutExpired) as exc:
             values['reason'] = f'check could not run: {exc}'
         return self._close(task_id, node_id, values, artifacts, work)
@@ -699,6 +722,18 @@ class NodeChecks:
                     call=receipt.get('call'), state=receipt.get('state'), passed=passed, stage_reached=reached,
                     reason=reason, checks=[{k: c.get(k) for k in ('name', 'status', 'stage', 'detail')}
                                            for c in outputs.get('checks') or [] if isinstance(c, dict)])
+
+    def _advisory_review(self, request, diff, verifier):
+        """The review of an advisory output: run and recorded like any review, marked advisory, and never raised."""
+        empty = dict(verdict=None, summary='', findings=[], reviewer=request['reviewer'], passed=False, advisory=True,
+                     error=True)
+        if request['reviewer'] is None:
+            return dict(empty, reason='no reviewer is configured; the review did not run'), []
+        try:
+            review, artifacts = self._review(request, diff, verifier)
+        except Exception as exc:  # noqa: BLE001 - an advisory review never blocks the check, whatever goes wrong
+            return dict(empty, reason=f'the review could not run: {type(exc).__name__}: {str(exc)[:300]}'), []
+        return dict(review, advisory=True), artifacts
 
     def _review(self, request, diff, verifier):
         task = self.store.get_task(request['task_id'])
@@ -869,6 +904,7 @@ class NodeChecks:
         for entry in outputs_of(spec) if spec else []:
             checks = checks_for(self.store, task_id, node_id, entry['name'])
             outputs[entry['name']] = dict(kind=entry['kind'], required=entry.get('required', True),
+                                          **({'review': entry['review']} if entry.get('review') else {}),
                                           latest=self._result(checks[-1]) if checks else None, count=len(checks),
                                           running=[r['key'][:32] for r in running if r.get('output') == entry['name']])
         return dict(node_id=node_id, state=node['state'], outputs=outputs, done_blocked_by=pending(self.store, task, node))

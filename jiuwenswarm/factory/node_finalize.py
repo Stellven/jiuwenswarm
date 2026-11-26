@@ -12,7 +12,8 @@ contract, never weaker.
 * Identity stays: node_id, kind, objective, predecessors, inputs and hands_to are unchanged.
 * Every requirement id, output, criterion (verbatim), evidence obligation and verifier stays.
   Criteria, outputs with verifiers and evidence obligations may be added.
-* A verifier keeps its capability and stage, and a review is never switched off. Each pinned
+* A verifier keeps its capability and stage, and a review is never switched off or made weaker
+  (none < advisory < blocking: an advisory review may become blocking, never the reverse). Each pinned
   verifier input stays equal, unless the preliminary contract declares a direction for it in
   ``bounds``: ``inside`` (a [low, high] range may only narrow), ``lower`` (the value may only go
   down) or ``higher`` (only up).
@@ -36,6 +37,8 @@ IDENTITY = ('node_id', 'kind', 'objective', 'predecessors', 'inputs', 'hands_to'
 DIRECTIONS = ('inside', 'lower', 'higher')
 WORKSPACE_RANK = {'none': 0, 'read': 1, 'write': 2}
 SLOT_KINDS = ('range', 'number', 'integer', 'text', 'ccs', 'criteria')
+# A review only gets stricter: none, then advisory (recorded, decides nothing), then blocking (true).
+REVIEW_RANK = {False: 0, 'advisory': 1, True: 2}
 
 
 def is_preliminary(contract_node):
@@ -219,8 +222,9 @@ def check_final(prelim, final, *, known_ccs=None):
         for field in ('verifier', 'stage'):
             if verifier.get(field) and after.get(field) != verifier.get(field):
                 found.append(f'verifier for {name}: {field} must stay {verifier[field]}')
-        if verifier.get('review') and not after.get('review'):
-            found.append(f'verifier for {name}: the review stays on')
+        if REVIEW_RANK.get(after.get('review', False), -1) < REVIEW_RANK.get(verifier.get('review', False), 0):
+            found.append(f'verifier for {name}: the review stays on' if not after.get('review') else
+                         f'verifier for {name}: the review stays blocking (true); advisory would be weaker')
         before_inputs, after_inputs = verifier.get('inputs') or {}, after.get('inputs') or {}
         for key, value in before_inputs.items():
             path = f'verifiers.{name}.inputs.{key}'

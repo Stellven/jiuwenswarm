@@ -568,6 +568,8 @@ class Controller:
                 # Also reconciles on ordinary run, making restart safe by default.
                 self._reconcile(task_id)
                 while True:
+                    if self._paused(task_id, state):
+                        return self._finish(task_id, state, 'paused')
                     remaining = self._remaining(task, state)
                     if remaining['wall_clock_s'] <= 0:
                         return self._finish(task_id, state, 'partial')
@@ -588,8 +590,14 @@ class Controller:
                         await self.sleep(min(15, remaining['wall_clock_s']))
                         self._reconcile(task_id)
                         self._save(task_id, state)
+                        if self._paused(task_id, state):  # the jobs keep running; the next run records them
+                            return self._finish(task_id, state, 'paused')
                         continue
+                    if self._paused(task_id, state):  # before the scheduler agent
+                        return self._finish(task_id, state, 'paused')
                     stuck = self._finalize_pending(task_id, state)
+                    if self._paused(task_id, state):
+                        return self._finish(task_id, state, 'paused')
                     if stuck:
                         state['stop_reason'] = ('paused: the scheduler could not finalize the node contract of '
                                                 + ', '.join(stuck) + ' (see node_contract_refusal records)')
@@ -604,6 +612,8 @@ class Controller:
                         # Nothing can run and the frontier is held or failed: stop without spending turns.
                         # Upstream nodes keep their outputs; release/reopen then resume continues from here.
                         state['stop_reason'] = 'paused at ' + '; '.join(f'{k} ({v})' for k, v in paused.items())
+                        return self._finish(task_id, state, 'paused')
+                    if self._paused(task_id, state):  # before the agent turn
                         return self._finish(task_id, state, 'paused')
                     query = self._message(task, state)
                     before = self.store.get_task(task_id)['current_decision_rev']
@@ -683,9 +693,13 @@ class Controller:
             from .scheduler_agent import run_subprocess as runner
         tries = state.setdefault('finalize_tries', {})
         stuck = []
+        from .run_pause import current
         for item in work['to_finalize']:
             key = item['node_id']
             while tries.get(key, 0) < SCHEDULER_TRIES:
+                if current(self.store, task_id):  # paused: the caller stops before anything else runs
+                    self._save(task_id, state)
+                    return []
                 tries[key] = tries.get(key, 0) + 1
                 self._save(task_id, state)
                 runner(self.home, task_id, key, attempt=tries[key])
@@ -697,6 +711,34 @@ class Controller:
         self._save(task_id, state)
         return stuck
 
+    def _paused(self, task_id, state):
+        """True (with stop_reason set) when an operator paused this run (run_pause.py)."""
+        from .run_pause import current, describe
+        record = current(self.store, task_id)
+        if not record:
+            return False
+        state['stop_reason'] = (describe(record) + f' (PAUSE.md; fix the run, then: jiuwenswarm-factory resume {task_id} '
+                                '"<reason>")')
+        return True
+
+    def pause(self, task_id, reason, cancel_jobs=False):
+        """Operator: pause the run. A running controller stops at its next check; jobs finish unless cancel_jobs."""
+        from .run_pause import pause
+        record = pause(self.store, task_id, reason, cancel_jobs=cancel_jobs)
+        if cancel_jobs and not record.get('already'):
+            record['cancelled'] = self.cancel(task_id)
+        return record
+
+    def lift_pause(self, task_id, reason=''):
+        """Operator: end the pause in force (None when the run is not paused); resume() then runs the controller."""
+        from .run_pause import resume
+        record = resume(self.store, task_id, reason)
+        if record:
+            from .operator_notes import publish
+            publish(self.home, task_id, f'The operator paused this run and resumed it: {record["reason"]}. The graph '
+                    'and the task contract may have changed while it was paused; read next_work before acting.')
+        return record
+
     def operator(self, task_id, op, node_id, reason):
         """Operator hold/release/reopen of one plan node (taskgraph.operator_patch), noted for the agent."""
         from .taskgraph import operator_patch
@@ -705,6 +747,46 @@ class Controller:
         publish(self.home, task_id, f'Operator {op} on plan node {node_id}: {reason}. Graph revision {graph["rev"]}.'
                 + (' Earlier attempts and checks of the reopened nodes no longer count; start fresh ones.' if op == 'reopen' else ''))
         return graph
+
+    def revise(self, task_id, reason, dry_run=False):
+        """Operator: apply the task contract's current revision to the graph (taskgraph.operator_revise).
+
+        Refused while a controller runs this home (the run caches per-node state). After a recorded revise the
+        controller state forgets what it knew about the changed nodes: scheduler tries and step checkpoints of
+        added, cancelled and unfinalized nodes, so a new or re-finalized node stops at its step checkpoint again.
+        """
+        from .taskgraph import operator_revise
+        if dry_run:
+            return operator_revise(self.store, task_id, reason, dry_run=True)
+        try:
+            lock = self._lock()
+            lock.__enter__()
+        except ValueError:
+            raise ValueError(f'A controller is running in this FACTORY_HOME: pause it first (jiuwenswarm-factory pause '
+                             f'{task_id} "<reason>"), wait until it stops, then revise') from None
+        try:
+            result = operator_revise(self.store, task_id, reason)
+            if not result['applied']:
+                return result
+            touched = {c['node_id'] for c in result['changes'] if c['action'] in {'add', 'cancel'} or c.get('unfinalize')}
+            state = self._load(task_id)
+            for key in touched:
+                state.get('finalize_tries', {}).pop(key, None)
+            if 'stepped' in state:
+                state['stepped'] = sorted(set(state['stepped']) - touched)
+            self._save(task_id, state)
+            from .operator_notes import publish
+            names = lambda action: [c['node_id'] for c in result['changes'] if c['action'] == action]
+            rewired = [c['node_id'] for c in result['changes'] if c['action'] == 'update']
+            parts = [f'{label} {", ".join(keys)}' for label, keys in (('cancelled', names('cancel')), ('added', names('add')),
+                                                                      ('rewired', rewired)) if keys]
+            publish(self.home, task_id,
+                    f'Operator revise of the task graph to contract {result["contract_id"]} version {result["contract_version"]}: '
+                    f'{reason}. ' + '; '.join(parts) + f'. Graph revision {result["graph_rev"]}. '
+                    'Read next_work again: cancelled nodes no longer run, added nodes are finalized by the scheduler before they run.')
+            return result
+        finally:
+            lock.__exit__(None, None, None)
 
     def import_baseline(self, task_id, source_task='operator-bare-build', source_attempt=None):
         """Link the existing plain-engine build receipt into a task and tell the agent on its next turn."""
@@ -749,7 +831,23 @@ class Controller:
                         'jobs_idle': not any(a['state'] in ACTIVE | {'unknown'} for a in data['attempts']),
                         'evaluations_present': bool(data['evaluations'])},
                     budget_used={'turns': state['turns'], 'wall_clock_s': self._active(state)},
-                    pending_attempts=state.get('pending_attempts', []), pending_questions=state.get('pending_questions', []))
+                    pending_attempts=state.get('pending_attempts', []), pending_questions=state.get('pending_questions', []),
+                    stop_reason=state.get('stop_reason'), **self._operator_status(task_id, state))
+
+    def _operator_status(self, task_id, state):
+        """Operator view: the pause in force (reason, who, when), held nodes and operator records not yet acted on."""
+        from .operator_notes import pending
+        from .run_pause import current, records
+        pause = current(self.store, task_id)
+        try:
+            from .taskgraph import plan_get
+            held = {n['node_id']: n['hold'] for n in plan_get(self.store, task_id)['nodes'] if n.get('hold')}
+        except Exception:  # noqa: BLE001 - a task without a plan holds nothing
+            held = {}
+        return dict(paused=None if pause is None else {k: pause[k] for k in ('reason', 'by', 'at', 'cancel_jobs', 'obs_id')},
+                    held_nodes=held, pause_records=len(records(self.store, task_id)),
+                    pending_operator_notes=[dict(note_id=n['note_id'], created=n['created'], text=n['text'][:300])
+                                            for n in pending(self.home, task_id, state)])
 
 
 def status(task_id):

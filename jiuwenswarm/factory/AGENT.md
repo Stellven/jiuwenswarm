@@ -52,7 +52,9 @@ factory.node_check.start({node_id, output, checkout? | refs?}). A diff is checke
 the background by the capsule verifier and an independent reviewer that never sees
 your reasoning; read factory.node_check.status({node_id}) on a later turn. On a
 failure, fix the output from the findings and check again; do not argue with the
-reviewer. The deliver node composes the lab package with its node_id and sends it:
+reviewer. An output with review "advisory" records the reviewer's verdict and findings
+but passes or fails on the verifier and host checks alone; still read its findings and
+fix real problems. The deliver node composes the lab package with its node_id and sends it:
 that is how the engine reaches the lab manager. Hand-written nodes may carry a check
 ({verifier, stage, review}) and constraints.node_checks may set one per kind.
 

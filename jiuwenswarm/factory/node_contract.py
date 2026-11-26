@@ -109,8 +109,9 @@ def problems(document, contract=None):
                 found.append(f'{key}/verifiers/{verifier["output"]}: pinned inputs need a verifier capability')
             if set(verifier.get('inputs') or {}) & {'checkout', 'diff_path'}:
                 found.append(f'{key}/verifiers/{verifier["output"]}: checkout and diff_path are set by the host')
-            if kind == 'diff' and not verifier.get('verifier') and not verifier.get('review'):
-                found.append(f'{key}/verifiers/{verifier["output"]}: a diff needs a capsule verifier, a review or both')
+            if kind == 'diff' and not verifier.get('verifier') and verifier.get('review') is not True:
+                found.append(f'{key}/verifiers/{verifier["output"]}: a diff needs a capsule verifier, a blocking review or '
+                             'both (an advisory review decides nothing)')
             if kind not in ('diff', 'evidence') and verifier.get('verifier'):
                 found.append(f'{key}/verifiers/{verifier["output"]}: capsule verifiers check diff and evidence outputs')
             if verifier.get('review') and kind not in ('diff', 'evidence'):
@@ -173,7 +174,7 @@ def check_spec(node_contract):
             if verifier.get(field):
                 entry[field] = verifier[field]
         if verifier.get('review'):
-            entry['review'] = True
+            entry['review'] = verifier['review']  # true (blocking) or "advisory"
         if output.get('criteria'):
             entry['criteria'] = list(output['criteria'])
         outputs.append(entry)
