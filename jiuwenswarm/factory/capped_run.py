@@ -490,7 +490,10 @@ def recipe_build(run):
         raise RunError('BUILD_NAME_TAKEN', f"build {r['name']} is commit {marker.read_text().strip()}; use a new name")
     src = _snapshot(run, checkout, r['commit'], base / 'src')
     build = base / 'build'
-    flags = ['-DCMAKE_BUILD_TYPE=Release', '-DLLAMA_CURL=OFF', '-DLLAMA_BUILD_TESTS=OFF']
+    # No network at build time: the server's web UI would come from a Hugging Face bucket (its pinned asset version
+    # can disappear, and 'latest' need not fit an older source). The lab talks to the HTTP API only.
+    flags = ['-DCMAKE_BUILD_TYPE=Release', '-DLLAMA_CURL=OFF', '-DLLAMA_BUILD_TESTS=OFF', '-DLLAMA_USE_PREBUILT_UI=OFF',
+             '-DLLAMA_BUILD_UI=OFF']
     if r['cuda']:
         flags += ['-DGGML_CUDA=ON', '-DCMAKE_CUDA_ARCHITECTURES=121-real']
     env = dict(CCACHE_BASEDIR=str(base), CCACHE_NOHASHDIR='1',  # src/ and build/ relative: hits across builds
