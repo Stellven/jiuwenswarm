@@ -740,7 +740,8 @@ class FactoryHttpService:
         if len(raw) > MAX_FILE or _hash(raw) != file['expected_sha256']:
             raise HTTPException(422, 'The recorded node diff failed integrity or size verification')
         return sanitize(dict(content=scrub_bytes(raw).decode(errors='replace'), path=file['path'],
-                             source=row['source'], artifact_id=aid, base=row['summary'].get('base'), head=None))
+                             source=row['summary'].get('diff_source') or row['source'], artifact_id=aid,
+                             base=row['summary'].get('base'), head=None))
 
     def _live(self, run_id):
         item, path = self.resolve(run_id)
