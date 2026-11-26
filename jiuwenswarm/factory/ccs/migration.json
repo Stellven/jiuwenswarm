@@ -396,6 +396,12 @@
       "old_release": "f0213809391a03757c5e40ac8c71c4ed6777aaf2d64605f0e01e0368c7362ab9",
       "new_release": "f0213809391a03757c5e40ac8c71c4ed6777aaf2d64605f0e01e0368c7362ab9",
       "initial_canonical_release": "f0213809391a03757c5e40ac8c71c4ed6777aaf2d64605f0e01e0368c7362ab9"
+    },
+    {
+      "path": "capped_runner/cc.yaml",
+      "old_release": "ba8e0067b2401cfe0f781df2161b62c0d623a0e1116e31add54322352955c1e9",
+      "new_release": "ba8e0067b2401cfe0f781df2161b62c0d623a0e1116e31add54322352955c1e9",
+      "initial_canonical_release": "ba8e0067b2401cfe0f781df2161b62c0d623a0e1116e31add54322352955c1e9"
     }
   ],
   "new_packages": [

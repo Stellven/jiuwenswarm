@@ -1,0 +1,63 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "weight_pack_compiler/cc.yaml",
+      "from_version": "2.1.0",
+      "from_release": "d36acf81afd09c21bca4c420d29aaa32298a025fe6341dd4c96756bd3ca13a31",
+      "from_commit": "cbd711869cc6b66d2f9d8f3e587cd68de3ed4bd8",
+      "to_version": "2.2.0",
+      "to_release": "9b48d3201a4e647f3492dc859a9f0ec785f6875fcca938acc8d58837d7febf21",
+      "changed_files": [
+        "cc.yaml",
+        "helpers/gguf_pack.py",
+        "helpers/pack_check.py",
+        "helpers/recipe.py",
+        "helpers/recipe_check.py",
+        "tests/test_wpc_capabilities.py",
+        "tests/wpc_gguf_fixture.py"
+      ],
+      "unrecorded_versions": [
+        {
+          "commit": "88f2dd11b98f020a4733e9750b0b970b49aa3efe",
+          "version": "2.2.0",
+          "release": "34c42a7a4e9190ca12ca322168791a181e04904d757f1531440f396e091293b7"
+        }
+      ],
+      "reason": "Muse v4: per-projection 2-bit targets (weight pack compiler 2.2.0) and rank_trace (routing profile 1.4.0)"
+    },
+    {
+      "path": "routing_profile_analysis/cc.yaml",
+      "from_version": "1.3.0",
+      "from_release": "fbf39705fd447a3fd0314e97ba4c770379d364b716150417f95797abc7a8b9b9",
+      "from_commit": "d0d55e0b5a90db325e3e9a19ea4fe180acb7103c",
+      "to_version": "1.4.0",
+      "to_release": "c35f58810dfb0696452ec34f413f8624b13086540ec1dd5c3a7f512a60527114",
+      "changed_files": [
+        "SHA256SUMS",
+        "cc.yaml",
+        "roles.json",
+        "run.py",
+        "trace_rank.py"
+      ],
+      "unrecorded_versions": [
+        {
+          "commit": "1739b134ddc9dc0bad62180b567867fb02fe32d2",
+          "version": "1.4.0",
+          "release": "3f9786b0e85a1773f67611781ea5479a9be3fde2294bbd383d3e623000d3dd5b"
+        },
+        {
+          "commit": "a4820622c873d0066ae70481ed214b9aa2a59388",
+          "version": null,
+          "release": null
+        },
+        {
+          "commit": "88f2dd11b98f020a4733e9750b0b970b49aa3efe",
+          "version": null,
+          "release": null
+        }
+      ],
+      "reason": "Muse v4: per-projection 2-bit targets (weight pack compiler 2.2.0) and rank_trace (routing profile 1.4.0)"
+    }
+  ]
+}

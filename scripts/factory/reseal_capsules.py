@@ -51,7 +51,10 @@ def committed_release(commit, directory):
                 try:
                     declaration = load(Path(scratch) / 'cc.yaml')
                 except Exception:  # older releases used the legacy declaration format
-                    declaration = load(Path(scratch) / 'cc.yaml', legacy=True)
+                    try:
+                        declaration = load(Path(scratch) / 'cc.yaml', legacy=True)
+                    except Exception:  # a commit whose declaration does not load was never a release
+                        return None, None, {}
     if declaration is None:
         return None, None, {}
     return hashlib.sha256(release_manifest_bytes(declaration, rows)).hexdigest(), declaration['version'], files
