@@ -273,3 +273,21 @@ def test_user_bus_env_fills_the_trimmed_agent_env(tmp_path, monkeypatch):
     assert capped_run.user_bus_env(dict(XDG_RUNTIME_DIR=str(runtime))) == dict(DBUS_SESSION_BUS_ADDRESS=f'unix:path={runtime}/bus')
     assert capped_run.user_bus_env(dict(XDG_RUNTIME_DIR=str(runtime), DBUS_SESSION_BUS_ADDRESS='x')) == {}
     assert capped_run.user_bus_env(dict(XDG_RUNTIME_DIR=str(tmp_path / 'missing'))) == {}
+
+
+def test_manifest_hashes_every_shard_without_a_gpu_launch(world):
+    import hashlib
+    packs = world['store'].home / 'packs' / 'p'
+    packs.mkdir(parents=True)
+    shards = [packs / f'pack-{i:05d}-of-00002.gguf' for i in (1, 2)]
+    for i, f in enumerate(shards):
+        f.write_bytes(b'GGUF' + bytes([i]) * 100)
+    rc, obs, _ = run_now(world, 'manifest', dict(pack=str(shards[0])))
+    assert rc == 0 and obs['outcome'] == 'ok', obs
+    assert [r['sha256'] for r in obs['result']['files']] == [hashlib.sha256(f.read_bytes()).hexdigest() for f in shards]
+    assert obs['memory_cap'] is None and capped_run.KIND['manifest'] == 'manifest'  # no gate, no gpu_launches
+    with pytest.raises(ValueError, match='under FACTORY_HOME/packs'):
+        capped_run.validate(world['store'], 'task', 'manifest', dict(pack=str(world['models'] / 'pack-00001-of-00001.gguf')))
+    shards[1].unlink()
+    rc, obs, _ = run_now(world, 'manifest', dict(pack=str(shards[0])))
+    assert rc == 1 and obs['error']['code'] == 'SOURCE'

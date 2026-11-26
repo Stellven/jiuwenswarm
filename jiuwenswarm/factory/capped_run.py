@@ -37,9 +37,10 @@ import urllib.request
 
 from .store import ScopeDenied, Store
 
-RECIPES = ('build', 'convert', 'quantize', 'serve', 'accuracy')
+RECIPES = ('build', 'convert', 'quantize', 'serve', 'accuracy', 'manifest')
 MODEL_LOADS = {'convert', 'quantize', 'serve', 'accuracy'}
-KIND = {'build': 'build'}  # attempt kind (node limit build_attempts); the rest count as model_run (gpu_launches)
+# attempt kind: build counts against build_attempts, model_run against gpu_launches; manifest (hashing files) neither
+KIND = {'build': 'build', 'manifest': 'manifest'}
 CAP = '96G'
 NEED_GIB = 100       # available memory a model load needs before it starts
 FLOOR_GIB = 6        # a running load is stopped below this
@@ -196,6 +197,14 @@ def validate(store, task_id, recipe, args):
             raise ValueError('name: lower-case letters, digits and dashes')
         req.update(name=args['name'], commit=commit, targets=sorted(targets), cuda=bool(args.get('cuda', True)),
                    jobs=int(_resources(task).get('build_jobs', 4)))
+    elif recipe == 'manifest':
+        # sha256 of every shard of a pack this run wrote (packs written before host hashing, or to re-check one)
+        _fields(args, {'pack'}, set())
+        first = Path(_expand(args['pack'])).resolve()
+        packs = (home / 'packs').resolve()
+        if packs not in first.parents or not first.is_file() or first.suffix != '.gguf':
+            raise ValueError('pack is a .gguf file under FACTORY_HOME/packs')
+        req.update(pack=str(first))
     elif recipe == 'convert':
         _fields(args, {'name'}, {'commit', 'split_max_size', 'outtype'})
         checkout = _checkout(store, task)
@@ -299,14 +308,14 @@ def dispatch(store, task_id, operation, inputs):
         timeout = int(_resources(task).get('run_timeout_s', {}).get(req['recipe'], 12 * 3600)) \
             if isinstance(_resources(task).get('run_timeout_s'), dict) else 12 * 3600
         attempt = jobs.submit(task_id, KIND.get(req['recipe'], 'model_run'), req, inputs['idem_key'],
-                              'build' if req['recipe'] == 'build' else 'gpu', argv, timeout + GATE_WAIT_S, env)
+                              'build' if req['recipe'] in {'build', 'manifest'} else 'gpu', argv, timeout + GATE_WAIT_S, env)
         return {'result': dict(attempt_id=attempt['attempt_id'], state=attempt['state'],
                                run_dir=str(host.home / 'runs' / attempt['attempt_id']),
                                note='The controller waits while the run is active; read capped_runner.status '
                                     'for progress and, once it ends, its capped_run observation.')}
     _fields(inputs, {'attempt_id'}, {'node_id'})
     attempt = jobs.status(inputs['attempt_id'])
-    if attempt['task_id'] != task_id or attempt['kind'] not in {'build', 'model_run'}:
+    if attempt['task_id'] != task_id or attempt['kind'] not in {'build', 'model_run', 'manifest'}:
         raise ScopeDenied('Not a capped run of this task')
     if operation == 'cancel':
         return {'result': {k: jobs.cancel(inputs['attempt_id'])[k] for k in ('attempt_id', 'state')}}
@@ -456,6 +465,34 @@ def stop(proc):
         proc.wait()
 
 
+def _file_rows(run, files):
+    """name, bytes and sha256 of each output file, hashed by the host after the run (the pack manifest digests)."""
+    rows = []
+    for f in files:
+        started = time.time()
+        rows.append(dict(name=f.name, bytes=f.stat().st_size, sha256=_sha(f)))
+        run.log(f'sha256 {f.name} {rows[-1]["sha256"]} ({rows[-1]["bytes"]} bytes, {time.time() - started:.0f} s)')
+    return rows
+
+
+def _shards(first):
+    """Every shard of the pack whose first file is ``first`` (NAME-00001-of-000NN.gguf), or that one file."""
+    m = re.match(r'^(.*)-00001-of-(\d{5})\.gguf$', first.name)
+    if not m:
+        return [first]
+    return [first.with_name(f'{m.group(1)}-{i:05d}-of-{m.group(2)}.gguf') for i in range(1, int(m.group(2)) + 1)]
+
+
+def recipe_manifest(run):
+    first = Path(run.req['pack'])
+    files = _shards(first)
+    missing = [f.name for f in files if not f.is_file()]
+    if missing:
+        raise RunError('SOURCE', f'missing shards: {missing[:5]}')
+    rows = _file_rows(run, files)
+    return dict(pack=str(first), files=rows, bytes=sum(r['bytes'] for r in rows))
+
+
 def _sha(path):
     digest = hashlib.sha256()
     with open(path, 'rb') as handle:
@@ -544,7 +581,7 @@ def recipe_convert(run):
         raise RunError('CONVERT', f'converter exited {rc}; see convert.log')
     files = sorted(out_dir.glob('*.gguf'))
     return dict(name=r['name'], commit=r['commit'], checkpoint=str(ckpt), out_dir=str(out_dir),
-                first_shard=str(files[0]) if files else None, files=[dict(name=f.name, bytes=f.stat().st_size) for f in files],
+                first_shard=str(files[0]) if files else None, files=_file_rows(run, files),
                 bytes=sum(f.stat().st_size for f in files), seconds=round(seconds, 1), free_before=free,
                 timing_lines=[l for l in _tail(run.dir / 'convert.log', 4000) if re.search(r'(?i)projected|timing|per expert', l)][:20])
 
@@ -564,7 +601,7 @@ def recipe_quantize(run):
     files = sorted(output.parent.glob(output.name.removesuffix('.gguf') + '*.gguf'))
     tail = _tail(run.dir / 'quantize.log', 30)
     return dict(name=r['name'], probe=r['probe'], recipe=r['recipe_path'], argv=r['argv'], seconds=round(seconds, 1),
-                first_shard=str(files[0]) if files else None, files=[dict(name=f.name, bytes=f.stat().st_size) for f in files],
+                first_shard=str(files[0]) if files else None, files=_file_rows(run, files),
                 bytes=sum(f.stat().st_size for f in files), free_before=free,
                 quantize_time_lines=[l for l in tail if 'time' in l])
 

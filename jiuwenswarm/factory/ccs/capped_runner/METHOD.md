@@ -38,6 +38,10 @@ Do not try to work around a closed gate: report it.
   weight pack compiler recipe with `llama-quantize` from `build`. Plan the recipe with `output` under
   packs/<name>/ and `recipe_out` in your workspace; run verify_recipe on it first. The probe times one layer:
   project the full time from it before you start the full run.
+  convert and quantize hash every file they write: the result's `files` lists name, bytes and sha256 per shard
+  (host digests, the pack manifest's per-file sha256).
+- `manifest`: `{pack}`. sha256 of every shard of a pack under FACTORY_HOME/packs (its first shard), for a pack
+  written before host hashing or to re-check one. No model load: no machine gate, no gpu_launches.
 - `serve`: `{build, model, prompts?, server_args?, env?, trace?, n_probs?, repeat?, label?}`. Starts llama-server
   on `model` (a pack's first shard) with `-lv 4`, waits for health, sends each prompt greedily (temperature 0,
   seed 1, no prompt cache), stops the server. Prompts are `{id, text}`, `{id, path}` or `{id, jsonl}` (a file of `{"id", "prompt"}` lines, e.g. the calibration set; `limit` caps how many) with `template` raw (default)
