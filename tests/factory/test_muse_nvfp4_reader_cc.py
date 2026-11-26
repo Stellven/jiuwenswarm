@@ -30,7 +30,9 @@ def test_contract_names_capabilities_the_capsule_declares():
     import yaml
     from jiuwenswarm.factory.node_check import VERIFIER_GRANTS
     declaration = yaml.safe_load((CAPSULE / 'cc.yaml').read_text(encoding='utf-8'))
-    assert declaration['id'] == 'weights.build_muse_nvfp4_reader' and declaration['version'] == '1.1.0'
+    assert declaration['id'] == 'weights.build_muse_nvfp4_reader' and declaration['version'] == '1.2.0'
+    read_only = declaration['capabilities']['inspect_scale_layout']
+    assert read_only['changes'] == ['workspace.read'] and 'out' not in read_only['takes']
     verifiers = stages()
     assert verifiers['converter']['verifier'] == 'weights.build_muse_nvfp4_reader.verify'
     assert verifiers['nvfp4_pack']['verifier'] == 'weights.build_muse_nvfp4_reader.verify_pack'
