@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
-dist="${R8_ENGINE_DIST:-$repo/jiuwenswarm/channels/web/frontend/dist-engine}"
+dist="${R8_ENGINE_DIST:-$HOME/muse-demo/r8-final/site}"
 replay="${R8_ENGINE_REPLAY:-$HOME/muse-demo/r8-final/curated-replay}"
 log="${R8_SITE_LOG:-$HOME/muse-demo/bridge/r8-site.log}"
 python="${R8_SITE_PYTHON:-$HOME/predemo-spark/jiuwenswarm/.venv/bin/python}"
