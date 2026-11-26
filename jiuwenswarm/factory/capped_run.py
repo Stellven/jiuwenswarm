@@ -419,13 +419,22 @@ def _meminfo():
     return out
 
 
-def _gpu_apps():
+def _gpu_apps(*, strict=False):
     try:
-        rows = subprocess.run(['nvidia-smi', '--query-compute-apps=pid,process_name,used_memory',
-                               '--format=csv,noheader'], capture_output=True, text=True, timeout=30, check=True).stdout
+        response = subprocess.run(['nvidia-smi', '--query-compute-apps=pid,process_name,used_memory',
+                                   '--format=csv,noheader'], capture_output=True, text=True, timeout=30, check=True)
     except (OSError, subprocess.SubprocessError) as exc:
+        if strict:
+            raise RunError('MACHINE_PROBE', f'GPU process check unavailable: {exc}') from exc
         return [f'GPU process list unavailable ({type(exc).__name__})']
-    return [r.strip() for r in rows.splitlines() if r.strip()]
+    if response.returncode:
+        if strict:
+            raise RunError('MACHINE_PROBE', 'GPU process check exited unsuccessfully')
+        return ['GPU process list unavailable']
+    rows = [row.strip() for row in response.stdout.splitlines() if row.strip()]
+    if strict and any(not row.split(',', 1)[0].isdigit() for row in rows):
+        raise RunError('MACHINE_PROBE', 'GPU process check returned an unrecognized process record')
+    return rows
 
 
 def machine(task, home, own_pids=()):
@@ -996,6 +1005,11 @@ def _run_replay(run):
     return dict(result, replayed_from=source, seconds=round(time.monotonic() - started, 1))
 
 
+def recipe_wire_fixture(run):
+    from .wiring_fixture import run_job
+    return run_job(run)
+
+
 def execute(home, task_id, attempt_id):
     store = Store(Path(home))
     attempt = store._decode('attempts', store._db.execute(
@@ -1016,7 +1030,7 @@ def execute(home, task_id, attempt_id):
     run.log('outcome', outcome, error or '')
     doc = dict(format='factory.capped-run/1', recipe=req['recipe'], request=req, outcome=outcome, error=error,
                result=result, seconds=round(time.time() - started, 1),
-               memory_cap=run.cap if req['recipe'] in MODEL_LOADS and not replaying else None,
+               memory_cap=run.cap if req['recipe'] in MODEL_LOADS | {'wire_fixture'} and not replaying else None,
                peak_memory_bytes=run.peak or None,
                min_available_bytes=run.low, node_id=req.get('node_id'), attempt_id=attempt_id)
     if replaying:

@@ -698,30 +698,39 @@ class NodeChecks:
             raise CheckError('the checkout changed after the check was requested')
 
     def _verify(self, request, work):
+        from .wiring_fixture import is_demo_check, submit
+        self._same_work(request)
+        receipt = submit(self.store, request, work) if is_demo_check(request) else self._call_verifier(request, work)
+        self._same_work(request)
+        verifier = request['verifier']
+        passed, reached, reason = assess(receipt, request['entry'].get('stage'))
+        outputs = receipt.get('outputs') or {}
+        result = dict(cc=verifier['cc'], capability=verifier['capability'], release=verifier['release'],
+                      call=receipt.get('call'), state=receipt.get('state'), passed=passed, stage_reached=reached,
+                      reason=reason, checks=[{k: c.get(k) for k in ('name', 'status', 'stage', 'detail')}
+                                             for c in outputs.get('checks') or [] if isinstance(c, dict)])
+        if 'capped_attempt_id' in receipt:
+            result['capped_attempt_id'] = receipt['capped_attempt_id']
+        return result
+
+    def _call_verifier(self, request, work, approved_inputs=None):
         from jiuwenswarm.ccv2.ccv2 import Host
         verifier = request['verifier']
         host = Host(self.store.home / 'ccstore')
         declaration, _ = host.release(verifier['release'])
         capability = declaration['capabilities'][verifier['capability']]
         takes = capability['takes']
-        self._same_work(request)
-        inputs = dict(request['verifier_inputs'])
+        inputs = dict(request['verifier_inputs'] if approved_inputs is None else approved_inputs)
         if 'checkout' in takes:
             inputs['checkout'] = request['checkout']
         # Uncommitted work is already in the checkout: the verifier reads it there. A patch
         # file is checked against the checkout it applies to.
         if 'diff_path' in takes and not request['working']:
             inputs['diff_path'] = str(Path(work) / 'patch.diff')
-        receipt = host.call(verifier['release'], verifier['capability'], inputs, key='node-check-' + request['key'],
-                            grants=sorted(set(VERIFIER_GRANTS) & set(capability['changes'])),
-                            timeout=float(os.environ.get('FACTORY_VERIFY_TIMEOUT', 900)))
-        self._same_work(request)
-        passed, reached, reason = assess(receipt, request['entry'].get('stage'))
-        outputs = receipt.get('outputs') or {}
-        return dict(cc=verifier['cc'], capability=verifier['capability'], release=verifier['release'],
-                    call=receipt.get('call'), state=receipt.get('state'), passed=passed, stage_reached=reached,
-                    reason=reason, checks=[{k: c.get(k) for k in ('name', 'status', 'stage', 'detail')}
-                                           for c in outputs.get('checks') or [] if isinstance(c, dict)])
+        key_prefix = 'node-check-capped-' if approved_inputs is not None else 'node-check-'
+        return host.call(verifier['release'], verifier['capability'], inputs, key=key_prefix + request['key'],
+                         grants=sorted(set(VERIFIER_GRANTS) & set(capability['changes'])),
+                         timeout=float(os.environ.get('FACTORY_VERIFY_TIMEOUT', 900)))
 
     def _advisory_review(self, request, diff, verifier):
         """The review of an advisory output: run and recorded like any review, marked advisory, and never raised."""
