@@ -434,7 +434,7 @@ def run_state(data, plan, markers, running, now):
         job = jobs[-1]
         request = job.get('request') or {}
         since = job.get('started') or next((h.get('created') for h in job.get('history', []) if h.get('created')), None)
-        return result | dict(state='waiting', node_id=request.get('node_id'), since=since, job=dict(
+        return result | dict(state='waiting', reason=None, node_id=request.get('node_id'), since=since, job=dict(
             attempt_id=job['attempt_id'], effect=request.get('recipe') or job.get('kind'), state=job['state'],
             since=since, elapsed_seconds=max(0, now - since) if since is not None else None,
             replayed_from=request.get('replayed_from'), replay_source=story.replay_origin(request.get('replayed_from'))))
