@@ -170,4 +170,4 @@ def serve(home=None, bind='127.0.0.1', port=8787):
             pass
 
 
-HTML = (Path(__file__).with_name('monitor.html')).read_text()
+HTML = (Path(__file__).with_name('monitor.html')).read_text(encoding='utf-8')

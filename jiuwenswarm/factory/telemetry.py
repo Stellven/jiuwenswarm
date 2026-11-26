@@ -1,6 +1,9 @@
 """Best-effort append-only factory telemetry. All writers share a locked sequence."""
 from __future__ import annotations
-import fcntl
+try:
+    import fcntl
+except ImportError:  # Windows: read-only viewers (story, monitor, demo board) only; writers need POSIX
+    fcntl = None
 import hashlib
 import json
 import math
@@ -94,7 +97,8 @@ def read_events(home=None, task_id=None, since=None):
     # Only used when encoding cannot alter the text (no quotes/escapes).
     needle = task_id if isinstance(task_id, str) and json.dumps(task_id, ensure_ascii=False)[1:-1] == task_id else None
     with path.open(encoding='utf-8') as source:
-        fcntl.flock(source, fcntl.LOCK_SH)
+        if fcntl is not None:
+            fcntl.flock(source, fcntl.LOCK_SH)
         for line in source:
             if needle is not None and needle not in line:
                 continue

@@ -46,7 +46,7 @@ def load_source(source, home=None, *, records=None):
     if records is not None:
         data = records
     elif bundle:
-        data = {p.stem: json.loads(p.read_text()) for p in sorted((path / 'records').glob('*.json'))}
+        data = {p.stem: json.loads(p.read_text(encoding='utf-8')) for p in sorted((path / 'records').glob('*.json'))}
         if not data.get('tasks'):
             raise ValueError('Bundle has no task records')
     else:
@@ -72,7 +72,7 @@ def load_source(source, home=None, *, records=None):
     turns, started, finished = 0, None, None
     turn_ends = []
     if transcript.is_file():
-        for line in transcript.read_text().splitlines():
+        for line in transcript.read_text(encoding='utf-8').splitlines():
             event = json.loads(line)
             turns = max(turns, event.get('turn', 0))
             if event.get('event') == 'turn.start':
@@ -87,7 +87,7 @@ def load_source(source, home=None, *, records=None):
     contract_id = task.get('contract_id')
     if contract_id:
         if bundle:
-            contracts = [json.loads(p.read_text()) for p in (path / 'contracts').glob('*.json')]
+            contracts = [json.loads(p.read_text(encoding='utf-8')) for p in (path / 'contracts').glob('*.json')]
             data['_contract'] = next((c for c in contracts if c.get('contract_id') == contract_id), {})
         else:
             from .contract import load
@@ -104,7 +104,7 @@ def load_source(source, home=None, *, records=None):
     if not bundle:
         state_path = home / 'sessions' / (task['task_id'] + '.state.json')
         if state_path.is_file():
-            state = json.loads(state_path.read_text())
+            state = json.loads(state_path.read_text(encoding='utf-8'))
             data['_meta'] = dict(outcome=state.get('outcome'), budget_used=dict(
                 turns=state.get('turns', 0), wall_clock_s=max(0, (state.get('finished') or time.time())
                 - state['started']) if state.get('started') is not None else 0))

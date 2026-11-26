@@ -1,7 +1,10 @@
 """Versioned greedy-continuation contracts. Freezing is an operator action."""
 from __future__ import annotations
 
-import fcntl
+try:
+    import fcntl
+except ImportError:  # Windows: read-only viewers (story, monitor, demo board) only; writers need POSIX
+    fcntl = None
 import json
 import os
 from pathlib import Path
@@ -28,7 +31,7 @@ def load(contract_id):
         if not re.fullmatch(r'[A-Za-z0-9_-]+', str(contract_id)):
             raise ValueError('Invalid contract identifier')
         path = CONTRACTS / (str(contract_id) + '.json')
-    result = Contract(json.loads(path.read_text()))
+    result = Contract(json.loads(path.read_text(encoding='utf-8')))
     result.path = path.resolve()
     if result.get('schema') == 'factory.contract/2':
         from .contract_v2 import validate as validate_v2
