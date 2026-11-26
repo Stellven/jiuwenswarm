@@ -1,6 +1,8 @@
 #!/bin/bash
 # First end-to-end run of the Muse demo graph (contract muse-2bit-ttft-v4, preliminary node contracts) on the Spark.
 #
+#   TASK and FACTORY_HOME are required (no defaults, so a half-set shell never starts the wrong run):
+#   TASK=muse-2bit-ttft-v4 FACTORY_HOME=~/muse-demo/graph-v4 SESSION=muse scripts/factory/run_muse_v4_graph.sh ...
 #   scripts/factory/run_muse_v4_graph.sh setup            # factory home, owned checkout, task init (once)
 #   scripts/factory/run_muse_v4_graph.sh run              # jobq worker + controller in tmux (resume = run again)
 #   STEP=1 scripts/factory/run_muse_v4_graph.sh run       # stop at a step checkpoint before every node
@@ -14,8 +16,9 @@
 set -euo pipefail
 REPO=${REPO:-$(cd "$(dirname "$0")/../.." && pwd)}
 PY=${PY:-$HOME/predemo-spark/jiuwenswarm/.venv/bin/python}
-TASK=${TASK:-muse-2bit-ttft-v4}
-export FACTORY_HOME=${FACTORY_HOME:-$HOME/muse-demo/graph-v4}
+TASK=${TASK:?set TASK (the task id, e.g. muse-2bit-ttft-v4 or muse-2bit-rehearsal-r1)}
+export FACTORY_HOME=${FACTORY_HOME:?set FACTORY_HOME (e.g. ~/muse-demo/graph-v4)}
+SESSION=${SESSION:?set SESSION (tmux prefix, e.g. muse or reh)}
 export FACTORY_REPO=$REPO
 export PYTHONPATH=$REPO
 export PATH=$HOME/.local/bin:/usr/local/cuda/bin:$PATH
@@ -63,9 +66,9 @@ EOF
 }
 
 worker() {  # the queue that owns the capped runs; survives controller restarts
-  if ! tmux has-session -t "${SESSION:-muse}-jobq" 2>/dev/null; then
-    tmux new-session -d -s "${SESSION:-muse}-jobq" "TASK=$TASK FACTORY_HOME=$FACTORY_HOME bash '$(readlink -f "$0")' _worker"
-    echo "jobq worker in tmux ${SESSION:-muse}-jobq"
+  if ! tmux has-session -t "$SESSION-jobq" 2>/dev/null; then
+    tmux new-session -d -s "$SESSION-jobq" "TASK=$TASK FACTORY_HOME=$FACTORY_HOME SESSION=$SESSION bash '$(readlink -f "$0")' _worker"
+    echo "jobq worker in tmux $SESSION-jobq"
   fi
 }
 
@@ -88,8 +91,8 @@ setup)
 run)
   worker
   # The tmux server keeps its own environment: the session calls back into this script, which sets ours.
-  tmux new-session -d -s "${SESSION:-muse}-graph" "TASK=$TASK FACTORY_HOME=$FACTORY_HOME STEP=${STEP:-0} bash '$(readlink -f "$0")' _run"
-  echo "controller in tmux ${SESSION:-muse}-graph (step ${STEP:-0}); log $FACTORY_HOME/controller.log"
+  tmux new-session -d -s "$SESSION-graph" "TASK=$TASK FACTORY_HOME=$FACTORY_HOME SESSION=$SESSION STEP=${STEP:-0} bash '$(readlink -f "$0")' _run"
+  echo "controller in tmux $SESSION-graph (step ${STEP:-0}); log $FACTORY_HOME/controller.log"
   ;;
 _worker)
   exec python3 "$JOBQ" worker >> "$FACTORY_HOME/jobq-worker.log" 2>&1
