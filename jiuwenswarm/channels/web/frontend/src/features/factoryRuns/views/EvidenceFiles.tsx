@@ -7,6 +7,7 @@ import type { EvidenceFile, FileContent } from '../api';
 import { DataViewer } from './DataViewer';
 import { DiffViewer } from './DiffViewer';
 import { DigestBadge, EvidenceMetadata } from './EvidenceMetadata';
+import { ReplayLabel } from './NodeEvidence';
 import { RawDocument } from './RawDocument';
 import { TerminalViewer } from './TerminalViewer';
 import { documentFormat, evidenceKind, resolveEvidenceLink } from './dataModel';
@@ -24,6 +25,7 @@ type FileBrowserProps = {
   keyFiles?: { key: KeyFile; file: EvidenceFile }[];
   /** Every flagged key file in the run, by path. */
   keyFlags?: Map<string, KeyFile[]>;
+  replayByArtifact?: Map<string, unknown[]>;
 };
 
 export function KeyFileBadge({ flags }: { flags?: KeyFile[] }) {
@@ -51,6 +53,7 @@ export function EvidenceFileBrowser({
   onSelect,
   keyFiles = [],
   keyFlags,
+  replayByArtifact,
 }: FileBrowserProps) {
   const { label } = useViewerLabels();
   const { t } = useTranslation();
@@ -67,6 +70,7 @@ export function EvidenceFileBrowser({
     [files, search],
   );
   const visible = matches.slice(0, limit);
+  const fileReplay = (file: EvidenceFile) => file.artifact_ids?.flatMap((id) => replayByArtifact?.get(id) ?? []);
 
   return (
     <div className="factory-file-grid">
@@ -101,6 +105,7 @@ export function EvidenceFileBrowser({
                 <span>
                   <strong>{key.label}</strong>
                   {key.why && <small>{key.why}</small>}
+                  <ReplayLabel value={fileReplay(file)} />
                 </span>
                 <DigestBadge file={file} />
               </button>
@@ -123,6 +128,7 @@ export function EvidenceFileBrowser({
             >
               <span>{file.display_path || file.path}</span>
               <KeyFileBadge flags={keyFlags?.get(file.path)} />
+              <ReplayLabel value={fileReplay(file)} />
               <DigestBadge file={file} />
             </button>
           ))}
@@ -143,6 +149,7 @@ export function EvidenceFileBrowser({
         </div>
       </div>
       <div className="factory-file-content" data-testid="factory-runs-file-content">
+        {selectedFile && <ReplayLabel value={fileReplay(selectedFile)} />}
         {selectedFile ? (
           <EvidenceFilePreview
             key={selectedFile.path}

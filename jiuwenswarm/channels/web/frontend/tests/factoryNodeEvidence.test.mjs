@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
+  artifactReplayOrigins,
   capsuleCard,
   contractDiff,
+  nodeReplayOrigins,
   replayLabel,
   revisionEvent,
   runOperations,
@@ -66,7 +68,16 @@ test('replayed outputs retain the source run and original duration across views'
   assert.equal(replayLabel([]), undefined);
   assert.equal(replayLabel({}), undefined);
   const event = { kind: 'run', summary: 'Quantize', cursor: 1, created: 1 };
-  assert.equal(collapseEvents([event, { ...event, cursor: 2, replayed_from: origin }]).length, 2);
+  const replayed = { ...event, cursor: 2, node_id: 'requant', replayed_from: origin };
+  assert.equal(collapseEvents([event, replayed]).length, 2);
+  assert.equal(nodeReplayOrigins([event, replayed], 1).has('requant'), false);
+  assert.deepEqual(nodeReplayOrigins([event, replayed], 2).get('requant'), [origin]);
+  const artifacts = artifactReplayOrigins([
+    { values: { replayed_from: origin }, source_artifacts: ['pack-manifest'] },
+    { values: { kind: 'diff' }, source_artifacts: ['fresh-patch'] },
+  ]);
+  assert.deepEqual(artifacts.get('pack-manifest'), [origin]);
+  assert.equal(artifacts.has('fresh-patch'), false);
 });
 
 test('operator actions follow live permissions and show each graph revision in the timeline', () => {

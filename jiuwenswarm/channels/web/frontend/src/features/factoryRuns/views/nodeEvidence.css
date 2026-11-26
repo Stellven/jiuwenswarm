@@ -319,3 +319,9 @@
 .factory-replay-label {
   display: inline-block;
 }
+
+.factory-graph-node-replay {
+  display: inline-block;
+  color: var(--color-text-link);
+  font-size: 11px;
+}

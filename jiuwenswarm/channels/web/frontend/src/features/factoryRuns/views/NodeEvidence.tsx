@@ -527,11 +527,13 @@ export function NodeEvidence({
 export function CapsuleOverviewStrip({
   nodes,
   labels,
+  replayByNode,
   selected,
   onSelect,
 }: {
   nodes?: Record<string, CapsuleOverview[]>;
   labels: Map<string, string>;
+  replayByNode?: Map<string, unknown[]>;
   selected?: string;
   onSelect: (id: string) => void;
 }) {
@@ -557,6 +559,7 @@ export function CapsuleOverviewStrip({
               >
                 {readableName(id)}
               </button>
+              <ReplayLabel value={replayByNode?.get(id)} />
               {capsules.map((capsule) => (
                 <span
                   className="factory-cc-overview-chip"

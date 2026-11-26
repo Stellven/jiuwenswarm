@@ -21,6 +21,7 @@ import { MembershipEdge } from './MembershipEdge';
 import { checkBadge, nodeHold, primaryCapsule, type CheckBadge } from './checkModel';
 import { NodeChecks } from './NodeChecks';
 import { ReplayLabel } from './NodeEvidence';
+import { replayLabel } from './nodeEvidenceModel';
 import { atlasTitle } from '../cc/atlasNames';
 import { layoutOntologyGroups, type GraphPlacement } from './ontologyLayout';
 import '@xyflow/react/dist/style.css';
@@ -159,6 +160,7 @@ type FlowNode = Node<
     check?: CheckBadge;
     cc?: string;
     held?: boolean;
+    replayOrigin?: string;
     collapsed: boolean;
     select: (id: string) => void;
     toggle: (id: string) => void;
@@ -214,6 +216,11 @@ function GraphCard({ data, selected }: NodeProps<FlowNode>) {
             )}
           </span>
           <strong>{node.label}</strong>
+          {data.replayOrigin && (
+            <small className="factory-graph-node-replay" title={data.replayOrigin} data-testid="factory-runs-graph-node-replay">
+              Replayed
+            </small>
+          )}
         </span>
         {(status || check) && (
           <span className="factory-graph-node-state" data-testid="factory-runs-graph-node-status">
@@ -406,7 +413,7 @@ function NodeDetails({
             <p data-testid="factory-runs-graph-status">
               <small>{text.status}</small> {statusText(state, phase, text) || '—'}
             </p>
-            <ReplayLabel value={steps.flatMap((step) => step.replayed_from ? [step.replayed_from] : [])} />
+            <ReplayLabel value={evidenceNode ? replay?.replayByNode?.get(evidenceNode) : undefined} />
             {evidenceNode && replay?.onOpenNode && (
               <button type="button" className="factory-node-evidence-button" data-testid="factory-runs-graph-open-node-evidence"
                 onClick={() => replay.onOpenNode?.(evidenceNode)}>
@@ -612,10 +619,11 @@ export function GraphViewer({ graph: fullGraph, replay }: { graph: GraphModel; r
             check: shown ? checkBadge(checks, node.details) : undefined,
             cc: shown ? primaryCapsule(checks, node.details.capability) : undefined,
             held: shown && Boolean(nodeHold(node.details)),
+            replayOrigin: node.planId ? replayLabel(replay?.replayByNode?.get(node.planId)) : undefined,
           },
         };
       }),
-    [geometry, progress, selectedId, toggle, collapsible, children, collapsed, fullGraph, visibleIds, replay?.checks],
+    [geometry, progress, selectedId, toggle, collapsible, children, collapsed, fullGraph, visibleIds, replay?.checks, replay?.replayByNode],
   );
   const visibleLinks = useMemo(
     () =>
