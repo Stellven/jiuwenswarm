@@ -16,6 +16,7 @@ Factory run supplies both arms and the device budget. See MUSE-V4-NEXT-PHASE.md 
 Every load uses factory.capped_runner's machine gate and 96 GiB scope. The runner uses -fitt to keep device memory
 within total memory less 14 GiB by default, or CONFIG.device_budget_mib. The lab stops below 8 GiB available.
 """
+from contextlib import nullcontext
 import glob
 import hashlib
 import json
@@ -34,7 +35,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from jiuwenswarm.factory import capped_run
 from jiuwenswarm.factory.ccs.prefill_batch_sizing.run import parse_log
 from jiuwenswarm.factory.store import FactoryError
-from scripts.factory import lab_v4_inputs
+from scripts.factory import lab_v4_inputs, lab_v4_quiet
 
 FLOOR_GIB = 8.0
 
@@ -75,7 +76,7 @@ def from_image(name, arm, out):
     return str(directory), dict(image=arm['image'], image_id=image, llama_server_sha256=digest)
 
 
-def start(name, arm, out, device_budget_mib):
+def start(name, arm, out, device_budget_mib, quiet=None):
     task = dict(resources=dict(memory_cap=capped_run.CAP, device_budget_mib=device_budget_mib, floor_gib=FLOOR_GIB))
     run = capped_run.RunScope(out, out, task, uuid4().hex, f'{name}.progress.log')
     gate = run.gate()
@@ -86,6 +87,10 @@ def start(name, arm, out, device_budget_mib):
     server_path = Path(arm['bin']).resolve() / 'llama-server'
     log_name = f'{name}.server.log'
     (out / log_name).write_bytes(b'')
+    if quiet:
+        while quiet.wait('pre_launch', 'loading', log)[1]:
+            # Refresh GPU and memory admission after a quiet wait.
+            gate = run.gate()
     server = capped_run.Server(run, str(server_path), arm['model'], args, env, log_name)
     return server, gate
 
@@ -122,9 +127,12 @@ def request(server, prompt, n_predict):
     return server.post(body, consume=consume)
 
 
-def summary(rows):
+def summary(rows, quiet_policy=None):
+    quiet_policy = lab_v4_quiet.report_policy(rows, quiet_policy)
     out = {}
     for r in rows:
+        if lab_v4_quiet.excluded(r, quiet_policy):
+            continue
         key = f"{r['arm']} {r['request']} {r['state']}"
         out.setdefault(key, []).append(r)
     return {k: dict(client_ttft_s=round(statistics.median(x['client_ttft_ms'] for x in v) / 1000, 1),
@@ -151,7 +159,9 @@ def baseline(path):
     return dict(path=str(path), sha256=hashlib.sha256(raw).hexdigest(), rows=rows)
 
 
-def comparison(rows, reference):
+def comparison(rows, reference, quiet_policy=None):
+    quiet_policy = lab_v4_quiet.report_policy(rows, quiet_policy)
+
     def groups(data):
         cells = {}
         for row in data:
@@ -166,12 +176,20 @@ def comparison(rows, reference):
                     generated_tokens=sorted({row['generated_tokens'] for row in cell}), **metrics, **provenance)
 
     historical = groups(reference['rows'])
-    output = []
+    output, exclusions = [], []
     for (arm, size, state), cell in sorted(groups(rows).items()):
         key = ('A', size, state)
         if arm not in {'B', 'P'} or key not in historical:
             continue
-        current, baseline_a = cell_summary(cell), cell_summary(historical[key])
+        accepted = []
+        for row in cell:
+            if reasons := lab_v4_quiet.excluded(row, quiet_policy):
+                exclusions.append(dict(arm=arm, request=size, state=state, reasons=reasons))
+            else:
+                accepted.append(row)
+        if not accepted:
+            continue
+        current, baseline_a = cell_summary(accepted), cell_summary(historical[key])
         same_prompt_tokens = current['prompt_tokens'] == baseline_a['prompt_tokens']
         same_generated_tokens = (len(current['generated_tokens']) == 1
                                  and current['generated_tokens'] == baseline_a['generated_tokens'])
@@ -180,7 +198,10 @@ def comparison(rows, reference):
         output.append(dict(arm=arm, request=size, state=state, measured=current, baseline_a=baseline_a,
                            same_prompt_tokens=same_prompt_tokens, same_generated_tokens=same_generated_tokens,
                            delta_vs_a=deltas))
-    return dict(baseline_sha256=reference['sha256'], aggregation='median per arm, request and state', cells=output)
+    result = dict(baseline_sha256=reference['sha256'], aggregation='median per arm, request and state', cells=output)
+    if quiet_policy or exclusions:
+        result['excluded'] = exclusions
+    return result
 
 
 def observed_settings(server_log, arm):
@@ -207,52 +228,99 @@ def save(report_path, report):
     temporary.replace(report_path)
 
 
+def aggregate(report, reference):
+    limits = report.get('quiet_policy')
+    report['summary'] = summary(report['rows'], limits)
+    if reference:
+        report['comparison'] = comparison(report['rows'], reference, limits)
+
+
+def measure(server, prompt, n_predict, expected_tokens, quiet):
+    if quiet is None:
+        return request(server, prompt, n_predict), None, None
+    first, _ = quiet.wait('start', 'during', log)
+    metrics, error = {}, None
+    try:
+        metrics = request(server, prompt, n_predict)
+        if metrics['prompt_tokens'] != expected_tokens:
+            raise ValueError(f'Server reported {metrics["prompt_tokens"]} prompt tokens, expected {expected_tokens}')
+    except BaseException as exc:
+        # Keep the timed interval on disk even if the host stops the request or the operator interrupts it.
+        error = exc
+    last = quiet.mark('end', 'between_rows')
+    samples = quiet.samples[first:last + 1]
+    reasons = lab_v4_quiet.evidence_issues(samples, quiet.limits)
+    if error:
+        reasons.append(f'request did not complete successfully ({type(error).__name__})')
+    reasons = list(dict.fromkeys(reasons))
+    evidence = dict(status='excluded' if reasons else 'accepted', reasons=reasons, samples=samples)
+    return metrics, evidence, error
+
+
 def run_arm(name, arm, out, plan, prompts, report_path, report, config, reference=None):
     progress = out / f'{name}.progress.log'
     log(f'{name}: waiting for the machine; progress in {progress}')
-    server, gate = start(name, arm, out, config.get('device_budget_mib'))
-    try:
-        server_log = server.log.read_text(errors='replace')
-        markers = [line.strip()[:240] for line in server_log.splitlines() if re.search(
-            r'expert_weight_cache.*(active|inactive)|MoE cache size|n_(?:u)?batch|compute buffer size', line)][:20]
-        settings = observed_settings(server_log, arm)
-        factory = report.get('factory_provenance')
-        batch_plan = report.get('batch_plan')
-        if factory:
-            validate_settings(name, settings, batch_plan)
-        arm_record = dict(argv=server.argv, env=arm.get('env', {}), load_seconds=round(server.ready_s, 1),
-                          **server.placement, machine_gate=gate, memory_cap=server.run.cap, markers=markers,
-                          started=time.strftime('%Y-%m-%dT%H:%M:%S', time.localtime(server.started)))
-        report['arms'][name] = arm_record
-        log(f'{name}: ready {server.ready_s:.0f}s')
-        n_predict = config.get('n_predict', 32)
-        for size, state in plan:
-            if state == 'cold':
-                evict(arm['model'])
-            elif (size, 'cold') not in plan:
-                # A resumed warm cell needs a preceding request on this load.
-                evict(arm['model'])
-                request(server, prompts[size], n_predict)
-            row = dict(arm=name, request=size, state=state, **request(server, prompts[size], n_predict))
-            if factory and row['prompt_tokens'] != lab_v4_inputs.PROMPT_TOKENS[size]:
-                raise ValueError(f'{name} {size}: server reported unexpected prompt token count {row["prompt_tokens"]}')
-            row.update(report.get('images', {}).get(name, {}), **settings, n_predict=n_predict, cache_prompt=False,
-                       prompt_sha256=hashlib.sha256(prompts[size].encode()).hexdigest())
+    limits = report.get('quiet_policy')
+    monitor = lab_v4_quiet.Monitor(limits) if limits else nullcontext()
+    with monitor as quiet:
+        server = None
+        try:
+            if quiet:
+                quiet.wait('arm_start', 'loading', log)
+            server, gate = start(name, arm, out, config.get('device_budget_mib'), quiet)
+            if quiet:
+                quiet.mark('ready', 'between_rows')
+            server_log = server.log.read_text(errors='replace')
+            markers = [line.strip()[:240] for line in server_log.splitlines() if re.search(
+                r'expert_weight_cache.*(active|inactive)|MoE cache size|n_(?:u)?batch|compute buffer size', line)][:20]
+            settings = observed_settings(server_log, arm)
+            factory = report.get('factory_provenance')
+            batch_plan = report.get('batch_plan')
             if factory:
-                row.update(factory, batch_plan={key: batch_plan[key] for key in ('batch', 'ubatch', 'moe_cache_mib')},
-                           batch_mode='planned' if name == 'P' else 'default', pack_first_shard=arm['model'],
-                           device_budget_mib=server.placement['device_budget_mib'])
-            report['rows'].append(row)
-            report['summary'] = summary(report['rows'])
-            if reference:
-                report['comparison'] = comparison(report['rows'], reference)
-            arm_record.update(sampled_peak_memory_bytes=server.run.peak or None,
-                              min_available_bytes=server.run.low)
-            save(report_path, report)
-            log(json.dumps({key: value for key, value in row.items() if key != 'text_head'}))
-    finally:
-        server.close()
-        save(report_path, report)
+                validate_settings(name, settings, batch_plan)
+            arm_record = dict(argv=server.argv, env=arm.get('env', {}), load_seconds=round(server.ready_s, 1),
+                              **server.placement, machine_gate=gate, memory_cap=server.run.cap, markers=markers,
+                              started=time.strftime('%Y-%m-%dT%H:%M:%S', time.localtime(server.started)))
+            report['arms'][name] = arm_record
+            log(f'{name}: ready {server.ready_s:.0f}s')
+            n_predict = config.get('n_predict', 32)
+            for size, state in plan:
+                if state == 'cold':
+                    evict(arm['model'])
+                elif not quiet and (size, 'cold') not in plan:
+                    # Preserve legacy warm priming. Factory mode requires its original cold predecessor on this load.
+                    evict(arm['model'])
+                    request(server, prompts[size], n_predict)
+                metrics, evidence, error = measure(server, prompts[size], n_predict,
+                                                   lab_v4_inputs.PROMPT_TOKENS.get(size), quiet)
+                row = dict(arm=name, request=size, state=state, **metrics)
+                row.update(report.get('images', {}).get(name, {}), **settings, n_predict=n_predict, cache_prompt=False,
+                           prompt_sha256=hashlib.sha256(prompts[size].encode()).hexdigest())
+                if factory:
+                    row.update(factory, batch_plan={key: batch_plan[key] for key in ('batch', 'ubatch', 'moe_cache_mib')},
+                               batch_mode='planned' if name == 'P' else 'default', pack_first_shard=arm['model'],
+                               device_budget_mib=server.placement['device_budget_mib'], quiet=evidence)
+                report['rows'].append(row)
+                aggregate(report, reference)
+                arm_record.update(sampled_peak_memory_bytes=server.run.peak or None,
+                                  min_available_bytes=server.run.low)
+                save(report_path, report)
+                log(json.dumps({key: value for key, value in row.items() if key not in {'text_head', 'quiet'}}))
+                if evidence and evidence['status'] == 'excluded':
+                    log(f'{name} {size} {state}: excluded from acceptance', ', '.join(evidence['reasons']))
+                if error is not None:
+                    raise error
+        finally:
+            try:
+                if server:
+                    server.close()
+            finally:
+                if quiet:
+                    last = quiet.mark('arm_end')
+                    outside = [sample for sample in quiet.samples[:last + 1]
+                               if sample['phase'] not in {'start', 'during', 'end'}]
+                    report.setdefault('quiet_arms', []).append(dict(arm=name, samples=outside))
+                save(report_path, report)
 
 
 def configuration(config_path):
@@ -285,17 +353,41 @@ def main(config_path, names):
         if report_path.exists() and (report['config'] != config or any(report.get(key) != value for key, value in protocol.items())):
             raise ValueError('Factory inputs differ from the existing report. Use a new out_dir.')
         report.update(protocol)
+        limits = lab_v4_quiet.policy()
+        if 'quiet_policy' in report and report['quiet_policy'] != limits:
+            raise ValueError('Quiet protocol differs from the existing report. Use the original quiet protocol.')
+        report['quiet_policy'] = limits
+        aggregate(report, reference)
     elif report.get('factory_provenance'):
         raise ValueError('Factory report requires its original Factory configuration')
     done = {(r['arm'], r['request'], r['state']) for r in report['rows']}
+    if identity:
+        save(report_path, report)
     with TemporaryDirectory(prefix='image-bins-', dir=out) as extracted:
         pending = []
         for name in dict.fromkeys(names or config['arms']):
             arm = dict(config['arms'][name])
             plan = [(size, state) for size in prompts for state in ('cold', 'warm')
                     if not (state == 'warm' and size in arm.get('skip_warm', [])) and (name, size, state) not in done]
+            if identity:
+                unavailable = {(size, state) for size, state in plan
+                               if state == 'warm' and (name, size, 'cold') in done}
+                if unavailable:
+                    for size, state in sorted(unavailable):
+                        report['rows'].append(dict(arm=name, request=size, state=state, **identity,
+                            quiet=dict(status='excluded', samples=[], reasons=[
+                                'warm state unavailable after restart; cold predecessor ran on another load'])))
+                    plan = [cell for cell in plan if cell not in unavailable]
+                    aggregate(report, reference)
+                    save(report_path, report)
             if not plan:
                 continue
+            if identity and not pending:
+                sample = lab_v4_quiet.snapshot(limits, 'preflight')
+                report.setdefault('quiet_admissions', []).append(sample)
+                save(report_path, report)
+                if not sample['ok']:
+                    raise lab_v4_quiet.Breach(sample)
             if arm.get('image'):
                 arm['bin'], image_record = from_image(name, arm, Path(extracted))
                 images = report.setdefault('images', {})
@@ -307,6 +399,9 @@ def main(config_path, names):
             pending.append((name, arm, plan))
         for name, arm, plan in pending:
             run_arm(name, arm, out, plan, prompts, report_path, report, config, reference)
+    if identity and report['comparison']['excluded']:
+        result = 'Report contains excluded timed cells.' if report['summary'] else 'No eligible timed rows.'
+        raise capped_run.RunError('LAB_EXCLUDED', f'{result} See comparison.excluded.')
     log('lab done', json.dumps(report.get('summary', {}), indent=1))
 
 
@@ -320,15 +415,26 @@ if __name__ == '__main__':
             recorded = measured.get('baseline', {}).get('sha256')
             if recorded and recorded != reference['sha256']:
                 raise ValueError('Historical A report digest differs from the recorded baseline')
-            print(json.dumps(comparison(measured['rows'], reference), indent=1))
+            limits = lab_v4_quiet.policy() if measured.get('factory_provenance') else None
+            print(json.dumps(comparison(measured['rows'], reference, limits), indent=1))
         elif len(args) == 2 and args[0] == '--resolve':
             config, _, _, identity, plan = configuration(args[1])
             print(json.dumps(dict(config=config, factory_provenance=identity, batch_plan=plan), indent=1))
+        elif args in (['--quiet-status'], ['--wait-quiet']):
+            limits = lab_v4_quiet.policy()
+            while True:
+                sample = lab_v4_quiet.snapshot(limits, 'readiness')
+                print(json.dumps(dict(policy=limits, **sample)), flush=True)
+                if sample['ok']:
+                    break
+                if args == ['--quiet-status'] or any('probe unavailable' in reason for reason in sample['reasons']):
+                    raise lab_v4_quiet.Breach(sample)
+                time.sleep(5)
         elif args and not args[0].startswith('--'):
             main(args[0], args[1:])
         else:
             raise SystemExit('usage: lab_v4_fast.py CONFIG.json [ARM ...] | --resolve CONFIG.json | '
-                             '--compare REPORT.json BASELINE.json')
+                             '--compare REPORT.json BASELINE.json | --quiet-status | --wait-quiet')
     except capped_run.RunError as exc:
         raise SystemExit(f'{exc.code}: {exc}') from exc
     except (FactoryError, ValueError, OSError, KeyError) as exc:
