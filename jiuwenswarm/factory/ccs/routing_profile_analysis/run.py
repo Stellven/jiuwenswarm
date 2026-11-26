@@ -44,4 +44,6 @@ if __name__ == '__main__':
         result = {'outcome': 'ok', 'outputs': dispatch(json.load(sys.stdin))}
     except (OSError, ValueError, KeyError, TypeError) as exc:
         result = {'outcome': 'error', 'error': {'code': 'INVALID_INPUT', 'message': str(exc)}}
+    except ImportError as exc:  # a fault of the capsule, not of the inputs: say so in the result
+        result = {'outcome': 'error', 'error': {'code': 'CAPSULE_FAULT', 'message': f'capsule import failed: {exc}'}}
     print(json.dumps(result, allow_nan=False))

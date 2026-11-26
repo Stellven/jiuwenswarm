@@ -1,6 +1,6 @@
 cc: '2'
 id: analysis.expert_routing_profile
-version: 1.4.0
+version: 1.5.0
 materials:
   method:
     path: METHOD.md
@@ -14,6 +14,10 @@ materials:
     path: copy_timing.py
   residency_helper:
     path: residency_counterfactual.py
+  trace_rank_helper:
+    path: trace_rank.py
+  pack_reader_helper:
+    path: gguf_pack.py
   tests:
     path: test_routing_profile.py
   transfer_tests:

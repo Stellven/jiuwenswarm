@@ -16,9 +16,9 @@ import json
 import os
 from pathlib import Path
 import struct
-import sys
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'weight_pack_compiler' / 'helpers'))
+# A copy of weights.build_weight_pack_compiler's helpers/gguf_pack.py: a release bundle holds only this capsule's
+# files, so the reader travels with it (keep it in step with that helper).
 from gguf_pack import load_pack  # noqa: E402
 
 FORMAT = 'spark-expert-residency-nominations/1'
