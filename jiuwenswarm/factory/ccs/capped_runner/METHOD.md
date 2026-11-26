@@ -68,5 +68,25 @@ Do not try to work around a closed gate: report it.
   the first decision. The state (accuracy/<name>/state.json) keeps every scored row: starting the same name again
   continues it. Its server logs are the -lv 4 logs eval.paired_accuracy.verify takes.
 
+## Replay an earlier production job
+
+Use the replay forms when the node specifies a historical pack. The operator configures
+`FACTORY_CAPPED_REPLAY_REGISTRY` with the path to a host receipt registry outside `FACTORY_HOME`.
+Supply its job ID and the full original producer commit, even when your working checkout has a different commit.
+
+- `convert` takes `{name, commit, checkpoint_manifest, outtype?, split_max_size?, replay: {job_id, rehash?}}`.
+  The task names the checkpoint directory. Supply its pinned `muse-pins/1` manifest as `checkpoint_manifest`.
+- `quantize` takes `{name, commit, recipe, replay: {job_id, rehash?}}`. The production recipe must name the
+  pinned source pack, matching target, imatrix and quantizer options. Give its intended output path under
+  `FACTORY_HOME/packs/<name>`. You do not need a local quantizer to replay.
+- The requested pack directory must resolve to the receipt's pack directory. The runner checks the manifest
+  digest and shard sizes, reads every GGUF shard header, and compares the tensor census with the historical
+  receipt. Use `rehash: true` when a full re-read of pinned input and output tensor data is required.
+- Replay is a read-only CPU job with no GPU budget charge. The host evidence records `replayed_from` with
+  the original job, run, time and duration, and records the replay's elapsed time separately. Use the result's
+  `first_shard` and `manifest` with the same pack verifier or node checks used for produced packs.
+- Fresh convert, quantize and manifest jobs require a local writable packs path without symlinks. Shared
+  historical packs can be read by other recipes and verifiers.
+
 Choose arguments from the capsule methods and earlier evidence (for example the -b/-ub a prefill batch plan gives,
 or the --moe-cache-mib of the lab recipe); the recipe does not choose them for you.
