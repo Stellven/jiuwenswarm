@@ -63,8 +63,9 @@ test('the capsule card keeps checks and failed history attached to their capsule
 });
 
 test('replayed outputs retain the source run and original duration across views', () => {
-  const origin = { run_id: 'muse-2bit-ttft-v4', job_id: 'recorded-job', duration_seconds: 8158 };
-  assert.equal(replayLabel(origin), 'Replayed from muse-2bit-ttft-v4, originally 136 min');
+  const origin = { run_id: 'muse-2bit-ttft-v4', job_id: 'recorded-job', duration_seconds: 8197.1 };
+  assert.equal(replayLabel(origin), 'Replayed from muse-2bit-ttft-v4, originally 136 min 37 s');
+  assert.equal(replayLabel({ run_id: 'brief', duration_seconds: 0.9 }), 'Replayed from brief, originally 1 s');
   assert.equal(replayLabel([]), undefined);
   assert.equal(replayLabel({}), undefined);
   const event = { kind: 'run', summary: 'Quantize', cursor: 1, created: 1 };
