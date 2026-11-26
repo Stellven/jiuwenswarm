@@ -142,6 +142,9 @@ def _route(store, task_id, capability, packet, inputs):
         if os.environ.get('FACTORY_AGENT_ROLE') != 'scheduler':
             raise ScopeDenied('Only the scheduler agent proposes final node contracts')
         fields(inputs, {'node_id', 'final', 'rationale'}, {'node_id', 'final', 'rationale'})
+        if os.environ.get('FACTORY_SCHEDULER_PREVIEW') == '1':
+            from .scheduler import preview_proposal
+            return {'result': preview_proposal(store, task_id, inputs['node_id'], inputs['final'], inputs['rationale'])}
         return {'result': finalize(store, task_id, inputs['node_id'], inputs['final'], inputs['rationale'],
                                    by='scheduler-agent')}
     if capability == 'evidence.plan_next':
