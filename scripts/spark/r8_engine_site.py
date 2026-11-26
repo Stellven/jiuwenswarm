@@ -144,7 +144,9 @@ def main(argv=None):
         app = make_app(args.dist, args.live, args.history, args.replay)
     except ValueError as exc:
         parser.error(str(exc))
-    uvicorn.run(app, host=TAILSCALE_HOST, port=TAILSCALE_PORT, proxy_headers=False, ws='none')
+    # The redacting log record factory consumes formatting arguments before Uvicorn's access formatter.
+    uvicorn.run(app, host=TAILSCALE_HOST, port=TAILSCALE_PORT, proxy_headers=False,
+                access_log=False, ws='none')
 
 
 if __name__ == '__main__':
