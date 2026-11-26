@@ -35,17 +35,21 @@ INTERPRETER = re.compile(r'python(?:\d+(?:\.\d+)?)?|node(?:js)?|(?:ba|da|z|k)?sh
 
 
 REVISED = 'r8-owner-revised-v1'
+EMPTY = 'r8-owner-empty-v1'
 
 
 def policy(protocol=None):
     declared = contract.load(TASK)['measurement']['protocol']['quiet']
     limits = dict(max_load_1m=declared['max_load'], no_builds=declared['no_builds'],
                   sample_interval_seconds=INTERVAL_SECONDS)
-    if protocol == REVISED:
+    if protocol in (REVISED, EMPTY):
         limits.update(protocol=REVISED, max_foreign_cpu_percent=50.0,
                       during='Sample raw load for context. The measured cpu-moe server raises raw load.',
                       admission='Idle measured slot, load1 below 1, machine gate passed, no builds, tests or helpers.',
                       cpu_scope='Percent of one core per process, excluding measured server PID and descendants only.')
+        if protocol == EMPTY:
+            limits.update(campaign=EMPTY, exempt_runner_tree=True, min_cpu_window_s=0.5,
+                          cpu_scope='Percent of one core per foreign process. Exempt server and lab runner trees.')
     elif protocol is not None:
         raise ValueError(f'Unknown quiet protocol {protocol}')
     return limits
@@ -60,7 +64,7 @@ class ProcessCPU:
         self.previous = {}
         self.when = None
 
-    def sample(self, server_pid, proc_root=Path('/proc')):
+    def sample(self, server_pid=None, proc_root=Path('/proc'), *, runner_pid=None):
         now = time.monotonic()
         hz = os.sysconf('SC_CLK_TCK')
         current = {}
@@ -74,11 +78,15 @@ class ProcessCPU:
             fields = tail.split()
             pid = int(directory.name)
             current[pid] = (int(fields[1]), head.split('(', 1)[1], int(fields[19]), int(fields[11]) + int(fields[12]))
-        if server_pid not in current or current[server_pid][1] != 'llama-server':
+        if server_pid is not None and (server_pid not in current or current[server_pid][1] != 'llama-server'):
             raise ValueError('measured server missing from native CPU sample')
-        owned = {server_pid}
-        while children := {pid for pid, proc in current.items() if proc[0] in owned} - owned:
-            owned.update(children)
+        def tree(root):
+            members = {root} if root is not None else set()
+            while children := {pid for pid, proc in current.items() if proc[0] in members} - members:
+                members.update(children)
+            return members
+
+        owned = tree(server_pid)
         interval = now - self.when if self.when is not None else None
         active = []
         for pid, (ppid, name, born, ticks) in current.items():
@@ -93,7 +101,7 @@ class ProcessCPU:
                                    percent_one_core=delta * 100 / (hz * interval), measured=pid in owned))
         self.previous, self.when = current, now
         return dict(server_pid=server_pid, process_count=len(current), interval_s=interval, ticks_per_second=hz,
-                    active=active, measured_pids=sorted(owned))
+                    active=active, measured_pids=sorted(owned), runner_tree=sorted(tree(runner_pid)))
 
 
 def cpu_issues(cpu, limits):
@@ -253,9 +261,9 @@ class Monitor:
                         if not gate['ok']:
                             sample['reasons'].append('resident-server machine gate closed')
                         self.cpu = ProcessCPU()
-                        sample['cpu'] = self.cpu.sample(self.server.proc.pid)
+                        sample['cpu'] = self.cpu.sample(self.server.proc.pid, runner_pid=os.getpid())
                 else:
-                    sample['cpu'] = self.cpu.sample(self.server.proc.pid)
+                    sample['cpu'] = self.cpu.sample(self.server.proc.pid, runner_pid=os.getpid())
                     sample['reasons'].extend(cpu_issues(sample['cpu'], self.limits))
             except (OSError, ValueError, KeyError, IndexError, TypeError) as exc:
                 sample['reasons'].append(f'cell admission or CPU probe unavailable ({type(exc).__name__})')

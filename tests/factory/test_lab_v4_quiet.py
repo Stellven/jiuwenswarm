@@ -98,3 +98,22 @@ def test_post_run_amendment_ignores_only_short_windows_and_runner_tree():
         correct_sample(sample, 2, original, amended)
         assert sample['reasons'] == ['foreign helper process present', *expected]
         assert len(sample['launch_reasons']) == 3
+
+
+def test_empty_campaign_records_native_runner_and_descendant_exemptions(tmp_path, monkeypatch):
+    limits = quiet.policy(quiet.EMPTY)
+    assert limits['min_cpu_window_s'] == 0.5 and limits['exempt_runner_tree']
+    assert limits['max_foreign_cpu_percent'] == 50
+    monkeypatch.setattr(quiet.time, 'monotonic', iter([0., 1.]).__next__)
+    monkeypatch.setattr(quiet.os, 'sysconf', lambda _: 100)
+    monitor = quiet.ProcessCPU()
+    for tick in (0, 55):
+        for pid, ppid, name in ((10, 1, 'runner'), (11, 10, 'child'), (12, 11, 'llama-server'), (13, 1, 'foreign')):
+            proc = tmp_path / str(pid)
+            proc.mkdir(exist_ok=True)
+            fields = ['0'] * 20
+            fields[0], fields[1], fields[11], fields[19] = 'S', str(ppid), str(tick), '100'
+            (proc / 'stat').write_text(f'{pid} ({name}) ' + ' '.join(fields))
+        sample = monitor.sample(12, tmp_path, runner_pid=10)
+    assert sample['runner_tree'] == [10, 11, 12]
+    assert quiet.cpu_issues(sample, limits) == ['foreign PID 13 (foreign) above 50% of one core']
