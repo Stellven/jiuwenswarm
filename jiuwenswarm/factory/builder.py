@@ -32,7 +32,8 @@ class Builder:
         if not isinstance(request, dict):
             raise ValueError('Build request must be an object')
         target = profile(request.get('target'))
-        if set(request) - {'target', 'source', 'patch', 'tag', 'deadline_s', 'env', 'dependency', 'build_target', 'delivery', 'native_cmake_cache'}:
+        if set(request) - {'target', 'source', 'patch', 'tag', 'deadline_s', 'env', 'dependency', 'build_target',
+                           'delivery', 'native_cmake_cache', 'verify_image'}:
             raise ValueError('Unknown build request fields')
         build_target = request.get('build_target', 'strata-dsv41')
         if not isinstance(build_target,str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,100}',build_target):
@@ -40,6 +41,9 @@ class Builder:
         delivery = request.get('delivery', 'image')
         if delivery not in {'image', 'native'} or (delivery == 'native' and (target != 'spark-gb10' or build_target != 'llama-server')):
             raise ValueError('Native delivery requires the Spark llama-server target')
+        verify_image = request.get('verify_image', False)
+        if type(verify_image) is not bool or (verify_image and (target, build_target, delivery) != ('spark-gb10', 'llama-server', 'image')):
+            raise ValueError('verify_image must be boolean and requires Spark llama-server image delivery when enabled')
         source = request['source']
         path = Path(source['path']).expanduser().resolve()
         def git(*args):
@@ -80,6 +84,8 @@ class Builder:
             recipe_sha256=hashlib.sha256(recipe.read_bytes()).hexdigest())
         if target == 'spark-gb10':
             normalized['build_target'] = build_target
+            if verify_image:
+                normalized['verify_image'] = True
             if delivery == 'native':
                 normalized['delivery'] = delivery
                 cache = Path(request.get('native_cmake_cache', '')).resolve()

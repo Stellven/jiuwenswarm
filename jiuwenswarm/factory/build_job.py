@@ -151,6 +151,8 @@ def run(store, task_id, attempt_id, request):
         if spark:
             argv += ['--dependency', request['dependency']['path'], '--dependency-commit', request['dependency']['commit'],
                      '--build-target', request.get('build_target','strata-dsv41')]
+            if request.get('verify_image'):
+                argv.append('--verify-image')
             if request.get('delivery') == 'native':
                 argv += ['--delivery', 'native', '--native-cmake-cache', request['native_cmake_cache'],
                          '--native-cmake-cache-sha256', request['native_cmake_cache_sha256']]
@@ -173,6 +175,13 @@ def run(store, task_id, attempt_id, request):
         elif rc == 0 and (record.get('status') != 'success' or not (record.get('image') or {}).get('Id')):
             rc = 1
             error = dict(code='BUILD_RECORD_INVALID')
+        if rc == 0 and request.get('verify_image'):
+            check = record.get('image_check', {})
+            if (check.get('status') != 'passed' or check.get('source_commit') != request['source']['commit']
+                    or check.get('image_id') != record['image']['Id']
+                    or not check.get('executable_sha256') or check['executable_sha256'] != record.get('executable_sha256')):
+                rc = 1
+                error = dict(code='IMAGE_CHECK_RECORD_INVALID')
     except PreparationError as exc:
         error = exc.error
         prep.update(status='failed', error=error)
@@ -193,6 +202,9 @@ def run(store, task_id, attempt_id, request):
         record_ref = None
         if (out / 'build-record.json').exists():
             record_ref = artifact('build-record', out / 'build-record.json')
+        check_ref = None
+        if rc == 0 and request.get('verify_image'):
+            check_ref = artifact('image-check', json.dumps(record['image_check'], sort_keys=True).encode())
         for log in sorted(out.glob('*.log')):
             artifact('engine-' + log.name, log, 'text/plain')
         for source in (root/'executed-engine.py', root/'executed-lifecycle.py'):
@@ -205,6 +217,8 @@ def run(store, task_id, attempt_id, request):
                        prep=prep_ref, build_record=record_ref, image_id=image_id, target=request.get('target'))
         if request.get('delivery') == 'native':
             receipt.update(delivery='native', executable=record.get('executable'))
+        if check_ref is not None:
+            receipt.update(image_check=check_ref, executable_sha256=record['executable_sha256'])
         artifact('receipt', json.dumps(receipt, sort_keys=True).encode())
         pruned = prune_intermediates(out) if rc == 0 and image_id else {}
         values = dict(delivery=request.get('delivery', 'image'), executable=record.get('executable'), pruned_intermediates=pruned,status='success' if rc == 0 else 'failed',

@@ -1,0 +1,20 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "builder/cc.yaml",
+      "from_version": "1.1.2",
+      "from_release": "a7a6149105d2cd3e5fab66fc91b8eac95b32d6aafb1e0110483a4c081ceaf81c",
+      "from_commit": "d0d55e0b5a90db325e3e9a19ea4fe180acb7103c",
+      "to_version": "1.1.3",
+      "to_release": "472477c7cffafe32c94cc71b673d60d38ba43f2f3051ca2f7373c888418fe7ef",
+      "changed_files": [
+        "JOB.md",
+        "VERIFICATION-UNITS.json",
+        "cc.yaml"
+      ],
+      "unrecorded_versions": [],
+      "reason": "Verify Spark llama-server delivery image version and executable identity without a model or GPU"
+    }
+  ]
+}

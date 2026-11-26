@@ -221,3 +221,54 @@ def test_spark_build_identity_binds_dependency_and_target(store, request_build):
         builder._request(request | {'dependency':dict(request['dependency'],commit='0'*40)})
     with pytest.raises(ValueError,match='90 minutes'):
         builder._request(request | {'deadline_s':5401})
+
+
+def test_spark_image_check_is_opt_in_through_the_existing_node_grant(store, request_build):
+    from jiuwenswarm.factory.scheduler import check_ceiling
+    from scripts.factory.make_muse_2bit_v4_rev8 import _build_image
+
+    builder = Builder(store)
+    pinned = dict(request_build, target='spark-gb10', build_target='llama-server', delivery='image',
+                  dependency=dict(request_build['source']))
+    check_ceiling(_build_image(), 'builder', 'submit')
+    assert 'verify_image' not in builder._request(pinned)
+    assert builder._request(dict(pinned, verify_image=True))['verify_image'] is True
+    for changes in ({'delivery': 'native'}, {'build_target': 'strata-dsv41'}, {'target': 'jetson-orin'},
+                    {'verify_image': 'true'}):
+        with pytest.raises(ValueError, match='verify_image'):
+            builder._request({**pinned, 'verify_image': True, **changes})
+
+
+@pytest.mark.parametrize('proof_present', [True, False])
+def test_spark_worker_publishes_the_image_check_artifact(store, request_build, monkeypatch, proof_present):
+    from jiuwenswarm.factory import build_job
+
+    builder = Builder(store)
+    request = builder._request(dict(request_build, target='spark-gb10', build_target='llama-server',
+                                    dependency=dict(request_build['source']), verify_image=True))
+    attempt = store.create_attempt('t', dict(kind='build', idem_key='fixture', fingerprint='fixture',
+                                             request=request, resources={}))
+    aid = attempt['attempt_id']
+    image_id, digest = 'sha256:' + 'a' * 64, 'b' * 64
+    proof = dict(status='passed', source_commit=request['source']['commit'], image_id=image_id, executable_sha256=digest)
+
+    def engine(argv, **kwargs):
+        assert '--verify-image' in argv
+        out = Path(argv[argv.index('--out') + 1])
+        out.mkdir()
+        record = dict(status='success', image=dict(Id=image_id), executable_sha256=digest)
+        if proof_present:
+            record['image_check'] = proof
+        (out / 'build-record.json').write_text(json.dumps(record))
+        return subprocess.CompletedProcess(argv, 0)
+
+    monkeypatch.setattr(build_job.subprocess, 'run', engine)
+    assert build_job.run(store, 't', aid, request) == (0 if proof_present else 1)
+    receipt = json.loads(store.artifact_bytes('t', aid + ':receipt'))
+    if proof_present:
+        assert receipt['image_check']['artifact_id'] == aid + ':image-check'
+        assert receipt['executable_sha256'] == digest
+        assert json.loads(store.artifact_bytes('t', aid + ':image-check')) == proof
+    else:
+        assert 'image_check' not in receipt
+        assert store.read('t', aid + ':build-result')['error']['code'] == 'IMAGE_CHECK_RECORD_INVALID'
