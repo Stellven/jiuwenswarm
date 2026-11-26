@@ -8,11 +8,13 @@ export type Inspect = (row: EngineRow, related?: EngineRow[]) => void;
 export function RowValue({
   row,
   related,
+  ariaLabel,
   inspect,
   children,
 }: {
   row: EngineRow;
   related?: EngineRow[];
+  ariaLabel?: string;
   inspect: Inspect;
   children: string;
 }) {
@@ -23,7 +25,7 @@ export function RowValue({
       onClick={() => inspect(row, related)}
       data-testid="factory-runs-engine-row-value"
       data-variant={row.id}
-      aria-label={`${children}. Open measurement sources`}
+      aria-label={ariaLabel ?? `${children}. Open measurement sources`}
     >
       {children}
     </button>
@@ -57,11 +59,13 @@ export function LengthPlot({
   inspect: Inspect;
 }) {
   const [shownState, setShownState] = useState<'warm' | 'cold'>('warm');
-  const all = rows.flatMap((row) => {
-    const tokens = row.request?.prompt_tokens;
-    const value = row.metrics?.[metric];
-    return numeric(tokens) && numeric(value) ? [{ row, tokens, score: value / scale }] : [];
-  });
+  const all = rows
+    .filter((row) => !excluded(row))
+    .flatMap((row) => {
+      const tokens = row.request?.prompt_tokens;
+      const value = row.metrics?.[metric];
+      return numeric(tokens) && numeric(value) ? [{ row, tokens, score: value / scale }] : [];
+    });
   if (!all.length) return <Empty />;
   const states = new Set(all.map(({ row }) => row.request?.state));
   const points = states.has(shownState) ? all.filter(({ row }) => row.request?.state === shownState) : all;
@@ -117,8 +121,7 @@ export function LengthPlot({
           {groups.map((group) => {
             const first = group[0];
             const state = first.row.request?.state;
-            const accepted = group.filter(({ row }) => !excluded(row));
-            const byLength = [...groupBy(accepted, ({ tokens }) => String(tokens)).values()].sort(
+            const byLength = [...groupBy(group, ({ tokens }) => String(tokens)).values()].sort(
               (a, b) => a[0].tokens - b[0].tokens,
             );
             const path = byLength
@@ -148,7 +151,6 @@ export function LengthPlot({
                       r="5"
                       stroke="currentColor"
                       fill={state === 'warm' ? 'var(--color-surface-card)' : 'currentColor'}
-                      className={excluded(row) ? 'engine-excluded' : undefined}
                       tabIndex={0}
                       role="button"
                       aria-label={label}
@@ -187,16 +189,17 @@ export function LengthPlot({
 }
 
 export function DecodeBars({ rows, inspect }: { rows: EngineRow[]; inspect: Inspect }) {
-  const points = rows.flatMap((row) => {
-    const value = row.metrics?.decode_tps;
-    return numeric(value) ? [{ row, value }] : [];
-  });
+  const points = rows
+    .filter((row) => !excluded(row))
+    .flatMap((row) => {
+      const value = row.metrics?.decode_tps;
+      return numeric(value) ? [{ row, value }] : [];
+    });
   if (!points.length) return <Empty />;
   const arms = [...groupBy(points, ({ row }) => armKey(row)).values()]
     .map((group) => {
-      const accepted = group.filter(({ row }) => !excluded(row));
-      const warm = accepted.filter(({ row }) => row.request?.state === 'warm');
-      const used = warm.length ? warm : accepted.length ? accepted : group;
+      const warm = group.filter(({ row }) => row.request?.state === 'warm');
+      const used = warm.length ? warm : group;
       const values = used.map(({ value }) => value);
       const middle = median(values);
       const closest = used.reduce((best, item) =>

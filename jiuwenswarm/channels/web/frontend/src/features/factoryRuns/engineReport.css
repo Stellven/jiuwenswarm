@@ -57,6 +57,11 @@
   color: var(--color-text-primary);
 }
 
+.engine-delivery-headline {
+  margin: 16px 0 0;
+  font-weight: 650;
+}
+
 .engine-status {
   margin: 18px 0;
   color: var(--color-text-secondary);

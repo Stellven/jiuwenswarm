@@ -7,6 +7,7 @@ import {
   accuracyRun,
   armOrder,
   armLabel,
+  deliveryHeadline,
   devices,
   evidenceLabel,
   excluded,
@@ -17,6 +18,7 @@ import {
   numeric,
   quietStatus,
   ratios,
+  rerun,
   sourceRef,
 } from './engineBenchModel';
 import type { Benchmark, EngineRow, Metric, QuietVerdict, Ratio } from './engineBenchModel';
@@ -181,6 +183,12 @@ function SourceDialog({ rows, close }: { rows: EngineRow[]; close: () => void })
           </li>
         ))}
       </ul>
+      {row.source_excerpt && (
+        <details data-testid="factory-runs-engine-primary-record">
+          <summary>Primary record excerpt</summary>
+          <pre>{JSON.stringify(row.source_excerpt, null, 2)}</pre>
+        </details>
+      )}
       <h3>Request and measurement</h3>
       <Facts
         facts={[
@@ -294,8 +302,7 @@ function ReportTable({ rows, speed, inspect }: { rows: EngineRow[]; speed: Ratio
                 {rowsToShow.map((group, index) => {
                   const row = group[0];
                   const accepted = group.filter((source) => !excluded(source));
-                  const shown = accepted.length ? accepted : group;
-                  const matched = speed.filter(({ candidate }) => shown.includes(candidate));
+                  const matched = speed.filter(({ candidate }) => accepted.includes(candidate));
                   const prompt = row?.request?.prompt_tokens;
                   return (
                     <tr
@@ -321,7 +328,7 @@ function ReportTable({ rows, speed, inspect }: { rows: EngineRow[]; speed: Ratio
                       </td>
                       <td>{row?.request?.state ?? '—'}</td>
                       {metrics.slice(0, 4).map(([metric]) => {
-                        const samples = shown.flatMap((source) => {
+                        const samples = accepted.flatMap((source) => {
                           const measurement = source.metrics?.[metric];
                           return numeric(measurement) ? [{ source, measurement }] : [];
                         });
@@ -332,6 +339,10 @@ function ReportTable({ rows, speed, inspect }: { rows: EngineRow[]; speed: Ratio
                             {samples.length ? (
                               <RowValue row={samples[0].source} related={group} inspect={inspect}>
                                 {fmt(middle / scale, 2)}
+                              </RowValue>
+                            ) : row && !accepted.length ? (
+                              <RowValue row={row} related={group} inspect={inspect} ariaLabel={`Open ${metric} source`}>
+                                —
                               </RowValue>
                             ) : (
                               '—'
@@ -387,6 +398,9 @@ export function EngineReport() {
   const starts = arms.filter((row) => row.kind === 'load');
   const requests = arms.filter((row) => row.kind === 'performance');
   const speed = ratios(requests);
+  const timed = requests.filter((row) => row.run === rerun && row.corrected_verdict);
+  const excludedCount = timed.filter((row) => row.corrected_verdict?.status === 'excluded').length;
+  const headline = deliveryHeadline(dataset?.delivery);
   const accuracy = observations
     .filter((row) => row.kind === 'accuracy' && row.run === accuracyRun && row.arm === 'B')
     .sort((a, b) => (b.n ?? 0) - (a.n ?? 0))
@@ -412,6 +426,11 @@ export function EngineReport() {
             <p>Muse Spark Open on DGX Spark</p>
           </div>
         </header>
+        {headline && (
+          <p className="engine-delivery-headline" data-testid="factory-runs-engine-delivery-headline">
+            {headline}
+          </p>
+        )}
         {status && (
           <p role="status" className="engine-status" data-testid="factory-runs-engine-status">
             {status}
@@ -453,6 +472,12 @@ export function EngineReport() {
                 Admission required an idle server, one-minute load below 1 and a clear machine gate. Timing excluded
                 builds, tests, helpers and foreign processes above 50% of one core. The launch rule exempted the server
                 tree. The final rule also exempts the lab runner tree and ignores CPU windows shorter than 0.5 s.{' '}
+                {dataset?.delivery?.decision?.kind === 'report_inconclusive' && (
+                  <span data-testid="factory-runs-engine-terminal-decision">
+                    The terminal decision was <code>report_inconclusive</code>. The quiet rule excluded {excludedCount}{' '}
+                    of {timed.length} timing cells.
+                  </span>
+                )}{' '}
                 <a href={`${api}/readme`} data-testid="factory-runs-engine-readme">
                   Final evidence index
                 </a>

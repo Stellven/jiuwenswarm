@@ -3,6 +3,7 @@ import { Plus, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   factoryApi,
+  request,
   type EvidenceFile,
   type FileContent,
   type JsonRecord,
@@ -14,6 +15,7 @@ import {
   type StoryEvent,
 } from './api';
 import { Measurements, MeasurementSummary } from './Measurements';
+import { deliveryHeadline, type Benchmark, type Delivery } from './engineBenchModel';
 import { FinalHeadlines, useFinalHeadlines } from './FinalHeadlines';
 import { RunOverview } from './RunOverview';
 import { LabResults } from './LabResults';
@@ -184,6 +186,21 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   const isLiveHome = detail?.run.id === selected && detail.run.kind === 'live' && !detail.run.read_only && !detail.curated;
   const controls = detail && runStatus?.id === selected ? runStatus.controls : detail?.controls;
   const status = detail && runStatus?.id === selected ? runStatus.run_state : detail?.run_state;
+  const r8Demo = engineViewer && detail?.run.task_id === 'muse-2bit-demo-r8';
+  const [delivery, setDelivery] = useState<Delivery>();
+  useEffect(() => {
+    if (!r8Demo) return;
+    const controller = new AbortController();
+    request<Benchmark>('/engine-bench', { signal: controller.signal })
+      .then((result) => {
+        if (!controller.signal.aborted) setDelivery(result.delivery);
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [r8Demo]);
+  const demoHeadline = r8Demo ? deliveryHeadline(delivery) : '';
+  const terminalDecision = r8Demo && delivery?.decision?.kind === 'report_inconclusive' ? delivery.decision : undefined;
+  const isTerminalDemo = r8Demo && (status?.outcome === 'report_inconclusive' || terminalDecision);
   // Operator actions change the graph: reload the run in place, keeping the open panel and selection.
   const reloadDetail = useCallback(async () => {
     const current = await factoryApi.detail(selected);
@@ -559,16 +576,30 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                 </label>
               )}
             </header>
-            <RunState
-              key={selected}
-              status={status}
-              fallback={fallbackStatus}
-              live={Boolean(isLiveHome && controls?.running)}
-              historical={Boolean(runKind && !operatorEnabled(runKind, controls))}
-              actions={availableOperations}
-              resumeMode={controls?.resume_mode}
-              onRun={runOperation}
-            />
+            {demoHeadline || isTerminalDemo ? (
+              <section className="factory-run-state" data-testid="factory-runs-state" data-variant="finished">
+                <strong data-testid="factory-runs-state-label">{demoHeadline || 'Finished'}</strong>
+                {isTerminalDemo && (
+                  <details className="factory-node-evidence-disclosure" data-testid="factory-runs-terminal-decision">
+                    <summary data-testid="factory-runs-terminal-decision-toggle">Run decision</summary>
+                    <p><code>report_inconclusive</code></p>
+                    {terminalDecision?.reason && <p>{terminalDecision.reason}</p>}
+                    {terminalDecision?.id && <code>{terminalDecision.id}</code>}
+                  </details>
+                )}
+              </section>
+            ) : (
+              <RunState
+                key={selected}
+                status={status}
+                fallback={fallbackStatus}
+                live={Boolean(isLiveHome && controls?.running)}
+                historical={Boolean(runKind && !operatorEnabled(runKind, controls))}
+                actions={availableOperations}
+                resumeMode={controls?.resume_mode}
+                onRun={runOperation}
+              />
+            )}
             {detail.contract.contract_id === 'muse-2bit-demo-r8' && (
               <p className="factory-correction-explanation" data-testid="factory-runs-correction-explanation">
                 Agent help with the verifier role included monitoring and specific-fix notes. Advisory findings remain in the evidence.

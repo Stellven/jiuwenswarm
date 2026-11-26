@@ -45,6 +45,7 @@ export type EngineRow = {
     fit_margin?: number;
   } | null;
   quiet?: { load1?: number; processes?: unknown; eligible?: boolean | null; reason?: string } | null;
+  source_excerpt?: Record<string, string | number>;
   launch_verdict?: QuietVerdict;
   corrected_verdict?: QuietVerdict;
   source: EngineSource;
@@ -63,7 +64,30 @@ export type EngineRow = {
 
 export type QuietVerdict = { status: string; reasons: string[] };
 export type EngineSource = { path: string; line?: number; record?: string | number; sha256?: string };
-export type Benchmark = { schema: 'engine-bench/1'; status: 'ready' | 'unavailable'; rows: EngineRow[] };
+export type Delivery = {
+  completed: number;
+  total: number;
+  image_delivered: boolean;
+  measured: boolean;
+  decision?: { kind: string; reason?: string; id: string } | null;
+};
+export type Benchmark = {
+  schema: 'engine-bench/1';
+  status: 'ready' | 'unavailable';
+  rows: EngineRow[];
+  delivery?: Delivery;
+};
+
+export function deliveryHeadline(delivery?: Delivery) {
+  if (!delivery?.total) return '';
+  return [
+    `${delivery.completed} of ${delivery.total} nodes complete`,
+    delivery.image_delivered && 'Engine image delivered',
+    delivery.measured && 'Lab measured',
+  ]
+    .filter(Boolean)
+    .join(' · ');
+}
 export type Metric = 'ttft_ms' | 'decode_tps' | 'prefill_tps' | 'total_ms' | 'load_s' | 'server_prefill_ms';
 export type Device = 'model' | 'kv' | 'compute' | 'moe_cache';
 

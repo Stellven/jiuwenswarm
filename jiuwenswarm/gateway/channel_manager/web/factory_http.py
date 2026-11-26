@@ -1079,7 +1079,7 @@ def attach_factory_routes(app: FastAPI, channel=None, *, service=None):
         try:
             path = Path.home() / 'muse-demo' / 'r8-final'
             data = await run_in_threadpool(read_engine_bench, path)
-        except (OSError, ValueError, TypeError, RecursionError):
+        except (OSError, ValueError, TypeError, KeyError, RecursionError):
             raise HTTPException(422, 'The engine benchmark dataset could not be read') from None
         return JSONResponse(data, headers={'Cache-Control': 'no-store'})
 
