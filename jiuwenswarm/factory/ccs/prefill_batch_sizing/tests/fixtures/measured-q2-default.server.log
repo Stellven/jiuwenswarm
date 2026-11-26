@@ -1,0 +1,41 @@
+0.00.372.523 I cmn  common_param: common_params_print_info: build 12493 (9048bad8d) with GNU 13.3.0 for Linux aarch64
+0.00.372.582 I cmn  common_param:   - CUDA0   : NVIDIA GB10 (124608 MiB, 120882 MiB free)
+0.00.372.625 I cmn  common_param: system_info: n_threads = 20 (n_threads_batch = 20) / 20 | CUDA : ARCHS = 1210 | USE_GRAPHS = 1 | FA_QUANTS = q4_0-q4_0,q8_0-q8_0,f16-f16,bf16-bf16,f8_e4m3-f8_e4m3 | NATIVE_FP8 = 1 | BLACKWELL_NATIVE_FP4 = 1 | CPU : NEON = 1 | ARM_FMA = 1 | LLAMAFILE = 1 | OPENMP = 1 | REPACK = 1 |
+0.00.375.698 I srv    load_model: loading model '/home/user2/models/muse-spark-open/Q2-gguf/Muse-Spark-Open-816B-A42B-Q2_K-from-NVFP4-00001-of-00011.gguf'
+0.00.809.025 I print_info: arch                  = muse-spark
+0.00.809.027 I print_info: n_embd                = 8192
+0.00.809.028 I print_info: n_layer               = 62
+0.00.809.035 I print_info: n_head                = 128
+0.00.809.037 I print_info: n_head_kv             = 16
+0.00.809.037 I print_info: n_swa                 = 2048
+0.00.809.059 I load_tensors: loading model tensors, this can take a while... (load_mode = mmap)
+2.29.531.574 I load_tensors: offloaded 63/63 layers to GPU
+2.29.531.902 I load_tensors:   CPU_Mapped model buffer size = 26880.04 MiB
+2.29.531.903 I load_tensors:   CPU_Mapped model buffer size = 26880.04 MiB
+2.29.531.903 I load_tensors:   CPU_Mapped model buffer size = 26880.04 MiB
+2.29.531.904 I load_tensors:   CPU_Mapped model buffer size = 26880.04 MiB
+2.29.531.904 I load_tensors:   CPU_Mapped model buffer size = 26880.04 MiB
+2.29.531.905 I load_tensors:   CPU_Mapped model buffer size = 26880.04 MiB
+2.29.531.905 I load_tensors:   CPU_Mapped model buffer size = 26880.04 MiB
+2.29.531.906 I load_tensors:   CPU_Mapped model buffer size = 26880.04 MiB
+2.29.531.906 I load_tensors:   CPU_Mapped model buffer size = 26880.04 MiB
+2.29.531.907 I load_tensors:   CPU_Mapped model buffer size =  3157.00 MiB
+2.29.531.907 I load_tensors:   CPU_Mapped model buffer size =  4032.00 MiB
+2.29.531.908 I load_tensors:   CPU_Mapped model buffer size =  4032.00 MiB
+2.29.531.909 I load_tensors:        CUDA0 model buffer size = 37396.62 MiB
+2.32.108.928 I llama_context: n_seq_max             = 1
+2.32.108.928 I llama_context: n_ctx                 = 4096
+2.32.108.929 I llama_context: n_batch               = 2048
+2.32.108.929 I llama_context: n_ubatch              = 512
+2.32.108.929 I llama_context: causal_attn           = 1
+2.32.108.930 I llama_context: flash_attn            = auto
+2.32.108.930 I llama_context: kv_unified            = false
+2.32.123.629 I llama_kv_cache:      CUDA0 KV buffer size =   256.00 MiB
+2.32.123.637 I llama_kv_cache: size =  256.00 MiB (  4096 cells,  16 layers,  1/1 seqs), K (f16):  128.00 MiB, V (f16):  128.00 MiB
+2.32.142.247 I llama_kv_cache:      CUDA0 KV buffer size =   460.00 MiB
+2.32.142.253 I llama_kv_cache: size =  460.00 MiB (  2560 cells,  46 layers,  1/1 seqs), K (f16):  230.00 MiB, V (f16):  230.00 MiB
+2.36.442.547 I impl:      CUDA0 MoE cache size = 61425.00 MiB for 249984.00 MiB of host experts, 0% of the misses on the CPU
+2.36.449.231 I resolve_fused_ops: Flash Attention enabled
+2.36.564.144 I sched_reserve:      CUDA0 compute buffer size =  1538.51 MiB
+2.36.564.150 I sched_reserve:  CUDA_Host compute buffer size =    70.53 MiB
+2.36.564.153 I sched_reserve: graph (pp bs=512, tg bs=1): nodes = 5854 / 6220, splits = 186 / 64, input objects = 4 / 4, input tensors = 12 / 12

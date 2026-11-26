@@ -10,11 +10,18 @@ Stages, weakest first: `native CC execution` (the plan document and the arithmet
 | batch_covers_ubatch | native | `-b` is smaller than `-ub` |
 | batch_applied | runtime | the server log's `n_batch`/`n_ubatch` differ from the plan |
 | device_budget | runtime | measured CUDA0 + host compute buffers exceed the budget, or the log has no compute buffer line |
+| moe_cache_applied | runtime | measured cache differs from the plan by more than the permitted slot-rounding margin |
+| budget_filled | runtime | measured device buffers plus headroom and the 2 GiB tolerance fall below the budget |
 | estimate_safe | runtime | measured buffers exceed the plan's estimate by more than 2% |
 | output_agreement:<request> | runtime | no baseline row, or outputs differ within the first `min_agree_chars` characters |
 
 `verify` is done only at runtime acceptance with no failure. `plan` is done when the baseline log is at (at
 least) the target context (`baseline_context`) and its estimate fits the budget (`fits_budget`).
+
+1.3.0 adds optional paired measurements to planning. An explicitly supplied reference with missing or
+incompatible log evidence fails the input check. CPU tests cover transferring the three measured deltas,
+using the linear estimate at an unmeasured batch, and rejecting incompatible context, layout, build,
+and baseline allocations. Fresh planned-run evidence is still required for runtime acceptance.
 
 1.1.0: 1.0.0 also scaled the KV buffer with the ubatch. At a 4096 context that overestimated by about 3 GiB; at a
 32k context (KV about 8 GiB) it would have rejected every ubatch above 512. KV is now taken as measured.
