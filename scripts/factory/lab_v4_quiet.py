@@ -287,6 +287,10 @@ class Monitor:
     def wait(self, phase, following, log):
         waited = False
         while True:
+            if self.stop_on_gate and self.server is not None:
+                self.server.run.watch(self.server.proc)
+                if self.server.proc.poll() is not None:
+                    raise capped_run.RunError('SERVER_EXIT', 'measured server exited while waiting for admission')
             with self._lock:
                 index = self._capture(f'{phase}_wait')
                 sample = self.samples[index]
