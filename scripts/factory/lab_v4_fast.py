@@ -3,7 +3,8 @@ contribution area, speed it up and collect time to first token and decode from t
 
     python scripts/factory/lab_v4_fast.py CONFIG.json [A B C D]
 
-CONFIG names, per arm, the engine binary directory, the first pack shard, the MoE cache size, extra server args and
+CONFIG names, per arm, the engine binary directory (or `image`: an engine image whose /opt/llamacpp is copied
+out and run natively under the cap, with optional `expect_sha256`), the first pack shard, the MoE cache size, extra server args and
 env (the delivered E0/E1 builds, packs, profile and batch plan). Protocol, one capped server load per arm:
 per prompt size one cold request (pack pages evicted with POSIX_FADV_DONTNEED first) and, unless the arm lists the
 size in skip_warm, one warm request; 32 generated tokens; each streamed request gives client time to first token,
@@ -53,6 +54,25 @@ def stop(proc):
         os.killpg(proc.pid, signal.SIGKILL)
         proc.wait()
     time.sleep(5)
+
+
+def from_image(name, arm, out):
+    """An arm may name an engine image instead of a binary directory: its /opt/llamacpp is copied out and run natively
+    under the same memory cap (a container would sit outside the systemd scope). Returns the directory and a record
+    of the image id and the server binary digest, so the lab result names exactly what it ran."""
+    directory = out / f'bin-{name}'
+    image = subprocess.run(['docker', 'image', 'inspect', '--format', '{{.Id}}', arm['image']], check=True,
+                           capture_output=True, text=True).stdout.strip()
+    if not (directory / 'llama-server').exists():
+        container = subprocess.run(['docker', 'create', image], check=True, capture_output=True, text=True).stdout.strip()
+        try:
+            subprocess.run(['docker', 'cp', f'{container}:/opt/llamacpp/.', str(directory)], check=True)
+        finally:
+            subprocess.run(['docker', 'rm', container], check=True, capture_output=True)
+    digest = hashlib.sha256((directory / 'llama-server').read_bytes()).hexdigest()
+    if arm.get('expect_sha256') and digest != arm['expect_sha256']:
+        raise SystemExit(f'{name}: llama-server in {arm["image"]} has sha256 {digest}, expected {arm["expect_sha256"]}')
+    return str(directory), dict(image=arm['image'], image_id=image, llama_server_sha256=digest)
 
 
 def start(name, arm, out):
@@ -131,6 +151,9 @@ def main(config_path, names):
                 if not (state == 'warm' and size in arm.get('skip_warm', [])) and (name, size, state) not in done]
         if not plan:
             continue
+        if arm.get('image') and not arm.get('bin'):
+            arm['bin'], image_record = from_image(name, arm, out)
+            report.setdefault('images', {})[name] = image_record
         log(f'{name}: start', arm['model'])
         proc, ready_s, argv, margin = start(name, arm, out)
         markers = [l.strip()[:240] for l in open(out / f'{name}.server.log', errors='replace')

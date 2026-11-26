@@ -16,6 +16,8 @@ import json
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 REPO = Path(sys.argv[1])
 OUT = REPO / 'jiuwenswarm/factory/contracts'
 TARGET = 'iq2_xxs,down=q2_k'
@@ -184,6 +186,10 @@ contract['provenance']['notes'].append(
     'measurement is shipped to the lab once. measure_accuracy is removed from the graph and its requirement '
     'accuracy_2bit moves into the lab task; port_ttft_cache drops the decode comparison slot; the requant smoke drops '
     'the NVFP4 token agreement; size_prefill_batch (arm D configuration) moves to the lab.')
+
+from make_muse_2bit_v4_rev8 import revise_to_8  # noqa: E402  (same folder)
+revise_to_8(contract)
+nodes = {x['node_id']: x for x in contract['extensions']['factory.node-contracts']['nodes']}
 
 plan = {'format': 'factory.plan/1', 'planner': 'hand-written demo plan (muse-2bit-ttft, preliminary node contracts)',
         'nodes': [{'node_id': n['node_id'], 'node_contract': n['node_id'], 'depends_on': n.get('predecessors', []),

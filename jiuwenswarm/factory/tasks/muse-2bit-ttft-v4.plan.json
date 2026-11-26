@@ -51,29 +51,34 @@
    "title": "Record which experts the 2-bit pack routes to on calibration prompts that do not overlap the lab prompts."
   },
   {
-   "node_id": "port_ttft_cache",
-   "node_contract": "port_ttft_cache",
+   "node_id": "size_prefill_batch",
+   "node_contract": "size_prefill_batch",
    "depends_on": [
-    "record_profile",
-    "build_base_engine"
+    "build_base_engine",
+    "requant_2bit"
    ],
-   "title": "Port the profile-seeded expert weight cache (the earlier time-to-first-token change) onto E0 for the Muse layer and expert shapes, off by default."
+   "title": "Size the server prefill batch so each lab prompt is prefilled in one micro-batch if the device budget allows, give the rest of the budget to the MoE expert cache, and confirm the plan on one capped load of E0 with the 2-bit pack. This is configuration, not timing: the lab times it."
   },
   {
-   "node_id": "build_candidate",
-   "node_contract": "build_candidate",
+   "node_id": "build_image",
+   "node_contract": "build_image",
    "depends_on": [
-    "port_ttft_cache"
+    "wire_expert_scales",
+    "build_base_engine",
+    "requant_2bit",
+    "size_prefill_batch"
    ],
-   "title": "Build candidate engine E1 (E0 plus the seeded cache) and package it for the lab arms."
+   "title": "Compile the owned checkout (stock 9048bad8 plus the converter and the expert scale wiring) into an engine image for the Spark with factory.builder, check that the image starts, and record the run configuration the lab uses: the image, the 2-bit pack and its manifest, and the batch plan arguments."
   },
   {
    "node_id": "deliver_to_lab",
    "node_contract": "deliver_to_lab",
    "depends_on": [
-    "build_candidate"
+    "build_image",
+    "build_base_engine",
+    "record_profile"
    ],
-   "title": "Ship the built image once: E0, E1, both packs and the profile, with the lab task for arms A to D and the paired accuracy test, to the lab manager."
+   "title": "The gate: ship the image once, with its run configuration, both pack manifests and the routing profile, and the lab task for arms B and P, to the lab manager. Delivery is refused unless every upstream check passed and the shipped digests match the recorded ones."
   }
  ]
 }
