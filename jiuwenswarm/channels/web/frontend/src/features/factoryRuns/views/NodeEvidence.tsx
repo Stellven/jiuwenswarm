@@ -29,6 +29,7 @@ import './nodeEvidence.css';
 
 type EvidenceLinks = { files: readonly EvidenceFile[]; onOpenFile: (path: string) => void };
 const emptyCapsules: CapsuleOverview[] = [];
+const verdictLabel = (verdict: string) => (verdict === 'unchecked' ? 'No output check' : verdict);
 
 function displayTimestamp(value: unknown) {
   const date =
@@ -153,7 +154,11 @@ function OutputDiff({
     <>
       {(diff.data.base || diff.data.head) && (
         <p className="factory-muted" data-testid="factory-runs-output-diff-range">
-          {diff.data.base && <>Base <code>{diff.data.base}</code></>}
+          {diff.data.base && (
+            <>
+              Base <code>{diff.data.base}</code>
+            </>
+          )}
           {diff.data.base && diff.data.head && ' → '}
           {diff.data.head && <code>{diff.data.head}</code>}
         </p>
@@ -547,9 +552,10 @@ export function CapsuleOverviewStrip({
                 aria-pressed={selected === id}
                 className="factory-node-evidence-button"
                 data-testid="factory-runs-cc-overview-select"
+                title={labels.get(id)}
                 onClick={() => onSelect(id)}
               >
-                {labels.get(id) || id}
+                {readableName(id)}
               </button>
               {capsules.map((capsule) => (
                 <span
@@ -562,7 +568,7 @@ export function CapsuleOverviewStrip({
                   {capsule.title ?? atlasTitle(capsule.id) ?? capsule.id}
                   {capsule.verdict && (
                     <small className="factory-node-verdict" data-verdict={capsule.verdict}>
-                      {capsule.verdict}
+                      {verdictLabel(capsule.verdict)}
                     </small>
                   )}
                 </span>
