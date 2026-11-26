@@ -124,7 +124,7 @@ def request(server, prompt, n_predict, *, benchmark=False):
     t0 = time.monotonic()
 
     def consume(response):
-        first, text, final, progress = None, [], None, []
+        first, text, final, progress, arrivals = None, [], None, [], []
         for raw in response:
             line = raw.decode().strip()
             if not line.startswith('data:'):
@@ -135,11 +135,20 @@ def request(server, prompt, n_predict, *, benchmark=False):
             d = json.loads(data)
             if d.get('error'):
                 raise ValueError(d['error'])
-            if 'prompt_progress' in d:
-                progress.append(d['prompt_progress'])
-            if first is None and (d.get('content') or benchmark and d.get('tokens') and not d.get('stop')):
+            is_progress = 'prompt_progress' in d
+            content = d.get('content', '')
+            generated = bool(content) and not is_progress and not d.get('stop')
+            if benchmark:
+                arrived = time.monotonic()
+                arrivals.append(dict(elapsed_ms=round((arrived - t0) * 1000, 3), progress=is_progress,
+                                     generated_content=generated, stop=bool(d.get('stop'))))
+                if first is None and generated:
+                    first = arrived
+            elif first is None and content:
                 first = time.monotonic()
-            text.append(d.get('content', ''))
+            if is_progress:
+                progress.append(d['prompt_progress'])
+            text.append(content if not is_progress else '')
             if d.get('stop'):
                 final = d
         if final is None:
@@ -150,7 +159,8 @@ def request(server, prompt, n_predict, *, benchmark=False):
                     prompt_tokens=tm['prompt_n'], prompt_ms=tm['prompt_ms'], prompt_tokens_per_second=tm['prompt_per_second'],
                     generated_tokens=tm['predicted_n'], decode_tokens_per_second=tm['predicted_per_second'],
                     output_sha256=hashlib.sha256(output.encode()).hexdigest(), text_head=output[:160],
-                    **({'prompt_progress': progress} if benchmark else {}))
+                    **({'prompt_progress': progress, 'stream_arrivals': arrivals,
+                        'ttft_method': 'client arrival of first non-empty generated content'} if benchmark else {}))
 
     return server.post(body, consume=consume)
 

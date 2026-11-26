@@ -1,5 +1,6 @@
 """Run the eight approved engine benchmark loads once, from the accepted r8 image."""
 import argparse
+from contextlib import contextmanager
 from copy import deepcopy
 import fcntl
 import hashlib
@@ -149,6 +150,33 @@ def run_load(out, p, leg, image_dir, identity, plan, prepared):
     record(f'Final benchmark {role} (load {lid}) completed. Receipt {receipt.name}.')
 
 
+@contextmanager
+def campaign_image(identity):
+    receipt = OUT / '1.load.json'
+    if receipt.exists():
+        first = read(receipt)
+        if first['status'] != 'complete' or first['factory_provenance'] != identity:
+            raise ValueError('Resume requires a completed first load with the same image identity')
+        binary, = [Path(arg) for arg in first['argv'] if arg.endswith('/llama-server')]
+        if not binary.resolve().is_relative_to(OUT) or digest(binary) != identity['llama_server_sha256']:
+            raise ValueError('Previously verified campaign executable failed resume verification')
+        watchers = list(OUT.glob('empty-watch-*.jsonl'))
+        if not any(json.loads(path.read_bytes().splitlines()[-1])['quiet_seconds'] >= 600 for path in watchers):
+            raise ValueError('Missing first-load empty-machine admission')
+        record('Resuming at next unconsumed load using existing verified executable. Fresh per-arm and per-cell admission remains active.')
+        yield binary.parent
+        return
+    evidence = OUT/f'empty-watch-{datetime.now(timezone.utc):%Y%m%dT%H%M%SZ}.jsonl'
+    record('Final eight-load benchmark: starting uninterrupted ten-minute empty-machine admission. Watch state logged every five minutes.')
+    r8_empty_watch.watch(BRIDGE, evidence)
+    with TemporaryDirectory(dir=OUT, prefix='image-bins-') as scratch:
+        image_args = dict(image=identity['image_id'], expect_image_id=identity['image_id'],
+                          expect_sha256=identity['llama_server_sha256'])
+        directory, image = lab.from_image('r8-final-bench', image_args, Path(scratch))
+        lab.save(OUT/'image.json', image)
+        yield Path(directory)
+
+
 def main(execute, diagnostic, diagnostic_file=None):
     from scripts.factory import r8_bench_score
     p, identity, plan = check_inputs()
@@ -175,14 +203,7 @@ def main(execute, diagnostic, diagnostic_file=None):
         lab.save(path, config)
         if any(read(f)['status'] != 'complete' for f in OUT.glob('*.load.json')):
             raise RuntimeError('Incomplete load receipt; no automatic repeat')
-        evidence = OUT/f'empty-watch-{datetime.now(timezone.utc):%Y%m%dT%H%M%SZ}.jsonl'
-        record('Final eight-load benchmark: starting uninterrupted ten-minute empty-machine admission. Watch state logged every five minutes.')
-        r8_empty_watch.watch(BRIDGE, evidence)
-        with TemporaryDirectory(dir=OUT, prefix='image-bins-') as scratch:
-            image_args = dict(image=identity['image_id'], expect_image_id=identity['image_id'],
-                              expect_sha256=identity['llama_server_sha256'])
-            directory, image = lab.from_image('r8-final-bench', image_args, Path(scratch))
-            lab.save(OUT/'image.json', image)
+        with campaign_image(identity) as directory:
             loads = {leg['id']:leg for leg in p['required_loads']}
             for lid in ORDER:
                 if lid == '3':

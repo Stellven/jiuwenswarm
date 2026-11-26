@@ -174,3 +174,36 @@ def test_nvfp4_calibration_keeps_reference_cache(bench):
     plan = r8_bench_cells.calibration(server, bench.proposal, bench.out, bench.leg)
     assert (plan['batch'], plan['ubatch'], plan['moe_cache_mib']) == (4096, 4096, 61440)
     assert plan['prompt_tokens'] == list(bench.counts.values())
+
+
+def test_ttft_starts_at_generated_content_after_progress_and_empty_token(monkeypatch):
+    clock = [10.0]
+    monkeypatch.setattr(lab_v4_fast.time, 'monotonic', lambda: clock[0])
+    events = [
+        (10.01, dict(content='', tokens=[-1], prompt_progress=dict(processed=0))),
+        (15.00, dict(content='', tokens=[-1], prompt_progress=dict(processed=511))),
+        (15.10, dict(content='', tokens=[42], stop=False)),
+        (15.20, dict(content='Hello', tokens=[43], stop=False)),
+        (16.00, dict(content='', stop=True, timings=dict(prompt_n=511, prompt_ms=5100,
+                    prompt_per_second=100, predicted_n=2, predicted_per_second=2))),
+    ]
+    def post(body, consume):
+        def chunks():
+            for arrival, event in events:
+                clock[0] = arrival
+                yield ('data: ' + json.dumps(event) + '\n').encode()
+        return consume(chunks())
+    result = lab_v4_fast.request(SimpleNamespace(post=post), 'prompt', 2, benchmark=True)
+    assert result['client_ttft_ms'] == 5200
+    assert result['request_total_ms'] == 6000
+    assert [a['elapsed_ms'] for a in result['stream_arrivals'] if a['generated_content']] == [5200]
+    assert result['text_head'] == 'Hello'
+
+
+def test_p_derived_ttft_uses_first_progress_clock_and_first_sample_timestamp():
+    from scripts.factory.r8_derive_p_ttft import derive
+    raw = dict(arm='P', request='p512', state='warm', repeat=1, prompt_tokens=511, client_ttft_ms=40,
+               prompt_ms=90316.8, request_total_ms=115301, quiet={'status': 'accepted'},
+               prompt_progress=[dict(processed=0, time_ms=19), dict(processed=511, time_ms=90312)])
+    assert derive(raw)['derived_ttft_ms'] == 90337.8
+    assert raw['client_ttft_ms'] == 40
