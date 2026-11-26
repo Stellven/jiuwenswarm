@@ -198,6 +198,15 @@ def test_refused_then_admitted(planned):
         scheduler.finalize(planned, 'pf', 'integrate', good_final(), 'again')
 
 
+def test_preview_records_a_checked_proposal_without_admission(planned):
+    before = plan_get(planned, 'pf')['rev']
+    result = scheduler.preview_proposal(planned, 'pf', 'integrate', good_final(), 'measured tolerance')
+    assert result['validated'] and not result['admitted']
+    assert plan_get(planned, 'pf')['rev'] == before
+    assert not scheduler.recorded_finals(planned, 'pf')
+    assert not scheduler.preview_proposal(planned, 'pf', 'integrate', prelim(), 'incomplete')['validated']
+
+
 def test_agents_cannot_set_a_final_contract(planned):
     rev = plan_get(planned, 'pf')['rev']
     with pytest.raises(ValueError):

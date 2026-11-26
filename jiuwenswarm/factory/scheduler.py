@@ -414,10 +414,14 @@ def preview_proposal(store, task_id, node_id, final, rationale):
     """Validate a rehearsal proposal without admitting work or changing graph state."""
     from .contract import load
     from .node_contract import node as lookup
+    if hasattr(store, '_check'):
+        store._check(task_id, write=True)
     host = getattr(store, '_store', store)
     task = host.get_task(task_id)
     document = _contracts(host, task)
-    graph_node = next(n for n in _graph(host, task_id)['nodes'] if n['node_id'] == node_id)
+    graph_node = next((n for n in _graph(host, task_id)['nodes'] if n['node_id'] == node_id), None)
+    if not graph_node:
+        raise ValueError(f'Unknown plan node: {node_id}')
     prelim = lookup(document, graph_node['node_contract'])
     found = proposal_problems(load(task['contract_id']), document, prelim, final, catalog())
     if not isinstance(rationale, str) or not rationale.strip():
