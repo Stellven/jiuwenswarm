@@ -5,6 +5,7 @@ are written as host observations by the test. Nothing runs a model or a controll
 """
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -71,7 +72,7 @@ def test_detail_serves_node_contract_work_and_compact_checks(home):
     assert 'entry' not in pack  # compact: the full settings stay in the record
     assert set(detail['node_checks']) >= {'pin_inputs', 'deliver_to_lab'}
     assert detail['controls'] == dict(operator=True, running=False, outcome=None, stop_reason=None,
-                                      pause=True, resume=False, revise=True, revise_apply=True)
+                                      pause=True, resume=False, resume_mode=None, revise=True, revise_apply=True)
 
 
 def test_operator_routes_guard_origin_body_and_live_homes(home, monkeypatch):
@@ -179,3 +180,32 @@ def test_historical_native_home_is_read_only(home):
         if action == 'revise':
             payload['dry_run'] = True
         assert api.post(url + '/' + action, json=payload).status_code == 403
+
+
+def test_legacy_partial_run_can_resume_but_r8_requires_confirmed_pause_clear(home, tmp_path, monkeypatch):
+    root, path = home
+    r8 = tmp_path / 'graph-r8'
+    with Store(r8) as store:
+        store.create_task(dict(task_id='muse-2bit-demo-r8', objective='R8 resume route', budget={}, source={},
+                               contract_id='muse-2bit-demo-r8', allowed_effects=[]))
+    for candidate, task_id in ((path, TID), (r8, 'muse-2bit-demo-r8')):
+        session = candidate / 'sessions'
+        session.mkdir(exist_ok=True)
+        (session / f'{task_id}.state.json').write_text(json.dumps(dict(outcome='partial')))
+    service = FactoryHttpService(roots=[root, r8])
+    ids = {run['task_id']: run for run in service.listing()['runs']}
+    assert ids['muse-2bit-demo-r8']['featured']
+    api = client(service)
+    started = []
+    monkeypatch.setattr(factory_http.subprocess, 'Popen',
+                        lambda command, **kw: started.append(command) or SimpleNamespace(pid=4321))
+    legacy = f"/api/factory/runs/{ids[TID]['id']}"
+    demo = f"/api/factory/runs/{ids['muse-2bit-demo-r8']['id']}"
+    assert api.get(legacy + '/state').json()['controls']['resume_mode'] == 'start_controller'
+    response = api.post(legacy + '/resume')
+    assert response.status_code == 202 and response.json()['pid'] == 4321
+    assert started[0][-7:] == ['resume', TID, '--plain', '--grant', 'process.exec', '--grant', 'workspace.read']
+    assert api.get(demo + '/state').json()['controls']['resume_mode'] is None
+    assert api.post(demo + '/resume').status_code == 400
+    assert api.post(demo + '/resume', json=dict(confirm=True, reason='checked')).status_code == 409
+    assert len(started) == 1
