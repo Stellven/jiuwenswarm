@@ -70,3 +70,31 @@ Each node still to finalize carries a `briefing` (summary, facts with sources, p
   `expect_sha256`): it copies `/opt/llamacpp` out of the image and runs it natively under the same systemd cap and
   `-fitt` budget, recording the image id and binary digest.
 - Done nodes keep their recorded finals; rev 8 only edits their text (requirement ids, hands_to).
+
+## Fast lab for the completed Muse rev-8 demo
+
+Use a new output directory and this configuration. Replace `/absolute` paths with the run, lab and rendered-prompt paths on the Spark. The prompts should be the rendered inputs used for batch verification. The default completion budget is 32 generated tokens.
+
+```json
+{
+  "factory_run": {"home": "/absolute/graph-r8", "task_id": "muse-2bit-demo-r8"},
+  "out_dir": "/absolute/lab-r8",
+  "baseline_report": "/absolute/lab/report-abcde.json",
+  "prompts": {
+    "p512": "/absolute/prompts/512.rendered.txt",
+    "p2048": "/absolute/prompts/2048.rendered.txt"
+  }
+}
+```
+
+```sh
+python scripts/factory/lab_v4_fast.py --resolve CONFIG.json
+python scripts/factory/lab_v4_fast.py CONFIG.json B P
+python scripts/factory/lab_v4_fast.py --compare /absolute/lab-r8/report.json /absolute/lab/report-abcde.json
+```
+
+The first command reads Factory evidence and the baseline without launching Docker or loading a model. The second requires the finished `deliver_to_lab` check, the succeeded `build_image` attempt with `verify_image: true`, the attached manifest from the succeeded 2-bit replay, and the passing `size_prefill_batch.batch_plan` check. The delivered package must identify that build attempt and attach its corresponding 2-bit manifest artifact. For the prefill check, pass the exact plan as a multiline JSON string to `verifier_inputs.plan` so the capsule receipt retains the document. A verifier input that names a file must point to the stored path of a Factory artifact cited by the batch plan check.
+
+B uses the recorded image and pack with the verified plan’s cache request at the default batch. P uses the same image, pack and cache request with the verified batch and micro-batch arguments. The server log supplies the actual values for each row. The runner verifies the original manifest bytes and shard sizes before putting the image’s executable under the capped runner.
+
+`report.json` includes the measured rows and the medians for TTFT, decode tokens per second, and request total for each arm, prompt and cache state. The comparison includes the November 25 A sample counts and actual generated token counts. When those counts differ, it displays the observed request totals without a total delta. Build, pack and prompt digests are unrecorded for A. The last command reproduces the comparison offline from the two reports.
