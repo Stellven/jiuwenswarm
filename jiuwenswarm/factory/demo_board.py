@@ -329,7 +329,7 @@ def run_view(attempt, capped):
     written = result.get('bytes') if recipe in {'convert', 'quantize', 'build'} else None
     source = (capped or {}).get('replayed_from') or request.get('replayed_from')
     origin = replay_origin(source)
-    what = RECIPE_WORDS.get(recipe, recipe)
+    what = RECIPE_WORDS.get(recipe, recipe) or (attempt or {}).get('kind') or 'job'
     return dict(attempt_id=(attempt or {}).get('attempt_id') or (capped or {}).get('attempt_id'),
                 node_id=request.get('node_id') or (capped or {}).get('node_id'), recipe=recipe,
                 what=f'{what} replay verification' if origin else what, label=request.get('label') or request.get('name'),
