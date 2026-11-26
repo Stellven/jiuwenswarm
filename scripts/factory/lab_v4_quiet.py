@@ -294,8 +294,11 @@ class Monitor:
                     sample['phase'] = phase
                     self.phase = following
                     return index, waited
-            if (any('probe unavailable' in reason for reason in sample['reasons'])
-                    or self.stop_on_gate and 'resident-server machine gate closed' in sample['reasons']):
+            gate = sample.get('resident_machine_gate')
+            if self.stop_on_gate and gate and not gate['ok']:
+                code = 'MEMORY_LOW' if gate['available_gib'] < gate['need_available_gib'] else 'MACHINE_BUSY'
+                raise capped_run.RunError(code, f'resident-server machine gate closed: {gate}')
+            if any('probe unavailable' in reason for reason in sample['reasons']):
                 raise Breach(sample)
             log(f'{phase}: waiting for quiet at raw load {sample["load_averages"][0]:g}; '
                 + ', '.join(sample['reasons']))
