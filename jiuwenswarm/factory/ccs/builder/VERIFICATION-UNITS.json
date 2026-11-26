@@ -4,7 +4,7 @@
   "scope": "Development verification; not a runtime performance certificate",
   "units": [
     {"id": "build-lifecycle-and-reuse", "command": "pytest tests/factory/test_builder.py", "checks": "Task-scoped lifecycle, successful reuse, changed inputs and failures"},
-    {"id": "native-builder-boundary", "command": "pytest tests/factory/test_native_build_metrics.py tests/factory/test_mission_supervisor.py", "checks": "Non-ARM64 refusal, native container isolation, phase accounting"}
+    {"id": "native-builder-boundary", "command": "pytest tests/factory/test_native_build_metrics.py tests/factory/test_mission_supervisor.py", "checks": "Non-ARM64 refusal, native container isolation, phase accounting, and image version and binary identity checks"}
   ],
   "limitations": ["Synthetic tests do not measure native CUDA compile speed", "A successful build does not establish inference correctness"]
 }

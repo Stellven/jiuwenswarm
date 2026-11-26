@@ -1,6 +1,6 @@
 cc: '2'
 id: factory.builder
-version: 1.1.2
+version: 1.1.3
 materials:
   methodology:
     path: JOB.md
@@ -17,8 +17,9 @@ bindings:
     - '{bundle}/run.py'
 capabilities:
   submit:
-    does: Submit a durable build job. This acknowledges submission, not success; inspect
-      status and result separately.
+    does: Submit a durable build job. For Spark llama-server image delivery, set request.verify_image
+      to true to retain a GPU-free, network-isolated version and executable digest check. Inspect
+      status and result after submission.
     takes:
       request: json
       idem_key: text

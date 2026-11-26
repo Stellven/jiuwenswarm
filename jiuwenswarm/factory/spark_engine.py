@@ -28,6 +28,79 @@ def build_flags(target, dependency):
     return list(LLAMA_FLAGS) if target == 'llama-server' else [*FLAGS, '-DSTRATA_GGML_DIR='+str(dependency)]
 
 
+def image_build_flags(run, source, commit):
+    # A Git archive has no repository metadata for llama.cpp's CMake detection.
+    build_number = run('git-build-number', ['git', '-C', source, 'rev-list', '--count', commit])
+    if not re.fullmatch(r'[0-9a-f]{40}', commit) or not re.fullmatch(r'[1-9][0-9]*', build_number):
+        raise ValueError('Invalid llama-server build identity')
+    return [f'-DLLAMA_BUILD_NUMBER={build_number}', f'-DLLAMA_BUILD_COMMIT={commit}'], int(build_number)
+
+
+def verify_delivery_image(run, out, record, build_number):
+    from jiuwenswarm.factory.lab_lifecycle import OwnedContainerGuard
+    from jiuwenswarm.factory.targets import validate_image
+
+    image = record['image']
+    image_id = image['Id']
+    commit = record['source']['commit']
+    validate_image('spark-gb10', image)
+    if (image['Config']['Labels'].get('factory.source') != commit
+            or not re.fullmatch(r'sha256:[0-9a-f]{64}', image_id)):
+        raise ValueError('Packaged image does not match the pinned build identity')
+
+    # The CUDA backend links libcuda.so.1 with VMM enabled. Give the dynamic
+    # loader the driver library without passing a device or using a GPU runtime.
+    libraries = run('image-driver', ['ldconfig', '-p'])
+    driver = None
+    for line in libraries.splitlines():
+        identity, separator, path = line.partition('=>')
+        if separator and identity.split()[:1] == ['libcuda.so.1']:
+            driver = Path(path.strip()).resolve(strict=True)
+            break
+    if driver is None or not driver.is_file() or ',' in str(driver):
+        raise ValueError('Host CUDA driver shared library is unavailable for the GPU-free image check')
+
+    executable = '/opt/llamacpp/llama-server'
+    driver_dir = '/run/factory-driver'
+    owner_dir = out / 'image-check-owner'
+    with OwnedContainerGuard(owner_dir, image_id, timeout_s=30) as guard:
+        argv = ['docker', 'run', '--pull=never', '--runtime=runc', '--network=none', '--read-only',
+                '--cap-drop=ALL', '--security-opt=no-new-privileges', '--pids-limit=64',
+                '--env', 'NVIDIA_VISIBLE_DEVICES=void', '--env', 'CUDA_VISIBLE_DEVICES=',
+                '--env', f'LD_LIBRARY_PATH={driver_dir}:/opt/llamacpp:/usr/local/cuda/lib64',
+                '--mount', f'type=bind,src={driver},dst={driver_dir}/libcuda.so.1,readonly',
+                '--name', guard.name]
+        for key, value in sorted(guard.labels.items()):
+            argv.extend(['--label', f'{key}={value}'])
+        argv.extend(['--entrypoint', '/bin/sh', image_id, '-ec',
+                     '/usr/bin/sha256sum "$1"; exec "$1" --version', 'image-check', executable])
+        output = run('image-check', argv, timeout=30)
+
+    inspection = json.loads((owner_dir / 'inspect-final.json').read_text())
+    cleanup = json.loads((owner_dir / 'report.json').read_text())
+    host_config = inspection['HostConfig']
+    mounts = [(mount['Type'], mount['Source'], mount['Destination'], mount['RW']) for mount in inspection['Mounts']]
+    if (not cleanup['container_removed'] or inspection['Image'] != image_id or host_config['Runtime'] != 'runc'
+            or host_config['NetworkMode'] != 'none' or not host_config['ReadonlyRootfs']
+            or any(host_config.get(key) for key in ('Privileged', 'Devices', 'DeviceRequests'))
+            or mounts != [('bind', str(driver), f'{driver_dir}/libcuda.so.1', False)]):
+        raise ValueError('Image-check container isolation or cleanup is unverified')
+
+    hashes = re.findall(r'^([0-9a-f]{64})  ' + re.escape(executable) + r'$', output, re.M)
+    versions = re.findall(r'^version: ([^\r\n]+) \(build ([0-9]+), commit ([0-9a-f]{40})\)$', output, re.M)
+    if hashes != [record['executable_sha256']]:
+        raise ValueError('Packaged llama-server SHA-256 differs from the built executable')
+    if len(versions) != 1 or int(versions[0][1]) != build_number or versions[0][2] != commit:
+        raise ValueError('Packaged llama-server version does not name the pinned build commit and number')
+    with driver.open('rb') as stream:
+        driver_digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+    return dict(format='factory.image-check/1', status='passed', image_id=image_id,
+                source_commit=commit, build_number=build_number, version=versions[0][0],
+                executable=executable, executable_sha256=hashes[0], argv=[executable, '--version'],
+                container_argv=argv, network='none', gpu_devices=[], model_mounts=[],
+                driver_sha256=driver_digest, output=output)
+
+
 def native_recipe(cache):
     """Use the retained stock generator/toolchain/options, without its source/build paths."""
     values = {}
@@ -148,6 +221,7 @@ def main():
         p.add_argument('--'+name, required=True)
     p.add_argument('--build-target', default='strata-dsv41')
     p.add_argument('--delivery', choices=['image', 'native'], default='image')
+    p.add_argument('--verify-image', action='store_true')
     p.add_argument('--native-cmake-cache')
     p.add_argument('--native-cmake-cache-sha256')
     p.add_argument('--native-ui-archive-sha256')
@@ -156,6 +230,8 @@ def main():
         raise ValueError('Invalid build target')
     if a.delivery == 'native' and a.build_target != 'llama-server':
         raise ValueError('Native delivery is limited to llama-server')
+    if a.verify_image and (a.build_target, a.delivery) != ('llama-server', 'image'):
+        raise ValueError('Image verification requires llama-server image delivery')
     if a.target != 'spark-gb10':
         raise ValueError('Spark worker target mismatch')
     source, out = Path(a.source), Path(a.out)
@@ -163,12 +239,12 @@ def main():
     record = dict(status='failed', target=a.target, source={'commit': a.commit}, flags=FLAGS, build_target=a.build_target,
                   host_architecture=platform.machine(), phase_seconds={})
     start = time.monotonic()
-    def run(name, argv):
+    def run(name, argv, *, timeout=5400):
         phase_started = time.monotonic()
         try:
             from jiuwenswarm.factory.experiment_jobs import bounded_run
             streams=out/(name+'-streams');streams.mkdir()
-            result=bounded_run(list(map(str,argv)),streams,5400,16*1024*1024)
+            result=bounded_run(list(map(str,argv)),streams,timeout,16*1024*1024)
             (out/(name+'.log')).write_bytes((streams/'stdout').read_bytes()+(streams/'stderr').read_bytes())
             if result['stop_reason']:
                 raise ValueError('Build phase stopped: '+result['stop_reason'])
@@ -197,6 +273,8 @@ def main():
         record['flags'] = flags
         record['dependency'] = dict(path=str(dependency), commit=a.dependency_commit)
         record['source']['tree'] = run('tree',['git','-C',source,'rev-parse','HEAD^{tree}'])
+        if a.verify_image:
+            metadata_flags, build_number = image_build_flags(run, source, a.commit)
         # Compile immutable committed trees, never the editable worktrees.
         import tarfile
         def snapshot(repository, revision, name):
@@ -225,6 +303,8 @@ def main():
             record['native_ui_archive'] = dict(path=str(archive), sha256=a.native_ui_archive_sha256)
         if a.delivery != 'native':
             flags = build_flags(a.build_target, dependency)
+        if a.verify_image:
+            flags.extend(metadata_flags)
         record['flags'] = flags
         builder_image = os.environ.get('FACTORY_NATIVE_BUILDER_IMAGE')
         if a.delivery == 'native' and builder_image:
@@ -303,6 +383,10 @@ def main():
         argv += ['--label','factory.source='+a.commit,'--label','factory.owner=cc-dgx-spark',out/'image']
         run('package',argv)
         record['image'] = json.loads(run('image',['docker','image','inspect',a.tag]))[0]
+        if a.verify_image:
+            record['failure_stage'] = 'image_check'
+            record['image_check'] = verify_delivery_image(run, out, record, build_number)
+            record.pop('failure_stage')
         immutable_tag=('factory/llamacpp:artifact-' if a.build_target=='llama-server' else 'factory/strata:artifact-')+record['image']['Id'].split(':',1)[1]
         run('retain-image',['docker','tag',record['image']['Id'],immutable_tag])
         record['retention_tag']=immutable_tag
