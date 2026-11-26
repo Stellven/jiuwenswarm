@@ -78,6 +78,10 @@ def generate(root):
                                               'Linked production packs and manifests are read-only.')
     task['operator_labels']['run'] = REPLAY
     task['resources']['read_roots'] += ['${FACTORY_MUSE_DEMO}/pins', '${FACTORY_MUSE_DEMO}/graph-v4/packs']
+    task['resources']['operator_inputs']['historical_default_log'] = dict(
+        path='${FACTORY_MUSE_DEMO}/graph-v4/runs/fd07412594dd4491864b5fddfbf37b2f/server.log',
+        how='Read-only historical E0 mixed-pack default-batch log for scheduler rehearsal; collect fresh rows for acceptance.',
+        results='Original device model buffer 37396.62 MiB, KV 716 MiB, compute and host 1609.04 MiB at ubatch 512.')
     task['resources']['operator_inputs']['convert_receipt'] = dict(
         path='${FACTORY_MUSE_DEMO}/replay-r8/convert.json', how='Historical host production receipt for read-only conversion replay.')
     task['resources']['operator_inputs']['quantize_receipt'] = dict(

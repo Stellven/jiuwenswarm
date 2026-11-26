@@ -105,6 +105,11 @@
     "how": "progress log of the Nov 25 paired MMLU run (hand-built E0, Q2_K pack against NVFP4, -np 32 -kvu -b 4096 -ub 4096, 32 questions per request): per-arm load and scoring seconds. Planning context for checkpoint timing, not evidence for this run.",
     "results": "2-bit-class arm (Q2_K): load about 185 s, about 6.3 s per question (147 to 282 s per 32); NVFP4 arm: load 312 to 357 s, about 10.8 s per question (321 to 485 s per 32). Reaching the 250 checkpoint on both arms took about 80 min of scoring plus loads; 430 about 2.3 h."
    },
+   "historical_default_log": {
+    "path": "${FACTORY_MUSE_DEMO}/graph-v4/runs/fd07412594dd4491864b5fddfbf37b2f/server.log",
+    "how": "Read-only historical E0 mixed-pack default-batch log for scheduler rehearsal; collect fresh rows for acceptance.",
+    "results": "Original device model buffer 37396.62 MiB, KV 716 MiB, compute and host 1609.04 MiB at ubatch 512."
+   },
    "convert_receipt": {
     "path": "${FACTORY_MUSE_DEMO}/replay-r8/convert.json",
     "how": "Historical host production receipt for read-only conversion replay."
