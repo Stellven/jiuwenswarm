@@ -8,6 +8,8 @@ import {
   type JsonRecord,
   type RunDetail,
   type RunList,
+  type RunState as RunStateRecord,
+  type RunOperation,
   type SessionSnapshot,
   type StoryEvent,
 } from './api';
@@ -16,7 +18,10 @@ import { FinalHeadlines, useFinalHeadlines } from './FinalHeadlines';
 import { RunOverview } from './RunOverview';
 import { LabResults } from './LabResults';
 import { isContractV2 } from './labModel';
-import { nodeActions, operatorEnabled, pauseStatement, resumeEnabled, type NodeOperator, type PlanNode } from './views/checkModel';
+import { nodeActions, operatorEnabled, pauseStatement, type Controls, type NodeOperator, type PlanNode } from './views/checkModel';
+import { CapsuleOverviewStrip, NodeEvidence, ReplayLabel } from './views/NodeEvidence';
+import { RunState } from './views/RunState';
+import { evidenceText, revisionEvent, runOperations } from './views/nodeEvidenceModel';
 import './labResults.css';
 import { Iterations } from './Iterations';
 import { FactoryReport } from './FactoryReport';
@@ -88,6 +93,10 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
   const { label } = useViewerLabels();
   const [listing, setListing] = useState<RunList>({ runs: [], launch_templates: [], launch_enabled: false });
   const [selected, setSelected] = useState(entry?.run || '');
+  const selectedRef = useRef(selected);
+  useEffect(() => {
+    selectedRef.current = selected;
+  }, [selected]);
   const [loadedDetail, setDetail] = useState<RunDetail | null>(null);
   const detail = loadedDetail?.run.id === selected ? loadedDetail : null;
   const [panel, setPanel] = useState<Panel>(entry?.file ? 'artifacts' : 'overview');
@@ -111,7 +120,9 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
   const [launchOpen, setLaunchOpen] = useState(false);
   const [session, setSession] = useState<SessionSnapshot | null>(null);
   const [sessionStale, setSessionStale] = useState(false);
-  const [resumeState, setResumeState] = useState<{ busy: boolean; error: string; note: string }>({ busy: false, error: '', note: '' });
+  const [selectedNode, setSelectedNode] = useState<string>();
+  const nodeEvidenceSection = useRef<HTMLDivElement>(null);
+  const [runStatus, setRunStatus] = useState<{ id: string; run_state?: RunStateRecord; controls?: Controls }>();
   // Demo build: light theme only. The scoped dark palette had unreadable
   // text on several surfaces, so the page no longer follows the OS setting.
   const appearance = 'light';
@@ -122,7 +133,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
       const runs = [...result.runs].sort((a, b) => b.updated - a.updated);
       setListing({ ...result, runs });
       const firstDemo = runs.filter((run) => run.demo).sort((a, b) => (a.demo_order ?? 0) - (b.demo_order ?? 0))[0];
-      setSelected((old) => old || firstDemo?.id || runs[0]?.id || '');
+      setSelected((old) => old || runs.find((run) => run.featured)?.id || firstDemo?.id || runs[0]?.id || '');
     } catch (err) {
       setError(String(err));
     } finally {
@@ -140,7 +151,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
     setFile(null);
     setSession(null);
     setSessionStale(false);
-    setResumeState({ busy: false, error: '', note: '' });
+    setRunStatus(undefined);
     setError('');
     setPlaying(false);
     factoryApi
@@ -152,6 +163,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
           setEvents(result.events);
           // A curated replay is a stepper: open on step 1, not on the end.
           setPosition(result.curated ? Math.min(1, result.events.length) : result.events.length);
+          if (result.run.featured && result.controls?.running && !result.curated) setLive(true);
           if (result.session) setSession(result.session);
         }
       })
@@ -165,12 +177,16 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
       active = false;
     };
   }, [selected, refreshVersion]);
-  const isLiveHome = detail?.run.id === selected && detail.run.kind === 'live';
+  const isLiveHome = detail?.run.id === selected && detail.run.kind === 'live' && !detail.run.read_only && !detail.curated;
+  const controls = detail && runStatus?.id === selected ? runStatus.controls : detail?.controls;
+  const status = detail && runStatus?.id === selected ? runStatus.run_state : detail?.run_state;
   // Operator actions change the graph: reload the run in place, keeping the open panel and selection.
   const reloadDetail = useCallback(async () => {
     const current = await factoryApi.detail(selected);
+    if (selectedRef.current !== selected) return;
     observedStory.current = storyVersion(current.events);
     setDetail(current);
+    setRunStatus({ id: selected, run_state: current.run_state, controls: current.controls });
     setEvents(current.events);
     setPosition(current.events.length);
     if (current.session) setSession(current.session);
@@ -178,31 +194,28 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
   const runKind = detail ? { kind: detail.run.kind, curated: Boolean(detail.curated) } : undefined;
   const operator = useMemo<NodeOperator | undefined>(() => {
     const kind = detail ? { kind: detail.run.kind, curated: Boolean(detail.curated) } : undefined;
-    if (!detail || !kind || !operatorEnabled(kind, detail.controls)) return undefined;
+    if (!detail || !kind || position !== events.length || !operatorEnabled(kind, controls)) return undefined;
     return {
-      actions: (node: PlanNode) => nodeActions(kind, detail.controls, node),
+      actions: (node: PlanNode) => nodeActions(kind, controls, node),
       run: async (nodeId, op, reason) => {
         await factoryApi.operator(selected, nodeId, op, reason);
         await reloadDetail();
       },
     };
-  }, [detail, selected, reloadDetail]);
+  }, [detail, selected, position, events.length, controls, reloadDetail]);
   const planNodes = useMemo(
-    () => (Array.isArray(detail?.graph?.nodes) && !detail?.curated ? (detail.graph.nodes as PlanNode[]) : []),
+    () => (Array.isArray(detail?.graph?.nodes) ? (detail.graph.nodes as PlanNode[]) : []),
     [detail],
   );
-  const pause = detail && !detail.curated ? pauseStatement(planNodes, detail.controls) : undefined;
-  const canResume = Boolean(detail && runKind && resumeEnabled(runKind, detail.controls));
-  const resume = async () => {
-    setResumeState({ busy: true, error: '', note: '' });
-    try {
-      const started = await factoryApi.resume(selected);
-      setResumeState({ busy: false, error: '', note: `Resumed: controller process ${started.pid} started.` });
-      setLive(true);
-      await reloadDetail();
-    } catch (err) {
-      setResumeState({ busy: false, error: String(err instanceof Error ? err.message : err), note: '' });
+  const fallbackStatus = detail && !detail.curated ? pauseStatement(planNodes, controls)?.text : undefined;
+  const availableOperations = runKind && position === events.length ? runOperations(runKind, controls) : [];
+  const runOperation = async (action: RunOperation, reason: string) => {
+    const result = await factoryApi.runOperation(selected, action, reason);
+    if (action === 'resume' && selectedRef.current === selected) setLive(true);
+    if (action !== 'revise-preview') {
+      void reloadDetail().catch((err) => setError(String(err)));
     }
+    return result;
   };
   useEffect(() => {
     if (!isLiveHome) return;
@@ -210,15 +223,15 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
     let timer: number;
     const tick = async () => {
       try {
-        const update = await factoryApi.session(selected);
+        const [snapshot, state] = await Promise.allSettled([factoryApi.session(selected), factoryApi.state(selected)]);
         if (!stopped) {
-          setSession(update);
-          setSessionStale(false);
+          if (snapshot.status === 'fulfilled') setSession(snapshot.value);
+          setSessionStale(snapshot.status === 'rejected');
+          if (state.status === 'fulfilled') setRunStatus({ id: selected, ...state.value });
         }
-      } catch {
-        if (!stopped) setSessionStale(true);
+      } finally {
+        if (!stopped) timer = window.setTimeout(tick, 3000);
       }
-      if (!stopped) timer = window.setTimeout(tick, 3000);
     };
     void tick();
     return () => {
@@ -243,7 +256,14 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
             observedStory.current = storyVersion(current.events);
             setDetail(current);
             setEvents(current.events);
-            setPosition(current.events.length);
+            if (current.curated) {
+              setPosition(Math.min(1, current.events.length));
+              setSelectedNode(undefined);
+              setPanel((value) => curatedPanels.includes(value) ? value : 'overview');
+              setLive(false);
+            } else {
+              setPosition(current.events.length);
+            }
           }
         }
       } catch (err) {
@@ -332,6 +352,15 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
   const visibleEvents = events.slice(0, position);
   const cursor = visibleEvents[visibleEvents.length - 1];
   const curatedStep = curatedStepFor(detail?.curated, cursor);
+  const focusedNode = selectedNode ?? curatedStep?.node_id;
+  useEffect(() => {
+    if (selectedNode) nodeEvidenceSection.current?.scrollIntoView({ block: 'start' });
+  }, [selectedNode]);
+  const nodeLabels = useMemo(() => new Map(planNodes.flatMap((node) => {
+    const id = evidenceText(node.node_id);
+    const title = evidenceText(node.title) ?? id;
+    return id && title ? [[id, title] as const] : [];
+  })), [planNodes]);
   const stepKeyFiles = useMemo(() => keyFilesFor(curatedStep, detail?.files ?? []), [curatedStep, detail]);
   const keyFlagMap = useMemo(() => curatedKeyFlags(detail?.curated), [detail]);
   const shownCursor = cursor ? presentEvent(cursor) : undefined;
@@ -367,10 +396,12 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
   const selectRun = (id: string) => {
     if (id === selected) return;
     window.history.replaceState(window.history.state, '', runHref(id));
+    selectedRef.current = id;
     setSelected(id);
     setLive(false);
     setPanel('overview');
     setFocusedDecisionId(undefined);
+    setSelectedNode(undefined);
     setChildSource(undefined);
     setExpectedSha('');
     setFilePath('');
@@ -389,6 +420,28 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
     selectRun(id);
     setLive(true);
     void refresh();
+  };
+  const openEvidenceFile = (path: string) =>
+    selectPanel(/(?:^|\/)report[^/]*\.md$/i.test(path) ? 'report' : 'artifacts', path);
+  const nodeEvidence = detail && focusedNode ? (
+    <div ref={nodeEvidenceSection} className="factory-node-evidence-slot">
+      <NodeEvidence
+        key={`${selected}:${focusedNode}`}
+        runId={selected}
+        nodeId={focusedNode}
+        node={planNodes.find((node) => node.node_id === focusedNode)}
+        checks={detail.node_checks?.[focusedNode]}
+        files={detail.files}
+        revision={detail}
+        onOpenFile={openEvidenceFile}
+        onClose={selectedNode ? () => setSelectedNode(undefined) : undefined}
+      />
+    </div>
+  ) : undefined;
+  const seek = (next: number) => {
+    setPlaying(false);
+    setSelectedNode(undefined);
+    setPosition(next);
   };
   const headline = finalHeadlines &&
     <FinalHeadlines publication={finalHeadlines} onOpen={openIterationChild} />;
@@ -487,33 +540,16 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                 </label>
               )}
             </header>
-            {(pause || canResume || resumeState.note || resumeState.error) && (
-              <section
-                className="factory-run-pause"
-                data-testid="factory-runs-pause"
-                data-paused={pause?.paused || undefined}
-              >
-                {pause && <p data-testid="factory-runs-pause-statement">{pause.paused ? 'Run ' : ''}{pause.text}</p>}
-                {!pause && detail.controls?.outcome && <p>Run outcome: {detail.controls.outcome}</p>}
-                {canResume && (
-                  <button
-                    type="button"
-                    data-testid="factory-runs-resume"
-                    disabled={resumeState.busy}
-                    title="Start jiuwenswarm-factory resume for this task; upstream outputs and passed checks are kept"
-                    onClick={() => void resume()}
-                  >
-                    {resumeState.busy ? 'Resuming…' : 'Resume'}
-                  </button>
-                )}
-                {resumeState.note && <p className="factory-muted">{resumeState.note}</p>}
-                {resumeState.error && (
-                  <p className="factory-lab-problem" role="alert">
-                    {resumeState.error}
-                  </p>
-                )}
-              </section>
-            )}
+            <RunState
+              key={selected}
+              status={status}
+              fallback={fallbackStatus}
+              live={Boolean(isLiveHome && controls?.running)}
+              historical={Boolean(runKind && !operatorEnabled(runKind, controls))}
+              actions={availableOperations}
+              resumeMode={controls?.resume_mode}
+              onRun={runOperation}
+            />
             {isLiveHome && (live || panel === 'overview' || panel === 'terminal') && (
               <LiveSession session={session} stale={sessionStale} />
             )}
@@ -523,7 +559,8 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                   data-testid="factory-runs-play"
                   disabled={live || events.length === 0}
                   onClick={() => {
-                    if (position === events.length) setPosition(0);
+                    if (position === events.length) setPosition(detail.curated ? 1 : 0);
+                    setSelectedNode(undefined);
                     setPlaying(!playing);
                   }}
                 >
@@ -533,23 +570,17 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                   type="range"
                   data-testid="factory-runs-scrubber"
                   aria-label={t('factoryRuns.replay')}
-                  min={0}
+                  min={detail.curated ? 1 : 0}
                   max={events.length}
                   value={position}
                   disabled={live}
-                  onChange={(event) => {
-                    setPlaying(false);
-                    setPosition(Number(event.target.value));
-                  }}
+                  onChange={(event) => seek(Number(event.target.value))}
                 />
                 <button
                   type="button"
                   data-testid="factory-runs-step-prev"
                   disabled={live || position <= (detail.curated ? 1 : 0)}
-                  onClick={() => {
-                    setPlaying(false);
-                    setPosition((old) => Math.max(detail.curated ? 1 : 0, old - 1));
-                  }}
+                  onClick={() => seek(position - 1)}
                 >
                   ← Prev
                 </button>
@@ -557,10 +588,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                   type="button"
                   data-testid="factory-runs-step-next"
                   disabled={live || position >= events.length}
-                  onClick={() => {
-                    setPlaying(false);
-                    setPosition((old) => Math.min(events.length, old + 1));
-                  }}
+                  onClick={() => seek(position + 1)}
                 >
                   Next →
                 </button>
@@ -583,6 +611,10 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                   t('factoryRuns.start')
                 )}
                 {cursor && <CapsuleChips value={capsuleEvent(cursor)} />}
+                {cursor && revisionEvent(cursor) !== undefined && (
+                  <span className="factory-node-evidence-kind">Graph revision {revisionEvent(cursor)}</span>
+                )}
+                <ReplayLabel value={curatedStep?.replayed_from ?? cursor?.replayed_from} />
               </p>
             </section>
             <nav className="factory-tabs" data-testid="factory-runs-tabs" aria-label={t('factoryRuns.panels')}>
@@ -599,6 +631,15 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
               ))}
             </nav>
             <section className="factory-evidence" data-testid="factory-runs-evidence">
+              {(!detail.curated || detail.curated.native) && ['overview', 'graph', 'contract', 'capsules'].includes(panel) && (
+                <CapsuleOverviewStrip
+                  nodes={detail.cc_overview}
+                  labels={nodeLabels}
+                  selected={focusedNode}
+                  onSelect={(id) => setSelectedNode((old) => old === id ? undefined : id)}
+                />
+              )}
+              {['contract', 'capsules'].includes(panel) && nodeEvidence}
               {panel === 'overview' && (
                 <RunOverview
                   detail={detail}
@@ -608,13 +649,9 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                   headline={measurementSummary || finalHeadlines?.run_id === selected ? headline : undefined}
                   eventCapsules={(event) => <CapsuleChips value={capsuleEvent(event)} />}
                   currentStep={curatedStep?.step}
-                  onSeek={(next) => {
-                    setPlaying(false);
-                    setPosition(next);
-                  }}
-                  onOpenFile={(path) =>
-                    selectPanel(/(?:^|\/)report[^/]*\.md$/i.test(path) ? 'report' : 'artifacts', path)
-                  }
+                  onSeek={seek}
+                  onOpenFile={openEvidenceFile}
+                  nodeEvidence={nodeEvidence}
                 />
               )}
               {panel === 'iterations' && (
@@ -653,11 +690,13 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                     onOpenFile: (path: string) => selectPanel('artifacts', path),
                     checks: detail.node_checks,
                     operator,
+                    onOpenNode: detail.cc_overview ? (id) => setSelectedNode(id) : undefined,
                   }}
                   initialMode="graph"
                 />
               )}
-              {panel === 'contract' && !selectedFile && (
+              {panel === 'graph' && nodeEvidence}
+              {panel === 'contract' && !selectedFile && !focusedNode && (
                 <DataViewer
                   key={selected}
                   name={t('factoryRuns.contract')}
@@ -665,7 +704,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                   initialMode="readable"
                 />
               )}
-              {panel === 'capsules' && (
+              {panel === 'capsules' && !focusedNode && (
                 <DataViewer key={selected} name={t('factoryRuns.capsules')} value={detail.stack} />
               )}
               {panel === 'tests' && (

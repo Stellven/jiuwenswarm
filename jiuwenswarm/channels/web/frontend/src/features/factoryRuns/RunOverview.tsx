@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import type { EvidenceFile, JsonRecord, RunDetail, StoryEvent } from './api';
 import { atlasTitle } from './cc/atlasNames.ts';
 import { collapseEvents, presentEvent } from './views/storyModel.ts';
+import { ReplayLabel } from './views/NodeEvidence';
+import { revisionEvent } from './views/nodeEvidenceModel';
 import './story.css';
 
 const capsuleFolders = {
@@ -42,6 +44,7 @@ export function RunOverview({
   onOpenFile,
   onSeek,
   currentStep,
+  nodeEvidence,
 }: {
   detail: RunDetail;
   events: StoryEvent[];
@@ -52,6 +55,7 @@ export function RunOverview({
   onOpenFile?: (path: string) => void;
   onSeek?: (cursor: number) => void;
   currentStep?: number;
+  nodeEvidence?: ReactNode;
 }) {
   const { t, i18n } = useTranslation();
   const task = detail.records.tasks?.[0] || {};
@@ -86,6 +90,7 @@ export function RunOverview({
   const fileByPath = new Map(detail.files.map((file) => [file.path, file]));
   const groups = collapseEvents(events);
 
+
   if (curated) {
     const focus = curated.steps.find((step) => step.step === currentStep) ?? curated.steps[0];
     const lead = focus?.key_files[0];
@@ -104,12 +109,16 @@ export function RunOverview({
             <p className="factory-curated-count">
               Step {focus.step} of {curated.steps.length}
               <small className="factory-original-kind" title="Original record kind">
-                {focus.original_kind} · {focus.created_utc?.slice(0, 19).replace('T', ' ')} UTC
+                {focus.original_kind}
+                {(focus.created_utc || focus.created) && (
+                  <> · {(focus.created_utc ?? new Date((focus.created ?? 0) * 1000).toISOString()).slice(0, 19).replace('T', ' ')} UTC</>
+                )}
               </small>
             </p>
             <h3 title="Presentation title" data-testid="factory-runs-curated-focus-title">
               {focus.presentation_title}
             </h3>
+            <ReplayLabel value={focus.replayed_from} />
             {focus.say && (
               <p className="factory-curated-say" data-testid="factory-runs-curated-focus-say">
                 {focus.say}
@@ -162,6 +171,7 @@ export function RunOverview({
             </details>
           </section>
         )}
+        {nodeEvidence}
         <section className="factory-story-card factory-curated" data-testid="factory-runs-curated-steps">
           <ol className="factory-curated-steps">
             {curated.steps.map((step) => (
@@ -183,6 +193,7 @@ export function RunOverview({
                     <small className="factory-original-kind" title="Original record kind">
                       {step.original_kind}
                     </small>
+                    <ReplayLabel value={step.replayed_from} />
                   </span>
                 </button>
                 {step.key_files[0] && (
@@ -206,6 +217,7 @@ export function RunOverview({
 
   return (
     <div className="factory-story" data-testid="factory-runs-overview">
+      {nodeEvidence}
       <header className="factory-story-hero" data-testid="factory-runs-overview-brief">
         <span className="factory-story-kicker">
           {star ? t('factoryRuns.story.engineComparison') : t('factoryRuns.story.runOverview')}
@@ -355,10 +367,14 @@ export function RunOverview({
                   </time>
                   <strong data-testid="factory-runs-event-title">
                     {shown.title}
+                    {revisionEvent(event) !== undefined && <> · Revision {revisionEvent(event)}</>}
                     {count > 1 && <span className="factory-event-count" data-testid="factory-runs-event-count"> ×{count}</span>}
                     <small className="factory-original-kind" data-testid="factory-runs-event-kind">{shown.kind}</small>
                   </strong>
-                  <span>{event.summary} {eventCapsules?.(event)}</span>
+                  <span>
+                    {event.summary} {eventCapsules?.(event)} <ReplayLabel value={event.replayed_from} />
+                    {revisionEvent(event) !== undefined && <small className="factory-muted"><code>{event.id}</code></small>}
+                  </span>
                 </li>
               );
             })}

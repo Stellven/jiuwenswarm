@@ -89,14 +89,27 @@ export function FactoryRunList({
           </Fragment>
         );
       });
-        if (!groups.demo.length) return render(entries);
+        if (!groups.featured.length && !groups.history.length && !groups.demo.length) return render(entries);
         const selectedInRest = groups.rest.some(({ run }) => run.id === selected);
         return (
           <>
-            <section className="factory-run-group" data-testid="factory-runs-demo-group" aria-label="Demo">
-              <h2 className="factory-run-group-title">Demo</h2>
-              {render(groups.demo)}
-            </section>
+            {groups.featured.length > 0 && (
+              <section className="factory-run-group" data-testid="factory-runs-featured-group" aria-label="Featured run">
+                {render(groups.featured)}
+              </section>
+            )}
+            {groups.history.length > 0 && (
+              <section className="factory-run-group" data-testid="factory-runs-history-group" aria-label="Run history">
+                <h2 className="factory-run-group-title">History</h2>
+                {render(groups.history)}
+              </section>
+            )}
+            {groups.demo.length > 0 && (
+              <section className="factory-run-group" data-testid="factory-runs-demo-group" aria-label="Demo">
+                <h2 className="factory-run-group-title">Demo</h2>
+                {render(groups.demo)}
+              </section>
+            )}
             {groups.rest.length + groups.hidden > 0 && !(showHidden || selectedInRest) && (
               <button
                 type="button"

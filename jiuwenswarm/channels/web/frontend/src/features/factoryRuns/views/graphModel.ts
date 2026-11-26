@@ -35,6 +35,7 @@ export type GraphReplay = {
   files?: readonly EvidenceFile[];
   curated?: CuratedReplay | null;
   onOpenFile?: (path: string) => void;
+  onOpenNode?: (nodeId: string) => void;
   /** Live and exported runs: per plan node checking records (GET /runs/{id} node_checks). */
   checks?: NodeCheckIndex;
   /** Live homes only: hold, release and reopen. */
@@ -286,6 +287,27 @@ function applyHistory(snapshots: Map<string, Fields>, patch: Fields, decisionRev
       }
     }
   }
+  for (const change of rows(patch.revise)) {
+    const id = string(change.node_id);
+    if (!id) continue;
+    const node = snapshots.get(id);
+    touched?.add(id);
+    if (change.action === 'add' && record(change.node)) {
+      snapshots.set(id, { state: 'proposed', depends_on: [], ...record(change.node) });
+    } else if (node && change.action === 'cancel') {
+      const { hold: _hold, ...fields } = node;
+      snapshots.set(id, { ...fields, state: 'cancelled', reason: change.reason });
+    } else if (node && change.action === 'update') {
+      const changed = Object.fromEntries(
+        ['title', 'kind', 'capability', 'check', 'resources', 'state', 'depends_on']
+          .filter((field) => field in change)
+          .map((field) => [field, change[field]]),
+      );
+      const next = { ...node, ...changed };
+      if (change.unfinalize) delete next.final_contract;
+      snapshots.set(id, next);
+    }
+  }
 }
 
 function graphNodesOf(event: StoryEvent | undefined) {
@@ -314,7 +336,9 @@ function curatedProgress(graph: GraphModel, replay: GraphReplay) {
 }
 
 export function graphProgress(graph: GraphModel, replay: GraphReplay): Map<string, NodeProgress> {
-  if (replay.events.some((event) => graphNodesOf(event).length)) return curatedProgress(graph, replay);
+  if (replay.curated || replay.events.some((event) => typeof event.step === 'number' && graphNodesOf(event).length)) {
+    return curatedProgress(graph, replay);
+  }
   const visible = replay.events.slice(0, Math.max(0, replay.position));
   const current = visible[visible.length - 1];
   const snapshots = new Map<string, Fields>();
@@ -331,7 +355,7 @@ export function graphProgress(graph: GraphModel, replay: GraphReplay): Map<strin
   const activeStep = (node: GraphNode) => {
     if (!node.planId || !current) return false;
     const details = graph.history.length ? snapshots.get(node.planId) : node.details;
-    return touched.has(node.planId) || Boolean(details && nodeEvent(details, current));
+    return touched.has(node.planId) || nodeMatches(node, graphNodesOf(current)) || Boolean(details && nodeEvent(details, current));
   };
   const hasActiveStep = graph.nodes.some(activeStep);
   const result = new Map<string, NodeProgress>();

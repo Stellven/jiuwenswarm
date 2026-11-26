@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { factoryApi, type EvidenceFile } from '../api';
 import { AnalysisData } from './AnalysisData';
-import { capsuleApi } from './capsuleApi';
+import { capsuleApi, type CapsuleFile } from './capsuleApi';
 import { isRecord, localMaterial, numericColumns, readableName, tableData } from './capsuleModel';
 import { useCapsuleCopy } from './copy';
 import { useCapsuleResource } from './useCapsuleResource';
@@ -233,6 +233,7 @@ export function MaterialDialog({
   available,
   onOpen,
   onClose,
+  loadFile,
 }: {
   name: string;
   path: string;
@@ -241,11 +242,13 @@ export function MaterialDialog({
   available: Set<string>;
   onOpen: (path: string) => void;
   onClose: () => void;
+  loadFile?: (path: string, signal: AbortSignal) => Promise<CapsuleFile>;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const copy = useCapsuleCopy();
   const load = useMemo(
     () => async (relative: string, signal: AbortSignal) => {
+      if (loadFile) return loadFile(relative, signal);
       if (!run) return capsuleApi.file(name, relative, signal);
       const file = await factoryApi.file(run, relative, signal);
       return {
@@ -253,7 +256,7 @@ export function MaterialDialog({
         parsed: file.truncated ? null : parseArtifact(title || file.display_path || relative, file.content),
       };
     },
-    [name, run, title],
+    [loadFile, name, run, title],
   );
   const file = useCapsuleResource(path, load);
   const [view, setView] = useState<'readable' | 'tree' | 'table' | 'chart' | 'raw'>('readable');

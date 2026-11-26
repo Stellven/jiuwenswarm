@@ -5,7 +5,7 @@
  * the statements mirror node_check.pending, the host's done rule.
  */
 
-export type VerifierCheck = { name?: string; status?: string; stage?: string; detail?: string };
+export type VerifierCheck = { name?: string; status?: string; stage?: string; detail?: unknown };
 export type ReviewFinding = { severity?: string; file?: string; line?: number | null; problem?: string };
 export type CheckRow = {
   obs_id: string;
@@ -34,6 +34,7 @@ export type CheckRow = {
     passed?: boolean;
     reason?: string;
     reviewer?: string;
+    advisory?: boolean;
     packet_artifact?: string;
     reply_artifact?: string;
     findings: ReviewFinding[];
@@ -49,6 +50,7 @@ export type CheckOutput = {
   verifier?: string | null;
   stage?: string | null;
   review: boolean;
+  review_mode?: 'advisory' | 'blocking';
   inputs?: Record<string, unknown> | null;
   criteria?: string[];
   checks: CheckRow[];
@@ -65,6 +67,7 @@ export type NodeCheckView = {
 export type NodeCheckIndex = Record<string, NodeCheckView>;
 export type PlanNode = {
   node_id?: unknown;
+  title?: unknown;
   state?: unknown;
   hold?: unknown;
   retry_from?: unknown;
@@ -221,6 +224,10 @@ export type Controls = {
   outcome?: string | null;
   stop_reason?: string | null;
   resume?: boolean;
+  resume_mode?: 'clear_pause' | 'start_controller' | null;
+  pause?: boolean;
+  revise?: boolean;
+  revise_apply?: boolean;
 } | null;
 export type OperatorOp = 'hold' | 'release' | 'reopen';
 export type NodeOperator = {

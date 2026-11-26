@@ -1,4 +1,5 @@
 import { collapseEvents, presentEvent } from './storyModel.ts';
+import { replayLabel } from './nodeEvidenceModel.ts';
 import type { JsonRecord, StoryEvent } from '../api';
 
 export const logLevels = ['plain', 'debug', 'info', 'success', 'warning', 'error'] as const;
@@ -17,6 +18,7 @@ export type LogRow = {
   firstCursor?: number;
   count?: number;
   kind?: string;
+  replayedFrom?: unknown;
 };
 
 const levelPattern = 'TRACE|DEBUG|INFO|NOTICE|SUCCESS|WARN(?:ING)?|ERR(?:OR)?|CRITICAL|FATAL';
@@ -154,6 +156,7 @@ export function projectStoryLog(events: readonly StoryEvent[]): LogRow[] {
       message: count > 1 ? `${event.summary} (×${count})` : event.summary,
       cursor: event.cursor,
       firstCursor: count > 1 ? first : undefined,
+      ...(event.replayed_from ? { replayedFrom: event.replayed_from } : {}),
       count,
     };
   });
@@ -165,7 +168,7 @@ export function filterLogRows(rows: readonly LogRow[], query: string, level: Log
   return rows.filter((row) => {
     if (level !== 'all' && row.level !== level) return false;
     return (
-      !needle || [row.message, row.source, row.timestamp, row.raw].some((text) => text?.toLowerCase().includes(needle))
+      !needle || [row.message, row.source, row.timestamp, row.raw, replayLabel(row.replayedFrom)].some((text) => text?.toLowerCase().includes(needle))
     );
   });
 }

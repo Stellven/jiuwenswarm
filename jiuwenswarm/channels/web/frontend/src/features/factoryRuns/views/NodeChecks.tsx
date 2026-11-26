@@ -83,7 +83,12 @@ function OutputCheck({
               <span>
                 <b>{check.name ?? 'check'}</b>
                 {check.stage && <small> · {check.stage}</small>}
-                {check.detail && <span className="factory-check-detail"> {check.detail}</span>}
+                {typeof check.detail === 'string' && <span className="factory-check-detail"> {check.detail}</span>}
+                {check.detail != null && typeof check.detail !== 'string' && (
+                  <span className="factory-check-detail">
+                    <code>{JSON.stringify(check.detail)}</code>
+                  </span>
+                )}
               </span>
             </li>
           ))}
@@ -93,6 +98,7 @@ function OutputCheck({
         <div className="factory-check-review" data-testid="factory-runs-review" data-verdict={latest.review.verdict ?? 'none'}>
           <p>
             <small>Reviewer</small> <b>{latest.review.verdict ?? 'no verdict'}</b>
+            <span> · {latest.review.advisory || output.review_mode === 'advisory' ? 'advisory' : 'blocking'}</span>
             {latest.review.summary && <span> · {latest.review.summary}</span>}
           </p>
           {row.findings.length > 0 && (
@@ -220,9 +226,9 @@ function OperatorActions({ node, operator }: { node: PlanNode; operator: NodeOpe
               data-testid="factory-runs-node-operator-confirm"
               disabled={busy || !reason.trim()}
             >
-              {busy ? 'Recording…' : `${opLabel[pending]} ${nodeId}`}
+              {busy ? 'Recording…' : `Confirm ${pending} of ${nodeId}`}
             </button>
-            <button type="button" className="factory-node-operator-button" onClick={() => setPending(undefined)} disabled={busy}>
+            <button type="button" className="factory-node-operator-button" onClick={() => setPending(undefined)} disabled={busy} data-testid="factory-runs-node-operator-cancel">
               Cancel
             </button>
           </div>
@@ -243,12 +249,14 @@ export function NodeChecks({
   files,
   onOpenFile,
   operator,
+  outputOnly = false,
 }: {
   view?: NodeCheckView;
   node: PlanNode;
   files?: readonly EvidenceFile[];
   onOpenFile?: (path: string) => void;
   operator?: NodeOperator;
+  outputOnly?: boolean;
 }) {
   const summary = summarizeNode(view, node);
   const attempts = attemptsOf(node);
@@ -259,8 +267,8 @@ export function NodeChecks({
       {operator && <OperatorActions node={node} operator={operator} />}
       {(view || summary.gate) && (
         <section className="factory-node-checks" data-testid="factory-runs-node-checks">
-          <h5>How this node is checked</h5>
-          {summary.gate && (
+          <h5>{outputOnly ? 'Output checks' : 'How this node is checked'}</h5>
+          {summary.gate && !outputOnly && (
             <p className="factory-check-gate" data-kind={summary.gate.kind} data-testid="factory-runs-check-gate">
               {summary.gate.text}
             </p>
@@ -276,7 +284,7 @@ export function NodeChecks({
               )}
             </p>
           )}
-          {view?.node_contract && (
+          {view?.node_contract && !outputOnly && (
             <p className="factory-check-how">
               <small>Node contract</small> <code>{view.node_contract}</code>
               {view.requirement_ids && view.requirement_ids.length > 0 && <span> · covers {view.requirement_ids.join(', ')}</span>}
@@ -289,7 +297,7 @@ export function NodeChecks({
               ))}
             </ul>
           )}
-          {superseded.length > 0 && (
+          {superseded.length > 0 && !outputOnly && (
             <p className="factory-check-meta" data-testid="factory-runs-superseded-attempts">
               {superseded.length} earlier attempt{superseded.length === 1 ? '' : 's'} superseded by an operator reopen:{' '}
               {superseded.map((attempt) => (

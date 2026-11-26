@@ -20,6 +20,7 @@ import type { KeyFile } from './storyModel.ts';
 import { MembershipEdge } from './MembershipEdge';
 import { checkBadge, nodeHold, primaryCapsule, type CheckBadge } from './checkModel';
 import { NodeChecks } from './NodeChecks';
+import { ReplayLabel } from './NodeEvidence';
 import { atlasTitle } from '../cc/atlasNames';
 import { layoutOntologyGroups, type GraphPlacement } from './ontologyLayout';
 import '@xyflow/react/dist/style.css';
@@ -368,6 +369,7 @@ function NodeDetails({
   const steps = (replay?.curated?.steps ?? []).filter((step) =>
     (step.graph_nodes ?? []).some((id) => id === node.id || id === node.planId),
   );
+  const evidenceNode = steps.find((step) => step.node_id)?.node_id ?? node.planId;
   const stepRecordIds = steps.flatMap((step) => (step.records ?? []).map((row) => row.id));
   const recordIds = [...linked, ...stepRecordIds];
   const files = (replay?.files ?? []).filter((file) =>
@@ -404,6 +406,13 @@ function NodeDetails({
             <p data-testid="factory-runs-graph-status">
               <small>{text.status}</small> {statusText(state, phase, text) || '—'}
             </p>
+            <ReplayLabel value={steps.flatMap((step) => step.replayed_from ? [step.replayed_from] : [])} />
+            {evidenceNode && replay?.onOpenNode && (
+              <button type="button" className="factory-node-evidence-button" data-testid="factory-runs-graph-open-node-evidence"
+                onClick={() => replay.onOpenNode?.(evidenceNode)}>
+                View node evidence
+              </button>
+            )}
             {steps.length > 0 && (
               <p data-testid="factory-runs-graph-steps">
                 <small>{text.steps}</small> {steps.map((step) => `${step.step}. ${step.presentation_title}`).join(' · ')}
