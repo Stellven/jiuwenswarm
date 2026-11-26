@@ -1,0 +1,46 @@
+{
+ "format": "factory.plan/1",
+ "planner": "hand-written rehearsal plan (muse-2bit-rehearsal-r1)",
+ "nodes": [
+  {
+   "node_id": "build_engine",
+   "node_contract": "build_engine",
+   "depends_on": [],
+   "title": "Build the stock engine (the owned checkout at the base commit) for GB10 with CUDA - llama-server, llama-quantize and llama-imatrix - and smoke it on the tiny Muse NVFP4 test pack."
+  },
+  {
+   "node_id": "requant_tiny",
+   "node_contract": "requant_tiny",
+   "depends_on": [
+    "build_engine"
+   ],
+   "title": "Write a precision recipe and requantize the tiny NVFP4 test pack to the mixed 2-bit format: routed gate and up experts to IQ2_XXS and down experts to Q2_K, everything else kept at its source type."
+  },
+  {
+   "node_id": "trace_profile",
+   "node_contract": "trace_profile",
+   "depends_on": [
+    "requant_tiny"
+   ],
+   "title": "Record which experts the tiny 2-bit pack routes to on the calibration prompts (routing trace) and rank them into a seeded expert cache profile."
+  },
+  {
+   "node_id": "accuracy_tiny",
+   "node_contract": "accuracy_tiny",
+   "depends_on": [
+    "requant_tiny",
+    "build_engine",
+    "trace_profile"
+   ],
+   "title": "Run the paired accuracy recipe on the tiny test packs - NVFP4 as the reference arm, 2-bit as the candidate - to the first planned checkpoint."
+  },
+  {
+   "node_id": "deliver_to_lab",
+   "node_contract": "deliver_to_lab",
+   "depends_on": [
+    "accuracy_tiny"
+   ],
+   "title": "Rehearsal end: held by the operator; the rehearsal does not send anything to the lab."
+  }
+ ]
+}

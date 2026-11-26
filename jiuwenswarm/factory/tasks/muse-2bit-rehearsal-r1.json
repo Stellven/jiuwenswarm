@@ -1,0 +1,93 @@
+{
+ "task_id": "muse-2bit-rehearsal-r1",
+ "objective": "Rehearsal on the tiny Muse test pack (random weights, test data): work every node of contract muse-2bit-rehearsal-r1 - build the stock engine and smoke it, requantize the tiny NVFP4 pack to the mixed 2-bit format, trace its routing into a seeded cache profile, and run the paired accuracy recipe to its first checkpoint. Before each node the scheduler agent finalizes its contract and binds its capsules; everything that executes runs through factory.capped_runner.",
+ "constraints": {
+  "owned_checkout_only": true,
+  "contract_immutable": true,
+  "local_commits_in_owned_checkout": true,
+  "local_commits": true,
+  "push_or_publish": false,
+  "model_runs": true,
+  "model_execution": "Run every build, conversion, requantization and model load with factory.capped_runner (recipes build, convert, quantize, serve, accuracy). Each model load runs under the 96 GiB memory cap after the machine gate; if the gate is closed the run waits, and if it stays closed it fails MACHINE_BUSY - report it, do not work around it. Name the node on every start.",
+  "build_jobs": "Builds use at most resources.build_jobs parallel jobs (the box is shared). Verifiers that compile take jobs of at most 4.",
+  "no_full_rehash": "Do not ask a verifier to hash a whole pack (pass hash: false): reading 500 GB takes the disk for an hour. The checkpoint shard digests come from the hub's download metadata (operator input checkpoint_digests); pack headers are checked live.",
+  "agent_tools": "Codex's own shell cannot start on this machine (its sandbox needs user namespaces the box does not allow). Read, edit and commit the owned checkout with factory.source_workbench (read, edit, write, localcommit); run everything else with capsule capabilities and factory.capped_runner. Do not retry the shell.",
+  "operator_records": "The operator imports a few inputs as records of kind operator_input (the checkpoint digests from the hub download metadata, the earlier lab measurements) and records a host_reading at each run start (free disk, available memory, the cgroup now and the memory cap policy). Capped runs end with host records of kind capped_run. Find them with factory.evidence.query kinds [\"operator_input\", \"host_reading\", \"capped_run\"] and cite their ids.",
+  "workspace_files": "Files you make (recipes, plans, profiles): give capsules an absolute path under resources.verifier_inputs.work_dir (FACTORY_HOME/agent-workspace/work, outside the checkout). Packs go under FACTORY_HOME/packs/<name>/: the convert and quantize recipes write there, so plan a recipe output as FACTORY_HOME/packs/<name>/<file>.gguf.",
+  "halt_policy": {
+   "failed_checks_in_a_row": 2,
+   "failed_runs_in_a_row": 2,
+   "step": false
+  }
+ },
+ "allowed_effects": [
+  "process.exec",
+  "workspace.read",
+  "workspace.write"
+ ],
+ "target": "spark-gb10",
+ "budget": {
+  "max_turns": 80,
+  "wall_clock_s": 21600
+ },
+ "contract_id": "muse-2bit-rehearsal-r1",
+ "initial_run_config": {
+  "env": {}
+ },
+ "component_cc": "weights.build_weight_pack_compiler",
+ "source": {
+  "subpath": "llama.cpp-muse",
+  "pre_integration_commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
+  "branch": "rehearsal"
+ },
+ "operator_labels": {
+  "run": "Rehearsal on test fixtures (tiny random-weight Muse pack); not a measurement of the model."
+ },
+ "resources": {
+  "source": {
+   "checkout": "agent-workspace/llama.cpp-muse",
+   "base_commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
+   "upstream": "https://github.com/ggml-org/llama.cpp"
+  },
+  "capsules": [
+   "weights.build_weight_pack_compiler",
+   "eval.paired_accuracy",
+   "analysis.expert_routing_profile",
+   "factory.engine_inspector",
+   "factory.source_workbench",
+   "factory.capped_runner",
+   "factory.lab_manager"
+  ],
+  "checkpoint_dir": "${FACTORY_MODELS}/muse-spark-open/NVFP4-st",
+  "converter_python": "${FACTORY_MUSE_SPIKES}/spike-muse-tiny/.venv/bin/python",
+  "pack_stem": "Muse-Spark-Open-816B-A42B",
+  "read_roots": [
+   "${FACTORY_MODELS}/muse-spark-open/NVFP4-st",
+   "${FACTORY_MODELS}/muse-spark-open/imatrix",
+   "${FACTORY_MUSE_DEMO}/acc/data",
+   "${FACTORY_REPO}/ops/spark/prompts",
+   "${FACTORY_MUSE_CAPS}/tiny"
+  ],
+  "build_jobs": 8,
+  "memory_cap": "96G",
+  "need_available_gib": 20,
+  "gate_wait_s": 28800,
+  "verifier_inputs": {
+   "note": "Rehearsal: the tiny test pack and its imatrix (made by the operator with llama-imatrix on the tiny pack) stand in for the real packs; checkpoint_index and imatrix are the real ones and are not used here.",
+   "reader_python": "${FACTORY_MUSE_SPIKES}/spike-muse-tiny/.venv/bin/python",
+   "reader_tiny_checkpoint": "${FACTORY_MUSE_CAPS}/tiny/ckpt/nvfp4",
+   "wiring_tiny_dir": "${FACTORY_MUSE_CAPS}/tiny",
+   "wiring_work_dir": "${FACTORY_HOME}/work/wiring",
+   "checkpoint_index": "${FACTORY_MODELS}/muse-spark-open/NVFP4-st/model.safetensors.index.json",
+   "imatrix": "${FACTORY_MODELS}/muse-spark-open/imatrix/imatrix-ggml-org.gguf",
+   "disk_grant_bytes": 400000000000,
+   "mmlu_test": "${FACTORY_MUSE_DEMO}/acc/data/data/test",
+   "prompts_dir": "${FACTORY_REPO}/ops/spark/prompts/muse",
+   "work_dir": "${FACTORY_HOME}/agent-workspace/work",
+   "packs_dir": "${FACTORY_HOME}/packs",
+   "tiny_nvfp4_pack": "${FACTORY_MUSE_CAPS}/tiny/tiny-nvfp4-f32.gguf",
+   "tiny_imatrix": "${FACTORY_MUSE_CAPS}/tiny/imatrix-tiny.gguf"
+  }
+ },
+ "plan": "muse-2bit-rehearsal-r1.plan.json"
+}

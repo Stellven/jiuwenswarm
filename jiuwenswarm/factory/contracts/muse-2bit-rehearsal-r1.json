@@ -1,0 +1,765 @@
+{
+ "schema": "factory.contract/2",
+ "contract_id": "muse-2bit-rehearsal-r1",
+ "version": 1,
+ "title": "Rehearsal of the Muse v4 graph on the tiny Muse test pack (random weights)",
+ "purpose": "Starting from stock llama.cpp and the official Muse Spark Open NVFP4 checkpoint, how much do time to first token, decode rate and total request time change when the routed experts are requantized to a mixed 2-bit format (IQ2_XXS for the gate and up projections, Q2_K for down), again when the profile-seeded expert cache is added, and again when the prefill batch is sized so each prompt streams the experts once?",
+ "scope": {
+  "covers": [
+   "client time to first token, decode tokens per second and total request time at 512 and 2048 rendered prompt tokens, cold and warm",
+   "the NVFP4 GGUF pack built from the official checkpoint, and a mixed 2-bit requantization of it (IQ2_XXS for the gate and up projections, Q2_K for down)",
+   "greedy output parity with the cache gate unset, and the activation marker with it set",
+   "the server prefill batch size chosen by the prefill batch sizing capsule",
+   "paired MMLU accuracy of the 2-bit pack against the NVFP4 pack: non-inferiority within 5 points"
+  ],
+  "excludes": [
+   "accuracy beyond the paired MMLU zero-shot gate (generation quality, reasoning, long contexts)",
+   "image, audio and video inputs",
+   "throughput under concurrent requests",
+   "hardware other than one DGX Spark"
+  ]
+ },
+ "target": {
+  "profile": "spark-gb10",
+  "requires": {
+   "machine": "DGX Spark GB10",
+   "cuda": "13",
+   "sm": "121",
+   "arch": "arm64",
+   "memory_gb": 128
+  }
+ },
+ "subject": {
+  "engine": {
+   "name": "llama.cpp",
+   "source": "https://github.com/ggml-org/llama.cpp",
+   "revision": "9048bad8d6e3a0f9f1726e238e451181c7e02613"
+  },
+  "model": {
+   "name": "Muse Spark Open 816B-A42B, official NVFP4 checkpoint (unsloth/Muse-Spark-Open-816B-A42B-NVFP4)",
+   "files": [
+    {
+     "name": "model.safetensors.index.json",
+     "size": 230613,
+     "sha256": null
+    }
+   ],
+   "digest_status": "Shard digests are pinned by node pin_inputs; the GGUF packs are named by the manifests their nodes publish."
+  }
+ },
+ "inputs": {
+  "prompt_512": {
+   "media_type": "text/plain",
+   "sha256": "980524e65ec3e2de160ada7210bbcb8b4af6cf2218a8eb4f09c2f4876012c575",
+   "size": 1983,
+   "description": "Fixed text that renders to 512 tokens with the Muse no-thinking chat template.",
+   "repo_path": "ops/spark/prompts/muse/512.txt"
+  },
+  "prompt_2048": {
+   "media_type": "text/plain",
+   "sha256": "cdd5010713af776ea7711a30a490479b33781335a1c63672aa8547a096b2833d",
+   "size": 10234,
+   "description": "Fixed text that renders to 2048 tokens with the Muse no-thinking chat template.",
+   "repo_path": "ops/spark/prompts/muse/2048.txt"
+  },
+  "mmlu_test": {
+   "media_type": "application/x-tar",
+   "sha256": "bec563ba4bac1d6aaf04141cd7d1605d7a5ca833e38f994051e818489592989b",
+   "size": 166184960,
+   "description": "MMLU (Hendrycks et al.) data.tar from https://people.eecs.berkeley.edu/~hendrycks/data.tar; the test split, 57 subjects, 14,042 questions."
+  },
+  "calibration_prompts": {
+   "media_type": "application/jsonl",
+   "sha256": "713de85b047440f346faaeb3212e61622202308710ec7e79f08be2daa74d389a",
+   "size": 1667,
+   "description": "Calibration requests for the routing profile; disjoint from the lab prompts.",
+   "repo_path": "ops/spark/prompts/muse/calibration.jsonl"
+  }
+ },
+ "workload": {
+  "tool": "llama-server",
+  "argv": [
+   "-m",
+   "{model}",
+   "-lm",
+   "mmap",
+   "-c",
+   "4096",
+   "-np",
+   "1",
+   "--moe-cache-mib",
+   "61440"
+  ],
+  "env": {},
+  "requests": [
+   {
+    "id": "p512",
+    "input": "prompt_512",
+    "params": {
+     "n_predict": 128,
+     "temperature": 0,
+     "seed": 1,
+     "cache_prompt": false,
+     "chat_template_kwargs": {
+      "reasoning_effort": "low",
+      "current_date": "2026-11-30"
+     }
+    },
+    "expect": {
+     "rendered_prompt_tokens": 512
+    }
+   },
+   {
+    "id": "p2048",
+    "input": "prompt_2048",
+    "params": {
+     "n_predict": 128,
+     "temperature": 0,
+     "seed": 1,
+     "cache_prompt": false,
+     "chat_template_kwargs": {
+      "reasoning_effort": "low",
+      "current_date": "2026-11-30"
+     }
+    },
+    "expect": {
+     "rendered_prompt_tokens": 2048
+    }
+   }
+  ]
+ },
+ "arms": [
+  {
+   "id": "A",
+   "role": "baseline",
+   "summary": "Base engine E0 (stock plus expert scale wiring) on the NVFP4 pack.",
+   "deviations": [
+    "Expert scale wiring, needed for stock to run the official NVFP4 weights correctly",
+    "--moe-cache-mib 61440 on every arm"
+   ]
+  },
+  {
+   "id": "B",
+   "role": "candidate",
+   "from": "A",
+   "summary": "E0 on the mixed 2-bit pack: the quantization change alone.",
+   "deviations": [
+    "Routed experts IQ2_XXS for the gate and up projections, Q2_K for down, instead of NVFP4"
+   ]
+  },
+  {
+   "id": "C",
+   "role": "combined",
+   "from": "A",
+   "summary": "E1 (E0 plus the seeded expert cache) on the 2-bit pack with the Muse routing profile.",
+   "deviations": [
+    "Routed experts IQ2_XXS for the gate and up projections, Q2_K for down, instead of NVFP4",
+    "LLAMA_EXPERT_CACHE_NATIVE_PROFILE=1 with the recorded profile"
+   ]
+  },
+  {
+   "id": "D",
+   "role": "combined",
+   "from": "C",
+   "summary": "Arm C plus the planned prefill batch (-b/-ub from the batch plan), so a 2048-token prompt is prefilled in one micro-batch.",
+   "deviations": [
+    "Routed experts IQ2_XXS for the gate and up projections, Q2_K for down, instead of NVFP4",
+    "LLAMA_EXPERT_CACHE_NATIVE_PROFILE=1 with the recorded profile",
+    "Server batch and micro-batch from the size_prefill_batch plan"
+   ]
+  }
+ ],
+ "measurement": {
+  "primary": "client_ttft_ms",
+  "metrics": {
+   "client_ttft_ms": {
+    "unit": "ms",
+    "better": "lower",
+    "how": "Client clock from sending the request to the first streamed token."
+   },
+   "decode_tokens_per_second": {
+    "unit": "tokens/s",
+    "better": "higher",
+    "how": "Generated tokens after the first, over the time they took, from the server's timings."
+   },
+   "request_total_ms": {
+    "unit": "ms",
+    "better": "lower",
+    "how": "Client clock from sending the request to the last streamed token (128 generated tokens)."
+   },
+   "prompt_tokens_per_second": {
+    "unit": "tokens/s",
+    "better": "higher",
+    "how": "Prompt tokens over prompt processing time, from the server's timings."
+   },
+   "sampled_peak_memory_bytes": {
+    "unit": "bytes",
+    "better": "lower",
+    "how": "Highest sampled resident memory of the engine process group under the cap."
+   },
+   "load_seconds": {
+    "unit": "s",
+    "better": "lower",
+    "how": "From engine start to the health endpoint answering ready."
+   }
+  },
+  "derived": {
+   "ttft_change_vs_A": {
+    "formula": "(TTFT_X - TTFT_A) / TTFT_A",
+    "uses": [
+     "client_ttft_ms",
+     "A"
+    ],
+    "unit": "ratio"
+   },
+   "decode_change_vs_A": {
+    "formula": "(DECODE_X - DECODE_A) / DECODE_A",
+    "uses": [
+     "decode_tokens_per_second",
+     "A"
+    ],
+    "unit": "ratio"
+   },
+   "total_change_vs_A": {
+    "formula": "(TOTAL_X - TOTAL_A) / TOTAL_A",
+    "uses": [
+     "request_total_ms",
+     "A"
+    ],
+    "unit": "ratio"
+   }
+  },
+  "protocol": {
+   "repeats": 2,
+   "order": "sequential",
+   "discard_first_request": false,
+   "cold_load": "separate",
+   "quiet": {
+    "max_load": 1.0,
+    "no_builds": true
+   },
+   "notes": "One server load per arm (A, B, C, D in that order). Per prompt size: one cold request (pack pages evicted with posix_fadvise DONTNEED before it, reported separately) then two warm repeats. The NVFP4 arm runs from the SSD at well under one token per second, so the protocol is sized to fit one night; differences smaller than the warm-repeat spread are reported as no change."
+  }
+ },
+ "correctness": {
+  "equivalence": "approximate",
+  "reference": {
+   "arm": "A",
+   "output_sha256": null,
+   "frozen_at": null,
+   "run_ref": null
+  },
+  "checks": [
+   {
+    "id": "server_token_count",
+    "does": "The server's prompt token count equals the request's rendered prompt token count.",
+    "applies_to": [
+     "baseline",
+     "candidate",
+     "combined"
+    ]
+   },
+   {
+    "id": "gate_unset_parity",
+    "does": "On E1 with the cache gate unset, greedy output of each request equals arm B byte for byte.",
+    "applies_to": [
+     "C"
+    ]
+   },
+   {
+    "id": "gate_set_activation",
+    "does": "With the cache gate set, the engine prints expert_weight_cache: active.",
+    "applies_to": [
+     "C"
+    ]
+   },
+   {
+    "id": "scale_free_parity",
+    "does": "E0 on a pack without expert .scale tensors gives the same greedy output as stock.",
+    "applies_to": [
+     "A"
+    ]
+   },
+   {
+    "id": "nvfp4_numerics",
+    "does": "An expert matmul and a layer slice of the NVFP4 pack match a torch dequantization of the checkpoint within tolerance.",
+    "applies_to": [
+     "A"
+    ]
+   },
+   {
+    "id": "nvfp4_pack_census",
+    "does": "Every routed expert weight of the NVFP4 pack is NVFP4 with its .scale tensor.",
+    "applies_to": [
+     "A"
+    ]
+   },
+   {
+    "id": "pack_2bit_census",
+    "does": "Every routed gate and up expert weight of the 2-bit pack is IQ2_XXS and every down expert weight Q2_K; other tensors keep their NVFP4-pack type.",
+    "applies_to": [
+     "B",
+     "C"
+    ]
+   },
+   {
+    "id": "prefill_batch_applied",
+    "does": "The arm D server prints the planned n_batch and n_ubatch, its device buffers fit the plan budget, and its greedy outputs agree with arm C (byte-identical or a common prefix of at least 64 characters, since a different micro-batch split changes the float summation order).",
+    "applies_to": [
+     "D"
+    ]
+   },
+   {
+    "id": "accuracy_2bit",
+    "does": "Paired MMLU zero-shot accuracy of the 2-bit pack against the NVFP4 pack on E0: at the first decisive planned checkpoint the upper bound of the loss is below 5 points (eval.paired_accuracy).",
+    "applies_to": [
+     "B"
+    ]
+   },
+   {
+    "id": "cold_smoke",
+    "does": "One cold request under the memory cap returns coherent text.",
+    "applies_to": [
+     "baseline",
+     "candidate",
+     "combined"
+    ]
+   }
+  ]
+ },
+ "acceptance": {
+  "rules": [
+   "A timed cell counts only when the machine is quiet: load below 1.0 and no builds running.",
+   "B and C differ from A in their weights, so their outputs are not expected to match A; correctness for B, C and D is the pack census, coherent text, for B the paired MMLU accuracy gate against A, for C parity with B when the gate is unset, and for D agreement with C.",
+   "Speed is reported as change against A, per prompt size, cold and warm separately.",
+   "Failures and no-gain results are reported, not dropped."
+  ]
+ },
+ "limits": {
+  "memory_bytes": 103079215104,
+  "cpus": 16,
+  "start_available_bytes": 107374182400,
+  "watchdog_available_bytes": 8589934592
+ },
+ "execution": {
+  "by": "factory_lab",
+  "lab_profile": "spark-gb10",
+  "notes": "Every model load runs under a 96 GiB cgroup cap with no swap, one heavy job at a time."
+ },
+ "revisions": [],
+ "provenance": {
+  "notes": [
+   "Task graph written by hand as the demo starting point (no intake).",
+   "The seeded expert cache is the earlier change measured on DeepSeek V4.1 Flash (engine.build_expert_weight_cache).",
+   "Revision 2 adds arm D and node size_prefill_batch after a probe on the Spark: arm B with -b 2048 -ub 2048 cut cold 2047-token TTFT from 311 s to 120 s with decode unchanged.",
+   "Revision 3 adds node measure_accuracy: the 2-bit pack must lose less than 5 MMLU points against the NVFP4 pack (paired, planned checkpoints, eval.paired_accuracy) before the lab.",
+   "Revision 4 (v3 file) makes every node contract preliminary: the scheduler agent finalizes each node just before it runs, binding capsules and filling slots from accepted upstream outputs, earlier failures and the machine state. A final contract may be more concrete or stricter than its preliminary one, never weaker.",
+   "Revision 5: the scheduler agent reported a spec gap on pin_inputs (2026-11-25): the free disk criterion asked for 1.4 TB, the room both packs need, while a run that reuses the packs writes almost nothing. The planner states it as free disk covering what the run writes plus 100 GB.",
+   "Revision 6 (v4 file, owner decision 2026-11-25): a 2-bit pack not made before, routed experts IQ2_XXS for the gate and up projections, Q2_K for down, other tensors at their NVFP4-pack type (about 267 GB against 305 GB for the Q2_K pack of Nov 24), target iq2_xxs,down=q2_k for weights.build_weight_pack_compiler; and every node runs in this run (capped runs through factory.capped_runner), reusing nothing built by hand.",
+   "Rehearsal r1 (2026-11-25): the capped runs, the mixed 2-bit requantization, the routing trace and the paired accuracy recipe on the tiny Muse test pack, through the scheduler agent, capsule verifiers, reviews, the halt policy and step checkpoints. Test data, not a measurement of the model."
+  ]
+ },
+ "extensions": {
+  "factory.node-contracts": {
+   "format": "factory.node-contracts/1",
+   "nodes": [
+    {
+     "node_id": "build_engine",
+     "kind": "build",
+     "objective": "Build the stock engine (the owned checkout at the base commit) for GB10 with CUDA - llama-server, llama-quantize and llama-imatrix - and smoke it on the tiny Muse NVFP4 test pack.",
+     "requirement_ids": [
+      "A",
+      "cold_smoke"
+     ],
+     "predecessors": [],
+     "inputs": [
+      {
+       "name": "source",
+       "from": "task:source"
+      }
+     ],
+     "outputs": [
+      {
+       "name": "build",
+       "kind": "evidence",
+       "criteria": [
+        "A capped_run build record of the base commit 9048bad8 with CUDA architecture 121 and the three binaries with their sha256."
+       ]
+      },
+      {
+       "name": "smoke",
+       "kind": "evidence",
+       "criteria": [
+        "One capped serve run of the tiny NVFP4 test pack answers two prompts with generated tokens and keeps its -lv 4 load log; the pack has random weights, so the text is not expected to be coherent.",
+        "The run record names the memory cap, the peak cgroup memory and the lowest available memory."
+       ]
+      }
+     ],
+     "evidence_obligations": [
+      "captured_input_and_output",
+      "invocation_observation"
+     ],
+     "node_limits": {
+      "turns": 15,
+      "build_attempts": 2,
+      "gpu_launches": 2
+     },
+     "authority_ceiling": {
+      "effects": [
+       "process.exec",
+       "workspace.read",
+       "workspace.write"
+      ],
+      "workspace": "read"
+     },
+     "work": {
+      "helpful_ccs": [
+       "factory.capped_runner"
+      ],
+      "eligible_ccs": [
+       "factory.capped_runner",
+       "factory.engine_inspector"
+      ]
+     },
+     "verifiers": [
+      {
+       "output": "build",
+       "review": true
+      },
+      {
+       "output": "smoke",
+       "review": true
+      }
+     ],
+     "hands_to": "requant_tiny",
+     "stage": "preliminary",
+     "slots": [
+      {
+       "id": "bind",
+       "at": "work.bound_ccs",
+       "kind": "ccs",
+       "from": "The capsule catalog, what the upstream nodes were built with and what failed before for this node."
+      }
+     ]
+    },
+    {
+     "node_id": "requant_tiny",
+     "kind": "build",
+     "objective": "Write a precision recipe and requantize the tiny NVFP4 test pack to the mixed 2-bit format: routed gate and up experts to IQ2_XXS and down experts to Q2_K, everything else kept at its source type.",
+     "requirement_ids": [
+      "B",
+      "pack_2bit_census"
+     ],
+     "predecessors": [
+      "build_engine"
+     ],
+     "inputs": [
+      {
+       "name": "build",
+       "from": "build_engine.build"
+      }
+     ],
+     "outputs": [
+      {
+       "name": "recipe",
+       "kind": "evidence",
+       "criteria": [
+        "Names the source pack digest, the target type per tensor role and the imatrix digest; every chosen type has a GB10 kernel.",
+        "Times one layer with the recipe's probe before the full run and records the projected full time."
+       ]
+      },
+      {
+       "name": "pack_2bit",
+       "kind": "evidence",
+       "criteria": [
+        "Every routed gate and up expert weight is IQ2_XXS and every down expert weight Q2_K; every other tensor keeps its source type; .scale tensors carried unchanged.",
+        "Two prompts on the 2-bit pack give tokens; top-1 token agreement with the NVFP4 test pack is reported, not claimed (random weights)."
+       ]
+      }
+     ],
+     "evidence_obligations": [
+      "captured_input_and_output",
+      "invocation_observation"
+     ],
+     "node_limits": {
+      "turns": 25,
+      "gpu_launches": 4
+     },
+     "authority_ceiling": {
+      "effects": [
+       "process.exec",
+       "workspace.read",
+       "workspace.write"
+      ],
+      "workspace": "read"
+     },
+     "work": {
+      "helpful_ccs": [
+       "weights.build_weight_pack_compiler",
+       "factory.capped_runner"
+      ],
+      "eligible_ccs": [
+       "weights.build_weight_pack_compiler",
+       "factory.capped_runner",
+       "factory.engine_inspector"
+      ]
+     },
+     "verifiers": [
+      {
+       "output": "recipe",
+       "verifier": "weights.build_weight_pack_compiler.verify_recipe",
+       "stage": "fixture",
+       "review": true,
+       "inputs": {
+        "target": "iq2_xxs,down=q2_k"
+       }
+      },
+      {
+       "output": "pack_2bit",
+       "verifier": "weights.build_weight_pack_compiler.verify_pack",
+       "stage": "native CC execution",
+       "review": true,
+       "inputs": {
+        "target": "iq2_xxs,down=q2_k",
+        "expect_bytes_range": [
+         100000000,
+         1000000000
+        ]
+       }
+      }
+     ],
+     "hands_to": "trace_profile",
+     "stage": "preliminary",
+     "slots": [
+      {
+       "id": "bind",
+       "at": "work.bound_ccs",
+       "kind": "ccs",
+       "from": "The capsule catalog, what the upstream nodes were built with and what failed before for this node."
+      }
+     ]
+    },
+    {
+     "node_id": "trace_profile",
+     "kind": "measure",
+     "objective": "Record which experts the tiny 2-bit pack routes to on the calibration prompts (routing trace) and rank them into a seeded expert cache profile.",
+     "requirement_ids": [
+      "C"
+     ],
+     "predecessors": [
+      "requant_tiny"
+     ],
+     "inputs": [
+      {
+       "name": "pack_2bit",
+       "from": "requant_tiny.pack_2bit"
+      },
+      {
+       "name": "calibration",
+       "from": "contract:calibration_prompts"
+      }
+     ],
+     "outputs": [
+      {
+       "name": "profile",
+       "kind": "evidence",
+       "criteria": [
+        "Per layer and expert hit counts for prompt and decode phases, from the routing trace, with the prompt set digest.",
+        "A seeded cache profile (spark-expert-residency-nominations/1) written from that trace."
+       ]
+      }
+     ],
+     "evidence_obligations": [
+      "captured_input_and_output",
+      "invocation_observation"
+     ],
+     "node_limits": {
+      "turns": 15,
+      "gpu_launches": 2
+     },
+     "authority_ceiling": {
+      "effects": [
+       "process.exec",
+       "workspace.read",
+       "workspace.write"
+      ],
+      "workspace": "read"
+     },
+     "work": {
+      "helpful_ccs": [
+       "analysis.expert_routing_profile",
+       "factory.capped_runner"
+      ],
+      "eligible_ccs": [
+       "analysis.expert_routing_profile",
+       "factory.capped_runner",
+       "factory.engine_inspector"
+      ]
+     },
+     "verifiers": [
+      {
+       "output": "profile",
+       "review": true
+      }
+     ],
+     "hands_to": "accuracy_tiny",
+     "stage": "preliminary",
+     "slots": [
+      {
+       "id": "bind",
+       "at": "work.bound_ccs",
+       "kind": "ccs",
+       "from": "The capsule catalog, what the upstream nodes were built with and what failed before for this node."
+      }
+     ]
+    },
+    {
+     "node_id": "accuracy_tiny",
+     "kind": "measure",
+     "objective": "Run the paired accuracy recipe on the tiny test packs - NVFP4 as the reference arm, 2-bit as the candidate - to the first planned checkpoint.",
+     "requirement_ids": [
+      "B"
+     ],
+     "predecessors": [
+      "requant_tiny",
+      "build_engine",
+      "trace_profile"
+     ],
+     "inputs": [
+      {
+       "name": "pack_2bit",
+       "from": "requant_tiny.pack_2bit"
+      }
+     ],
+     "outputs": [
+      {
+       "name": "accuracy",
+       "kind": "evidence",
+       "criteria": [
+        "A muse-paired-accuracy/1 state with both arms scored on the same first 50 questions of the seeded order on real capped server loads; eval.paired_accuracy.verify is run on it and its result reported. No accuracy decision is claimed: the weights are random."
+       ]
+      }
+     ],
+     "evidence_obligations": [
+      "captured_input_and_output",
+      "invocation_observation"
+     ],
+     "node_limits": {
+      "turns": 15,
+      "gpu_launches": 2
+     },
+     "authority_ceiling": {
+      "effects": [
+       "process.exec",
+       "workspace.read",
+       "workspace.write"
+      ],
+      "workspace": "read"
+     },
+     "work": {
+      "helpful_ccs": [
+       "eval.paired_accuracy",
+       "factory.capped_runner"
+      ],
+      "eligible_ccs": [
+       "eval.paired_accuracy",
+       "factory.capped_runner",
+       "factory.engine_inspector"
+      ]
+     },
+     "verifiers": [
+      {
+       "output": "accuracy",
+       "review": true
+      }
+     ],
+     "hands_to": "deliver_to_lab",
+     "stage": "preliminary",
+     "slots": [
+      {
+       "id": "bind",
+       "at": "work.bound_ccs",
+       "kind": "ccs",
+       "from": "The capsule catalog, what the upstream nodes were built with and what failed before for this node."
+      }
+     ]
+    },
+    {
+     "node_id": "deliver_to_lab",
+     "kind": "deliver",
+     "objective": "Rehearsal end: held by the operator; the rehearsal does not send anything to the lab.",
+     "requirement_ids": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "server_token_count",
+      "gate_unset_parity",
+      "gate_set_activation",
+      "prefill_batch_applied",
+      "client_ttft_ms",
+      "decode_tokens_per_second",
+      "request_total_ms",
+      "prompt_tokens_per_second",
+      "sampled_peak_memory_bytes",
+      "load_seconds"
+     ],
+     "predecessors": [
+      "accuracy_tiny"
+     ],
+     "inputs": [
+      {
+       "name": "accuracy",
+       "from": "accuracy_tiny.accuracy"
+      }
+     ],
+     "outputs": [
+      {
+       "name": "lab_request",
+       "kind": "lab_request",
+       "criteria": [
+        "The lab task fills arms A, B, C and D with shipped subjects and runs every check and metric, cold and warm, at 512 and 2048 tokens."
+       ]
+      }
+     ],
+     "evidence_obligations": [
+      "captured_input_and_output",
+      "invocation_observation"
+     ],
+     "node_limits": {
+      "turns": 10
+     },
+     "authority_ceiling": {
+      "effects": [
+       "process.exec"
+      ],
+      "workspace": "none"
+     },
+     "work": {
+      "helpful_ccs": [
+       "factory.lab_manager"
+      ],
+      "eligible_ccs": [
+       "factory.lab_manager"
+      ]
+     },
+     "verifiers": [
+      {
+       "output": "lab_request"
+      }
+     ],
+     "hands_to": "lab_manager",
+     "stage": "preliminary",
+     "slots": [
+      {
+       "id": "bind",
+       "at": "work.bound_ccs",
+       "kind": "ccs",
+       "from": "The capsule catalog, what the upstream nodes were built with and what failed before for this node."
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

@@ -47,7 +47,7 @@ GATE_WAIT_S = 6 * 3600
 NAME = re.compile(r'^[a-z0-9][a-z0-9-]{0,40}$')
 SHA = re.compile(r'^[0-9a-f]{7,40}$')
 ENV_KEY = re.compile(r'^(LLAMA|GGML)_[A-Z0-9_]{1,64}$')
-TARGETS = {'llama-server', 'llama-quantize', 'llama-cli', 'llama-completion', 'llama-gguf-split', 'llama-bench'}
+TARGETS = {'llama-server', 'llama-quantize', 'llama-imatrix', 'llama-cli', 'llama-completion', 'llama-gguf-split', 'llama-bench'}
 # llama-server flags an agent may set (value count); always added: -m, --host, --port, -lv 4
 SERVER_FLAGS = {'-c': 1, '-b': 1, '-ub': 1, '-np': 1, '-kvu': 0, '--cpu-moe': 0, '--n-cpu-moe': 1, '-ngl': 1,
                 '--moe-cache-mib': 1, '--moe-cache-cpu-share': 1, '-lm': 1, '-fa': 1, '-t': 1, '-tb': 1,
@@ -156,14 +156,20 @@ def _env(values):
 def _prompts(store, task, values):
     out = []
     for item in values or []:
-        if not isinstance(item, dict) or not isinstance(item.get('id'), str) or ('text' in item) == ('path' in item):
-            raise ValueError('each prompt is {id, text} or {id, path}, optionally template muse_chat or raw')
-        text = item['text'] if 'text' in item else _readable(store, task, item['path'], 'prompt').read_text(encoding='utf-8')
+        if not isinstance(item, dict) or not isinstance(item.get('id'), str) or sum(k in item for k in ('text', 'path', 'jsonl')) != 1:
+            raise ValueError('each prompt is {id, text}, {id, path} or {id, jsonl} (a file of {"id", "prompt"} lines), '
+                             'optionally template muse_chat or raw and n_predict')
         template = item.get('template', 'raw')
         if template not in {'raw', 'muse_chat'}:
             raise ValueError('template is raw or muse_chat')
-        out.append(dict(id=item['id'], prompt=MUSE_CHAT.format(text) if template == 'muse_chat' else text,
-                        n_predict=int(item.get('n_predict', 64))))
+        if 'jsonl' in item:
+            lines = [json.loads(l) for l in _readable(store, task, item['jsonl'], 'prompt file').read_text(encoding='utf-8').splitlines() if l.strip()]
+            texts = [(f"{item['id']}/{l['id']}", l['prompt']) for l in lines[:int(item.get('limit', 64))]]
+        else:
+            texts = [(item['id'], item['text'] if 'text' in item else _readable(store, task, item['path'], 'prompt').read_text(encoding='utf-8'))]
+        for key, text in texts:
+            out.append(dict(id=key, prompt=MUSE_CHAT.format(text) if template == 'muse_chat' else text,
+                            n_predict=int(item.get('n_predict', 64))))
     if len(out) > 64 or any(not 0 <= p['n_predict'] <= 1024 for p in out):
         raise ValueError('at most 64 prompts, n_predict 0..1024')
     return out
@@ -487,7 +493,7 @@ def recipe_build(run):
     flags = ['-DCMAKE_BUILD_TYPE=Release', '-DLLAMA_CURL=OFF', '-DLLAMA_BUILD_TESTS=OFF']
     if r['cuda']:
         flags += ['-DGGML_CUDA=ON', '-DCMAKE_CUDA_ARCHITECTURES=121-real']
-    env = dict(CCACHE_BASEDIR=str(run.store.home / 'builds'), CCACHE_NOHASHDIR='1',
+    env = dict(CCACHE_BASEDIR=str(base), CCACHE_NOHASHDIR='1',  # src/ and build/ relative: hits across builds
                PATH='/usr/local/cuda/bin:' + os.environ.get('PATH', ''))
     rc, t1 = run.run(['cmake', '-S', str(src), '-B', str(build), *flags], 'configure.log', env, capped=False)
     if rc:

@@ -332,8 +332,8 @@ def test_plan_and_verify_recipe_with_a_mixed_target(world, tmp_path):
     assert recipe["target"] == MIXED and recipe["argv"][-1] == "IQ2_XXS"
     assert recipe["roles"]["routed_expert_by_projection"] == {"gate": "iq2_xxs", "up": "iq2_xxs", "down": "q2_k"}
     pins = [recipe["argv"][i + 1] for i, a in enumerate(recipe["argv"]) if a == "--tensor-type"]
-    assert "^blk\.(0|1|2)\.ffn_down_exps\.weight$=q2_k" in pins
-    assert "^blk\.(0|1|2)\.ffn_gate_exps\.weight$=iq2_xxs" in pins
+    assert r"^blk\.(0|1|2)\.ffn_down_exps\.weight$=q2_k" in pins
+    assert r"^blk\.(0|1|2)\.ffn_gate_exps\.weight$=iq2_xxs" in pins
     routed = sum(t["target_bytes"] for t in recipe["tensors"] if t["role"] == "routed_expert")
     assert routed == 3 * (256 * 256 * 4 // 256 * 84) + 6 * (256 * 256 * 4 // 256 * 66)
     checks = call("verify_recipe", recipe=str(recipe_path), target=MIXED, pack_manifest=str(world["src"][0]))

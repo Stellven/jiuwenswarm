@@ -27,7 +27,7 @@ Do not try to work around a closed gate: report it.
 
 - `build`: `{name, commit?, targets?, cuda?}`. Snapshots the owned checkout at `commit` (default HEAD) with git
   archive into builds/<name>/src and builds it: Release, CUDA arch 121-real, LLAMA_CURL off, at most the task's
-  `build_jobs` jobs. Targets from llama-server, llama-quantize, llama-cli, llama-completion, llama-gguf-split,
+  `build_jobs` jobs. Targets from llama-server, llama-quantize, llama-imatrix, llama-cli, llama-completion, llama-gguf-split,
   llama-bench (default server and quantize). A name is one commit; use a new name for a new commit. The result
   lists the binaries with sha256, the cmake flags and the files changed against the base commit (the build receipt).
 - `convert`: `{name, commit?, outtype?, split_max_size?}`. Runs `convert_hf_to_gguf.py` of the owned checkout at
@@ -40,7 +40,7 @@ Do not try to work around a closed gate: report it.
   project the full time from it before you start the full run.
 - `serve`: `{build, model, prompts?, server_args?, env?, trace?, n_probs?, repeat?, label?}`. Starts llama-server
   on `model` (a pack's first shard) with `-lv 4`, waits for health, sends each prompt greedily (temperature 0,
-  seed 1, no prompt cache), stops the server. Prompts are `{id, text}` or `{id, path}` with `template` raw (default)
+  seed 1, no prompt cache), stops the server. Prompts are `{id, text}`, `{id, path}` or `{id, jsonl}` (a file of `{"id", "prompt"}` lines, e.g. the calibration set; `limit` caps how many) with `template` raw (default)
   or muse_chat and `n_predict` (default 64). `server_args` from: -c -b -ub -np -kvu --cpu-moe --n-cpu-moe -ngl
   --moe-cache-mib --moe-cache-cpu-share -lm -fa -t -tb --no-warmup -ctk -ctv --seed. `env` takes LLAMA_* and
   GGML_* names (for example an engine switch). `trace: true` sets LLAMA_MOE_CACHE_TRACE to the run's trace.mct (the

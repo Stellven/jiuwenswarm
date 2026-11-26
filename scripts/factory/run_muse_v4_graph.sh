@@ -6,6 +6,7 @@
 #   STEP=1 scripts/factory/run_muse_v4_graph.sh run       # stop at a step checkpoint before every node
 #   scripts/factory/run_muse_v4_graph.sh release NODE     # lift a step checkpoint (then run again)
 #   scripts/factory/run_muse_v4_graph.sh status
+#   TASK=muse-2bit-rehearsal-r1 FACTORY_HOME=~/muse-demo/rehearsal-r1 SESSION=reh ...   # the rehearsal
 #
 # The working agent and the scheduler agent are JiuwenSwarm agents with Codex (gpt-6.2-sol) as the model.
 # Everything that executes runs through factory.capped_runner as jobq jobs (cap + machine gate). The controller
@@ -13,6 +14,7 @@
 set -euo pipefail
 REPO=${REPO:-$(cd "$(dirname "$0")/../.." && pwd)}
 PY=${PY:-$HOME/predemo-spark/jiuwenswarm/.venv/bin/python}
+TASK=${TASK:-muse-2bit-ttft-v4}
 export FACTORY_HOME=${FACTORY_HOME:-$HOME/muse-demo/graph-v4}
 export FACTORY_REPO=$REPO
 export PYTHONPATH=$REPO
@@ -31,7 +33,6 @@ export FACTORY_REVIEW_MODEL=${MODEL:-gpt-6.2-sol}
 export FACTORY_MACHINE_STATE=$FACTORY_HOME/machine.json
 export FACTORY_MEMORY_CAP_POLICY='Every model load runs through factory.capped_runner under systemd-run --user --scope -p MemoryMax=96G -p MemorySwapMax=0, and starts only when the machine gate passes (100 GiB available, no GPU process of another user).'
 [ "${STEP:-0}" = 1 ] && export FACTORY_STEP=1
-TASK=muse-2bit-ttft-v4
 GRANTS=(--grant process.exec --grant workspace.read --grant workspace.write)
 JOBQ="$REPO/jiuwenswarm/factory/labkit/bin/jobq"
 
@@ -61,9 +62,9 @@ EOF
 }
 
 worker() {  # the queue that owns the capped runs; survives controller restarts
-  if ! tmux has-session -t muse-jobq 2>/dev/null; then
-    tmux new-session -d -s muse-jobq "bash '$(readlink -f "$0")' _worker"
-    echo "jobq worker in tmux muse-jobq"
+  if ! tmux has-session -t "${SESSION:-muse}-jobq" 2>/dev/null; then
+    tmux new-session -d -s "${SESSION:-muse}-jobq" "TASK=$TASK FACTORY_HOME=$FACTORY_HOME bash '$(readlink -f "$0")' _worker"
+    echo "jobq worker in tmux ${SESSION:-muse}-jobq"
   fi
 }
 
@@ -86,8 +87,8 @@ setup)
 run)
   worker
   # The tmux server keeps its own environment: the session calls back into this script, which sets ours.
-  tmux new-session -d -s muse-graph "STEP=${STEP:-0} bash '$(readlink -f "$0")' _run"
-  echo "controller in tmux muse-graph (step ${STEP:-0}); log $FACTORY_HOME/controller.log"
+  tmux new-session -d -s "${SESSION:-muse}-graph" "TASK=$TASK FACTORY_HOME=$FACTORY_HOME STEP=${STEP:-0} bash '$(readlink -f "$0")' _run"
+  echo "controller in tmux ${SESSION:-muse}-graph (step ${STEP:-0}); log $FACTORY_HOME/controller.log"
   ;;
 _worker)
   exec python3 "$JOBQ" worker >> "$FACTORY_HOME/jobq-worker.log" 2>&1

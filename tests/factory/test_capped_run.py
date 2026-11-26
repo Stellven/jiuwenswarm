@@ -120,7 +120,7 @@ def run_now(world, recipe, args, kind=None):
 # ---- argument checks --------------------------------------------------------------------------------------
 @pytest.mark.parametrize('recipe,args,error', [
     ('shell', {}, 'recipe is one of'),
-    ('serve', dict(build='e0', model='/etc/passwd'), 'build e0 has no llama-server'),
+    ('serve', dict(build='e0', model='/etc/passwd'), 'outside the task home'),
     ('build', dict(name='E0 bad'), 'name'),
     ('build', dict(name='e0', targets=['rm']), 'targets'),
     ('build', dict(name='e0', commit='HEAD~0; rm'), 'commit'),
