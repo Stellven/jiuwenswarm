@@ -5,7 +5,7 @@
  */
 
 import { useCallback } from 'react';
-import { Workflow } from 'lucide-react';
+import { GitBranch, Workflow } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import './SessionSidebar.css';
 import PlusIcon from '../../assets/sidebar/plus.svg?react';
@@ -88,6 +88,7 @@ const capsuleNavIcon = (
 
 const mainNavItems: NavItem[] = [
   { key: 'chat', labelKey: 'nav.work', icon: <WorkIcon aria-hidden /> },
+  { key: 'planner', labelKey: 'nav.planner', icon: <GitBranch aria-hidden /> },
   { key: 'factoryRuns', labelKey: 'nav.factoryRuns', icon: <Workflow aria-hidden /> },
   { key: 'capabilityCapsules', labelKey: 'nav.capabilityCapsules', icon: capsuleNavIcon },
   { key: 'agents', labelKey: 'nav.agent', icon: <AgentDesignIcon aria-hidden /> },

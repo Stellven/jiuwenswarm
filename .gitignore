@@ -165,3 +165,6 @@ docs/**/*.log
 /artifacts/canonical-ccs/
 /artifacts/canonical-ccstore/
 /artifacts/construction-verification/
+
+# TLA+ tools for the factory planner (docs/architecture/factory/PLANNER.md); fetched per machine
+third_party/tlaplus/*.jar

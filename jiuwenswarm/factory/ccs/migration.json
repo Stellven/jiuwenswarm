@@ -360,6 +360,24 @@
       "old_release": "317e160fbe39fa1b4eb8173adcb074d92ffd958aaeaafe14c883cb9f0730393c",
       "new_release": "317e160fbe39fa1b4eb8173adcb074d92ffd958aaeaafe14c883cb9f0730393c",
       "initial_canonical_release": "317e160fbe39fa1b4eb8173adcb074d92ffd958aaeaafe14c883cb9f0730393c"
+    },
+    {
+      "path": "weight_pack_compiler/cc.yaml",
+      "old_release": "b2180d443c78dd8fd1f2d95aa212e42863b57d9da04881c238737e835ce811e0",
+      "new_release": "b2180d443c78dd8fd1f2d95aa212e42863b57d9da04881c238737e835ce811e0",
+      "initial_canonical_release": "b2180d443c78dd8fd1f2d95aa212e42863b57d9da04881c238737e835ce811e0"
+    },
+    {
+      "path": "muse_nvfp4_reader/cc.yaml",
+      "old_release": "d8e8d138caf0301fbd5a176a95feb6281556c85748bad1b9fbe5a1ccec8b759e",
+      "new_release": "d8e8d138caf0301fbd5a176a95feb6281556c85748bad1b9fbe5a1ccec8b759e",
+      "initial_canonical_release": "d8e8d138caf0301fbd5a176a95feb6281556c85748bad1b9fbe5a1ccec8b759e"
+    },
+    {
+      "path": "expert_scale_wiring/cc.yaml",
+      "old_release": "c120191d31b41f92daf00a579a0b18454b822b0845dccc8339c736674dd8bdae",
+      "new_release": "c120191d31b41f92daf00a579a0b18454b822b0845dccc8339c736674dd8bdae",
+      "initial_canonical_release": "c120191d31b41f92daf00a579a0b18454b822b0845dccc8339c736674dd8bdae"
     }
   ],
   "new_packages": [

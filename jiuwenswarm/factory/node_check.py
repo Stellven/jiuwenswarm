@@ -97,8 +97,8 @@ def _check_output(entry):
             raise ValueError(f'Check {flag} must be true or false')
     if entry['kind'] == 'diff' and not entry.get('verifier') and not entry.get('review'):
         raise ValueError(f'Check output {entry["name"]}: a diff needs a capsule verifier, a review or both')
-    if entry['kind'] != 'diff' and entry.get('verifier'):
-        raise ValueError(f'Check output {entry["name"]}: capsule verifiers check diff outputs')
+    if entry['kind'] not in ('diff', 'evidence') and entry.get('verifier'):
+        raise ValueError(f'Check output {entry["name"]}: capsule verifiers check diff and evidence outputs')
     if entry.get('review') and entry['kind'] not in ('diff', 'evidence'):
         raise ValueError(f'Check output {entry["name"]}: reviews read diffs and evidence; '
                          f'{entry["kind"]} outputs are checked by the host')
@@ -454,10 +454,12 @@ class NodeChecks:
         node = self._node(task_id, node_id)
         entry = self._entry(task, node, output)
         if entry['kind'] != 'diff':
-            if checkout or diff_path or verifier_inputs:
+            if checkout or diff_path:
                 raise CheckError(f'Output {entry["name"]} is a {entry["kind"]}; pass refs, not a checkout')
-            if entry['kind'] == 'evidence' and entry.get('review'):
-                return self._start_records(task, node, entry, refs, background)
+            if verifier_inputs and not (entry['kind'] == 'evidence' and entry.get('verifier')):
+                raise CheckError(f'Output {entry["name"]} has no capsule verifier to take verifier_inputs')
+            if entry['kind'] == 'evidence' and (entry.get('review') or entry.get('verifier')):
+                return self._start_records(task, node, entry, refs, background, verifier_inputs)
             return self._result(self.host_check(task, node, entry, refs))
         if not checkout:
             raise CheckError(f'Output {entry["name"]} is a diff: pass the checkout')
@@ -473,17 +475,7 @@ class NodeChecks:
         diff = Path(diff_path).expanduser().read_bytes() if diff_path else working_diff(checkout)
         if not diff.strip():
             raise CheckError('There is no change to check')
-        verifier = None
-        if entry.get('verifier'):
-            from jiuwenswarm.ccv2.ccv2 import Host
-            cc_id, capability = _split(entry['verifier'])
-            host = Host(self.store.home / 'ccstore')
-            release = host.prepare(capsule_folder(cc_id, self.ccs_roots))
-            release = release['release'] if isinstance(release, dict) else release
-            declaration, _ = host.release(release)
-            if capability not in declaration['capabilities']:
-                raise CheckError(f'{cc_id} has no capability {capability}')
-            verifier = dict(cc=cc_id, capability=capability, release=release)
+        verifier = self._prepare_verifier(entry)
         reviewer = None
         if entry.get('review'):
             if self.reviewer is None:
@@ -497,8 +489,26 @@ class NodeChecks:
                        diff_bytes=len(diff), verifier=verifier, verifier_inputs=verifier_inputs or {}, reviewer=reviewer)
         return self._launch(request, diff, background)
 
-    def _start_records(self, task, node, entry, refs, background):
-        """An evidence output with review: the host checks the records exist, then a reviewer reads them."""
+    def _prepare_verifier(self, entry):
+        """The sealed capsule release that verifies this output, or None when the output names no verifier."""
+        if not entry.get('verifier'):
+            return None
+        from jiuwenswarm.ccv2.ccv2 import Host
+        cc_id, capability = _split(entry['verifier'])
+        host = Host(self.store.home / 'ccstore')
+        release = host.prepare(capsule_folder(cc_id, self.ccs_roots))
+        release = release['release'] if isinstance(release, dict) else release
+        declaration, _ = host.release(release)
+        if capability not in declaration['capabilities']:
+            raise CheckError(f'{cc_id} has no capability {capability}')
+        return dict(cc=cc_id, capability=capability, release=release)
+
+    def _start_records(self, task, node, entry, refs, background, verifier_inputs=None):
+        """An evidence output with a capsule verifier, a review or both: the host checks the records exist,
+        the capsule's verifier inspects the artifact they name (for example a model pack manifest), then a
+        reviewer reads the records and the verifier's checks."""
+        if set(verifier_inputs or {}) & {'checkout', 'diff_path'}:
+            raise CheckError('checkout and diff_path are not verifier inputs of an evidence output')
         try:
             self._evidence(task, node, refs)
         except (CheckError, ValueError) as exc:
@@ -506,15 +516,17 @@ class NodeChecks:
                           key=_sha(dict(node=node['node_id'], entry=entry, refs=refs)), state='finished', passed=False,
                           refs=refs, reason=str(exc), seconds={}, started=time.time())
             return self._result(self._close(task['task_id'], node['node_id'], values, []))
-        if self.reviewer is None:
+        if entry.get('review') and self.reviewer is None:
             raise CheckError('No reviewer is configured (FACTORY_REVIEW_CMD, FACTORY_REVIEW_OPENAI_BASE_URL or codex on PATH)')
+        verifier = self._prepare_verifier(entry)
+        reviewer = self.reviewer.identity if entry.get('review') else None
         records = [self.store.read(task['task_id'], ref) for ref in refs['evidence_ids']]
         subject = json.dumps(records, indent=1, sort_keys=True, default=str).encode()
         key = _sha(dict(task=task['task_id'], node=node['node_id'], entry=entry, records=_sha(subject),
-                        reviewer=self.reviewer.identity))
+                        verifier=verifier, inputs=verifier_inputs or {}, reviewer=reviewer))
         request = dict(format=FORMAT, key=key, task_id=task['task_id'], node_id=node['node_id'], output=entry['name'],
                        entry=entry, kind='evidence', refs=refs, head=None, working=False, diff_sha256=_sha(subject),
-                       diff_bytes=len(subject), verifier=None, verifier_inputs={}, reviewer=self.reviewer.identity)
+                       diff_bytes=len(subject), verifier=verifier, verifier_inputs=verifier_inputs or {}, reviewer=reviewer)
         return self._launch(request, subject, background)
 
     def _launch(self, request, subject, background):

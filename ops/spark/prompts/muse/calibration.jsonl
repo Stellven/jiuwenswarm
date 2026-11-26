@@ -1,0 +1,16 @@
+{"id": "cal00", "prompt": "Explain how a refrigerator moves heat out of its cabinet.", "n_predict": 256}
+{"id": "cal01", "prompt": "Write a short story about a lighthouse keeper who finds a map.", "n_predict": 256}
+{"id": "cal02", "prompt": "Summarise the causes of the 1929 stock market crash.", "n_predict": 256}
+{"id": "cal03", "prompt": "Write a Python function that merges overlapping intervals and explain it.", "n_predict": 256}
+{"id": "cal04", "prompt": "Compare the climates of Norway and New Zealand.", "n_predict": 256}
+{"id": "cal05", "prompt": "Describe how vaccines train the immune system.", "n_predict": 256}
+{"id": "cal06", "prompt": "Translate into French: The train to the coast leaves at seven, so pack tonight.", "n_predict": 256}
+{"id": "cal07", "prompt": "Give a step by step proof that the square root of 2 is irrational.", "n_predict": 256}
+{"id": "cal08", "prompt": "Draft a polite email asking a landlord to fix a leaking tap.", "n_predict": 256}
+{"id": "cal09", "prompt": "Explain the rules of chess castling to a beginner.", "n_predict": 256}
+{"id": "cal10", "prompt": "What are the trade-offs between SQL and document databases?", "n_predict": 256}
+{"id": "cal11", "prompt": "Write a haiku sequence about autumn in a city.", "n_predict": 256}
+{"id": "cal12", "prompt": "Explain how photosynthesis stores energy in sugar.", "n_predict": 256}
+{"id": "cal13", "prompt": "Plan a three day budget trip to Lisbon.", "n_predict": 256}
+{"id": "cal14", "prompt": "Describe how a compiler turns source code into machine code.", "n_predict": 256}
+{"id": "cal15", "prompt": "Explain supply and demand with a coffee shop example.", "n_predict": 256}

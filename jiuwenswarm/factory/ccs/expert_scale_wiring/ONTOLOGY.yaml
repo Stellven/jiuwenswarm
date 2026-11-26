@@ -1,0 +1,31 @@
+id: satay.expert-scale-wiring-ontology
+version: '0.1'
+status: provisional
+entities:
+  component: Expert scale wiring (atlas weights.format_toolkit) - the graph code that applies a pack's per-expert weight scales to the routed expert matmuls.
+  parts:
+    scale_arguments: The up_exps_s, gate_exps_s and down_exps_s arguments of the architecture's build_moe_ffn call.
+    optional_scale_tensors: Loader tensors ffn_*_exps_s created TENSOR_NOT_REQUIRED (read only); absent means stock behaviour.
+  engine_revision: Pinned llama.cpp revision and candidate patch identity.
+  tiny_packs: tiny-bf16.gguf (no scales), tiny-nvfp4-f32.gguf (NVFP4 experts with .scale), tiny-deqref-f32.gguf (dequantized reference).
+  contract: muse-q2-ttft-v2 node wire_expert_scales (change diff at stage runtime acceptance).
+  observation_point: Field of a capability result.
+  quantity: Value with a unit, phase and region.
+  regions:
+    L4.expert_matmul: expert_matmul
+    W.expert_precision: expert_precision
+relations:
+  modifies_region: component -> engine region
+  reads: component -> optional_scale_tensors
+  measures: observation_point -> quantity
+  evaluates_under: observation -> contract
+observation_points:
+  verify_checks: 'verify.checks'
+quantities:
+  numerics.mean_kld: {unit: nats, phase: run, source: {line: 'verify.checks', field: nvfp4_kld}, region: W.expert_precision, distinct_from: [numerics.slice_rel_err]}
+  numerics.slice_rel_err: {unit: ratio, phase: run, source: {line: 'verify.checks', field: expert_slice}, region: L4.expert_matmul, distinct_from: [numerics.mean_kld]}
+slices:
+  expert_scale_application:
+    purpose: Apply each routed expert's own global scale to its gate, up and down matmul, leaving packs without scales on the stock path.
+    regions: [L4.expert_matmul, W.expert_precision]
+    quantities: [numerics.mean_kld, numerics.slice_rel_err]

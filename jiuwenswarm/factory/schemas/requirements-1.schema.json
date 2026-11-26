@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "factory.task-input/1",
+  "title": "Self-contained TaskInput for the factory planner",
+  "description": "Single-input specification the factory planner compiles into a statically checked and TLC-proven TaskGraph. Replaces multi-arm experiment contracts for single-solution planning.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "objective", "subject", "target", "acceptance_criteria", "constraints"],
+  "anyOf": [
+    {"required": ["requirements_id"]},
+    {"required": ["task_id"]}
+  ],
+  "properties": {
+    "format": {"enum": ["factory.task-input/1", "factory.requirements/1"]},
+    "requirements_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]{0,63}$"},
+    "task_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]{0,63}$"},
+    "objective": {"type": "string", "minLength": 1, "maxLength": 2000},
+    "contract_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "description": "Optional legacy format-2 contract id for compatibility."
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["engine", "model"],
+      "description": "Exact pinned engine revision and model version/format this task targets.",
+      "properties": {
+        "engine": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "revision"],
+          "properties": {
+            "name": {"type": "string", "minLength": 1},
+            "source": {"type": "string", "minLength": 1},
+            "revision": {"type": "string", "minLength": 7}
+          }
+        },
+        "model": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "format"],
+          "properties": {
+            "name": {"type": "string", "minLength": 1},
+            "format": {"enum": ["gguf", "safetensors-nvfp4", "safetensors"]},
+            "source": {"type": "string", "minLength": 1},
+            "manifest": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile", "machine", "arch"],
+      "description": "Explicit single-node execution hardware target.",
+      "properties": {
+        "profile": {"type": "string", "minLength": 1},
+        "machine": {"type": "string", "minLength": 1},
+        "arch": {"type": "string", "minLength": 1},
+        "cuda": {"type": "string", "minLength": 1},
+        "sm": {"type": "string", "minLength": 1},
+        "memory_gb": {"type": "number", "exclusiveMinimum": 0},
+        "node_count": {"type": "integer", "const": 1}
+      }
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "description": "Structured, verifiable acceptance criteria (correctness checks, metrics, or operational constraints).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "description"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9_.-]+$"},
+          "kind": {"enum": ["correctness", "metric", "constraint"]},
+          "applies_to": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "description": {"type": "string", "minLength": 1, "maxLength": 600},
+          "threshold": {"type": "string", "minLength": 1, "maxLength": 200},
+          "verifiable_by": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowed_effects", "budget"],
+      "properties": {
+        "allowed_effects": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "budget": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["max_turns", "wall_clock_s"],
+          "properties": {
+            "max_turns": {"type": "integer", "minimum": 1},
+            "wall_clock_s": {"type": "number", "exclusiveMinimum": 0}
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {"type": "string", "minLength": 1, "maxLength": 600},
+      "description": "Additional plain-language instructions propagated to steps."
+    },
+    "hints": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "must_include": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"},
+          "description": "Capsule ids the selected plan must include."
+        },
+        "excludes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"},
+          "description": "Capsule ids that must not be selected."
+        },
+        "preferred_merge": {"enum": ["M1", "M2", "M3"]}
+      }
+    },
+    "task_template": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "description": "Optional: a reviewed task file in jiuwenswarm/factory/tasks, by name."
+    }
+  }
+}

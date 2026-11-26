@@ -259,7 +259,7 @@ class SubscriptionService:
             if self._account_observer:await self._observe_account_limits()
             return status
 
-    async def login(self):
+    async def login(self, *, device_code: bool | None = None):
         async with self._account_lock:
             await self.transport.start()
             if self.active:
@@ -268,7 +268,8 @@ class SubscriptionService:
                 raise CodexError("LOGIN_PENDING")
             self._revoke_agent_resumes()
             self.epoch = uuid.uuid4().hex
-            login_type = 'chatgptDeviceCode' if os.environ.get('JIUWENSWARM_M1_PROFILE') == '1' else 'chatgpt'
+            use_device = (os.environ.get('JIUWENSWARM_M1_PROFILE') == '1') if device_code is None else bool(device_code)
+            login_type = 'chatgptDeviceCode' if use_device else 'chatgpt'
             result = await self.transport.request("account/login/start", {"type": login_type})
             url = result.get('verificationUrl' if login_type == 'chatgptDeviceCode' else 'authUrl', '')
             parsed = urlparse(url)

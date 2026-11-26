@@ -1,0 +1,25 @@
+{
+ "_label": "SAMPLE: shape of factory.pack-recipe/1 entries; values are illustrative, not the Muse answer",
+ "tensor_entry": {
+  "name": "blk.5.ffn_down_exps.weight",
+  "role": "routed_expert",
+  "shape": [2048, 7168, 256],
+  "shard": 1,
+  "source_type": "nvfp4",
+  "target_type": "q2_k",
+  "source_bytes": 2113929216,
+  "target_bytes": 1233125376
+ },
+ "kept_entry": {
+  "name": "blk.5.attn_q.weight",
+  "role": "attention",
+  "shape": [7168, 8192],
+  "source_type": "bf16",
+  "target_type": "bf16"
+ },
+ "pins": [
+  {"pattern": "^blk\\.(1|2|3|4|5)\\.ffn_down_exps\\.weight$", "type": "q2_k"},
+  {"pattern": "^blk\\.(0|1|2|3|4|5)\\.attn_q\\.weight$", "type": "bf16"}
+ ],
+ "argv_tail": ["--keep-split", "/packs/nvfp4/muse-00001-of-00009.gguf", "/packs/q2/muse-Q2_K.gguf", "Q2_K"]
+}

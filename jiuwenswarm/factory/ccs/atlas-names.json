@@ -163,6 +163,15 @@
       "target": null,
       "summary": "Summarizes issued versus useful expert prefetches against matched native controls."
     },
+    "expert_scale_wiring": {
+      "capsule_id": "weights.build_expert_scale_wiring",
+      "title": "Expert scale wiring builder",
+      "kind": "builder",
+      "atlas_cc_id": "weights.format_toolkit.builder",
+      "component": "Expert scale wiring",
+      "target": "llama.cpp",
+      "summary": "Applies the per-expert NVFP4 global scales in the Muse mixture-of-experts block; packs without scales are unchanged."
+    },
     "expert_streaming": {
       "capsule_id": "engine.expert_streaming",
       "title": "Expert streaming builder",
@@ -415,6 +424,15 @@
       "target": null,
       "summary": "Computes phase-separated rates and paired ratios from matched cells."
     },
+    "muse_nvfp4_reader": {
+      "capsule_id": "weights.build_muse_nvfp4_reader",
+      "title": "Muse NVFP4 reader builder",
+      "kind": "builder",
+      "atlas_cc_id": "weights.checkpoint_reader.builder",
+      "component": "Muse NVFP4 reader",
+      "target": "llama.cpp",
+      "summary": "Extends the converter so the stacked Muse NVFP4 experts and their scale planes become an NVFP4 GGUF pack, bit for bit and lazily."
+    },
     "node_check": {
       "capsule_id": "factory.node_check",
       "title": "Node check",
@@ -567,6 +585,15 @@
       "component": null,
       "target": null,
       "summary": "Creates a candidate profile that only toggles Strata speculative drafting."
+    },
+    "weight_pack_compiler": {
+      "capsule_id": "weights.build_weight_pack_compiler",
+      "title": "Pack compiler",
+      "kind": "tool",
+      "atlas_cc_id": "weights.pack_compiler.builder",
+      "component": "Pack compiler",
+      "target": "llama.cpp",
+      "summary": "Writes a precision recipe for an existing GGUF pack, runs stock llama-quantize on it and verifies the new pack: types per tensor role, carried scale tensors, size."
     },
     "weight_placement_planner": {
       "capsule_id": "placement.build_weight_placement_planner",

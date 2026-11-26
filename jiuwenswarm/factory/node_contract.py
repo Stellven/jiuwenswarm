@@ -105,8 +105,8 @@ def problems(document, contract=None):
                 found.append(f'{key}/verifiers/{verifier["output"]}: a stage needs a verifier capability')
             if kind == 'diff' and not verifier.get('verifier') and not verifier.get('review'):
                 found.append(f'{key}/verifiers/{verifier["output"]}: a diff needs a capsule verifier, a review or both')
-            if kind != 'diff' and verifier.get('verifier'):
-                found.append(f'{key}/verifiers/{verifier["output"]}: capsule verifiers check diff outputs')
+            if kind not in ('diff', 'evidence') and verifier.get('verifier'):
+                found.append(f'{key}/verifiers/{verifier["output"]}: capsule verifiers check diff and evidence outputs')
             if verifier.get('review') and kind not in ('diff', 'evidence'):
                 found.append(f'{key}/verifiers/{verifier["output"]}: reviews read diffs and evidence; '
                              f'{kind} outputs are checked by the host')
@@ -139,6 +139,8 @@ def from_contract(contract):
 def for_task(task):
     """The node contracts of a task's contract (validated), or None when it has none."""
     from .contract import load
+    if not task.get('contract_id'):
+        return None
     contract = load(task['contract_id'])
     document = from_contract(contract)
     if document is None:

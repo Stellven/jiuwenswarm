@@ -1,0 +1,25 @@
+{
+  "capabilities": {
+    "plan_recipe": "tool",
+    "publish_manifest": "tool",
+    "verify_pack": "tool",
+    "verify_recipe": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "guide": "skill",
+    "helper_reader": "reference",
+    "helper_recipe": "reference",
+    "helpers": "reference",
+    "method": "method",
+    "ontology": "reference",
+    "pack_verifier": "reference",
+    "recipe_verifier": "reference",
+    "sample_quantize_run": "reference",
+    "sample_recipe_entry": "reference",
+    "source_map": "reference",
+    "stock_quantize_model": "reference",
+    "test_fixture": "reference",
+    "validation": "method"
+  }
+}

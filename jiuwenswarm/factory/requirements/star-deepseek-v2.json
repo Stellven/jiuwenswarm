@@ -1,0 +1,42 @@
+{
+  "format": "factory.task-input/1",
+  "requirements_id": "star-deepseek-v2",
+  "objective": "Optimize DeepSeek V4.1 Flash TTFT on DGX Spark over stock llama.cpp 9048bad by selecting and integrating the compatible performance and observability capsules (runtime event recorder, weight placement planner, expert weight cache, expert demand predictor, batch layout mapper) into a single combined candidate build, with every gate off by default and byte-identical output when unset.",
+  "subject": {
+    "engine": {
+      "name": "llama.cpp",
+      "source": "https://github.com/ggml-org/llama.cpp",
+      "revision": "9048bad8d6e3a0f9f1726e238e451181c7e02613"
+    },
+    "model": {
+      "name": "DeepSeek V4.1 Flash, IQ2_XXS six-shard GGUF conversion",
+      "format": "gguf"
+    }
+  },
+  "target": {
+    "profile": "spark-gb10",
+    "machine": "DGX Spark GB10",
+    "arch": "arm64",
+    "cuda": "13",
+    "sm": "121",
+    "node_count": 1
+  },
+  "acceptance_criteria": [
+    {"id": "gate_unset_parity", "kind": "correctness", "description": "With every capsule gate unset, greedy output matches stock llama.cpp byte for byte."},
+    {"id": "gate_set_activation", "kind": "correctness", "description": "With each gate set, the engine prints its capsule activation marker."},
+    {"id": "server_token_count", "kind": "correctness", "description": "Server prompt token count equals the rendered prompt token count (512 / 2048)."},
+    {"id": "client_ttft_ms", "kind": "metric", "description": "Client time to first token (ms, lower is better) at 512 and 2048 prompt tokens."},
+    {"id": "decode_tokens_per_second", "kind": "metric", "description": "Decode rate (tokens/s, higher is better)."},
+    {"id": "sampled_peak_memory_bytes", "kind": "metric", "description": "Highest sampled resident memory under the cap (bytes, lower is better)."},
+    {"id": "load_seconds", "kind": "metric", "description": "Cold load time from start to ready (s, lower is better)."}
+  ],
+  "constraints": {
+    "allowed_effects": ["workspace.read", "workspace.write", "process.exec"],
+    "budget": {"max_turns": 300, "wall_clock_s": 21600}
+  },
+  "notes": [
+    "Each component stays off by default behind its own switch; any one can be enabled alone.",
+    "The factory never starts a model: the lab agent runs every engine and every measurement.",
+    "Work only in the task-owned checkout; no remotes or pushes."
+  ]
+}

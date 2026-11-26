@@ -1,0 +1,41 @@
+id: satay.muse-nvfp4-reader-ontology
+version: '0.1'
+status: provisional
+entities:
+  component: Checkpoint reader (atlas weights.checkpoint_reader) - the converter code that reads the Muse NVFP4 checkpoint's stacked experts and their scale planes.
+  parts:
+    stacked_expert_reader: Splits experts.gate_up_proj into gate rows [0, I) and up rows [I, 2I), down whole, and repacks each expert's blocks with the stock _nvfp4_pack.
+    scale_planes: Per-expert .scale ([E] F32 from weight_scale_2 by column) and .input_scale written beside each routed expert weight.
+    lazy_writer: gguf.LazyNumpyTensor per stacked tensor so only the tensor being written is resident.
+  checkpoint: ModelOpt NVFP4 safetensors (index + shards) named by per-file sha256.
+  scale_inventory: factory.nvfp4-scale-inventory/1 document (roles, dtypes, shapes, quantized and excluded layers).
+  pack: GGUF NVFP4 pack; named by factory.pack-manifest/1.
+  engine_revision: Pinned llama.cpp revision whose converter is extended.
+  tiny_checkpoint: 4-layer, 16-expert checkpoint in the real layout (helpers/tiny_checkpoint.py, seed 1234).
+  contract: muse-q2-ttft-v2 node ingest_nvfp4 (converter diff at stage fixture, pack evidence at native CC execution).
+  observation_point: Field of a capability result.
+  quantity: Value with a unit, phase and region.
+  regions:
+    W.checkpoint_layout: checkpoint_layout
+    W.expert_precision: expert_precision
+    W.pack_layout: pack_layout
+    M.conversion_memory: conversion_memory
+relations:
+  reads: component -> checkpoint
+  writes: component -> pack
+  described_by: checkpoint -> scale_inventory
+  measures: observation_point -> quantity
+  evaluates_under: observation -> contract
+observation_points:
+  inventory: 'scale_inventory.inventory'
+  pack_manifest: 'verify_pack.manifest'
+quantities:
+  checkpoint.quantized_layers: {unit: count, phase: inspect, source: {line: 'scale_inventory.inventory', field: quantized_layers}, region: W.checkpoint_layout, distinct_from: [checkpoint.excluded_layers]}
+  checkpoint.excluded_layers: {unit: count, phase: inspect, source: {line: 'scale_inventory.inventory', field: excluded_layers}, region: W.checkpoint_layout, distinct_from: [checkpoint.quantized_layers]}
+  pack.nvfp4_tensors: {unit: count, phase: build, source: {line: 'verify_pack.manifest', field: census_by_type.nvfp4}, region: W.expert_precision, distinct_from: []}
+  pack.bytes_written: {unit: bytes, phase: build, source: {line: 'verify_pack.manifest', field: total_bytes}, region: W.pack_layout, distinct_from: []}
+slices:
+  muse_nvfp4_ingest:
+    purpose: Read the stacked Muse NVFP4 experts bit for bit with their per-half scale planes and write an NVFP4 GGUF pack within the conversion memory cap.
+    regions: [W.checkpoint_layout, W.expert_precision, W.pack_layout, M.conversion_memory]
+    quantities: [checkpoint.quantized_layers, checkpoint.excluded_layers, pack.nvfp4_tensors, pack.bytes_written]

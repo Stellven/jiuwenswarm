@@ -1,0 +1,233 @@
+cc: '2'
+id: weights.build_muse_nvfp4_reader
+version: 1.0.0
+materials:
+  guide:
+    path: GUIDE.md
+  method:
+    path: METHOD.md
+  validation:
+    path: VALIDATION.md
+  ontology:
+    path: ONTOLOGY.yaml
+  source_map:
+    path: SOURCE-MAP.md
+  checkpoint_reader:
+    path: components/checkpoint_reader/component.yaml
+  sample_range_header:
+    path: samples/range_header.py
+  sample_split_stacked:
+    path: samples/split_stacked.py
+  sample_lazy_expert_tensor:
+    path: samples/lazy_expert_tensor.py
+  helpers:
+    path: helpers/README.md
+  helper_scale_inventory:
+    path: helpers/scale_inventory.py
+  helper_tiny_checkpoint:
+    path: helpers/tiny_checkpoint.py
+  helper_make_tiny_packs:
+    path: helpers/make_tiny_packs.sh
+  helper_time_one_expert:
+    path: helpers/time_one_expert.py
+  converter_verifier:
+    path: helpers/converter_rules.py
+  runtime_verifier:
+    path: helpers/nvfp4_compare.py
+  pack_verifier:
+    path: helpers/pack_census.py
+  roles:
+    path: roles.json
+    media_type: application/json
+defs:
+  done:
+    kind: json
+    description: True when at least one check ran and no check failed.
+    schema:
+      type: boolean
+  checks:
+    kind: json
+    schema:
+      type: array
+      items:
+        type: object
+        required:
+        - name
+        - status
+        - stage
+        - detail
+        properties:
+          name:
+            type: string
+          status:
+            enum:
+            - pass
+            - fail
+            - skipped
+            - inconclusive
+            - info
+          stage:
+            enum:
+            - fixture
+            - native CC execution
+            - runtime acceptance
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  scale_inventory:
+    does: Read a ModelOpt NVFP4 checkpoint's index and shard headers (never tensor data) and return the
+      role-by-role scale inventory - packed weight, block scale, global scale_2 and input scale with dtypes and
+      shapes, quantized and excluded layers, layout problems and findings. A helper for the worker; the JSON it
+      writes is also the reference verify_pack reads.
+    takes:
+      index:
+        kind: text
+        description: Absolute path to model.safetensors.index.json.
+      headers:
+        kind: json
+        optional: true
+        description: Absolute paths of shard files, header JSON files (hdr-NNNNN.json) or directories holding them.
+        schema:
+          type: array
+          items:
+            type: string
+      out:
+        kind: text
+        optional: true
+        description: Write the full inventory JSON here.
+    gives:
+      done: $done
+      checks: $checks
+      inventory:
+        kind: json
+        optional: true
+        description: Inventory summary (shards, headers read, quantized and excluded layers, roles, findings).
+    needs:
+    - python
+    changes:
+    - workspace.read
+    - workspace.write
+  verify:
+    does: Gate a converter change that reads the stacked Muse NVFP4 experts. Fixture stage - the bundled good
+      diff passes and each planted fault fails its rule on this HEAD. Static - only conversion/*.py touched, the
+      stacked reader reuses the stock _nvfp4_pack inside a lazy tensor, gate rows first with scale_2 column 0,
+      up column 1, .scale and .input_scale written, nothing requantized. Runtime (with a python env and a tiny
+      checkpoint) - the tree's converter on the tiny NVFP4 checkpoint, then every NVFP4 block bit-exact against
+      the source, every .scale equal to its scale_2 column, dequantized weights equal to the checkpoint's own
+      dequantization, excluded layers kept. Writes only to a scratch directory outside the checkout.
+    takes:
+      checkout:
+        kind: text
+        description: Root of the owned llama.cpp Git checkout.
+      diff_path:
+        kind: text
+        optional: true
+        description: Patch against the checkout's HEAD; omit to check working changes against HEAD.
+      python:
+        kind: text
+        optional: true
+        description: Python of a venv with torch, safetensors, numpy and transformers; without it the runtime
+          checks are skipped.
+      tiny_checkpoint:
+        kind: text
+        optional: true
+        description: Directory of the tiny NVFP4 checkpoint (helpers/tiny_checkpoint.py output nvfp4/).
+      tiny_base:
+        kind: text
+        optional: true
+        description: Directory with the real tokenizer files and config.json; the tiny checkpoint is generated
+          from it when tiny_checkpoint is not given.
+      tiny_config:
+        kind: text
+        optional: true
+        description: Muse Spark config.json to start the tiny config from (default tiny_base/config.json).
+      work_dir:
+        kind: text
+        optional: true
+        description: Scratch parent directory outside the checkout (default the system temp directory).
+      keep_work:
+        kind: json
+        optional: true
+        schema:
+          type: boolean
+      mem_cap:
+        kind: text
+        optional: true
+        description: cgroup MemoryMax for the generator and converter (default 16G; none to disable).
+      runtime_even_if_static_fails:
+        kind: json
+        optional: true
+        description: Run the runtime checks even when a scope gate failed (calibration of the runtime checks).
+        schema:
+          type: boolean
+    gives:
+      done: $done
+      checks: $checks
+    needs:
+    - python
+    changes:
+    - workspace.read
+    - process.exec
+  verify_pack:
+    does: Gate a written Muse NVFP4 GGUF pack from its headers and [E] scale vectors - every shard readable,
+      every routed expert weight of a quantized layer NVFP4 (type 40) with an F32 [n_expert] .scale (and
+      .input_scale where the checkpoint has one), excluded layers at their checkpoint type without .scale, NVFP4
+      nowhere else, no unexpected type, total bytes in range. Fails closed without a layer plan. Returns the pack
+      manifest (factory.pack-manifest/1; per-file sha256 with hash).
+    takes:
+      pack:
+        kind: text
+        description: Absolute path to the first shard or the directory holding the pack.
+      inventory:
+        kind: text
+        optional: true
+        description: Scale inventory JSON (scale_inventory out), the preferred layer plan.
+      source_index:
+        kind: text
+        optional: true
+        description: The checkpoint's model.safetensors.index.json (layer plan without dtypes).
+      quantized_layers:
+        kind: json
+        optional: true
+        schema:
+          type: array
+          items:
+            type: integer
+            minimum: 0
+      expect_bytes_range:
+        kind: json
+        optional: true
+        schema:
+          type: array
+          items:
+            type: integer
+            minimum: 0
+          minItems: 2
+          maxItems: 2
+      allowed_types:
+        kind: json
+        optional: true
+        schema:
+          type: array
+          items:
+            type: string
+      hash:
+        kind: json
+        optional: true
+        description: sha256 every shard (slow for ~450 GB).
+        schema:
+          type: boolean
+    gives:
+      done: $done
+      checks: $checks
+      manifest:
+        kind: json
+        optional: true
+    needs:
+    - python
+    changes:
+    - workspace.read

@@ -1,0 +1,27 @@
+{
+  "capabilities": {
+    "scale_inventory": "tool",
+    "verify": "tool",
+    "verify_pack": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "checkpoint_reader": "component",
+    "converter_verifier": "reference",
+    "guide": "skill",
+    "helper_make_tiny_packs": "reference",
+    "helper_scale_inventory": "reference",
+    "helper_time_one_expert": "reference",
+    "helper_tiny_checkpoint": "reference",
+    "helpers": "reference",
+    "method": "method",
+    "ontology": "reference",
+    "pack_verifier": "reference",
+    "runtime_verifier": "reference",
+    "sample_lazy_expert_tensor": "reference",
+    "sample_range_header": "reference",
+    "sample_split_stacked": "reference",
+    "source_map": "reference",
+    "validation": "method"
+  }
+}

@@ -8,12 +8,28 @@ import {
   numericColumns,
   tableData,
 } from '../src/features/factoryRuns/cc/capsuleModel.ts';
-import { capsuleHref, readFactoryEntry, runHref } from '../src/features/factoryRuns/cc/navigation.ts';
+import { capsuleHref, plannerHref, readFactoryEntry, runHref } from '../src/features/factoryRuns/cc/navigation.ts';
 
 test('capsule and replay links round-trip hashes without confusing file paths with navigation', () => {
   assert.deepEqual(readFactoryEntry(capsuleHref('analysis.expert_routing_profile')), {
     view: 'capabilityCapsules',
     capsule: 'analysis.expert_routing_profile',
+  });
+  assert.deepEqual(readFactoryEntry(plannerHref()), { view: 'planner', plan: undefined, tab: undefined });
+  assert.deepEqual(readFactoryEntry(plannerHref('plan-20261125T000001Z-a1b2c3')), {
+    view: 'planner',
+    plan: 'plan-20261125T000001Z-a1b2c3',
+    tab: undefined,
+  });
+  assert.deepEqual(readFactoryEntry(plannerHref(undefined, 'ablation')), {
+    view: 'planner',
+    plan: undefined,
+    tab: 'ablation',
+  });
+  assert.deepEqual(readFactoryEntry('#factory-planner/plan-20261125T000001Z-a1b2c3'), {
+    view: 'planner',
+    plan: 'plan-20261125T000001Z-a1b2c3',
+    tab: undefined,
   });
   const file = 'artifacts/aa/report #1+raw.json';
   assert.deepEqual(readFactoryEntry(runHref('recorded-run', file)), { view: 'factoryRuns', run: 'recorded-run', file });

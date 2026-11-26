@@ -51,20 +51,16 @@ A node contract says what one step of building an inference engine takes, what i
   - each required output has a verifier, at most one per output;
   - a verifier names a real output;
   - a `stage` needs a verifier capability;
-  - capsule verifiers check only `diff` outputs;
+  - capsule verifiers check `diff` and `evidence` outputs (for example `weights.build_weight_pack_compiler.verify_pack` or `weights.build_muse_nvfp4_reader.verify_pack`);
   - reviews read only `diff` and `evidence` outputs.
 - **Requirements:** requirement ids name contract arms, checks or metrics.
 - **Hand-offs:** `hands_to` names a node that lists this one as a predecessor. There is exactly one leaf, the `deliver` node; it hands to `lab_manager` and owes a required `lab_request`.
 
-## The Spark contract
+## Shipped contracts
 
-`contracts/star-deepseek-v2.json` carries nine node contracts:
+`contracts/star-deepseek-v2.json` carries nine node contracts (five parallel `integrate_*` builders, `combine`, `build_candidate`, `deliver_to_lab`).
 
-1. `inspect_engine`
-2. five `integrate_<builder>` steps, one per builder capsule; each uses that builder's verifier with review
-3. `combine`, a review-only step that needs no capsule
-4. `build_candidate`, which owes source bundles for C1 to C5 and D, and optionally an image
-5. `deliver_to_lab`, whose lab request must cover every arm, check and metric of the contract
+`contracts/muse-q2-ttft-v2.json` carries nine node contracts spanning builder CCs (`weights.build_muse_nvfp4_reader`, `weights.build_expert_scale_wiring`, `engine.build_expert_weight_cache`), a tool CC (`weights.build_weight_pack_compiler`) verifying `evidence` outputs (`verify_recipe`, `verify_pack`), and a `measure` step (`record_profile`).
 
 ## From an M1 run plan
 

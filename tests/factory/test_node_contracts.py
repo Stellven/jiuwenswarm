@@ -81,7 +81,7 @@ def test_the_spark_contract_carries_valid_node_contracts():
     (lambda d: d['nodes'][2].update(kind='build'), 'exactly one leaf, the deliver node'),
     (lambda d: d['nodes'][2]['requirement_ids'].append('Z9'), 'no arm, check or metric Z9'),
     (lambda d: d['nodes'][1]['verifiers'][0].update(review=True), 'checked by the host'),
-    (lambda d: d['nodes'][1]['verifiers'][0].update(verifier='a.b.verify'), 'capsule verifiers check diff outputs'),
+    (lambda d: d['nodes'][1]['verifiers'][0].update(verifier='a.b.verify'), 'capsule verifiers check diff and evidence outputs'),
     (lambda d: d['nodes'][1].update(hands_to='integrate'), 'must be a node that lists build'),
 ])
 def test_node_contract_problems(change, message):

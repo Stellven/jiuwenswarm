@@ -12,6 +12,7 @@ export type SidebarNavKey =
   | 'updatepanel'
   | 'experiments'
   | 'factoryRuns'
+  | 'planner'
   | 'capabilityCapsules';
 
 export const DEFAULT_FRONTEND_PLATFORM: FrontendPlatform = 'web';

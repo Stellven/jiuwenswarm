@@ -1466,7 +1466,8 @@ export default defineConfig({
       } : {}),
       '/api': {
         target: webTarget,
-        changeOrigin: true,
+        changeOrigin: false,
+        xfwd: true,
       },
       '/skillhub-api': {
         target: 'http://119.8.233.112:8080',

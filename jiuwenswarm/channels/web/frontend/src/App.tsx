@@ -18,7 +18,8 @@ import { SkillPanel } from './components/SkillPanel';
 import { AgentManagementPanel } from './components/AgentManagementPanel';
 import { FactoryRunsPage } from './features/factoryRuns/FactoryRunsPage';
 import { CapsulesPage } from './features/factoryRuns/cc/CapsulesPage';
-import { capsuleHref, readFactoryEntry, runHref } from './features/factoryRuns/cc/navigation';
+import { PlannerPage } from './features/factoryRuns/planner/PlannerPage';
+import { capsuleHref, plannerHref, readFactoryEntry, runHref } from './features/factoryRuns/cc/navigation';
 import { RsiPage } from './features/rsi/RsiPage';
 import {
   normalizeRSIEnabled,
@@ -409,7 +410,7 @@ function AppContent({
       setFactoryEntry(next);
       if (next) setActiveNav(next.view);
       else if (!window.location.hash) {
-        setActiveNav((current) => current === 'factoryRuns' || current === 'capabilityCapsules' ? 'chat' : current);
+        setActiveNav((current) => current === 'factoryRuns' || current === 'planner' || current === 'capabilityCapsules' ? 'chat' : current);
       }
     };
     window.addEventListener('hashchange', syncFactoryEntry);
@@ -3465,6 +3466,12 @@ function AppContent({
           window.location.hash = hash;
           setFactoryEntry(readFactoryEntry(hash));
         }
+      } else if (nav === 'planner') {
+        if (activeNav !== nav) {
+          const hash = plannerHref();
+          window.location.hash = hash;
+          setFactoryEntry(readFactoryEntry(hash));
+        }
       } else if (nav === 'factoryRuns') {
         if (activeNav !== nav) {
           const hash = runHref();
@@ -3883,6 +3890,14 @@ const showWorkspaceDivider = effectiveTeamAreaExpanded && !showConversationNotFo
             </div>
           </>
         )}
+        {activeNav === 'planner' && (
+          <div className="app-section min-h-0" data-testid="app-planner">
+            <PlannerPage
+              plan={factoryEntry?.view === 'planner' ? factoryEntry.plan : undefined}
+              initialTab={factoryEntry?.view === 'planner' ? factoryEntry.tab : undefined}
+            />
+          </div>
+        )}
         {activeNav === 'factoryRuns' && (
           <div className="app-section min-h-0" data-testid="app-factory-runs">
             <FactoryRunsPage entry={factoryEntry?.view === 'factoryRuns' ? factoryEntry : undefined} />
@@ -4069,7 +4084,7 @@ const showWorkspaceDivider = effectiveTeamAreaExpanded && !showConversationNotFo
       <ToastStack />
 
       {/* 连接状态提示 */}
-      {!isConnected && activeNav !== 'capabilityCapsules' && activeNav !== 'factoryRuns' && (
+      {!isConnected && activeNav !== 'capabilityCapsules' && activeNav !== 'factoryRuns' && activeNav !== 'planner' && (
         <div className="app-toast-wrapper app-toast-wrapper--top" data-testid="app-connection-toast">
           <div
             className="app-connection-toast animate-rise"

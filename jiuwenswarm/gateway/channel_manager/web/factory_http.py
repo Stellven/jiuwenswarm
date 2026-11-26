@@ -638,10 +638,15 @@ def attach_factory_routes(app: FastAPI, channel=None, *, service=None):
     @app.post(PREFIX + '/launch', status_code=202)
     async def launch(request: Request):
         origin = request.headers.get('origin')
-        # Browser mutations require an exact same-origin host. CLI callers can
-        # omit Origin; this is a trusted-operator service bound behind localhost.
-        if origin and urlsplit(origin).netloc != request.headers.get('host'):
-            raise HTTPException(403, 'Factory launch requires a same-origin request')
+        # Browser mutations require an exact same-origin host or local loopback dev proxy.
+        if origin:
+            parsed = urlsplit(origin)
+            host = request.headers.get('x-forwarded-host') or request.headers.get('host') or ''
+            origin_host = (parsed.hostname or '').lower()
+            server_host = host.split(':', 1)[0].strip('[]').lower()
+            loopback = {'127.0.0.1', 'localhost', '::1'}
+            if parsed.netloc != host and not (origin_host in loopback and (server_host in loopback or not server_host)):
+                raise HTTPException(403, 'Factory launch requires a same-origin request')
         body = bytearray()
         async for chunk in request.stream():
             body.extend(chunk)

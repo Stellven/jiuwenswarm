@@ -121,6 +121,74 @@ def ask_task(args, home):
     return out, task
 
 
+def verify_plan_command(args):
+    """Static checks (with --requirements) and the TLC proof of a graph.tla or format-2 contract."""
+    import tempfile
+    from pathlib import Path
+    from .contract import load
+    from .node_contract import from_contract
+    from .tla_check import TlaUnavailable, check, check_graph_tla
+
+    target_arg = Path(args.contract)
+    out = Path(args.out) if args.out else Path(tempfile.mkdtemp(prefix='factory-tlc-'))
+    report = {}
+
+    if str(args.contract).endswith('.tla') and target_arg.is_file():
+        from .tla_graph import parse_taskgraph_tla
+        parsed = parse_taskgraph_tla(target_arg)
+        if args.requirements:
+            from . import plan_catalog, plan_checks, requirements as req
+            requirements = req.load(args.requirements)
+            problems, warnings = plan_checks.run(parsed['node_contracts'], parsed['plan'], requirements, plan_catalog.load())
+            report['static'] = dict(problems=problems, warnings=warnings)
+        try:
+            result = check_graph_tla(target_arg, out, max_parallel=args.max_parallel, attempts=args.attempts)
+        except TlaUnavailable as exc:
+            print(f'Nothing proven: {exc}', file=sys.stderr)
+            return 2
+    else:
+        contract = load(args.contract)
+        document = from_contract(contract)
+        if not document:
+            print(f'Contract {args.contract} carries no node contracts', file=sys.stderr)
+            return 2
+        plan_doc = None
+        requirements = None
+        if args.requirements:
+            from . import plan_catalog, plan_checks, requirements as req
+            from .planner import contract_plan
+            requirements = req.load(args.requirements)
+            plan_path = target_arg.parent / 'plan.json'
+            plan_doc = (
+                json.loads(plan_path.read_text(encoding='utf-8'))
+                if plan_path.is_file()
+                else dict(contract_plan(None, None, document), planner='factory.ai_planner')
+            )
+            legacy_contract = contract if requirements.get('contract_id') else None
+            problems, warnings = plan_checks.run(
+                document, plan_doc, requirements, plan_catalog.load(), contract=legacy_contract,
+            )
+            report['static'] = dict(problems=problems, warnings=warnings)
+        try:
+            if requirements is not None:
+                from .tla_graph import render_graph_tla
+                tla_text = render_graph_tla(
+                    document, requirements, plan_doc, max_parallel=args.max_parallel, attempts=args.attempts,
+                )
+                result = check_graph_tla(tla_text, out, max_parallel=args.max_parallel, attempts=args.attempts)
+            else:
+                result = check(document, out, max_parallel=args.max_parallel, attempts=args.attempts)
+        except TlaUnavailable as exc:
+            print(f'Nothing proven: {exc}', file=sys.stderr)
+            return 2
+    report['tla'] = dict(passed=result['passed'], problems=result['problems'], model=str(out),
+                         runs=[{k: r.get(k) for k in ('run', 'passed', 'distinct_states', 'states_generated', 'depth', 'seconds', 'checked')}
+                               for r in result['runs']],
+                         execution_model={k: result['execution_model'][k] for k in ('max_parallel', 'limits', 'exclusive')})
+    print(json.dumps(report, indent=2, ensure_ascii=False))
+    return 0 if result['passed'] and not (report.get('static') or {}).get('problems') else 1
+
+
 def _lab_agent_args(argv):
     """(home, command, arguments) for `lab-agent`/`lab-server`, or None for other commands."""
     raw = list(sys.argv[1:] if argv is None else argv)
@@ -201,6 +269,16 @@ def main(argv=None):
     export.add_argument('task_id')
     export.add_argument('--out', required=True)
     export.add_argument('--extra-file', action='append', default=[])
+    synthesize = sub.add_parser('synthesize', help='plan task requirements (factory.requirements/1) into a checked task graph with the AI planner')
+    synthesize.add_argument('requirements', help='requirements JSON file (with --replay: a planning run directory)')
+    synthesize.add_argument('--out', help='directory for planning runs (default <home>/planner)')
+    synthesize.add_argument('--replay', action='store_true', help='re-check the recorded replies of an existing run directory instead')
+    verify_plan = sub.add_parser('verify-plan', help='prove a contract\'s task graph with TLC against the factory execution model')
+    verify_plan.add_argument('contract', help='contract id (jiuwenswarm/factory/contracts) or contract JSON path with node contracts')
+    verify_plan.add_argument('--requirements', help='also run the static planner checks against these requirements')
+    verify_plan.add_argument('--max-parallel', type=int, help='nodes the scheduler runs at once (default FACTORY_PLANNER_MAX_PARALLEL or 4)')
+    verify_plan.add_argument('--attempts', type=int, help='attempts per non-build node (default FACTORY_PLANNER_ATTEMPTS or 2)')
+    verify_plan.add_argument('--out', help='directory for the TLC model and output (default: a temporary directory)')
     sub.add_parser('login', help='sign in under the factory data directory')
     sub.add_parser('auth-status', help='show factory account status without tokens')
     telemetry = sub.add_parser('telemetry', help='summarize capsule and controller telemetry')
@@ -269,6 +347,20 @@ def main(argv=None):
         if args.command in {'login', 'auth-status'}:
             asyncio.run(auth(args.command, home))
             return
+        if args.command == 'verify-plan':
+            raise SystemExit(verify_plan_command(args))
+        if args.command == 'synthesize':
+            from .ai_planner import main_synthesize, replay
+            if args.replay:
+                verdicts = replay(args.requirements)
+                print(json.dumps(verdicts, indent=2))
+                raise SystemExit(0 if all(v['same'] and v.get('same_graph', True) for v in verdicts) else 1)
+            directory, status = main_synthesize(args.requirements, args.out, home)
+            print(json.dumps(dict(run=str(directory), **{k: status.get(k) for k in ('state', 'round', 'nodes', 'error', 'warnings')}),
+                             indent=2, ensure_ascii=False))
+            if status['state'] == 'succeeded' and (directory / 'task.json').is_file():
+                print(f'deliverable: {directory / "task.json"} · seed it with: jiuwenswarm-factory init {directory / "task.json"}')
+            raise SystemExit(0 if status['state'] == 'succeeded' else 1)
         if args.command == 'ask':
             task_file, task = ask_task(args, home)
             if args.dry_run:

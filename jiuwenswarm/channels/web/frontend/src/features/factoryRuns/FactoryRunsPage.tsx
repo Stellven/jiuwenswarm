@@ -31,6 +31,7 @@ import { CapsuleChips, CapsuleLinksContext } from './cc/CapsuleChips';
 import { capsuleApi, type CapsuleCard } from './cc/capsuleApi';
 import { useCapsuleCopy } from './cc/copy';
 import { capsuleHref, runHref, type FactoryEntry } from './cc/navigation';
+import { PlannerPage } from './planner/PlannerPage';
 import { useCapsuleResource } from './cc/useCapsuleResource';
 import './factoryRuns.css';
 
@@ -71,10 +72,17 @@ const patterns: Partial<Record<Panel, RegExp>> = {
 };
 export function FactoryRunsPage({ entry }: { entry?: Extract<FactoryEntry, { view: 'factoryRuns' }> }) {
   const capsuleCatalog = useCapsuleResource('catalog', catalogRequest);
+  if (entry?.section === 'planner') {
+    return <PlannerPage plan={entry.plan} />;
+  }
   return (
-    <CapsuleLinksContext.Provider value={capsuleCatalog.data?.capsules ?? emptyCapsules}>
-      <FactoryReplay key={JSON.stringify(entry)} entry={entry} />
-    </CapsuleLinksContext.Provider>
+    <div className="factory-section" data-testid="factory-section">
+      <div className="factory-section-body">
+        <CapsuleLinksContext.Provider value={capsuleCatalog.data?.capsules ?? emptyCapsules}>
+          <FactoryReplay key={JSON.stringify(entry)} entry={entry} />
+        </CapsuleLinksContext.Provider>
+      </div>
+    </div>
   );
 }
 

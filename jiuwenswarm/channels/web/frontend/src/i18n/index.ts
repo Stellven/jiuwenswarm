@@ -14,14 +14,13 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: 'zh',
+    fallbackLng: 'en',
     supportedLngs: ['zh', 'en'],
     interpolation: {
       escapeValue: false,
     },
     detection: {
-      // 未手动选择过语言时默认中文（与后端 preferred_language 默认值一致），
-      // 不再跟随 navigator（桌面 WebView2 常为 en-US，导致启动初期显示英文）。
+      // Default to English when no explicit language was saved in localStorage.
       order: ['localStorage'],
       caches: ['localStorage'],
     },

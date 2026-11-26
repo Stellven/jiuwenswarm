@@ -102,3 +102,5 @@ docs/architecture/source-archive/** -text whitespace=-trailing-space,-blank-at-e
 
 # Published RSI evidence retains exact source and measurement bytes.
 benchmarks/ccbench/rsi/evidence/** -text
+# Prompt bytes are pinned by digest in factory contracts.
+ops/spark/prompts/** -text

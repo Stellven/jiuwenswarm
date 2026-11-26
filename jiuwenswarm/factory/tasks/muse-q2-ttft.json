@@ -1,0 +1,43 @@
+{
+  "task_id": "muse-q2-ttft",
+  "objective": "Starting from stock llama.cpp 9048bad8 and the official Muse Spark Open NVFP4 checkpoint, build the NVFP4 GGUF pack and the base engine E0, requantize the routed experts to Q2_K, port the profile-seeded expert weight cache onto E0 as candidate E1, and hand arms A (NVFP4 on E0), B (Q2 on E0) and C (Q2 on E1) to the lab to measure time to first token, decode rate and total request time against A. Work each node of contract muse-q2-ttft-v2 with its capsules; every output is checked by its capsule verifier and an independent reviewer before the next node starts.",
+  "constraints": {
+    "owned_checkout_only": true,
+    "contract_immutable": true,
+    "local_commits_in_owned_checkout": true,
+    "push_or_publish": false,
+    "model_execution": "Every model load runs under a 96 GiB cgroup cap with no swap and -lm mmap, one heavy job at a time; conversion and requantization under 32 GiB."
+  },
+  "allowed_effects": ["process.exec", "workspace.read", "workspace.write"],
+  "target": "spark-gb10",
+  "budget": {"max_turns": 200, "wall_clock_s": 259200},
+  "contract_id": "muse-q2-ttft-v2",
+  "initial_run_config": {"env": {}},
+  "component_cc": "weights.build_muse_nvfp4_reader",
+  "source": {
+    "subpath": "llama.cpp-muse",
+    "pre_integration_commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
+    "branch": "muse-q2-ttft"
+  },
+  "resources": {
+    "source": {
+      "checkout": "agent-workspace/llama.cpp-muse",
+      "copy_from": "${FACTORY_LLAMA_SOURCE}",
+      "base_commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
+      "upstream": "https://github.com/ggml-org/llama.cpp"
+    },
+    "capsules": [
+      "weights.build_muse_nvfp4_reader",
+      "weights.build_expert_scale_wiring",
+      "weights.build_weight_pack_compiler",
+      "observability.build_runtime_event_recorder",
+      "engine.build_expert_weight_cache",
+      "factory.engine_inspector",
+      "factory.source_workbench",
+      "factory.integration_skill",
+      "factory.builder",
+      "factory.lab_manager"
+    ]
+  },
+  "plan": "muse-q2-ttft.plan.json"
+}

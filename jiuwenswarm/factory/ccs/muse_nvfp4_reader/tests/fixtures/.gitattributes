@@ -1,0 +1,2 @@
+# Verifier fixtures are byte-pinned (diffs apply to these exact stock files): never convert line endings.
+* -text

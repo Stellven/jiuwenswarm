@@ -397,3 +397,243 @@ details.factory-run-group > summary.factory-run-group-title { cursor: pointer; }
 .factory-run-show-all { display: flex; gap: 6px; align-items: center; margin: 2px 0 6px; font-size: 0.8rem; color: var(--color-text-primary); }
 .factory-run-hidden-toggle { margin-top: 12px; padding: 0; border: 0; background: none; color: var(--color-text-secondary); font-size: 0.75rem; text-align: left; cursor: pointer; }
 .factory-run-hidden-toggle:hover { text-decoration: underline; }
+
+/* Section tabs: factory runs and the planner, both under the Workflow navigation item. */
+.factory-section {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: var(--color-bg-primary);
+}
+.factory-section-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 18px 0;
+  border-bottom: 1px solid var(--color-border-default);
+}
+.factory-section-tabs a {
+  padding: 8px 14px;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+}
+.factory-section-tabs a[aria-current='page'] {
+  color: var(--color-text-primary);
+  border-bottom-color: var(--color-text-link);
+  font-weight: 600;
+}
+.factory-section-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+/* Planner */
+.factory-planner .factory-main {
+  overflow: auto;
+}
+.factory-planner-tlc {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.factory-planner-tlc.is-ready {
+  background: color-mix(in srgb, #2e7d32 12%, transparent);
+}
+.factory-planner-tlc.is-missing {
+  background: color-mix(in srgb, #c62828 12%, transparent);
+}
+.factory-planner-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.factory-planner-requirement p {
+  margin: 0 0 6px;
+  font-size: 13px;
+}
+.factory-planner-requirement ul,
+.factory-planner-runs,
+.factory-planner-outputs {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+}
+.factory-planner-runs {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.factory-planner-runs a {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+.factory-planner-runs a[aria-current='page'] {
+  border-color: var(--color-text-link);
+  background: var(--color-bg-secondary);
+}
+.factory-planner-runs small {
+  grid-column: 1 / -1;
+  color: var(--color-text-secondary);
+}
+.factory-planner-state {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-bg-secondary);
+  white-space: nowrap;
+}
+.factory-planner-state.is-succeeded {
+  background: color-mix(in srgb, #2e7d32 16%, transparent);
+}
+.factory-planner-state.is-failed,
+.factory-planner-state.is-rejected,
+.factory-planner-state.is-interrupted {
+  background: color-mix(in srgb, #c62828 16%, transparent);
+}
+.factory-planner-view {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 24px;
+}
+.factory-planner-block,
+.factory-planner-value {
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  padding: 16px;
+}
+.factory-planner-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.factory-planner-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--color-bg-secondary);
+}
+.factory-planner-tile strong {
+  font-size: 22px;
+}
+.factory-planner-tile span {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+.factory-planner-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0;
+}
+.factory-planner-chips li {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #2e7d32 12%, transparent);
+}
+.factory-planner-graph {
+  height: 460px;
+}
+.factory-planner-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.factory-planner-table th,
+.factory-planner-table td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--color-border-default);
+  vertical-align: top;
+}
+.factory-planner-ok {
+  color: #2e7d32;
+  font-weight: 600;
+}
+.factory-planner-warn {
+  color: #b26a00;
+  font-weight: 600;
+}
+.factory-planner-rounds {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.factory-planner-round {
+  border-left: 3px solid var(--color-border-default);
+  padding: 4px 0 4px 12px;
+}
+.factory-planner-round.is-passed {
+  border-left-color: #2e7d32;
+}
+.factory-planner-round.is-static,
+.factory-planner-round.is-tla,
+.factory-planner-round.is-parse,
+.factory-planner-round.is-init,
+.factory-planner-round.is-error {
+  border-left-color: #c62828;
+}
+.factory-planner-round p {
+  margin: 0 0 6px;
+}
+.factory-planner-problems,
+.factory-planner-warnings {
+  margin: 0 0 6px;
+  padding-left: 18px;
+  font-size: 13px;
+}
+.factory-planner-warnings {
+  color: var(--color-text-secondary);
+}
+.factory-planner-round-actions {
+  display: flex;
+  gap: 8px;
+}
+.factory-planner-text {
+  max-height: 360px;
+  overflow: auto;
+  white-space: pre-wrap;
+  font-size: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--color-bg-secondary);
+}
+.factory-planner-picked {
+  font-weight: 600;
+  background: color-mix(in srgb, #2e7d32 10%, transparent);
+  border-radius: 6px;
+  padding: 2px 4px;
+}
+.factory-planner-options {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.factory-planner-block h4 {
+  font-size: 14px;
+  margin: 14px 0 6px;
+}

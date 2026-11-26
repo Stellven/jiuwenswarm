@@ -1,0 +1,40 @@
+kind: builder_spec
+component: Expert scale wiring
+atlas_subcomponent: weights.format_toolkit
+title: Expert scale wiring builder
+base:
+  repo: https://github.com/ggml-org/llama.cpp
+  commit: 9048bad8d6e3a0f9f1726e238e451181c7e02613
+  pre_integration_commit: 9048bad8d6e3a0f9f1726e238e451181c7e02613
+change:
+  touches:
+    - src/models/muse-spark.cpp
+  protected:
+    - ggml/
+    - src/llama-graph.cpp
+    - src/llama-model.cpp
+    - gguf-py/
+    - conversion/
+  kind: graph
+supported:
+  host: {name: dgx-spark-gb10, arch: aarch64, cuda_arch: sm_121}
+  models: Muse Spark Open; any pack that carries [n_expert] ffn_*_exps.scale tensors (NVFP4 from the Muse reader).
+  dtype: any; packs without scale tensors are unaffected
+configuration:
+  env: {}
+  source: >-
+    Pass the layer's loaded ffn_{up,gate,down}_exps_s to the matching build_moe_ffn parameters in the owned
+    checkout as GUIDE.md and METHOD.md direct. Absent tensors are the off switch; there is no env gate.
+engagement_checks:
+  - 'llama-eval-callback on an NVFP4 pack names ffn_moe_gate_scaled-N, ffn_moe_up_scaled-N, ffn_moe_down_scaled-N'
+  - 'a pack without .scale tensors shows no *_scaled names'
+correctness_obligations:
+  - A pack without .scale tensors gives byte-identical greedy output to stock.
+  - Each projection takes its own scale; the NVFP4 tiny pack matches the dequantized reference (KLD <= 0.005, layer slice <= 0.05).
+  - No NaN.
+rollback:
+  source: Revert the three arguments to nullptr in the owned checkout.
+  image: Restore the previously admitted base engine image.
+acceptance:
+  type: correctness
+modifies_region: [L4.expert_matmul, W.expert_precision]

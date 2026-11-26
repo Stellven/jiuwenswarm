@@ -1,0 +1,780 @@
+/* Planner top-level workbench styles layered over factoryRuns.css tokens */
+
+.planner-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+.planner-subnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 22px 0;
+  border-bottom: 1px solid var(--color-border-default);
+  background: var(--color-bg-primary);
+  flex-wrap: wrap;
+}
+
+.planner-subnav-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.planner-subnav-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.planner-subnav-tab:hover {
+  color: var(--color-text-primary);
+}
+
+.planner-subnav-tab[aria-selected='true'] {
+  color: var(--color-text-primary);
+  border-bottom-color: var(--color-text-link);
+  font-weight: 600;
+}
+
+.planner-subnav-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.planner-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Badges & pills */
+.planner-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-default);
+  white-space: nowrap;
+}
+
+.planner-badge.is-good {
+  background: color-mix(in srgb, #16a34a 12%, transparent);
+  color: #15803d;
+  border-color: color-mix(in srgb, #16a34a 35%, transparent);
+}
+
+.planner-badge.is-warn {
+  background: color-mix(in srgb, #d97706 12%, transparent);
+  color: #b45309;
+  border-color: color-mix(in srgb, #d97706 35%, transparent);
+}
+
+.planner-badge.is-bad {
+  background: color-mix(in srgb, #dc2626 12%, transparent);
+  color: #b91c1c;
+  border-color: color-mix(in srgb, #dc2626 35%, transparent);
+}
+
+.planner-badge.is-info {
+  background: color-mix(in srgb, #2563eb 10%, transparent);
+  color: var(--color-text-link);
+  border-color: color-mix(in srgb, #2563eb 30%, transparent);
+}
+
+/* Pipeline Stepper */
+.planner-stepper {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(110px, 1fr));
+  gap: 8px;
+  padding: 14px 20px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  background: var(--color-bg-secondary);
+  overflow-x: auto;
+}
+
+.planner-step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 10px;
+  border-radius: 9px;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-primary);
+  font-size: 12px;
+}
+
+.planner-step.is-done {
+  border-color: color-mix(in srgb, #16a34a 45%, var(--color-border-default));
+  background: color-mix(in srgb, #16a34a 5%, var(--color-bg-primary));
+}
+
+.planner-step.is-active {
+  border-color: var(--color-text-link);
+  box-shadow: 0 0 0 2px color-mix(in srgb, #2563eb 15%, transparent);
+}
+
+.planner-step.is-error {
+  border-color: color-mix(in srgb, #dc2626 50%, var(--color-border-default));
+  background: color-mix(in srgb, #dc2626 6%, var(--color-bg-primary));
+}
+
+.planner-step-num {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.planner-step-title {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.3;
+}
+
+.planner-step-detail {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+/* Rail custom TaskInput editor */
+.planner-taskinput-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.planner-criteria-list {
+  margin: 4px 0 0;
+  padding-left: 16px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.planner-effects-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.planner-custom-editor {
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: var(--color-bg-secondary);
+}
+
+.planner-custom-editor summary {
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.planner-json-textarea {
+  width: 100%;
+  min-height: 190px;
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11.5px;
+  line-height: 1.45;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.planner-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  align-items: center;
+}
+
+.planner-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.planner-btn:hover:not(:disabled) {
+  border-color: var(--color-text-link);
+}
+
+.planner-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.planner-btn.is-primary {
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+  border-color: transparent;
+}
+
+/* Capsule link pill in Planner decisions */
+.planner-capsule-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, #2563eb 28%, var(--color-border-default));
+  background: color-mix(in srgb, #2563eb 7%, transparent);
+  color: var(--color-text-link);
+  text-decoration: none;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.planner-capsule-link:hover {
+  background: color-mix(in srgb, #2563eb 14%, transparent);
+  text-decoration: underline;
+}
+
+/* Graph.tla Inspector */
+.planner-tla-inspector {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.planner-tla-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+}
+
+.planner-tla-sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.planner-tla-code-wrap {
+  max-height: 440px;
+  overflow: auto;
+  border-radius: 9px;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-secondary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.planner-tla-line {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 12px;
+  padding: 0 12px;
+}
+
+.planner-tla-line.is-marker {
+  background: color-mix(in srgb, #2563eb 10%, transparent);
+  font-weight: 600;
+}
+
+.planner-tla-lineno {
+  user-select: none;
+  text-align: right;
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+}
+
+.planner-tla-linetext {
+  white-space: pre;
+  overflow-x: visible;
+}
+
+/* Handoff Banner */
+.planner-handoff-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, #16a34a 35%, var(--color-border-default));
+  background: color-mix(in srgb, #16a34a 7%, var(--color-bg-primary));
+}
+
+/* Workflow Library & Ablation Two-Pane / Full Scrollable Layouts */
+.planner-scroll-main {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 22px 26px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.planner-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 16px;
+}
+
+/* Simplified 3-second Workflow Library Layout */
+.planner-wf-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-secondary);
+}
+
+.planner-wf-hero-main h2 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.planner-wf-hero-desc {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+  max-width: 78ch;
+}
+
+.planner-wf-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.planner-wf-source-link {
+  text-decoration: none;
+}
+
+.planner-wf-source-link:hover {
+  text-decoration: underline;
+}
+
+.planner-badge-dashed {
+  border-style: dashed;
+}
+
+.planner-wf-pipeline {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.planner-wf-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.planner-wf-section-head h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.planner-wf-section-head .factory-muted {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+}
+
+.planner-wf-section-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+/* Horizontal Flow Ribbon (DAG overview at a glance) */
+.planner-wf-flow-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-secondary);
+}
+
+.planner-wf-flow-arrow {
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.planner-wf-flow-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
+.planner-wf-flow-group.is-parallel {
+  padding: 3px 6px;
+  border-radius: 8px;
+  border: 1px dashed color-mix(in srgb, #2563eb 38%, var(--color-border-default));
+  background: color-mix(in srgb, #2563eb 5%, transparent);
+}
+
+.planner-wf-flow-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: 11.5px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.planner-wf-flow-chip:hover {
+  border-color: var(--color-text-link);
+  color: var(--color-text-link);
+}
+
+.planner-wf-flow-chip.is-conditional {
+  border-style: dashed;
+}
+
+.planner-wf-flow-num {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+/* Stepped Flow Phases & Parallel Groups */
+.planner-wf-phases {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.planner-wf-phase-connector {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--color-text-secondary);
+  opacity: 0.65;
+  padding: 1px 0;
+}
+
+.planner-wf-phase.is-parallel {
+  padding: 10px 12px 12px;
+  border-radius: 11px;
+  border: 1px dashed color-mix(in srgb, #2563eb 35%, var(--color-border-default));
+  background: color-mix(in srgb, #2563eb 3%, transparent);
+}
+
+.planner-wf-parallel-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-link);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.planner-wf-phase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.planner-wf-step-card {
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+  padding: 13px 15px;
+  background: var(--color-bg-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.planner-wf-step-card.is-write {
+  border-left: 3px solid #d97706;
+}
+
+.planner-wf-step-card.is-read {
+  border-left: 3px solid #2563eb;
+}
+
+.planner-wf-step-card.is-none {
+  border-left: 3px solid #16a34a;
+}
+
+.planner-wf-step-card.is-conditional {
+  border-top-style: dashed;
+  border-right-style: dashed;
+  border-bottom-style: dashed;
+  background: color-mix(in srgb, var(--color-bg-secondary) 75%, var(--color-bg-primary));
+}
+
+.planner-wf-step-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.planner-wf-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.planner-wf-step-title {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.3;
+}
+
+.planner-wf-step-objective {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--color-text-primary);
+}
+
+.planner-wf-token {
+  display: inline-block;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.planner-wf-step-summary {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.planner-wf-step-details {
+  border-top: 1px dashed var(--color-border-default);
+  padding-top: 6px;
+  font-size: 11.5px;
+  color: var(--color-text-secondary);
+}
+
+.planner-wf-step-details summary {
+  cursor: pointer;
+  user-select: none;
+  font-weight: 500;
+}
+
+.planner-wf-step-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 6px 14px;
+  margin: 8px 0 0;
+}
+
+.planner-wf-step-meta > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.planner-wf-step-meta dt {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  opacity: 0.8;
+}
+
+.planner-wf-step-meta dd {
+  margin: 0;
+  word-break: break-word;
+}
+
+.planner-wf-tech-specs {
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+  padding: 12px 15px;
+  background: var(--color-bg-secondary);
+}
+
+.planner-wf-tech-specs > summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.planner-wf-tech-specs h4 {
+  margin: 0 0 8px;
+  font-size: 13.5px;
+}
+
+.planner-distill-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.planner-form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+}
+
+.planner-input,
+.planner-select {
+  width: 100%;
+  padding: 6px 9px;
+  border-radius: 7px;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: 12.5px;
+  box-sizing: border-box;
+}
+
+/* Ablation Charts & Trace Steps */
+.planner-chart-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.planner-chart-svg {
+  width: 100%;
+  min-width: 440px;
+  height: auto;
+  display: block;
+}
+
+.planner-trace-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.planner-trace-card {
+  min-width: 180px;
+  max-width: 240px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-secondary);
+  font-size: 11.5px;
+}
+
+.planner-trace-card.is-last {
+  border-color: color-mix(in srgb, #dc2626 55%, var(--color-border-default));
+  background: color-mix(in srgb, #dc2626 7%, var(--color-bg-primary));
+}
+
+.planner-case-row {
+  cursor: pointer;
+}
+
+.planner-case-row:hover {
+  background: var(--color-bg-secondary);
+}
+
+.planner-case-detail-cell {
+  padding: 12px 14px !important;
+  background: var(--color-bg-secondary);
+}
+
+.planner-qa-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 12px;
+}
+
+.planner-qa-item {
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--color-bg-secondary);
+}
+
+.planner-qa-item h4 {
+  margin: 0 0 6px;
+  font-size: 13.5px;
+}
+
+.planner-qa-item p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}

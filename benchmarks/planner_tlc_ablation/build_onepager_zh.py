@@ -1,0 +1,370 @@
+"""Generate a minimalist, airy, 1-minute-read Chinese 1-Page A4 PDF.
+
+Reads live core metrics from ``benchmarks/planner_tlc_ablation/results.json``,
+contrasts TLA+ vs JSON at the language level alongside the 3-way fair benchmark,
+prints via Google Chrome headless, and enforces ``Pages == 1``.
+"""
+from __future__ import annotations
+
+import json
+import subprocess
+from pathlib import Path
+from typing import Any
+
+HERE = Path(__file__).resolve().parent
+CHROME_BIN = Path('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
+
+
+def _pct_str(val: float, decimals: int = 2) -> str:
+    pct = val * 100.0
+    if abs(pct - round(pct)) < 1e-6:
+        return f'{int(round(pct))}%'
+    return f'{pct:.{decimals}f}%'
+
+
+def render_onepager_html(payload: dict[str, Any]) -> str:
+    s = payload['summary']
+    env = payload['environment']
+
+    m1_deliv = _pct_str(s.get('a_delivery_rate_m1', 0.7117), 2)
+    m2_deliv = _pct_str(s.get('a_delivery_rate_static', 1.0), 0)
+    tla_deliv = _pct_str(s.get('a_delivery_rate_tla', 1.0), 0)
+
+    tla_catch = _pct_str(s.get('tla_catch_rate', 1.0), 0)
+    m1_nodes = s.get('m1_class_b_wasted_nodes_mean', 4.36)
+    m1_turns = s.get('m1_class_b_wasted_turns_mean', 107.2)
+    m2_nodes = s.get('static_class_b_wasted_nodes_mean', 4.9)
+    m2_turns = s.get('static_class_b_wasted_turns_mean', 124.3)
+
+    tla_a_s = f"{s.get('tla_class_a_latency_mean_s', 1.36):.2f}s"
+    tla_b_s = f"{s.get('tla_class_b_latency_mean_s', 0.42):.2f}s"
+    rep_ok = s.get('repair_success_count', 3)
+    rep_tot = s.get('class_c_count', 3)
+    rep_pct = _pct_str(s.get('repair_success_rate', 1.0), 0)
+
+    trials = env.get('simulation_trials_per_case', 100)
+    p_fail = _pct_str(env.get('transient_fail_prob', 0.15), 0)
+    m1_bar_w = round(s.get('a_delivery_rate_m1', 0.7117) * 150, 1)
+
+    return f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>为什么任务规划需要引入 TLA+ / TLC？</title>
+<style>
+  @page {{
+    size: A4 portrait;
+    margin: 12mm 13mm;
+  }}
+  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  html, body {{
+    width: 100%;
+    font-family: "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Microsoft YaHei", -apple-system, sans-serif;
+    color: #0f172a;
+    background: #ffffff;
+    font-size: 9.8pt;
+    line-height: 1.5;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }}
+  .page {{
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }}
+  .hero {{
+    border-left: 4.5px solid #1d4ed8;
+    padding: 4px 0 4px 14px;
+  }}
+  .hero h1 {{
+    font-size: 14.2pt;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.28;
+    margin-bottom: 5px;
+  }}
+  .hero p {{
+    font-size: 10pt;
+    color: #475569;
+  }}
+  .section-title {{
+    font-size: 11.5pt;
+    font-weight: 800;
+    color: #1e3a8a;
+    margin-bottom: 9px;
+    padding-bottom: 4px;
+    border-bottom: 1.5px solid #e2e8f0;
+  }}
+  .lang-grid {{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 10px;
+  }}
+  .card-json {{
+    background: #fff5f5;
+    border: 1px solid #fecaca;
+    border-top: 3.5px solid #dc2626;
+    border-radius: 7px;
+    padding: 11px 13px;
+  }}
+  .card-tla {{
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-top: 3.5px solid #16a34a;
+    border-radius: 7px;
+    padding: 11px 13px;
+  }}
+  .card-head {{
+    font-size: 10.5pt;
+    font-weight: 800;
+    margin-bottom: 5px;
+  }}
+  .card-json .card-head {{ color: #b91c1c; }}
+  .card-tla .card-head {{ color: #15803d; }}
+  .card-body {{
+    font-size: 9.6pt;
+    color: #1e293b;
+  }}
+  .card-body ul {{
+    margin-top: 6px;
+    padding-left: 16px;
+  }}
+  .card-body li {{
+    margin-bottom: 3px;
+  }}
+  .bridge-note {{
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 9.5pt;
+    color: #1e3a8a;
+  }}
+  .fair-line {{
+    font-size: 9.5pt;
+    color: #334155;
+    margin-bottom: 10px;
+  }}
+  .report-stack {{
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+  }}
+  table.cmp {{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.2pt;
+  }}
+  table.cmp th, table.cmp td {{
+    border: 1px solid #cbd5e1;
+    padding: 6.5px 9px;
+    text-align: left;
+    vertical-align: middle;
+  }}
+  table.cmp th {{
+    background: #f1f5f9;
+    font-weight: 800;
+    color: #0f172a;
+  }}
+  .col-tla {{
+    background: #f0fdf4;
+    color: #166534;
+    font-weight: 700;
+  }}
+  .bad {{ color: #b91c1c; font-weight: 700; }}
+  .chart-box {{
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 7px;
+    padding: 10px 14px;
+  }}
+  .chart-title {{
+    font-size: 9.8pt;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 6px;
+  }}
+  .takeaway {{
+    background: #0f294d;
+    color: #ffffff;
+    border-radius: 7px;
+    padding: 11px 15px;
+    font-size: 9.8pt;
+    line-height: 1.48;
+  }}
+  .takeaway strong {{
+    color: #93c5fd;
+  }}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- 顶部标题区 -->
+  <header class="hero">
+    <h1>为什么任务规划需要引入 TLA+ / TLC？（而不是只用 JSON + 静态检查）</h1>
+    <p>用 TLA+ 状态机在规划阶段穷举验证并发与边界，对外依然输出标准 JSON，下游零额外依赖。</p>
+  </header>
+
+  <!-- 板块一：TLA+ 语言 vs JSON 语言 -->
+  <section>
+    <div class="section-title">一、本质对比：TLA+ 语言 vs JSON 语言</div>
+    <div class="lang-grid">
+      <div class="card-json">
+        <div class="card-head">JSON：静态数据结构（只看“纸面图纸”）</div>
+        <div class="card-body">
+          只擅长描述“有什么节点、连了什么线、配了什么字段”，<strong>没有时间推进、状态变迁、并发交错和资源抢占</strong>的语义。
+          <ul>
+            <li>基于 JSON 写静态规则只能做“查漏补缺”；</li>
+            <li>永远抓不住跑起来之后的<strong>动态死锁</strong>与<strong>并发撞车</strong>。</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card-tla">
+        <div class="card-head">TLA+：形式化状态机与时序逻辑语言（“发车前全演练”）</div>
+        <div class="card-body">
+          原生描述“节点状态如何流转（等待/执行/完成/失败）、谁在何时抢哪把锁、重试额度还剩多少”。配合 <strong>TLC 检验器</strong>提前演练所有并发交错与失败路径，抓出三类静态必漏的真问题：
+          <ul>
+            <li><strong>并行抢锁撞车</strong> · <strong>重试额度归零饿死</strong> · <strong>跨分支互等死锁</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="bridge-note">
+      <strong>工程闭环（内部把关，外部无感）：</strong>验证不过时，系统把反例翻译成一句人话让 AI 自动修对；验证通过后，<strong>对外仍转回标准 JSON 交付</strong>，下游调度器无需安装 Java 或懂 TLA+。
+    </div>
+  </section>
+
+  <!-- 板块二：公平测试对比报告 -->
+  <section>
+    <div class="section-title">二、公平实测对比报告（对比传统静态基线方案）</div>
+    <p class="fair-line">
+      <strong>测试口径：</strong>基于真实推理引擎优化任务（<code>llama.cpp</code> + DeepSeek-V2 / Muse-816B），共 <strong>19 个场景</strong>（6 个正常流程 + 10 个静态检查全放行的隐蔽故障 + 3 个自动修复闭环）；<strong>两组</strong>使用完全相同的输入与同一套 {trials} 次并发调度模拟器（相同随机种子、{p_fail} 瞬时失败率）。
+    </p>
+    <p class="fair-line" style="margin-top:-4px;">
+      <strong>基线定义：</strong>“传统静态规划与校验方案”指原版单次尝试规划器 + 纯静态规则校验器，仅在 JSON 层面核对字段完整性、基础依赖无环、端口类型与静态权限，规定每步只允许执行 1 次、不建模并发锁与重试演化。
+    </p>
+
+    <div class="report-stack">
+      <table class="cmp">
+        <thead>
+          <tr>
+            <th style="width:24%;">核心对比指标</th>
+            <th style="width:38%;">基线方案：传统静态规划与校验（单次尝试 + 纯静态）</th>
+            <th style="width:38%;" class="col-tla">本文方案：TLC 内部形式化验证（输出标准 JSON）</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>正常流程交付率</strong> <span style="font-size:8.2pt;color:#64748b;">(6 例)</span></td>
+            <td><span class="bad">{m1_deliv}</span> <span style="font-size:8.4pt;color:#64748b;">（每步限跑 1 次，遇瞬时失败即挂）</span></td>
+            <td class="col-tla">{tla_deliv}（0% 误报，平均耗时 {tla_a_s}）</td>
+          </tr>
+          <tr>
+            <td><strong>隐蔽故障拦截率</strong> <span style="font-size:8.2pt;color:#64748b;">(10 例)</span></td>
+            <td><span class="bad">0%（10/10 全部放行）</span></td>
+            <td class="col-tla">{tla_catch}（10/10 拦截，平均耗时 {tla_b_s}）</td>
+          </tr>
+          <tr>
+            <td><strong>上线后平均浪费</strong> <span style="font-size:8.2pt;color:#64748b;">(失败前白跑)</span></td>
+            <td>白跑 {m1_nodes} 节点 / {m1_turns} 轮</td>
+            <td class="col-tla">下游浪费 0</td>
+          </tr>
+          <tr>
+            <td><strong>反例自动修复</strong> <span style="font-size:8.2pt;color:#64748b;">(3 例)</span></td>
+            <td>不支持自动修复</td>
+            <td class="col-tla">{rep_ok}/{rep_tot}（{rep_pct}，反例引导下一轮自动修对）</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="chart-box">
+        <div class="chart-title">关键指标一眼对比</div>
+        <svg viewBox="0 0 640 82" width="100%" height="88" xmlns="http://www.w3.org/2000/svg">
+          <!-- Left: Healthy Delivery Rate -->
+          <text x="0" y="15" font-size="11.5" font-weight="700" fill="#0f172a">正常流程交付率（越高越好）</text>
+          <text x="0" y="42" font-size="10.5" fill="#b45309">静态基线</text>
+          <rect x="64" y="29" width="{round(s.get('a_delivery_rate_m1', 0.7117)*178, 1)}" height="16" rx="3.5" fill="#d97706"/>
+          <text x="{64 + round(s.get('a_delivery_rate_m1', 0.7117)*178, 1) + 7}" y="41.5" font-size="11" font-weight="700" fill="#b45309">{m1_deliv}</text>
+
+          <text x="0" y="69" font-size="10.5" fill="#15803d">TLC 验证</text>
+          <rect x="64" y="56" width="178" height="16" rx="3.5" fill="#16a34a"/>
+          <text x="249" y="68.5" font-size="11" font-weight="700" fill="#15803d">{tla_deliv}</text>
+
+          <line x1="316" y1="6" x2="316" y2="76" stroke="#cbd5e1" stroke-width="1.2"/>
+
+          <!-- Right: Hidden Fault Catch Rate -->
+          <text x="338" y="15" font-size="11.5" font-weight="700" fill="#0f172a">隐蔽故障拦截率（越高越好）</text>
+          <text x="338" y="42" font-size="10.5" fill="#b91c1c">静态基线</text>
+          <rect x="402" y="29" width="7" height="16" rx="2.5" fill="#dc2626"/>
+          <text x="416" y="41.5" font-size="11" font-weight="700" fill="#b91c1c">0%（10/10 漏网）</text>
+
+          <text x="338" y="69" font-size="10.5" fill="#15803d">TLC 验证</text>
+          <rect x="402" y="56" width="178" height="16" rx="3.5" fill="#16a34a"/>
+          <text x="587" y="68.5" font-size="11" font-weight="700" fill="#15803d">{tla_catch}</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- 底部一句话结论 -->
+  <footer class="takeaway">
+    <strong>一句话结论：</strong>在保留既有静态校验基线的基础上，仅增加不到 1.4 秒的内部 TLA+/TLC 形式化验算，即可将隐蔽运行期故障逃逸率从 <strong>100% 降到 0%</strong>，同时对外保持 <strong>100% 标准 JSON 交付</strong>。
+  </footer>
+
+</div>
+</body>
+</html>
+"""
+
+
+def build_pdf(
+    results_path: Path | None = None,
+    pdf_path: Path | None = None,
+    html_path: Path | None = None,
+) -> Path:
+    """Render ``results.json`` into minimalist HTML and print strictly 1-page A4 PDF."""
+    results_path = Path(results_path or (HERE / 'results.json'))
+    pdf_path = Path(pdf_path or (HERE / 'tlc_architecture_onepager_zh.pdf'))
+    html_path = Path(html_path or (HERE / 'tlc_architecture_onepager_zh.html'))
+
+    payload = json.loads(results_path.read_text(encoding='utf-8'))
+    html = render_onepager_html(payload)
+    html_path.write_text(html, encoding='utf-8')
+
+    if not CHROME_BIN.is_file():
+        raise FileNotFoundError(f'Google Chrome not found at {CHROME_BIN}')
+
+    cmd = [
+        str(CHROME_BIN),
+        '--headless=new',
+        '--disable-gpu',
+        '--no-sandbox',
+        '--no-pdf-header-footer',
+        f'--print-to-pdf={pdf_path.resolve()}',
+        html_path.resolve().as_uri(),
+    ]
+    proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    if proc.returncode != 0 or not pdf_path.is_file():
+        raise RuntimeError(f'Chrome headless PDF generation failed ({proc.returncode}):\n{proc.stderr}')
+
+    info = subprocess.run(['pdfinfo', str(pdf_path)], capture_output=True, text=True, check=False)
+    if info.returncode == 0:
+        for line in info.stdout.splitlines():
+            if line.startswith('Pages:'):
+                pages = int(line.split(':', 1)[1].strip())
+                if pages != 1:
+                    raise RuntimeError(f'Expected strictly 1 page PDF, got {pages} pages!\n{info.stdout}')
+                break
+    return pdf_path
+
+
+def main() -> int:
+    pdf_out = build_pdf()
+    print(json.dumps({'pdf': str(pdf_out), 'size_bytes': pdf_out.stat().st_size}, indent=2, ensure_ascii=False))
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

@@ -1,0 +1,271 @@
+cc: '2'
+id: weights.build_weight_pack_compiler
+version: 2.0.0
+materials:
+  guide:
+    path: GUIDE.md
+  method:
+    path: METHOD.md
+  validation:
+    path: VALIDATION.md
+  ontology:
+    path: ONTOLOGY.yaml
+  source_map:
+    path: SOURCE-MAP.md
+  helpers:
+    path: helpers/README.md
+  helper_reader:
+    path: helpers/gguf_pack.py
+  helper_recipe:
+    path: helpers/recipe.py
+  stock_quantize_model:
+    path: helpers/stock_quantize.py
+  recipe_verifier:
+    path: helpers/recipe_check.py
+  pack_verifier:
+    path: helpers/pack_check.py
+  sample_recipe_entry:
+    path: samples/recipe_entry.json
+  sample_quantize_run:
+    path: samples/quantize_run.sh
+  test_fixture:
+    path: tests/wpc_gguf_fixture.py
+  roles:
+    path: roles.json
+    media_type: application/json
+defs:
+  done:
+    kind: json
+    description: True when no check failed.
+    schema:
+      type: boolean
+  checks:
+    kind: json
+    schema:
+      type: array
+      items:
+        type: object
+        required:
+        - name
+        - status
+        - stage
+        - detail
+        properties:
+          name:
+            type: string
+          status:
+            enum:
+            - pass
+            - fail
+            - skipped
+            - inconclusive
+            - info
+          stage:
+            enum:
+            - fixture
+            - native CC execution
+          detail:
+            type: string
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  plan_recipe:
+    does: Draft a pack recipe (factory.pack-recipe/1) from the GGUF header census of a source pack - per-tensor
+      target types, anchored --tensor-type pins keeping every non-expert tensor at its source type, the stock
+      llama-quantize argv with --allow-requantize and --imatrix, a one-layer timing probe and byte and disk
+      estimates. A helper for the worker, who owns the recipe.
+    takes:
+      pack_manifest:
+        kind: text
+        description: Absolute path to the source pack's JSON manifest (files with sha256) or to its first GGUF shard.
+      target:
+        kind: text
+        optional: true
+        description: ggml type for routed expert weights; default q2_k.
+      imatrix:
+        kind: text
+        optional: true
+        description: Absolute path to the importance matrix; hashed into the recipe and passed as --imatrix.
+      output:
+        kind: text
+        optional: true
+        description: Output path (with --keep-split, the shard prefix); default beside the source.
+      llama_quantize:
+        kind: text
+        optional: true
+        description: Path to the stock llama-quantize binary written into argv; default llama-quantize.
+      keep_split:
+        kind: json
+        optional: true
+        schema:
+          type: boolean
+      threads:
+        kind: json
+        optional: true
+        schema:
+          type: integer
+          minimum: 1
+      hash:
+        kind: json
+        optional: true
+        description: sha256 every source file when planning from a GGUF path (slow for 300 GB).
+        schema:
+          type: boolean
+      disk_grant_bytes:
+        kind: json
+        optional: true
+        schema:
+          type: integer
+          minimum: 0
+      probe_layer:
+        kind: json
+        optional: true
+        description: Last layer kept by the timing probe; default the first converted routed layer.
+        schema:
+          type: integer
+          minimum: 0
+      recipe_out:
+        kind: text
+        optional: true
+        description: Write the full recipe JSON here.
+    gives:
+      done: $done
+      checks: $checks
+      recipe:
+        kind: json
+        optional: true
+        description: Recipe summary (source, target, imatrix, pins, output, argv, probe, estimate).
+    needs:
+    - python
+    changes:
+    - workspace.read
+    - workspace.write
+  verify_recipe:
+    does: Gate a pack recipe before any conversion - source sha256 present, routed experts at the requested type,
+      every other tensor at its source type, GB10 kernel types only, whole-block rows, imatrix named below 3.5
+      bpw, --allow-requantize present, the argv replayed through a model of stock type selection realizing every
+      target, byte estimate consistent and the temporary peak inside the disk grant.
+    takes:
+      recipe:
+        kind: text
+        description: Absolute path to the recipe JSON.
+      pack_manifest:
+        kind: text
+        optional: true
+        description: Source manifest or first shard; when given the recipe's tensor table is compared with the headers.
+      target:
+        kind: text
+        optional: true
+        description: Requested type for routed experts; default the recipe's target.
+      disk_grant_bytes:
+        kind: json
+        optional: true
+        schema:
+          type: integer
+          minimum: 0
+      gb10_types:
+        kind: json
+        optional: true
+        description: Replace the admitted type list (lower-case ggml names).
+        schema:
+          type: array
+          items:
+            type: string
+    gives:
+      done: $done
+      checks: $checks
+    needs:
+    - python
+    changes:
+    - workspace.read
+  verify_pack:
+    does: Gate a written pack - every shard present and readable, routed experts at the target type, every other
+      tensor at its recipe or source type, the same tensor set, every expert .scale and .input_scale byte-identical
+      to the source, total bytes in range and near the recipe estimate, imatrix recorded. Fails closed. Returns
+      the pack manifest (size, mtime, header digest; sha256 with hash).
+    takes:
+      pack:
+        kind: text
+        description: Absolute path to the first output shard or the directory holding the pack.
+      recipe:
+        kind: text
+        optional: true
+      source_pack:
+        kind: text
+        optional: true
+        description: First shard of the source pack, for the census and the carried scale bytes.
+      expect_bytes_range:
+        kind: json
+        optional: true
+        schema:
+          type: array
+          items:
+            type: integer
+            minimum: 0
+          minItems: 2
+          maxItems: 2
+      target:
+        kind: text
+        optional: true
+      hash:
+        kind: json
+        optional: true
+        schema:
+          type: boolean
+    gives:
+      done: $done
+      checks: $checks
+      manifest:
+        kind: json
+        optional: true
+    needs:
+    - python
+    changes:
+    - workspace.read
+  publish_manifest:
+    does: Run the verify_pack checks with per-file sha256 (unless hash is false) and write the pack manifest
+      (factory.pack-manifest/1) to a file for the next node.
+    takes:
+      pack:
+        kind: text
+      out:
+        kind: text
+        description: Absolute path of the manifest JSON to write.
+      recipe:
+        kind: text
+        optional: true
+      source_pack:
+        kind: text
+        optional: true
+      expect_bytes_range:
+        kind: json
+        optional: true
+        schema:
+          type: array
+          items:
+            type: integer
+          minItems: 2
+          maxItems: 2
+      target:
+        kind: text
+        optional: true
+      hash:
+        kind: json
+        optional: true
+        schema:
+          type: boolean
+    gives:
+      done: $done
+      checks: $checks
+      manifest:
+        kind: json
+        optional: true
+    needs:
+    - python
+    changes:
+    - workspace.read
+    - workspace.write

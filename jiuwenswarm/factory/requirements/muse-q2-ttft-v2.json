@@ -1,0 +1,47 @@
+{
+  "format": "factory.task-input/1",
+  "requirements_id": "muse-q2-ttft-v2",
+  "objective": "Starting from stock llama.cpp 9048bad8 and the official Muse Spark Open NVFP4 checkpoint, build an optimized single candidate delivering NVFP4 ingestion, expert scale wiring, Q2_K weight pack compilation, and the seeded expert weight cache on a single DGX Spark GB10.",
+  "subject": {
+    "engine": {
+      "name": "llama.cpp",
+      "source": "https://github.com/ggml-org/llama.cpp",
+      "revision": "9048bad8d6e3a0f9f1726e238e451181c7e02613"
+    },
+    "model": {
+      "name": "Muse Spark Open 816B-A42B, official NVFP4 checkpoint (unsloth/Muse-Spark-Open-816B-A42B-NVFP4)",
+      "format": "safetensors-nvfp4",
+      "source": "unsloth/Muse-Spark-Open-816B-A42B-NVFP4",
+      "manifest": "model.safetensors.index.json"
+    }
+  },
+  "target": {
+    "profile": "spark-gb10",
+    "machine": "DGX Spark GB10",
+    "arch": "arm64",
+    "cuda": "13",
+    "sm": "121",
+    "memory_gb": 128,
+    "node_count": 1
+  },
+  "acceptance_criteria": [
+    {"id": "nvfp4_pack_census", "kind": "correctness", "verifiable_by": "weights.build_muse_nvfp4_reader.verify_pack", "description": "Every routed expert weight of the NVFP4 pack is NVFP4 with its .scale tensor."},
+    {"id": "scale_free_parity", "kind": "correctness", "verifiable_by": "weights.build_expert_scale_wiring.verify", "description": "A pack without expert .scale tensors gives byte-identical greedy output to stock."},
+    {"id": "nvfp4_numerics", "kind": "correctness", "verifiable_by": "weights.build_expert_scale_wiring.verify", "description": "Expert matmul and layer slice of the NVFP4 pack match torch dequantization within tolerance."},
+    {"id": "q2_pack_census", "kind": "correctness", "verifiable_by": "weights.build_weight_pack_compiler.verify_pack", "description": "Every routed expert weight of the Q2 pack is Q2_K; non-experts keep their NVFP4-pack type."},
+    {"id": "gate_unset_parity", "kind": "correctness", "verifiable_by": "engine.build_expert_weight_cache.verify", "description": "With the cache gate unset, greedy output equals the uncached Q2 engine byte for byte."},
+    {"id": "gate_set_activation", "kind": "correctness", "description": "With the cache gate set, the engine prints expert_weight_cache: active."},
+    {"id": "cold_smoke", "kind": "correctness", "description": "One cold request under the 96 GiB memory cap returns coherent text."},
+    {"id": "client_ttft_ms", "kind": "metric", "description": "Client time to first token (ms, lower is better) cold and warm at 512 and 2048 tokens."},
+    {"id": "single_spark_memory_cap", "kind": "constraint", "description": "Single DGX Spark GB10 node only; model loads under 96 GiB cgroup cap with no swap and -lm mmap; conversion under 32 GiB."}
+  ],
+  "constraints": {
+    "allowed_effects": ["workspace.read", "workspace.write", "process.exec"],
+    "budget": {"max_turns": 300, "wall_clock_s": 259200}
+  },
+  "notes": [
+    "Every model load runs under a 96 GiB cgroup cap with no swap and -lm mmap; conversion and requantization under 32 GiB.",
+    "Work only in the task-owned checkout; no remotes or pushes."
+  ],
+  "task_template": "muse-q2-ttft"
+}
