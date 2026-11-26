@@ -78,6 +78,21 @@ for node in nodes.values():
     if 'effects' in ceiling and node['kind'] in {'integrate', 'build', 'measure', 'tune'}:
         ceiling['effects'] = sorted(set(ceiling['effects']) | {'process.exec', 'workspace.write'})
 
+# A shorter lab (owner, 2026-11-25): one cold and one warm request per arm and prompt size, 32 generated tokens.
+for request in contract['workload']['requests']:
+    request['params']['n_predict'] = 32
+contract['measurement']['metrics']['request_total_ms']['how'] = (
+    'Client clock from sending the request to the last streamed token (32 generated tokens).')
+protocol = contract['measurement']['protocol']
+protocol['repeats'] = 1
+protocol['notes'] = ('One server load per arm (A, B, C, D in that order). Per prompt size: one cold request (pack pages '
+                     'evicted with posix_fadvise DONTNEED before it, reported separately) then one warm request, 32 '
+                     'generated tokens each. Trimmed to keep the lab short: with a single warm request there is no '
+                     'warm spread, so small differences are reported as measured, not as gains.')
+
+contract['provenance']['notes'].append(
+    'Revision 6 also trims the lab protocol (owner, 2026-11-25): one warm request instead of two and 32 generated '
+    'tokens instead of 128 per request, so the four arms fit in a few hours instead of a night.')
 contract['provenance']['notes'].append(
     'Revision 6 (v4 file, owner decision 2026-11-25): a 2-bit pack not made before, routed experts ' + MIX +
     ', other tensors at their NVFP4-pack type (about 267 GB against 305 GB for the Q2_K pack of Nov 24), target '

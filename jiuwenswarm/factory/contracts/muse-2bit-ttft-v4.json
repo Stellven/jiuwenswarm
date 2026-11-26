@@ -96,7 +96,7 @@
     "id": "p512",
     "input": "prompt_512",
     "params": {
-     "n_predict": 128,
+     "n_predict": 32,
      "temperature": 0,
      "seed": 1,
      "cache_prompt": false,
@@ -113,7 +113,7 @@
     "id": "p2048",
     "input": "prompt_2048",
     "params": {
-     "n_predict": 128,
+     "n_predict": 32,
      "temperature": 0,
      "seed": 1,
      "cache_prompt": false,
@@ -185,7 +185,7 @@
    "request_total_ms": {
     "unit": "ms",
     "better": "lower",
-    "how": "Client clock from sending the request to the last streamed token (128 generated tokens)."
+    "how": "Client clock from sending the request to the last streamed token (32 generated tokens)."
    },
    "prompt_tokens_per_second": {
     "unit": "tokens/s",
@@ -230,7 +230,7 @@
    }
   },
   "protocol": {
-   "repeats": 2,
+   "repeats": 1,
    "order": "sequential",
    "discard_first_request": false,
    "cold_load": "separate",
@@ -238,7 +238,7 @@
     "max_load": 1.0,
     "no_builds": true
    },
-   "notes": "One server load per arm (A, B, C, D in that order). Per prompt size: one cold request (pack pages evicted with posix_fadvise DONTNEED before it, reported separately) then two warm repeats. The NVFP4 arm runs from the SSD at well under one token per second, so the protocol is sized to fit one night; differences smaller than the warm-repeat spread are reported as no change."
+   "notes": "One server load per arm (A, B, C, D in that order). Per prompt size: one cold request (pack pages evicted with posix_fadvise DONTNEED before it, reported separately) then one warm request, 32 generated tokens each. Trimmed to keep the lab short: with a single warm request there is no warm spread, so small differences are reported as measured, not as gains."
   }
  },
  "correctness": {
@@ -355,6 +355,7 @@
    "Revision 3 adds node measure_accuracy: the 2-bit pack must lose less than 5 MMLU points against the NVFP4 pack (paired, planned checkpoints, eval.paired_accuracy) before the lab.",
    "Revision 4 (v3 file) makes every node contract preliminary: the scheduler agent finalizes each node just before it runs, binding capsules and filling slots from accepted upstream outputs, earlier failures and the machine state. A final contract may be more concrete or stricter than its preliminary one, never weaker.",
    "Revision 5: the scheduler agent reported a spec gap on pin_inputs (2026-11-25): the free disk criterion asked for 1.4 TB, the room both packs need, while a run that reuses the packs writes almost nothing. The planner states it as free disk covering what the run writes plus 100 GB.",
+   "Revision 6 also trims the lab protocol (owner, 2026-11-25): one warm request instead of two and 32 generated tokens instead of 128 per request, so the four arms fit in a few hours instead of a night.",
    "Revision 6 (v4 file, owner decision 2026-11-25): a 2-bit pack not made before, routed experts IQ2_XXS for the gate and up projections, Q2_K for down, other tensors at their NVFP4-pack type (about 267 GB against 305 GB for the Q2_K pack of Nov 24), target iq2_xxs,down=q2_k for weights.build_weight_pack_compiler; and every node runs in this run (capped runs through factory.capped_runner), reusing nothing built by hand."
   ]
  },
