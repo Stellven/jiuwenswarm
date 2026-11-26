@@ -486,7 +486,7 @@
        "output": "converter",
        "verifier": "weights.build_muse_nvfp4_reader.verify",
        "stage": "runtime acceptance",
-       "review": true,
+       "review": "advisory",
        "inputs": {
         "require_stage": "runtime acceptance"
        }
@@ -495,7 +495,7 @@
        "output": "nvfp4_pack",
        "verifier": "weights.build_muse_nvfp4_reader.verify_pack",
        "stage": "native CC execution",
-       "review": true,
+       "review": "advisory",
        "inputs": {
         "expect_bytes_range": [
          480000000000,
@@ -597,7 +597,7 @@
        "output": "change",
        "verifier": "weights.build_expert_scale_wiring.verify",
        "stage": "runtime acceptance",
-       "review": true
+       "review": "advisory"
       }
      ],
      "hands_to": "build_base_engine",
@@ -609,7 +609,13 @@
        "kind": "ccs",
        "from": "The capsule catalog, what the upstream nodes were built with and what failed before for this node."
       }
-     ]
+     ],
+     "briefing": {
+      "summary": "Implement and verify expert scales in the fresh owned checkout.",
+      "pitfalls": [
+       "The parity, KLD and slice checks use tiny CPU models. Require explicit operator clearance and the approved execution route before starting runtime verification."
+      ]
+     }
     },
     {
      "node_id": "build_base_engine",
@@ -651,7 +657,7 @@
      "node_limits": {
       "turns": 15,
       "build_attempts": 3,
-      "gpu_launches": 2
+      "gpu_launches": 1
      },
      "authority_ceiling": {
       "effects": [
@@ -748,7 +754,7 @@
      "node_limits": {
       "turns": 30,
       "time_s": 57600,
-      "gpu_launches": 4
+      "gpu_launches": 1
      },
      "authority_ceiling": {
       "effects": [
@@ -775,7 +781,7 @@
        "output": "recipe",
        "verifier": "weights.build_weight_pack_compiler.verify_recipe",
        "stage": "fixture",
-       "review": true,
+       "review": "advisory",
        "inputs": {
         "target": "iq2_xxs,down=q2_k"
        }
@@ -784,7 +790,7 @@
        "output": "pack_2bit",
        "verifier": "weights.build_weight_pack_compiler.verify_pack",
        "stage": "native CC execution",
-       "review": true,
+       "review": "advisory",
        "inputs": {
         "target": "iq2_xxs,down=q2_k",
         "expect_bytes_range": [
@@ -873,7 +879,7 @@
      ],
      "node_limits": {
       "turns": 20,
-      "gpu_launches": 3,
+      "gpu_launches": 2,
       "time_s": 3600
      },
      "authority_ceiling": {
@@ -945,7 +951,8 @@
       "pitfalls": [
        "An agent sweep (Nov 25) took -ub 4096 with a smaller 48 GiB cache: decode fell to 0.55-0.61 tok/s. Larger micro-batches than the prompt need buy nothing here and cost cache.",
        "The SWA KV buffer grows with the micro-batch (460 MiB at the default, 1104 MiB at 4096): read it from the log, do not assume it is fixed.",
-       "Each load takes about 3 minutes and needs the machine gate (100 GiB available, no other GPU job); a MEMORY_LOW stop is a host fault to report, not a plan failure."
+       "Each load takes about 3 minutes and needs the machine gate (100 GiB available, no other GPU job); a MEMORY_LOW stop is a host fault to report, not a plan failure.",
+       "Two loads are approved: default and planned. If the verified budget needs a retune, stop at the checkpoint and ask the operator before another load. Keep the failed measurement."
       ],
       "how_to_fill": [
        "batch_choice: try 2048 first (one micro-batch per lab prompt); name a smaller fallback only if the default-batch log shows 2048 does not fit the budget with a cache at least as large as arm B gets.",

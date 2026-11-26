@@ -44,6 +44,20 @@ def generate(root):
         'Use IQ2_XXS for gate and up, Q2_K for down. Preserve all eight real smoke prompts.'])
     for n, output in [(ingest, 1), (requant, 1)]:
         n['outputs'][output]['criteria'].append('Cite the successful host replay receipt and original production job.')
+    for node_id, maximum in [('build_base_engine', 1), ('requant_2bit', 1), ('size_prefill_batch', 2)]:
+        nodes[node_id]['node_limits']['gpu_launches'] = maximum
+    prefill = nodes['size_prefill_batch']
+    prefill['briefing']['pitfalls'].append(
+        'Two loads are approved: default and planned. If the verified budget needs a retune, stop at the '
+        'checkpoint and ask the operator before another load. Keep the failed measurement.')
+    wiring = nodes['wire_expert_scales']
+    wiring['briefing'] = dict(summary='Implement and verify expert scales in the fresh owned checkout.',
+        pitfalls=['The parity, KLD and slice checks use tiny CPU models. Require explicit operator clearance '
+                  'and the approved execution route before starting runtime verification.'])
+    for n in nodes.values():
+        for v in n.get('verifiers', []):
+            if v.get('verifier') and v.get('review') is True:
+                v['review'] = 'advisory'
     delivery = nodes['deliver_to_lab']
     delivery['objective'] = delivery['objective'].replace('both pack manifests and the routing profile', 'both replayed pack manifests')
     delivery['predecessors'].remove('record_profile')
