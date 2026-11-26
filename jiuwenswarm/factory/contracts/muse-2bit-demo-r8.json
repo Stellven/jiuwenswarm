@@ -526,7 +526,7 @@
      "briefing": {
       "summary": "The two full weight production steps already ran twice. Verify their recorded outputs with read-only manifest, shard size and header census checks. Record the original job and duration separately from the verification time. All other work runs in this demo.",
       "facts": [
-       "muse-2bit-ttft-v4 conversion 1a040f7126cb485581b3b317932290f4, producer 6eeca78bd8c74744b8d6bc04b9eaf151dc089195, bf16, 50G splits.",
+       "muse-2bit-ttft-v4 conversion: capped_runner replay.job_id=1a040f7126cb485581b3b317932290f4 (original attempt, not queue id), producer 6eeca78bd8c74744b8d6bc04b9eaf151dc089195, bf16, 50G splits.",
        "The fixture exercises the fresh implementation. The recorded producer owns the production pack."
       ],
       "how_to_fill": [
@@ -828,7 +828,7 @@
      "briefing": {
       "summary": "The two full weight production steps already ran twice. Verify their recorded outputs with read-only manifest, shard size and header census checks. Record the original job and duration separately from the verification time. All other work runs in this demo.",
       "facts": [
-       "muse-2bit-ttft-v4 full quantization b117d0f1e0e3428ebba1b7c681277d8b, producer cd8937e4f2bdd85f2a3a1e165ea73bc0df32f46f.",
+       "muse-2bit-ttft-v4 full quantization: capped_runner replay.job_id=b117d0f1e0e3428ebba1b7c681277d8b (original attempt, not queue id), producer cd8937e4f2bdd85f2a3a1e165ea73bc0df32f46f.",
        "Use IQ2_XXS for gate and up, Q2_K for down. Preserve all eight real smoke prompts."
       ],
       "how_to_fill": [

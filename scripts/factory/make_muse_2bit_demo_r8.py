@@ -35,7 +35,7 @@ def generate(root):
     ingest['objective'] = ('Implement the converter in the owned checkout, test it on the tiny fixture, '
                            'and verify the recorded full NVFP4 conversion through capped_runner replay.')
     ingest['briefing'] = dict(summary=REPLAY, facts=[
-        f'{BASE} conversion {CONVERT}, producer 6eeca78bd8c74744b8d6bc04b9eaf151dc089195, bf16, 50G splits.',
+        f'{BASE} conversion: capped_runner replay.job_id={CONVERT} (original attempt, not queue id), producer 6eeca78bd8c74744b8d6bc04b9eaf151dc089195, bf16, 50G splits.',
         'The fixture exercises the fresh implementation. The recorded producer owns the production pack.'])
     requant = nodes['requant_2bit']
     requant['authority_ceiling']['workspace'] = 'write'
@@ -44,7 +44,7 @@ def generate(root):
     requant['outputs'][0]['criteria'][1] = ('Match the production receipt to the source digest, imatrix, target '
                                             'and quantizer commit. Report its original elapsed time and replay time.')
     requant['briefing'] = dict(summary=REPLAY, facts=[
-        f'{BASE} full quantization {QUANTIZE}, producer cd8937e4f2bdd85f2a3a1e165ea73bc0df32f46f.',
+        f'{BASE} full quantization: capped_runner replay.job_id={QUANTIZE} (original attempt, not queue id), producer cd8937e4f2bdd85f2a3a1e165ea73bc0df32f46f.',
         'Use IQ2_XXS for gate and up, Q2_K for down. Preserve all eight real smoke prompts.'])
     for n, output in [(ingest, 1), (requant, 1)]:
         n['outputs'][output]['criteria'].append('Cite the successful host replay receipt and original production job.')
@@ -103,6 +103,11 @@ def generate(root):
         'Bind the weight pack compiler and capped runner. Cite the trusted quantize receipt and current manifest census. '
         'Write the new recipe JSON under the owned work directory. Linked packs are read-only. '
         'Use the original producer commit, verified precision recipe and name muse-2bit-v4.']
+    task['resources']['device_budget_mib'] = 110000
+    for arm in ('B', 'Bub'):
+        task['resources']['operator_inputs'][f'historical_prefill_{arm}'] = dict(
+            path=f'${{FACTORY_MUSE_DEMO}}/lab/{arm}.stderr.log',
+            how='Historical matched Q2_K E0 buffer measurement used to calibrate the estimate. Verify on the fresh mixed pack.')
     caps = task['resources']['capsules']
     task['resources']['capsules'] = [c for c in caps if c not in {
         'eval.paired_accuracy', 'analysis.expert_routing_profile', 'engine.build_expert_weight_cache'}] + ['factory.builder']

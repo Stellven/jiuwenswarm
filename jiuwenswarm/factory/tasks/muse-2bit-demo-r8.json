@@ -122,8 +122,17 @@
    "quantize_receipt": {
     "path": "${FACTORY_MUSE_DEMO}/replay-r8/quantize.json",
     "how": "Historical host production receipt for read-only quantization replay."
+   },
+   "historical_prefill_B": {
+    "path": "${FACTORY_MUSE_DEMO}/lab/B.stderr.log",
+    "how": "Historical matched Q2_K E0 buffer measurement used to calibrate the estimate. Verify on the fresh mixed pack."
+   },
+   "historical_prefill_Bub": {
+    "path": "${FACTORY_MUSE_DEMO}/lab/Bub.stderr.log",
+    "how": "Historical matched Q2_K E0 buffer measurement used to calibrate the estimate. Verify on the fresh mixed pack."
    }
-  }
+  },
+  "device_budget_mib": 110000
  },
  "plan": "muse-2bit-demo-r8.plan.json"
 }
