@@ -208,3 +208,33 @@ def test_reviewed_template_metadata_lists_contract_and_capsules(tmp_path):
         dict(id='reviewed', name='Reviewed session', contract_id='example-contract',
              objective='A reviewed objective', capsules=['example.builder']),
     ]
+
+
+def test_completed_r8_live_home_keeps_native_story_on_detail_and_poll(tmp_path):
+    home = tmp_path / 'graph-r8'
+    task_id = 'muse-2bit-demo-r8'
+    with Store(home) as store:
+        store.create_task(dict(task_id=task_id, contract_id=task_id, objective='Build an inference engine',
+                               budget={}, source={}))
+        store.append_observation(task_id, dict(obs_id='verified-output', kind='output_verified', values={}))
+        store.append_observation(task_id, dict(obs_id='completed-plan', kind='taskgraph_patch', values={
+            'rev': 1, 'parent_rev': 0, 'decision_rev': 0,
+            'patch': {'add': [
+                {'node_id': 'deliver', 'title': 'Deliver engine', 'kind': 'deliver', 'state': 'done',
+                 'evidence_ids': ['verified-output']},
+            ]},
+        }))
+
+    api = client(FactoryHttpService(roots=[home]))
+    runs = api.get('/api/factory/runs').json()['runs']
+    url = f"/api/factory/runs/{runs[0]['id']}"
+    response = api.get(url)
+    assert response.status_code == 200, response.text
+    detail = response.json()
+    assert detail['graph']['nodes'][0]['state'] == 'done'
+    assert detail['curated'] is None
+    assert any(event['id'] == 'completed-plan' for event in detail['events'])
+    response = api.get(url + '/story', params={'since': 1})
+    assert response.status_code == 200, response.text
+    assert response.json() == dict(events=detail['events'], cursor=len(detail['events']),
+                                   total=len(detail['events']), reset=True)
