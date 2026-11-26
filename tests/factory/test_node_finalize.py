@@ -247,3 +247,17 @@ def test_the_muse_v3_contract_refuses_a_looser_accuracy_margin():
     final['verifiers'][0]['inputs']['margin_pts'] = 8
     found = check_final(prelim, final)
     assert found and all('margin_pts' in f for f in found), found
+
+
+def test_the_brief_carries_what_accepted_upstream_checks_measured(planned):
+    def check(output, passed, detail):
+        planned.append_observation('pf', dict(kind='node_check', host_run=dict(by='test'), values=dict(
+            node_id='integrate', output=output, state='finished', passed=passed,
+            verifier=dict(cc='weights.x', capability='verify_pack', stage_reached='native CC execution',
+                          checks=[dict(name='total_bytes', status='pass' if passed else 'fail', detail=detail)]))))
+    check('pack', False, 'too small')
+    check('pack', True, '528942162176 bytes' + ' x' * 400)
+    found = scheduler.accepted_checks(planned, 'pf', 'integrate')
+    assert list(found) == ['pack'] and found['pack']['verifier'] == 'weights.x.verify_pack'
+    assert found['pack']['checks'][0]['detail'].startswith('528942162176 bytes') and len(found['pack']['checks'][0]['detail']) == 300
+    assert scheduler.accepted_checks(planned, 'pf', 'other') == {}

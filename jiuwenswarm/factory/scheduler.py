@@ -88,6 +88,25 @@ def excuse(host, task_id, attempt_id, reason):
     return dict(attempt_id=attempt_id, node_id=node_id, excused=True)
 
 
+def accepted_checks(host, task_id, node_id, limit=40, detail_chars=300):
+    """What the accepted node checks of a finished node measured: per output, the latest passing check's verifier
+    checks (name, status, a short detail). A scheduler finalizing a downstream node reads its slots' facts here
+    (for example the census of an accepted pack) instead of guessing; bounded so a brief stays small."""
+    from .node_check import checks_for
+    latest = {}
+    for c in checks_for(host, task_id, node_id):
+        if c.get('state') == 'finished' and c.get('passed'):
+            latest[c.get('output', 'change')] = c
+    out = {}
+    for output, c in sorted(latest.items()):
+        verifier = c.get('verifier') or {}
+        out[output] = dict(check=c['obs_id'], verifier=f"{verifier.get('cc')}.{verifier.get('capability')}" if verifier.get('cc') else None,
+                           stage_reached=verifier.get('stage_reached'),
+                           checks=[dict(name=k.get('name'), status=k.get('status'), detail=str(k.get('detail'))[:detail_chars])
+                                   for k in (verifier.get('checks') or [])[:limit]])
+    return out
+
+
 def _passed_output(host, task_id, node_id, output):
     from .node_check import checks_for
     checks = checks_for(host, task_id, node_id, output)
@@ -382,7 +401,8 @@ def finalize_brief(store, task_id, node_id):
             final, _ = effective_contract(host, task_id, item, contracts)
             upstream[item['node_id']] = dict(node_contract=item['node_contract'], evidence_ids=item['evidence_ids'],
                                              outcome=item.get('outcome'), final_contract=item.get('final_contract'),
-                                             bound_ccs=((final or {}).get('work') or {}).get('bound_ccs'))
+                                             bound_ccs=((final or {}).get('work') or {}).get('bound_ccs'),
+                                             accepted_checks=accepted_checks(host, task_id, item['node_id']))
     known = catalog()
     eligible = (prelim.get('work') or {}).get('eligible_ccs')
     machine = None
