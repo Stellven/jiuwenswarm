@@ -1,0 +1,75 @@
+{
+ "format": "factory.plan/1",
+ "planner": "Muse demo revision 8",
+ "nodes": [
+  {
+   "node_id": "pin_inputs",
+   "node_contract": "pin_inputs",
+   "depends_on": [],
+   "title": "Pin the stock llama.cpp tree, the official Muse NVFP4 checkpoint, the imatrix and the prompts by digest, and record the disk grant and memory cap."
+  },
+  {
+   "node_id": "ingest_nvfp4",
+   "node_contract": "ingest_nvfp4",
+   "depends_on": [
+    "pin_inputs"
+   ],
+   "title": "Implement the converter in the owned checkout, test it on the tiny fixture, and verify the recorded full NVFP4 conversion through capped_runner replay."
+  },
+  {
+   "node_id": "wire_expert_scales",
+   "node_contract": "wire_expert_scales",
+   "depends_on": [
+    "ingest_nvfp4"
+   ],
+   "title": "Apply the per-expert NVFP4 scale tensors in the Muse graph so the NVFP4 pack computes the same values as the checkpoint."
+  },
+  {
+   "node_id": "build_base_engine",
+   "node_contract": "build_base_engine",
+   "depends_on": [
+    "wire_expert_scales"
+   ],
+   "title": "Build the base engine E0 (stock plus scale wiring) and run one cold, capped NVFP4 inference."
+  },
+  {
+   "node_id": "requant_2bit",
+   "node_contract": "requant_2bit",
+   "depends_on": [
+    "build_base_engine",
+    "ingest_nvfp4",
+    "pin_inputs"
+   ],
+   "title": "Plan and verify the mixed precision recipe, replay the matching production quantization through capped_runner, then run the real E0 smoke on the accepted pack."
+  },
+  {
+   "node_id": "size_prefill_batch",
+   "node_contract": "size_prefill_batch",
+   "depends_on": [
+    "build_base_engine",
+    "requant_2bit"
+   ],
+   "title": "Size the server prefill batch so each lab prompt is prefilled in one micro-batch if the device budget allows, give the rest of the budget to the MoE expert cache, and confirm the plan on one capped load of E0 with the 2-bit pack. This is configuration, not timing: the lab times it."
+  },
+  {
+   "node_id": "build_image",
+   "node_contract": "build_image",
+   "depends_on": [
+    "wire_expert_scales",
+    "build_base_engine",
+    "requant_2bit",
+    "size_prefill_batch"
+   ],
+   "title": "Compile the owned checkout (stock 9048bad8 plus the converter and the expert scale wiring) into an engine image for the Spark with factory.builder, check that the image starts, and record the run configuration the lab uses: the image, the 2-bit pack and its manifest, and the batch plan arguments."
+  },
+  {
+   "node_id": "deliver_to_lab",
+   "node_contract": "deliver_to_lab",
+   "depends_on": [
+    "build_image",
+    "build_base_engine"
+   ],
+   "title": "The gate: ship the image once, with its run configuration, both replayed pack manifests, and the lab task for arms B and P, to the lab manager. Delivery is refused unless every upstream check passed and the shipped digests match the recorded ones."
+  }
+ ]
+}
