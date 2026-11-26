@@ -113,10 +113,10 @@ _run)
   (cd "$REPO" && "$PY" scripts/factory/import_prior_artifacts.py --host-reading $TASK)
   (while sleep 60; do snapshot; done) &
   ticker=$!
+  trap 'kill "$ticker" 2>/dev/null || true; wait "$ticker" 2>/dev/null || true' EXIT
   cd "$REPO"
   echo "=== run $(date -Is) step ${FACTORY_STEP:-0}" >> "$FACTORY_HOME/controller.log"
-  "$PY" scripts/factory/muse_v3_controller.py $TASK "${GRANTS[@]}" 2>&1 | tee -a "$FACTORY_HOME/controller.log" || true
-  kill $ticker
+  "$PY" scripts/factory/muse_v3_controller.py $TASK "${GRANTS[@]}" 2>&1 | tee -a "$FACTORY_HOME/controller.log"
   ;;
 release)
   cd "$REPO"
