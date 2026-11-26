@@ -4,7 +4,7 @@ The operator supplies roots through FACTORY_RUN_ROOTS (os.pathsep separated).
 Campaign measurements read FACTORY_MEASUREMENT_ROOT (default ~/predemo-spark/OPS).
 Launching is opt-in: FACTORY_LAUNCH_ROOT contains reviewed task JSON templates;
 FACTORY_LAUNCH_HOME_ROOT is a dedicated directory for new session homes.
-Operator controls (hold, release, reopen, resume) act on live homes only.
+Operator controls act only on writable live homes.
 """
 from __future__ import annotations
 
@@ -25,11 +25,14 @@ import uuid
 from fastapi import FastAPI, HTTPException, Query, Request
 from starlette.concurrency import run_in_threadpool
 
-from jiuwenswarm.factory import monitor, story, taskgraph, telemetry
+from jiuwenswarm.factory import demo_board, monitor, story, taskgraph, telemetry
 from jiuwenswarm.factory.export import snapshot
 from jiuwenswarm.factory.contract import CONTRACTS
 from jiuwenswarm.factory.redact import sanitize, scrub_bytes
-from .capsule_catalog import CapsuleCatalog
+from jiuwenswarm.factory.run_pause import current_in
+from jiuwenswarm.factory.store import FactoryError
+from . import factory_nodes
+from .capsule_catalog import CapsuleCatalog, _parse as parse_material
 from .capsule_evidence import capsule_usage, collect_capsule_evidence
 
 from jiuwenswarm.gateway.channel_manager.web.factory_measurements import MeasurementEvidence
@@ -42,8 +45,6 @@ MAX_FILE = 16 * 1024 * 1024
 SAFE_ID = re.compile(r'^[A-Za-z0-9][A-Za-z0-9_.-]{0,199}$')
 HEADLINE_ID = re.compile(r'^source:OPS/final-headlines\.json@sha256:([a-f0-9]{64})$')
 OPERATOR_OPS = ('hold', 'release', 'reopen')
-# Controller outcomes after which a resume continues the same task (see Controller._paused_at).
-RESUMABLE = ('paused', 'partial')
 MAX_CHECKS = 8  # node checks kept per output in the compact view, newest last
 
 
@@ -129,7 +130,9 @@ def curated_events(replay):
         events.append(dict(
             cursor=cursor, id=step['primary_record'], kind=step['original_kind'], summary=step['original_summary'],
             created=step['created'], step=step['step'], presentation_title=step['presentation_title'],
-            say=step.get('say', ''), graph_nodes=curated_graph_nodes(step), mark='·', rev=None))
+            say=step.get('say', ''), graph_nodes=step.get('graph_nodes') or curated_graph_nodes(step),
+            node_id=step.get('node_id'), replayed_from=step.get('replayed_from'),
+            replay_source=step.get('replay_source'), mark='·', rev=None))
     return events
 
 
@@ -171,7 +174,7 @@ def _compact_verifier(value):
 def _compact_review(value):
     if not isinstance(value, dict):
         return None
-    keep = {k: value.get(k) for k in ('verdict', 'summary', 'passed', 'reason', 'reviewer', 'packet_artifact', 'reply_artifact')
+    keep = {k: value.get(k) for k in ('verdict', 'summary', 'passed', 'reason', 'reviewer', 'packet_artifact', 'reply_artifact', 'advisory')
             if value.get(k) is not None}
     keep['findings'] = [{k: f.get(k) for k in ('severity', 'file', 'line', 'problem')}
                         for f in value.get('findings') or [] if isinstance(f, dict)]
@@ -215,7 +218,7 @@ def _reopened_at(graph):
     return result
 
 
-def node_check_view(data, graph):
+def node_check_view(data, graph, *, limit=MAX_CHECKS, only_node=None):
     """Compact per-node checking record: the node contract's work (CCs, capability), the verified
     outputs and their node_check observations, newest last. Only host records; nothing is inferred."""
     from jiuwenswarm.factory.node_contract import from_contract
@@ -232,6 +235,8 @@ def node_check_view(data, graph):
     view = {}
     for node in graph.get('nodes', []):
         key = node['node_id']
+        if only_node is not None and key != only_node:
+            continue
         contract_node = contract_nodes.get(node.get('node_contract'))
         try:
             entries = _check_entries(task, node, contract_node)
@@ -249,7 +254,8 @@ def node_check_view(data, graph):
         for name in names:
             entry = next((e for e in entries if e['name'] == name), None)
             checks = []
-            for row in [r for r in rows.get(key, []) if r['values'].get('output', 'change') == name][-MAX_CHECKS:]:
+            history = [r for r in rows.get(key, []) if r['values'].get('output', 'change') == name]
+            for row in history[-limit:] if limit else history:
                 values = row['values']
                 checks.append(dict(
                     obs_id=row['obs_id'], created=row.get('created'), state=values.get('state'),
@@ -267,6 +273,7 @@ def node_check_view(data, graph):
                 name=name, kind=spec.get('kind') or (checks[-1]['kind'] if checks else None),
                 required=spec.get('required', True) if entry else False, declared=entry is not None,
                 verifier=spec.get('verifier'), stage=spec.get('stage'), review=bool(spec.get('review')),
+                review_mode=('advisory' if spec.get('review') == 'advisory' else 'blocking' if spec.get('review') else None),
                 inputs=pinned or None, criteria=list(spec.get('criteria') or []), checks=checks))
         work = (contract_node or {}).get('work') or {}
         view[key] = dict(
@@ -278,9 +285,15 @@ def node_check_view(data, graph):
 
 
 class FactoryHttpService:
-    def __init__(self, roots=None, launch_root=None, launch_home_root=None, measurement_root=None, *, capsule_catalog=None):
-        default = os.pathsep.join((str(Path.home() / 'predemo-spark/factory-runs'),
-                                  str(Path.home() / 'software-factory-spark-20261113/exports/factory-loop-v1')))
+    def __init__(self, roots=None, launch_root=None, launch_home_root=None, measurement_root=None, *,
+                 capsule_catalog=None, historical_roots=None):
+        muse = Path.home() / 'muse-demo'
+        default = os.pathsep.join(map(str, (Path.home() / 'predemo-spark/factory-runs',
+                                          Path.home() / 'software-factory-spark-20261113/exports/factory-loop-v1',
+                                          muse / 'graph-r8', muse / 'graph-v4')))
+        histories = historical_roots if historical_roots is not None else os.environ.get(
+            'FACTORY_HISTORY_ROOTS', str(muse / 'graph-v4')).split(os.pathsep)
+        self.historical_roots = tuple(Path(p).expanduser().resolve() for p in histories if p)
         self.roots = tuple(Path(p).expanduser().resolve() for p in
                            (roots if roots is not None else os.environ.get('FACTORY_RUN_ROOTS', default).split(os.pathsep)) if p)
         self.measurements = MeasurementEvidence(measurement_root or os.environ.get(
@@ -293,8 +306,10 @@ class FactoryHttpService:
         # Per-file caches keyed by _identity: valid JSON verdicts and SHA256 digests.
         self._valid_json = {}
         self._digests = {}
-        if self.launch_home_root and not any(self.launch_home_root.is_relative_to(r) for r in self.roots):
-            raise ValueError('Launch homes must be beneath an allowed run root')
+        self._worker_calls = {}
+        if self.launch_home_root and (self._historical(self.launch_home_root)
+                                      or not any(self.launch_home_root.is_relative_to(r) for r in self.roots)):
+            raise ValueError('Launch homes must be beneath a writable run root')
 
     @staticmethod
     def run_id(path, task_id=''):
@@ -341,8 +356,11 @@ class FactoryHttpService:
                     if replay:
                         item.update(name=replay['title'], demo=True, demo_order=replay.get('order', 0),
                                     objective=replay.get('summary', ''))
-                    elif kind == 'live' and SCRATCH_HOME.match(path.name):
-                        item['scratch'] = True
+                    elif kind == 'live':
+                        if self._historical(path):
+                            item.update(read_only=True, status='replay')
+                        elif SCRATCH_HOME.match(path.name):
+                            item['scratch'] = True
                     result.append((item, path))
             except (OSError, ValueError, KeyError):
                 continue
@@ -357,6 +375,9 @@ class FactoryHttpService:
             if item['kind'] == 'bundle' and not item.get('demo') and newest[item['task_id']] is not item:
                 item['duplicate'] = True
         return result
+
+    def _historical(self, path):
+        return any(path.is_relative_to(root) for root in self.historical_roots)
 
     def resolve(self, run_id):
         for item, path in self.catalog():
@@ -425,40 +446,50 @@ class FactoryHttpService:
                     _json(target)
                     self._valid_json[key] = True
 
-    def load(self, item, path):
+    def load(self, item, path, *, include_transcript=True):
         if item['kind'] == 'bundle':
             self.bundle_safe(path)
             return story.load_source(path)
         for relative in ('factory.sqlite', 'factory.sqlite-wal',
                          f"sessions/{item['task_id']}.jsonl", f"sessions/{item['task_id']}.state.json"):
             _inside(path, relative)
-        # Inspect the contract reference from a stable DB copy before the story
-        # helper can open it. Contract JSON files are evidence, not arbitrary
-        # filesystem reads. Additional operator roots can include contract inputs.
-        paths = [path / 'factory.sqlite', path / 'factory.sqlite-wal']
+        # Read the database copy, never initialize SQLite inside a graph home.
+        with tempfile.TemporaryDirectory(prefix='factory-http-') as directory:
+            temporary = Path(directory)
+            self.copy_store(path, temporary)
+            data = snapshot(temporary, item['task_id'])
+            self.validate_contract(data['tasks'][0].get('contract_id'))
+            transcript = _inside(path, f"sessions/{item['task_id']}.jsonl") if include_transcript else None
+            relative = f"sessions/{item['task_id']}.state.json"
+            original = _inside(path, relative)
+            if original.is_file():
+                if original.stat().st_size > MAX_FILE:
+                    raise ValueError('Session state exceeds view limit')
+                target = temporary / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(original, target)
+            return story.load_source(item['task_id'], temporary, records=data, transcript_path=transcript)
+
+    @staticmethod
+    def copy_store(path, temporary):
+        paths = [_inside(path, name) for name in ('factory.sqlite', 'factory.sqlite-wal')]
+
         def stamps():
-            return [(p.stat().st_size, p.stat().st_mtime_ns) if p.exists() else None for p in paths]
+            return [_identity(p) if p.is_file() else None for p in paths]
+
         for _ in range(5):
-            before = stamps()
-            with tempfile.TemporaryDirectory(prefix='factory-http-') as temporary:
-                for source in paths:
-                    if source.exists():
-                        shutil.copyfile(source, Path(temporary) / source.name)
-                if before != stamps():
-                    continue
-                data = snapshot(Path(temporary), item['task_id'])
-                self.validate_contract(data['tasks'][0].get('contract_id'))
-                for relative in (f"sessions/{item['task_id']}.jsonl", f"sessions/{item['task_id']}.state.json"):
-                    original = _inside(path, relative)
-                    if original.is_file():
-                        if original.stat().st_size > MAX_FILE:
-                            raise ValueError('Session evidence exceeds view limit')
-                        target = Path(temporary) / relative
-                        target.parent.mkdir(parents=True, exist_ok=True)
-                        shutil.copyfile(original, target)
-                # Reuse the validated snapshot; never re-open a live DB whose
-                # contract reference may have changed meanwhile.
-                return story.load_source(item['task_id'], Path(temporary), records=data)
+            try:
+                before = stamps()
+                for source, stamp in zip(paths, before):
+                    target = temporary / source.name
+                    if stamp is None:
+                        target.unlink(missing_ok=True)
+                    else:
+                        shutil.copyfile(source, target)
+                if before == stamps():
+                    return
+            except FileNotFoundError:
+                continue  # SQLite can checkpoint and remove the WAL between the two reads.
         raise ValueError('Factory evidence changed during read; retry')
 
     def validate_contract(self, contract):
@@ -547,7 +578,10 @@ class FactoryHttpService:
     def detail(self, run_id):
         item, path = self.resolve(run_id)
         data = self.load(item, path)
-        replay = curated_replay(path) if item['kind'] == 'bundle' else None
+        plan = taskgraph.from_records(data)
+        files = self.files(item, path, data)
+        bundled = curated_replay(path) if item['kind'] == 'bundle' else None
+        replay = bundled or factory_nodes.native_replay(data, plan, files, item['source_name'])
         events = curated_events(replay) if replay else self.events(data)
         if item['kind'] == 'live':
             _inside(path, 'telemetry/events.jsonl')
@@ -555,14 +589,13 @@ class FactoryHttpService:
         else:
             trace_path = _inside(path, 'telemetry.jsonl')
             trace = [json.loads(line) for line in trace_path.read_text().splitlines() if line.strip()] if trace_path.is_file() else []
-        plan = taskgraph.from_records(data)
+        checks = node_check_view(data, plan)
         return sanitize(dict(run=item, records=data, contract=data.get('_contract', {}),
-                             graph=curated_graph(replay, item['task_id']) if replay else plan,
-                             recorded_plan=plan if replay else None,
-                             node_checks={} if replay else node_check_view(data, plan),
-                             controls=self._controls(path, data) if item['kind'] == 'live' else None,
-                             stack=monitor.engine_stack(data),
-                             telemetry=trace, files=self.files(item, path, data), events=events,
+                             graph=curated_graph(bundled, item['task_id']) if bundled else plan,
+                             recorded_plan=plan if bundled else None, node_checks=checks,
+                             cc_overview=factory_nodes.overview(data, plan, checks, self.capsule_catalog),
+                             **self._state(item, path, data, plan), stack=monitor.engine_stack(data),
+                             telemetry=trace, files=files, events=events,
                              summary=dict(meta=data.get('_meta', {}), telemetry=telemetry.summary(trace)),
                              session=self._session(item, path, data) if item['kind'] == 'live' else None,
                              curated=replay))
@@ -571,18 +604,117 @@ class FactoryHttpService:
     def _running(path):
         return controller_is_locked(_inside(path, 'controller.lock'))
 
-    def _controls(self, path, data):
-        """What an operator may do to this live home now. Bundles and curated replays have no controls."""
-        state = data['_meta']['controller_state']
-        running = self._running(path)
-        outcome = state.get('outcome')
-        return dict(operator=True, running=running, outcome=outcome, stop_reason=state.get('stop_reason'),
-                    resume=not running and outcome in RESUMABLE)
+    def _state(self, item, path, data, plan):
+        live = item['kind'] == 'live'
+        running = live and self._running(path)
+        markers = {}
+        if live:
+            for name in ('PAUSE.md', 'HALT.md', 'STEP.md'):
+                marker = _inside(path, name)
+                try:
+                    with marker.open('rb') as stream:
+                        markers[name] = dict(text=stream.read(4096).decode(errors='replace'), mtime=marker.stat().st_mtime)
+                except (FileNotFoundError, IsADirectoryError):
+                    continue
+        state = factory_nodes.run_state(data, plan, markers, running, time.time())
+        controls = None
+        if live and not item.get('read_only'):
+            controller = data['_meta']['controller_state']
+            active_pause = bool(current_in(data))
+            controls = dict(operator=True, running=running, outcome=controller.get('outcome'),
+                            stop_reason=controller.get('stop_reason'), pause=not active_pause, resume=active_pause,
+                            revise=bool(data['tasks'][0].get('contract_id')), revise_apply=not running)
+        return dict(run_state=state, controls=controls)
+
+    def state(self, run_id):
+        item, path = self.resolve(run_id)
+        data = self.load(item, path, include_transcript=False)
+        return sanitize(self._state(item, path, data, taskgraph.from_records(data)))
+
+    def _node(self, run_id, node_id):
+        if not SAFE_ID.fullmatch(node_id):
+            raise HTTPException(400, 'Invalid plan node')
+        item, path = self.resolve(run_id)
+        data = self.load(item, path, include_transcript=False)
+        plan = taskgraph.from_records(data)
+        node = next((n for n in plan['nodes'] if n['node_id'] == node_id), None)
+        if node is None:
+            raise HTTPException(404, 'Factory node not found')
+        return item, path, data, node, node_check_view(data, plan, limit=None, only_node=node_id).get(node_id, {})
+
+    def node(self, run_id, node_id):
+        item, path, data, node, checks = self._node(run_id, node_id)
+        tid = item['task_id']
+        briefs, calls = [], []
+        if item['kind'] == 'live':
+            scheduler = _inside(path, f'sessions/{tid}.scheduler.jsonl')
+            if scheduler.is_file():
+                briefs = demo_board.read_briefs(path, tid)
+        transcript = _inside(path, f'sessions/{tid}.jsonl' if item['kind'] == 'live' else 'session.jsonl')
+        if transcript.is_file():
+            key = _identity(transcript)
+            cached = self._worker_calls.get(transcript)
+            if cached is None or cached[0] != key:
+                cached = key, factory_nodes.worker_calls(transcript)
+                self._worker_calls[transcript] = cached
+            calls = cached[1]
+        releases = factory_nodes.sealed_releases(_inside(path, 'ccstore/releases')) if item['kind'] == 'live' else {}
+        return sanitize(factory_nodes.node_detail(data, node, checks, self.capsule_catalog, briefs, calls, releases,
+                                                 lambda artifact: self.node_artifact(item, path, artifact)))
+
+    def node_artifact(self, item, path, artifact):
+        relative = artifact.get('location') if item['kind'] == 'live' else artifact.get('exported_path')
+        if not relative or not Path(relative).parts or Path(relative).parts[0] != 'artifacts':
+            return {}
+        try:
+            target = _inside(path, relative)
+            with target.open('rb') as stream:
+                raw = stream.read(1024 * 1024 + 1)
+            if len(raw) <= 1024 * 1024 and _hash(raw) == artifact['sha256']:
+                data = json.loads(raw)
+                return data if isinstance(data, dict) else {}
+        except (ValueError, OSError):
+            pass
+        return {}
+
+    def node_material(self, run_id, node_id, cc, relative):
+        row = next((c for c in self.node(run_id, node_id)['capsules'] if c['id'] == cc), None)
+        if row is None or row.get('material_source') != 'sealed':
+            raise HTTPException(404, 'No sealed material for this node capsule')
+        file = next((f for f in row['files'] if f['path'] == relative), None)
+        if file is None:
+            raise HTTPException(404, 'The file is not part of the sealed capsule release')
+        _, path = self.resolve(run_id)
+        target = _inside(path, Path('ccstore/releases') / row['material_digest'] / 'bundle' / relative)
+        with target.open('rb') as stream:
+            raw = stream.read(1024 * 1024 + 1)
+        if len(raw) > 1024 * 1024 or _hash(raw) != file['expected_sha256']:
+            raise HTTPException(422, 'The sealed capsule material failed integrity or size verification')
+        content = scrub_bytes(raw).decode(errors='replace')
+        parsed, _ = parse_material(relative, content)
+        return sanitize(dict(file, content=content, parsed=parsed, integrity='verified', truncated=False))
+
+    def node_diff(self, run_id, node_id, output):
+        item, path, data, node, checks = self._node(run_id, node_id)
+        row = next((o for o in factory_nodes.outputs_view(data, node, checks.get('outputs', [])) if o['id'] == output), None)
+        aid = row['summary'].get('diff_artifact_id') if row else None
+        if not aid:
+            raise HTTPException(404, 'No recorded diff for this node output')
+        file = next((f for f in self.files(item, path, data) if aid in f['artifact_ids']), None)
+        if not file or file['integrity'] != 'verified':
+            raise HTTPException(422, 'The recorded node diff could not be verified')
+        target = _inside(path, file['path'])
+        with target.open('rb') as stream:
+            raw = stream.read(MAX_FILE + 1)
+        if len(raw) > MAX_FILE or _hash(raw) != file['expected_sha256']:
+            raise HTTPException(422, 'The recorded node diff failed integrity or size verification')
+        return sanitize(dict(content=scrub_bytes(raw).decode(errors='replace'), path=file['path'],
+                             source=row['source'], artifact_id=aid, base=row['summary'].get('base'), head=None))
 
     def _live(self, run_id):
         item, path = self.resolve(run_id)
-        if item['kind'] != 'live':
-            raise HTTPException(403, 'Operator controls apply to live factory homes only, not exported bundles or replays')
+        if item['kind'] != 'live' or self._historical(path):
+            raise HTTPException(403, 'Operator controls require a writable live factory home')
         return item, path
 
     def operator(self, run_id, op, node_id, reason):
@@ -596,27 +728,35 @@ class FactoryHttpService:
         return sanitize(dict(run_id=run_id, task_id=item['task_id'], op=op, node_id=node_id, graph_rev=graph.get('rev'),
                              held=[n['node_id'] for n in graph.get('nodes', []) if n.get('hold')]))
 
-    def resume(self, run_id):
-        """Start `jiuwenswarm-factory resume <task>` detached, the way launch starts a run."""
+    def run_operator(self, run_id, action, reason, dry_run=False):
         item, path = self._live(run_id)
-        data = self.load(item, path)
-        if self._running(path):
-            raise HTTPException(409, 'A controller is already running in this factory home')
-        outcome = data['_meta']['controller_state'].get('outcome')
-        if outcome not in RESUMABLE:
-            raise HTTPException(409, f'Resume continues a paused or partial run; this run is {outcome or "not stopped"}')
         tid = item['task_id']
-        command = [sys.executable, '-m', 'jiuwenswarm.factory.cli', '--home', str(path), 'resume', tid, '--plain']
-        for effect in data['tasks'][0].get('allowed_effects') or []:
-            command.extend(('--grant', effect))
-        if os.environ.get('FACTORY_LAUNCH_SYSTEMD') == '1':
-            command = ['systemd-run', '--user', '--scope', f'--unit=factory-{tid}-resume-{uuid.uuid4().hex[:6]}', *command]
-        with _inside(path, 'launch.log').open('ab') as log:
-            process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=log, stderr=log,
-                                       start_new_session=True, close_fds=True)
-        metadata = dict(id=run_id, task_id=tid, pid=process.pid, resumed_from=outcome)
-        _inside(path, 'resume.json').write_text(json.dumps(dict(metadata, command=command, started=time.time())) + '\n')
-        return metadata
+        data = self.load(item, path, include_transcript=False)
+        if action == 'resume' and not current_in(data):
+            raise HTTPException(409, 'The operator pause has already been cleared or was never set')
+        if action == 'revise' and not dry_run and self._running(path):
+            raise HTTPException(409, 'Wait for the controller to stop before applying a revision')
+        if action in {'pause', 'resume'}:
+            _inside(path, 'PAUSE.md')
+        with tempfile.TemporaryDirectory(prefix='factory-revise-') as scratch:
+            home = path
+            flags = ['--no-run'] if action == 'resume' else ['--json'] if action == 'revise' else []
+            if dry_run:
+                home = Path(scratch)
+                self.copy_store(path, home)
+                flags.append('--dry-run')
+            command = [sys.executable, '-m', 'jiuwenswarm.factory.cli', '--home', str(home), action, *flags, '--', tid, reason]
+            try:
+                result = subprocess.run(command, capture_output=True, text=True, timeout=30, check=False)
+            except subprocess.TimeoutExpired:
+                raise HTTPException(504, 'Factory operator command timed out') from None
+        if result.returncode:
+            raise ValueError((result.stderr or result.stdout).strip()[-600:] or 'Factory operator command failed')
+        try:
+            record = json.loads(result.stdout)
+        except ValueError:
+            raise HTTPException(409, sanitize(result.stdout.strip()[:200] or 'No operator record returned')) from None
+        return sanitize(dict(run_id=run_id, task_id=tid, action=action, **{k: v for k, v in record.items() if k not in {'task_id', 'action'}}))
 
     def _session(self, item, path, data):
         state = data['_meta']['controller_state']
@@ -626,15 +766,13 @@ class FactoryHttpService:
                    and not state.get('finished') and controller_is_locked(_inside(path, 'controller.lock'))
                    and len(monitor.tasks(path)) == 1)
         transcript = _inside(path, f"sessions/{item['task_id']}.jsonl")
-        if transcript.is_file() and transcript.stat().st_size > MAX_FILE:
-            raise ValueError('Session evidence exceeds view limit')
         return session_snapshot(data, transcript, running, time.time())
 
     def session(self, run_id):
         item, path = self.resolve(run_id)
         if item['kind'] != 'live':
             raise HTTPException(404, 'This run is an exported bundle')
-        return sanitize(self._session(item, path, self.load(item, path)))
+        return sanitize(self._session(item, path, self.load(item, path, include_transcript=False)))
 
     @staticmethod
     def events(data):
@@ -646,6 +784,10 @@ class FactoryHttpService:
         item, path = self.resolve(run_id)
         data = self.load(item, path)
         replay = curated_replay(path) if item['kind'] == 'bundle' else None
+        if not replay and data['tasks'][0].get('contract_id') == 'muse-2bit-demo-r8':
+            plan = taskgraph.from_records(data)
+            if plan['nodes'] and all(n['state'] in {'done', 'cancelled', 'superseded'} for n in plan['nodes']):
+                replay = factory_nodes.native_replay(data, plan, self.files(item, path, data), item['source_name'])
         events = curated_events(replay) if replay else self.events(data)
         return sanitize(dict(events=events, cursor=len(events), total=len(events),
                              reset=bool(since)))
@@ -794,7 +936,7 @@ def attach_factory_routes(app: FastAPI, channel=None, *, service=None):
             return await run_in_threadpool(method, *args)
         except HTTPException:
             raise
-        except (OSError, ValueError, KeyError) as exc:
+        except (OSError, ValueError, KeyError, FactoryError) as exc:
             raise HTTPException(422, sanitize(str(exc))[:200]) from None
 
     @app.get(PREFIX + '/runs')
@@ -804,6 +946,22 @@ def attach_factory_routes(app: FastAPI, channel=None, *, service=None):
     @app.get(PREFIX + '/runs/{run_id}')
     async def detail(run_id: str):
         return await call(service.detail, run_id)
+
+    @app.get(PREFIX + '/runs/{run_id}/state')
+    async def state(run_id: str):
+        return await call(service.state, run_id)
+
+    @app.get(PREFIX + '/runs/{run_id}/nodes/{node_id}')
+    async def node(run_id: str, node_id: str):
+        return await call(service.node, run_id, node_id)
+
+    @app.get(PREFIX + '/runs/{run_id}/nodes/{node_id}/diff')
+    async def diff(run_id: str, node_id: str, output: str = Query(..., max_length=200)):
+        return await call(service.node_diff, run_id, node_id, output)
+
+    @app.get(PREFIX + '/runs/{run_id}/nodes/{node_id}/material')
+    async def material(run_id: str, node_id: str, cc: str = Query(..., max_length=200), path: str = Query(..., max_length=1024)):
+        return await call(service.node_material, run_id, node_id, cc, path)
 
     @app.get(PREFIX + '/runs/{run_id}/session')
     async def session(run_id: str):
@@ -860,9 +1018,28 @@ def attach_factory_routes(app: FastAPI, channel=None, *, service=None):
             raise HTTPException(400, 'Expected {"reason": "..."} with a nonempty reason of at most 500 characters')
         return await call(service.operator, run_id, op, node_id, payload['reason'].strip())
 
-    @app.post(PREFIX + '/runs/{run_id}/resume', status_code=202)
-    async def resume(run_id: str, request: Request):
+    async def confirmed(request, *, revise=False):
         same_origin(request)
-        if await json_body(request) not in (None, {}):
-            raise HTTPException(400, 'Resume takes no parameters')
-        return await call(service.resume, run_id)
+        payload = await json_body(request)
+        fields = {'reason', 'confirm', 'dry_run'} if revise else {'reason', 'confirm'}
+        if (not isinstance(payload, dict) or set(payload) != fields or payload['confirm'] is not True
+                or not isinstance(payload['reason'], str) or not payload['reason'].strip() or len(payload['reason']) > 500
+                or (revise and not isinstance(payload['dry_run'], bool))):
+            raise HTTPException(400, 'Confirm the action and supply a nonempty reason of at most 500 characters'
+                                + (' and a dry_run boolean' if revise else ''))
+        return payload['reason'].strip(), payload.get('dry_run', False)
+
+    @app.post(PREFIX + '/runs/{run_id}/pause')
+    async def pause(run_id: str, request: Request):
+        reason, _ = await confirmed(request)
+        return await call(service.run_operator, run_id, 'pause', reason)
+
+    @app.post(PREFIX + '/runs/{run_id}/resume')
+    async def resume(run_id: str, request: Request):
+        reason, _ = await confirmed(request)
+        return await call(service.run_operator, run_id, 'resume', reason)
+
+    @app.post(PREFIX + '/runs/{run_id}/revise')
+    async def revise(run_id: str, request: Request):
+        reason, dry_run = await confirmed(request, revise=True)
+        return await call(service.run_operator, run_id, 'revise', reason, dry_run)
