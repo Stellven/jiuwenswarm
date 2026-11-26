@@ -291,6 +291,7 @@ def run_arm(name, arm, out, plan, prompts, report_path, report, config, referenc
                 quiet.wait('arm_start', 'loading', log)
             server, gate = start(name, arm, out, config.get('device_budget_mib'), quiet)
             if quiet:
+                quiet.server = server
                 quiet.mark('ready', 'between_rows')
             server_log = server.log.read_text(errors='replace')
             markers = [line.strip()[:240] for line in server_log.splitlines() if re.search(
@@ -376,7 +377,7 @@ def main(config_path, names):
         if report_path.exists() and (report['config'] != config or any(report.get(key) != value for key, value in protocol.items())):
             raise ValueError('Factory inputs differ from the existing report. Use a new out_dir.')
         report.update(protocol)
-        limits = lab_v4_quiet.policy()
+        limits = lab_v4_quiet.policy(config.get('quiet_protocol'))
         if 'quiet_policy' in report and report['quiet_policy'] != limits:
             raise ValueError('Quiet protocol differs from the existing report. Use the original quiet protocol.')
         report['quiet_policy'] = limits
@@ -438,7 +439,7 @@ if __name__ == '__main__':
             recorded = measured.get('baseline', {}).get('sha256')
             if recorded and recorded != reference['sha256']:
                 raise ValueError('Historical A report digest differs from the recorded baseline')
-            limits = lab_v4_quiet.policy() if measured.get('factory_provenance') else None
+            limits = lab_v4_quiet.policy(measured['config'].get('quiet_protocol')) if measured.get('factory_provenance') else None
             print(json.dumps(comparison(measured['rows'], reference, limits), indent=1))
         elif len(args) == 2 and args[0] == '--resolve':
             config, _, _, identity, plan = configuration(args[1])

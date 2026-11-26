@@ -34,10 +34,74 @@ COMPILER = re.compile(r'(?:[\w.+]+-)*(?:gcc|g\+\+|clang(?:\+\+)?)(?:-\d+)?')
 INTERPRETER = re.compile(r'python(?:\d+(?:\.\d+)?)?|node(?:js)?|(?:ba|da|z|k)?sh')
 
 
-def policy():
+REVISED = 'r8-owner-revised-v1'
+
+
+def policy(protocol=None):
     declared = contract.load(TASK)['measurement']['protocol']['quiet']
-    return dict(max_load_1m=declared['max_load'], no_builds=declared['no_builds'],
-                sample_interval_seconds=INTERVAL_SECONDS)
+    limits = dict(max_load_1m=declared['max_load'], no_builds=declared['no_builds'],
+                  sample_interval_seconds=INTERVAL_SECONDS)
+    if protocol == REVISED:
+        limits.update(protocol=REVISED, max_foreign_cpu_percent=50.0,
+                      during='Sample raw load for context. The measured cpu-moe server raises raw load.',
+                      admission='Idle measured slot, load1 below 1, machine gate passed, no builds, tests or helpers.',
+                      cpu_scope='Percent of one core per process, excluding measured server PID and descendants only.')
+    elif protocol is not None:
+        raise ValueError(f'Unknown quiet protocol {protocol}')
+    return limits
+
+
+def load_decides(limits, phase):
+    return limits.get('protocol') != REVISED or phase not in {'during', 'end'}
+
+
+class ProcessCPU:
+    def __init__(self):
+        self.previous = {}
+        self.when = None
+
+    def sample(self, server_pid, proc_root=Path('/proc')):
+        now = time.monotonic()
+        hz = os.sysconf('SC_CLK_TCK')
+        current = {}
+        for directory in proc_root.iterdir():
+            if not directory.name.isdecimal():
+                continue
+            try:
+                head, tail = (directory / 'stat').read_text(errors='replace').rsplit(')', 1)
+            except (FileNotFoundError, ProcessLookupError):
+                continue
+            fields = tail.split()
+            pid = int(directory.name)
+            current[pid] = (int(fields[1]), head.split('(', 1)[1], int(fields[19]), int(fields[11]) + int(fields[12]))
+        if server_pid not in current or current[server_pid][1] != 'llama-server':
+            raise ValueError('measured server missing from native CPU sample')
+        owned = {server_pid}
+        while children := {pid for pid, proc in current.items() if proc[0] in owned} - owned:
+            owned.update(children)
+        interval = now - self.when if self.when is not None else None
+        active = []
+        for pid, (ppid, name, born, ticks) in current.items():
+            prev = self.previous.get(pid)
+            if interval is None:
+                continue
+            # A newly observed PID has accrued these ticks since birth.
+            start = prev[3] if prev and prev[2] == born else 0
+            delta = ticks - start
+            if delta > 0 or pid in owned:
+                active.append(dict(pid=pid, ppid=ppid, name=name, start_ticks=born, cpu_ticks_delta=delta,
+                                   percent_one_core=delta * 100 / (hz * interval), measured=pid in owned))
+        self.previous, self.when = current, now
+        return dict(server_pid=server_pid, process_count=len(current), interval_s=interval, ticks_per_second=hz,
+                    active=active, measured_pids=sorted(owned))
+
+
+def cpu_issues(cpu, limits):
+    if not isinstance(cpu, dict) or not cpu.get('interval_s') or not cpu.get('measured_pids'):
+        return ['missing timed process CPU evidence']
+    return [f"foreign PID {p['pid']} ({p['name']}) above {limits['max_foreign_cpu_percent']:g}% of one core"
+            for p in cpu['active'] if not p['measured'] and p['percent_one_core'] > limits['max_foreign_cpu_percent']]
+
 
 
 def tool_kind(name, args):
@@ -130,7 +194,7 @@ def snapshot(limits, phase):
         if len(loads) != 3 or not all(math.isfinite(value) and value >= 0 for value in loads):
             raise ValueError('malformed load average')
         sample['load_averages'] = list(loads)
-        if loads[0] >= limits['max_load_1m']:
+        if load_decides(limits, phase) and loads[0] >= limits['max_load_1m']:
             sample['reasons'].append('one-minute load at or above limit')
     except (AttributeError, OSError, TypeError, ValueError) as exc:
         sample['reasons'].append(f'load probe unavailable ({type(exc).__name__})')
@@ -156,6 +220,8 @@ class Monitor:
 
     def __init__(self, limits):
         self.limits = limits
+        self.server = None
+        self.cpu = ProcessCPU()
         self.phase = 'loading'
         self.samples = []
         self._lock = threading.Lock()
@@ -164,6 +230,32 @@ class Monitor:
 
     def _capture(self, phase):
         sample = snapshot(self.limits, phase)
+        if self.limits.get('protocol') == REVISED and self.server and phase in {'start_wait', 'during', 'end'}:
+            try:
+                if phase == 'start_wait':
+                    # The next CPU delta must cover only this request, beginning after admission.
+                    if sample['ok']:
+                        import json
+                        import urllib.request
+                        with urllib.request.urlopen(f'http://127.0.0.1:{self.server.port}/slots', timeout=5) as reply:
+                            slots = json.load(reply)
+                        sample['idle_slot'] = len(slots) == 1 and slots[0].get('is_processing') is False
+                        if not sample['idle_slot']:
+                            sample['reasons'].append('measured slot is busy')
+                        # Full pre-load memory gate already passed. This running server owns its allocation.
+                        task = {'resources': dict(self.server.run.task['resources'], need_available_gib=self.server.run.task['resources']['floor_gib'])}
+                        gate = capped_run.machine(task, self.server.run.home, own_pids=[self.server.proc.pid])
+                        sample['resident_machine_gate'] = gate
+                        if not gate['ok']:
+                            sample['reasons'].append('resident-server machine gate closed')
+                        self.cpu = ProcessCPU()
+                        sample['cpu'] = self.cpu.sample(self.server.proc.pid)
+                else:
+                    sample['cpu'] = self.cpu.sample(self.server.proc.pid)
+                    sample['reasons'].extend(cpu_issues(sample['cpu'], self.limits))
+            except (OSError, ValueError, KeyError, IndexError, TypeError) as exc:
+                sample['reasons'].append(f'cell admission or CPU probe unavailable ({type(exc).__name__})')
+            sample['ok'] = not sample['reasons']
         self.samples.append(sample)
         return len(self.samples) - 1
 
@@ -224,7 +316,13 @@ def evidence_issues(samples, limits):
                 or not sample.get('utc')):
             issues.append('incomplete load or process evidence')
             continue
-        if loads[0] >= limits['max_load_1m']:
+        if limits.get('protocol') == REVISED:
+            if sample['phase'] == 'start':
+                if not sample.get('idle_slot') or not (sample.get('resident_machine_gate') or {}).get('ok'):
+                    issues.append('cell lacks idle-server machine admission')
+            else:
+                issues.extend(cpu_issues(sample.get('cpu'), limits))
+        if load_decides(limits, sample['phase']) and loads[0] >= limits['max_load_1m']:
             issues.append('one-minute load at or above limit')
         if any(proc.get('own_lab') is not True and (proc.get('kind') in {'helper', 'test'}
                or limits['no_builds'] and proc.get('kind') == 'build') for proc in procs):

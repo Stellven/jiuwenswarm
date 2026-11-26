@@ -55,3 +55,31 @@ def test_gap_in_periodic_evidence_excludes_a_long_cell(monkeypatch):
     end = quiet.snapshot(limits, 'end')
     end['monotonic_s'] = start['monotonic_s'] + 10
     assert quiet.evidence_issues([start, end], limits) == ['missing periodic quiet evidence']
+
+
+def test_revised_cpu_gate_keeps_raw_load_and_excludes_only_measured_tree(tmp_path, monkeypatch):
+    def process(pid, parent, name, ticks):
+        path = tmp_path / str(pid)
+        path.mkdir(exist_ok=True)
+        fields = ['0'] * 20
+        fields[0], fields[1], fields[11], fields[19] = 'S', str(parent), str(ticks), '135'
+        (path / 'stat').write_text(f'{pid} ({name}) ' + ' '.join(fields))
+    monkeypatch.setattr(quiet.os, 'sysconf', lambda _: 100)
+    monkeypatch.setattr(quiet.time, 'monotonic', iter([1.0, 3.0, 5.0]).__next__)
+    limits = quiet.policy(quiet.REVISED)
+    monitor = quiet.ProcessCPU()
+    for pid, parent, name in [(10, 1, 'llama-server'), (11, 10, 'child'), (12, 1, 'external')]:
+        process(pid, parent, name, 0)
+    monitor.sample(10, tmp_path)
+    process(10, 1, 'llama-server', 400)
+    process(11, 10, 'child', 180)
+    process(12, 1, 'external', 100)
+    cpu = monitor.sample(10, tmp_path)
+    assert cpu['measured_pids'] == [10, 11]
+    assert not quiet.cpu_issues(cpu, limits)  # 50% exactly is allowed.
+    process(12, 1, 'external', 201)
+    assert quiet.cpu_issues(monitor.sample(10, tmp_path), limits) == ['foreign PID 12 (external) above 50% of one core']
+    assert quiet.load_decides(limits, 'start')
+    assert not quiet.load_decides(limits, 'during')
+    assert not quiet.load_decides(limits, 'end')
+    assert quiet.load_decides(quiet.policy(), 'during')
