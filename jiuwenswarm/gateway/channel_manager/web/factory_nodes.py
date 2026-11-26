@@ -206,7 +206,7 @@ def worker_calls(transcript):
                 pending[row['id']] = row
             elif kind == 'chat.tool_result' and (row := pending.pop(outer.get('tool_call_id'), None)):
                 result = _json_object(outer.get('result'))
-                receipt = demo_board._tool_text(outer.get('result')) or {}
+                receipt = _json_object(demo_board._tool_text(outer.get('result')))
                 outputs = _json_object(receipt.get('outputs'))
                 state = receipt.get('state') or result.get('status')
                 row.update(state=state, reason=receipt.get('reason'), attempt_id=outputs.get('attempt_id'),
@@ -286,7 +286,7 @@ def _output_summary(kind, refs):
                 result.update(v)
         elif kind in {'image', 'source_bundle'}:
             for source in (v, run, _json_object(v.get('image')), _json_object(v.get('build'))):
-                result.update({k: source[k] for k in ('image_id', 'image_tag', 'tag', 'binary_digest', 'binary_sha256',
+                result.update({k: source[k] for k in ('image_id', 'image_tag', 'tag', 'retention_tag', 'binary_digest', 'binary_sha256',
                                                      'binaries', 'name', 'build_s', 'commit', 'base_commit', 'build_receipt')
                                if source.get(k) is not None})
             image = _json_object(v.get('image'))
@@ -364,6 +364,22 @@ def _comparison(key, cc, contract, outputs, runs):
     return None
 
 
+def _recorded_fact(cc, record, checks, calls):
+    finished = [(o['name'], r) for o in checks for r in o['checks'] if r['state'] == 'finished' and not r['superseded']]
+    if finished:
+        output, check = max(finished, key=lambda pair: pair[1].get('created') or 0)
+        return dict(text=f"The host recorded {'a pass' if check['passed'] else 'a failure'} for {output}.",
+                    source=check['obs_id'])
+    if calls:
+        call = calls[-1]
+        state = f" ({call['state']})" if call['state'] else ''
+        return dict(text=f"The worker called {call['capability']}{state}.", source=call['id'])
+    if record:
+        author = record['values'].get('by') or 'The scheduler'
+        return dict(text=f"{author} bound {cc} when it finalized this node.", source=record['obs_id'])
+    return None
+
+
 def node_detail(data, node, check_view, catalog, briefs, all_calls, releases, read_artifact):
     key = node['node_id']
     record = final_rows(data).get((key, node.get('final_contract')))
@@ -382,10 +398,12 @@ def node_detail(data, node, check_view, catalog, briefs, all_calls, releases, re
         preferred = {c.get('release') for c in calls} | {(r.get('verifier') or {}).get('release')
                     for o in owned_checks for r in o['checks'] if (r.get('verifier') or {}).get('cc') == cc}
         pinned = sealed_materials(releases, cc, version, preferred)
+        comparison = _comparison(key, cc, contract, own_outputs, own_runs)
         capsules.append(cc_row(catalog, cc, version, materials=True) | pinned | dict(
             verdict=verdict(owned_checks), calls=dict(count=len(calls), first=calls[0]['created'] if calls else None,
                 last=calls[-1]['created'] if calls else None, failures=sum(bool(c.get('failed')) for c in calls), records=calls),
-            runs=own_runs, outputs=own_outputs, checks=owned_checks, comparison=_comparison(key, cc, contract, own_outputs, own_runs)))
+            runs=own_runs, outputs=own_outputs, checks=owned_checks, comparison=comparison,
+            evidence_fact=None if comparison else _recorded_fact(cc, record, owned_checks, calls)))
     return dict(node_id=key, contract=contract, capsules=capsules, outputs=outputs, runs=runs)
 
 
@@ -397,7 +415,8 @@ def run_state(data, plan, markers, running, now):
                              source=pause.get('obs_id'))
     if not running and 'PAUSE.md' in markers and not recent_rows(data, 'operator_pause'):
         return result | dict(state='paused', since=markers['PAUSE.md']['mtime'], source='PAUSE.md')
-    if not running and ('HALT.md' in markers or 'HALT.md' in (result['reason'] or '')):
+    if not running and data['_meta'].get('outcome') not in story.TERMINAL and (
+            'HALT.md' in markers or 'HALT.md' in (result['reason'] or '')):
         halts = recent_rows(data, 'operator_halt')
         halt = halts[-1] if halts else {}
         values = halt.get('values') or {}
@@ -435,6 +454,22 @@ def native_replay(data, plan, files, source_home):
     file_by_id = {aid: row for row in files if row['integrity'] == 'verified' for aid in row['artifact_ids']}
     observations = {o['obs_id']: o for o in data.get('observations', [])}
     finals = final_rows(data)
+    patch_rows = recent_rows(data, 'taskgraph_patch')
+    completed = {}
+    for row in patch_rows:
+        value = row['values']
+        patch = value.get('patch') or {}
+        for change in patch.get('update', []):
+            if change.get('state') == 'done':
+                completed[change['node_id']] = row
+        if value.get('origin') == 'operator' and (changes := patch.get('revise')):
+            graph_nodes = [c['node_id'] for c in changes]
+            steps.append(dict(node_id=graph_nodes[0], graph_nodes=graph_nodes, recorded_plan_nodes=graph_nodes,
+                              presentation_title=f"Graph revision {value['rev']}", original_kind='revise',
+                              original_summary=', '.join(f"{c['action']} {c['node_id']}" for c in changes),
+                              primary_record=row['obs_id'], created=row.get('created') or 0,
+                              records=[dict(id=row['obs_id'], table='observations', task_id=task['task_id'],
+                                            source_home=source_home)], key_files=[], graph_rev=value['rev']))
     for node in plan['nodes']:
         key = node['node_id']
         final = finals.get((key, node.get('final_contract')))
@@ -443,15 +478,21 @@ def native_replay(data, plan, files, source_home):
             rows.insert(0, final)
         if not rows:
             continue
-        records = [dict(id=o['obs_id'], table='observations', task_id=task['task_id'], source_home=source_home) for o in rows]
+        records = [dict(id=o['obs_id'], table='observations', task_id=task['task_id'], source_home=source_home)
+                   for o in rows]
         ids = dict.fromkeys(aid for row in rows for aid in (row.get('source_artifacts') or []) if aid in file_by_id)
-        key_files = [dict(path=file['path'], label=file['display_path']) for aid in list(ids)[:5] if (file := file_by_id[aid])]
-        latest = rows[-1]
-        replay = next((o['values'].get('replayed_from') for o in reruns
+        key_files = [dict(path=file_by_id[aid]['path'], label=file_by_id[aid]['display_path']) for aid in list(ids)[:5]]
+        latest = max(rows, key=lambda row: row.get('created') or 0)
+        done = completed.get(key, latest)
+        replay = next((o['values']['replayed_from'] for o in reruns
                        if o['values'].get('node_id') == key and o['values'].get('replayed_from')), None)
-        steps.append(dict(step=len(steps) + 1, event_cursor=len(steps) + 1, node_id=key, graph_nodes=[key],
-                          recorded_plan_nodes=[key], presentation_title=node['title'], original_kind=latest['kind'],
-                          original_summary=node.get('reason') or node['title'], primary_record=latest['obs_id'],
-                          created=latest['created'], records=records, key_files=key_files,
-                          replayed_from=replay, replay_source=story.replay_origin(replay), say=node.get('reason', '')))
-    return dict(schema='factory.curated-replay/1', title=task['task_id'], summary=task['objective'], native=True, source_homes=[source_home], steps=steps) if steps else None
+        steps.append(dict(node_id=key, graph_nodes=[key], recorded_plan_nodes=[key], presentation_title=node['title'],
+                          original_kind=latest['kind'], original_summary=node.get('reason') or node['title'],
+                          primary_record=latest['obs_id'], created=done.get('created') or 0, records=records,
+                          key_files=key_files, replayed_from=replay, replay_source=story.replay_origin(replay),
+                          say=node.get('reason', '')))
+    steps.sort(key=lambda step: step['created'])
+    for cursor, step in enumerate(steps, 1):
+        step.update(step=cursor, event_cursor=cursor)
+    return dict(schema='factory.curated-replay/1', title=task['task_id'], summary=task['objective'], native=True,
+                source_homes=[source_home], steps=steps) if steps else None

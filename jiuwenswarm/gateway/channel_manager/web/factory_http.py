@@ -24,6 +24,7 @@ import uuid
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from starlette.concurrency import run_in_threadpool
+from starlette.responses import JSONResponse
 
 from jiuwenswarm.factory import demo_board, monitor, story, taskgraph, telemetry
 from jiuwenswarm.factory.export import snapshot
@@ -45,6 +46,7 @@ MAX_FILE = 16 * 1024 * 1024
 SAFE_ID = re.compile(r'^[A-Za-z0-9][A-Za-z0-9_.-]{0,199}$')
 HEADLINE_ID = re.compile(r'^source:OPS/final-headlines\.json@sha256:([a-f0-9]{64})$')
 OPERATOR_OPS = ('hold', 'release', 'reopen')
+LEGACY_RESUMABLE = ('paused', 'partial')
 MAX_CHECKS = 8  # node checks kept per output in the compact view, newest last
 
 
@@ -132,7 +134,7 @@ def curated_events(replay):
             created=step['created'], step=step['step'], presentation_title=step['presentation_title'],
             say=step.get('say', ''), graph_nodes=step.get('graph_nodes') or curated_graph_nodes(step),
             node_id=step.get('node_id'), replayed_from=step.get('replayed_from'),
-            replay_source=step.get('replay_source'), mark='·', rev=None))
+            replay_source=step.get('replay_source'), mark='·', rev=step.get('graph_rev')))
     return events
 
 
@@ -353,6 +355,8 @@ class FactoryHttpService:
                     item = dict(id=self.run_id(path, tid), name=tid, task_id=tid, kind=kind, source_name=path.name,
                                 status='replay' if kind == 'bundle' else 'live',
                                 updated=path.stat().st_mtime, objective=task.get('objective', ''))
+                    if path.name == 'graph-r8' and tid == 'muse-2bit-demo-r8':
+                        item['featured'] = True
                     if replay:
                         item.update(name=replay['title'], demo=True, demo_order=replay.get('order', 0),
                                     objective=replay.get('summary', ''))
@@ -621,9 +625,10 @@ class FactoryHttpService:
         if live and not item.get('read_only'):
             controller = data['_meta']['controller_state']
             active_pause = bool(current_in(data))
+            resume_mode = self._resume_mode(item, data, running)
             controls = dict(operator=True, running=running, outcome=controller.get('outcome'),
-                            stop_reason=controller.get('stop_reason'), pause=not active_pause, resume=active_pause,
-                            revise=bool(data['tasks'][0].get('contract_id')), revise_apply=not running)
+                            stop_reason=controller.get('stop_reason'), pause=not active_pause, resume=bool(resume_mode),
+                            resume_mode=resume_mode, revise=bool(data['tasks'][0].get('contract_id')), revise_apply=not running)
         return dict(run_state=state, controls=controls)
 
     def state(self, run_id):
@@ -727,6 +732,53 @@ class FactoryHttpService:
         graph = operator_controller(path).operator(item['task_id'], op, node_id, reason)
         return sanitize(dict(run_id=run_id, task_id=item['task_id'], op=op, node_id=node_id, graph_rev=graph.get('rev'),
                              held=[n['node_id'] for n in graph.get('nodes', []) if n.get('hold')]))
+
+    @staticmethod
+    def _resume_mode(item, data, running):
+        if current_in(data):
+            return 'clear_pause'
+        if item['task_id'] == 'muse-2bit-demo-r8' or data['tasks'][0].get('contract_id') == 'muse-2bit-demo-r8':
+            return None  # The step launcher owns execution of r8 runs.
+        outcome = data['_meta']['controller_state'].get('outcome')
+        return 'start_controller' if not running and outcome in LEGACY_RESUMABLE else None
+
+    def resume(self, run_id, reason=None):
+        item, path = self._live(run_id)
+        data = self.load(item, path, include_transcript=False)
+        running = self._running(path)
+        mode = self._resume_mode(item, data, running)
+        is_r8 = item['task_id'] == 'muse-2bit-demo-r8' or data['tasks'][0].get('contract_id') == 'muse-2bit-demo-r8'
+        if reason is None:
+            if is_r8:
+                raise HTTPException(400, 'Confirm the action and supply a nonempty reason of at most 500 characters')
+            # Keep the original no-body endpoint behavior for legacy callers.
+            outcome = data['_meta']['controller_state'].get('outcome')
+            mode = 'start_controller' if not running and outcome in LEGACY_RESUMABLE else None
+        if mode == 'clear_pause':
+            return self.run_operator(run_id, 'resume', reason)
+        if mode != 'start_controller':
+            raise HTTPException(409, 'There is no stopped controller or operator pause to resume')
+        return self.resume_controller(run_id, item, path, data, reason)
+
+    def resume_controller(self, run_id, item, path, data, reason):
+        tid = item['task_id']
+        command = [sys.executable, '-m', 'jiuwenswarm.factory.cli', '--home', str(path), 'resume']
+        if reason is None:
+            command.append(tid)
+        command.append('--plain')
+        for effect in data['tasks'][0].get('allowed_effects') or []:
+            command.extend(('--grant', effect))
+        if reason:
+            command.extend(('--', tid, reason))
+        if os.environ.get('FACTORY_LAUNCH_SYSTEMD') == '1':
+            command = ['systemd-run', '--user', '--scope', f'--unit=factory-{tid}-resume-{uuid.uuid4().hex[:6]}', *command]
+        with _inside(path, 'launch.log').open('ab') as log:
+            process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=log, stderr=log,
+                                       start_new_session=True, close_fds=True)
+        metadata = dict(id=run_id, task_id=tid, pid=process.pid,
+                        resumed_from=data['_meta']['controller_state'].get('outcome'))
+        _inside(path, 'resume.json').write_text(json.dumps(dict(metadata, command=command, started=time.time())) + '\n')
+        return metadata
 
     def run_operator(self, run_id, action, reason, dry_run=False):
         item, path = self._live(run_id)
@@ -1018,9 +1070,7 @@ def attach_factory_routes(app: FastAPI, channel=None, *, service=None):
             raise HTTPException(400, 'Expected {"reason": "..."} with a nonempty reason of at most 500 characters')
         return await call(service.operator, run_id, op, node_id, payload['reason'].strip())
 
-    async def confirmed(request, *, revise=False):
-        same_origin(request)
-        payload = await json_body(request)
+    def confirmed(payload, *, revise=False):
         fields = {'reason', 'confirm', 'dry_run'} if revise else {'reason', 'confirm'}
         if (not isinstance(payload, dict) or set(payload) != fields or payload['confirm'] is not True
                 or not isinstance(payload['reason'], str) or not payload['reason'].strip() or len(payload['reason']) > 500
@@ -1031,15 +1081,20 @@ def attach_factory_routes(app: FastAPI, channel=None, *, service=None):
 
     @app.post(PREFIX + '/runs/{run_id}/pause')
     async def pause(run_id: str, request: Request):
-        reason, _ = await confirmed(request)
+        same_origin(request)
+        reason, _ = confirmed(await json_body(request))
         return await call(service.run_operator, run_id, 'pause', reason)
 
     @app.post(PREFIX + '/runs/{run_id}/resume')
     async def resume(run_id: str, request: Request):
-        reason, _ = await confirmed(request)
-        return await call(service.run_operator, run_id, 'resume', reason)
+        same_origin(request)
+        payload = await json_body(request)
+        reason = None if payload in (None, {}) else confirmed(payload)[0]
+        result = await call(service.resume, run_id, reason)
+        return JSONResponse(result, status_code=202) if 'pid' in result else result
 
     @app.post(PREFIX + '/runs/{run_id}/revise')
     async def revise(run_id: str, request: Request):
-        reason, dry_run = await confirmed(request, revise=True)
+        same_origin(request)
+        reason, dry_run = confirmed(await json_body(request), revise=True)
         return await call(service.run_operator, run_id, 'revise', reason, dry_run)
