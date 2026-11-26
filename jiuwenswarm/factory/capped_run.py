@@ -1001,6 +1001,13 @@ def _run_replay(run):
         raise RunError('REPLAY', str(exc)) from exc
     if source != req['replayed_from']:
         raise RunError('REPLAY', 'Host replay receipt changed after submission')
+    # Attach the checked sidecar itself so the delivery gate can send it by artifact identity.
+    manifest = Path(result['manifest']).read_bytes()
+    if hashlib.sha256(manifest).hexdigest() != result['manifest_sha256']:
+        raise RunError('REPLAY', 'Pack manifest changed before evidence was recorded')
+    copy = run.dir / 'pack-manifest.json'
+    copy.write_bytes(manifest)
+    run.files['pack-manifest.json'] = copy
     run.log('replay verified', result['bytes'], 'bytes and', result['tensors'], 'tensors')
     return dict(result, replayed_from=source, seconds=round(time.monotonic() - started, 1))
 

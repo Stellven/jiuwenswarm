@@ -412,6 +412,8 @@ def test_replay_records_pinned_provenance_and_keeps_shared_pack_unchanged(world,
     assert doc['memory_cap'] is None and doc['result']['commit'] == args['commit']
     stored = json.loads((run_dir / 'result.json').read_text())
     assert stored == doc and doc['seconds'] < source['duration_seconds']
+    sidecar_id = 'run-' + doc['attempt_id'][:12] + '-pack-manifest.json'
+    assert world['store'].artifact_bytes('task', sidecar_id) == Path(doc['result']['manifest']).read_bytes()
     assert {p: capped_run._sha(p) for p in shared.rglob('*') if p.is_file()} == before
     if recipe == 'quantize':
         from jiuwenswarm.factory.ccs.weight_pack_compiler.helpers.pack_check import verify_pack
