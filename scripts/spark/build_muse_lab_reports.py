@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass
 from functools import cached_property
 import hashlib
 from html import escape
@@ -12,8 +13,6 @@ import re
 from statistics import median
 
 REPORT_PATH = 'reports/lab-report.html'
-ARM_NAMES = {'A': 'A · NVFP4 baseline', 'AQB': 'AQB · mixed 2-bit + batch tuning',
-             'AQBC': 'AQBC · + prefix reuse'}
 ARM_LETTERS = (
     ('A', 'Baseline: stock llama.cpp settings with the official NVFP4 weights (529 GB) on the Spark'),
     ('Q', 'Quantization CC: routed experts requantized to a mixed 2-bit pack (IQ2_XXS gate/up, Q2_K down), 267 GB'),
@@ -24,7 +23,15 @@ ARM_LETTERS = (
 ARM_COMPOSITION = ("An engine's name lists the CCs applied on top of A, in order: AQB = A + Q + B (Run 1), "
                    "AQBC = AQB + C (Run 2), AQBCD = AQBC + D (Run 3, not built).")
 TIMING_KEYS = ('ttft_ms', 'decode_tps', 'total_ms')
-TIMING_UNITS = ('s', 'tok/s', 's')
+CHECKER_METRICS = {
+    'ttft_ms': 'derived_ttft_ms',
+    'decode_tps': 'decode_tokens_per_second',
+    'total_ms': 'request_total_ms',
+}
+WARM_SERVER = 'Warm server'
+FOLLOW_UP = 'Follow-up'
+FIRST_AFTER_START = 'First request after server start'
+AFTER_PAGE_DROP = 'After page drop'
 START = 'warming up the model with an empty run'
 SLOT = 'load_model: initializing, n_slots ='
 STYLE = """
@@ -50,6 +57,100 @@ summary { cursor: pointer }
 .arm-names td, .arm-names th { padding: .28rem .5rem; vertical-align: top }
 .arm-names p { margin: .55rem 0 0 }
 """
+LAB_STYLE = """
+.metric-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 23rem), 1fr)); gap: .8rem }
+.metric-chart { margin: 0; border: 1px solid #c9d3df; border-radius: .45rem; padding: .7rem .85rem }
+.metric-chart figcaption { display: grid; gap: .2rem }
+.chart-context, .comparison, .chart-axis { font-size: .8rem; color: #40516a }
+.metric-chart dl { margin: .5rem 0 0 }
+.chart-row { display: grid; grid-template-columns: 3.55rem minmax(0, 1fr); gap: .4rem; margin: .3rem 0 }
+.chart-row dt { font-weight: 650; padding-block-start: .1rem }
+.chart-row dd { margin: 0; min-width: 0 }
+.chart-track { position: relative; isolation: isolate; background: #f0f4f9; border-radius: .2rem; overflow: hidden }
+.chart-bar { position: absolute; z-index: -1; inset: 0 auto 0 0; background: #ced9e8 }
+.chart-row[data-current='true'] .chart-bar { background: #91bcf7 }
+.chart-row[data-current='true'] dt { color: #235aaa }
+.chart-value { display: block; padding: .08rem .35rem; font-size: .88rem; font-weight: 650 }
+.chart-axis { margin: 0 0 0 3.95rem; display: flex; justify-content: space-between }
+.comparison { display: block; margin-top: .15rem }
+.metric-value { white-space: nowrap; font-weight: 650; font-variant-numeric: tabular-nums }
+.timing-table .comparison { min-width: 8.5rem }
+"""
+
+
+@dataclass(frozen=True)
+class TimingRow:
+    arm: str
+    tokens: str
+    state: str
+    values: dict[str, float]
+    sources: list[dict]
+
+    @property
+    def key(self):
+        return self.tokens, self.state, self.arm
+
+
+def signed(value, places, unit):
+    magnitude = f'{abs(value):.{places}f}'
+    sign = ('+' if value > 0 else '−') if float(magnitude) else ''
+    return f'{sign}{magnitude}{unit}'
+
+
+def gain(value, reference, unit):
+    if unit == '%':
+        difference = (value - reference) * 100
+        return signed(difference, 1, ' point' if abs(round(difference, 1)) == 1 else ' points')
+    if reference <= 0 or (unit == 's' and value <= 0):
+        return 'relative change unavailable'
+    ratio = value / reference
+    change = signed((ratio - 1) * 100, 0, '%')
+    if ratio == 1:
+        return '1× (0%)'
+    factor = max(ratio, 1 / ratio) if unit == 's' else ratio
+    multiple = f'{factor:.2f}' if abs(factor - 1) < .1 else f'{factor:.1f}'
+    direction = (' faster' if ratio < 1 else ' slower') if unit == 's' else ''
+    return f'{multiple.rstrip("0").rstrip(".")}×{direction} ({change})'
+
+
+def comparison(arm, value, reference, unit, *, context='', same=False):
+    if same:
+        return f'same as {arm}'
+    label = f'vs {arm} ({context})' if context else f'vs {arm}'
+    result = gain(value, reference, unit) if reference is not None else 'no matched measurement'
+    return f'{label} — {result}'
+
+
+def comparison_lines(lines):
+    return ''.join(f'<span class="comparison">{escape(line)}</span>' for line in lines)
+
+
+def value_label(value, unit):
+    return f'{value:.1%}' if unit == '%' else f'{value:.2f} {unit}'
+
+
+def metric_cell(value, unit, notes):
+    return f'<span class="metric-value">{escape(value_label(value, unit))}</span>' + comparison_lines(notes)
+
+
+def metric_chart(metric, title, context, unit, rows, current):
+    ceiling = 1 if unit == '%' else max(value for _, value, _ in rows)
+    if ceiling <= 0:
+        raise ValueError(f'Chart {metric} has no positive scale')
+    entries = []
+    for arm, value, notes in rows:
+        width = 100 * value / ceiling
+        entries.append(
+            f'<div class="chart-row" data-arm="{escape(arm)}" data-value="{value}"'
+            f' data-current="{str(arm == current).lower()}"><dt>{escape(arm)}</dt><dd>'
+            f'<div class="chart-track"><span class="chart-bar" aria-hidden="true" style="width:{width:.8f}%"></span>'
+            f'<span class="chart-value">{escape(value_label(value, unit))}</span></div>'
+            f'{comparison_lines(notes)}</dd></div>'
+        )
+    return (f'<figure class="metric-chart" data-metric="{escape(metric)}" data-axis-max="{ceiling}">'
+            f'<figcaption><strong>{escape(title)}</strong><span class="chart-context">{escape(context)}</span></figcaption>'
+            f'<dl>{"".join(entries)}</dl><p class="chart-axis" aria-hidden="true"><span>0</span>'
+            f'<span>{escape(value_label(ceiling, unit))}</span></p></figure>')
 
 
 def file_sha(raw):
@@ -64,12 +165,13 @@ def p(text):
     return f'<p>{escape(text)}</p>'
 
 
-def table(columns, rows, caption):
+def table(columns, rows, caption, *, css_class=''):
     head = ''.join(f'<th scope="col">{escape(column)}</th>' for column in columns)
     body = ''.join(
         '<tr>' + ''.join(f'<td>{value}</td>' for value in row) + '</tr>' for row in rows
     )
-    return (f'<div class="table"><table><caption>{escape(caption)}</caption>'
+    classes = f'table {css_class}' if css_class else 'table'
+    return (f'<div class="{classes}"><table><caption>{escape(caption)}</caption>'
             f'<thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>')
 
 
@@ -85,10 +187,10 @@ def arm_names_box():
 def req_label(row):
     state = row['request']['state']
     if state != 'cold':
-        return {'warm': 'Warm server', 'follow-up': 'Follow-up'}[state]
+        return {'warm': WARM_SERVER, 'follow-up': FOLLOW_UP}[state]
     if row['source']['record'] == '/rows/0':
-        return 'First request after server start'
-    return 'After page drop'
+        return FIRST_AFTER_START
+    return AFTER_PAGE_DROP
 
 
 def clock(line):
@@ -151,42 +253,129 @@ class Report:
         key = '-'.join((row['run'], row['arm'].lower(), row['request']['name'], pointer.rsplit('/', 1)[-1]))
         return a(self.source(source, pointer, key), pointer)
 
+    @cached_property
     def original_r8(self):
         report = 'r8-final/report.json'
         _, summary = self.payload(report)
-        cells = []
+        cells = {}
         for row in summary['cells']:
             curated_rows = []
             for item in row['sources']:
                 hit, = (r for r in self.rows if r.get('source') == item)
                 curated_rows.append(hit)
-            cells.append((
-                row['arm'], row['request'][1:], req_label(curated_rows[0]),
-                *(f'{row[key] / (1 if key == "decode_tps" else 1000):.2f}' for key in TIMING_KEYS),
-                ' · '.join(self.linked_row(r) for r in curated_rows),
-            ))
+            cell = TimingRow(row['arm'], row['request'][1:], req_label(curated_rows[0]),
+                             {key: row[key] for key in TIMING_KEYS}, curated_rows)
+            cells[cell.key] = cell
         return cells
 
+    @cached_property
     def run2_results(self):
         groups = {}
         for row in self.rows:
             if row['run'] == 'r9-aqbc' and row['kind'] == 'performance':
                 req = row['request']
                 groups.setdefault((req['name'][1:], req_label(row), row['arm']), []).append(row)
-        return [
-            (arm + (' control' if arm == 'AQB' else ''), tokens, state,
-             *(f'{median(r["metrics"][key] for r in rows) / (1 if key == "decode_tps" else 1000):.2f}'
-               for key in TIMING_KEYS),
-             ' · '.join(self.linked_row(r) for r in rows))
+        return {
+            (tokens, state, arm): TimingRow(arm, tokens, state, {
+                key: median(row['metrics'][key] for row in rows) for key in TIMING_KEYS
+            }, rows)
             for (tokens, state, arm), rows in groups.items()
+        }
+
+    def timing_comparisons(self, row, key, *, acceptance=None):
+        if row.arm == 'A':
+            return []
+        time_or_rate = 'tok/s' if key == 'decode_tps' else 's'
+        base = self.original_r8.get((row.tokens, row.state, 'A'))
+        notes = [comparison('A', row.values[key], base.values[key] if base else None, time_or_rate,
+                            context='Run 1 reference' if base and acceptance is not None else '')]
+        if row.arm == 'AQBC' and acceptance is not None:
+            prior = self.run2_results.get((row.tokens, row.state, 'AQB'))
+            context = ''
+            if prior is None and row.state == FIRST_AFTER_START:
+                # Both cold requests used page eviction. Only the candidate went first.
+                prior = self.run2_results.get((row.tokens, AFTER_PAGE_DROP, 'AQB'))
+                context = 'same server, later cold request'
+            judgement = next((group for group in acceptance['standard']
+                              if group['judged'] and row.state == WARM_SERVER
+                              and group['request'] == f'p{row.tokens}'), None)
+            matched_ratio = judgement['median_candidate_to_control'][CHECKER_METRICS[key]] if judgement else None
+            same = (prior is not None and matched_ratio is not None
+                    and abs(matched_ratio - 1) <= acceptance['standard_regression_tolerance'])
+            notes.append(comparison('AQB', row.values[key], prior.values[key] if prior else None,
+                                    time_or_rate, context=context if prior else '', same=same))
+        return notes
+
+    def timing_cell(self, row, key, *, acceptance=None):
+        unit = 'tok/s' if key == 'decode_tps' else 's'
+        value = row.values[key] / (1000 if unit == 's' else 1)
+        notes = self.timing_comparisons(row, key, acceptance=acceptance)
+        return f'<span class="metric-value">{value:.2f}</span>' + comparison_lines(notes)
+
+    def timing_table(self, columns, cells, caption, *, acceptance=None):
+        rows = [
+            (row.arm + (' control' if row.arm == 'AQB' and acceptance is not None else ''),
+             row.tokens, row.state, *(self.timing_cell(row, key, acceptance=acceptance) for key in TIMING_KEYS),
+             ' · '.join(self.linked_row(source) for source in row.sources))
+            for row in cells.values()
         ]
+        return table(columns, rows, caption, css_class='timing-table')
+
+    def timing_charts(self, *, acceptance=None):
+        current = 'AQBC' if acceptance is not None else 'AQB'
+        context = ('Warm server. A is the Run 1 reference; AQB and AQBC ran on the same server in Run 2.'
+                   if acceptance is not None else 'Warm server on Spark, with 32 generated tokens.')
+        metrics = [
+            ('first-token-512', 'First token · 512-token prompt', '512', WARM_SERVER, 'ttft_ms'),
+            ('first-token-2048', 'First token · 2048-token prompt', '2048', WARM_SERVER, 'ttft_ms'),
+            ('decode', 'Decode · 512-token prompt', '512', WARM_SERVER, 'decode_tps'),
+            ('total-2048', 'Total request · 2048-token prompt', '2048', WARM_SERVER, 'total_ms'),
+        ]
+        if acceptance is not None:
+            metrics.append(('follow-up-2048', 'Follow-up first token · 2048-token document',
+                            '2048', FOLLOW_UP, 'ttft_ms'))
+        rows = self.original_r8
+        if acceptance is not None:
+            rows = {**rows, **self.run2_results}
+        for name, label, target, state, key in metrics:
+            followup = state == FOLLOW_UP
+            arms = ('AQB', 'AQBC') if followup else ('A', 'AQB', 'AQBC') if acceptance is not None else ('A', 'AQB')
+            unit = 'tok/s' if key == 'decode_tps' else 's'
+            entries = []
+            for arm in arms:
+                row = rows[target, state, arm]
+                value = row.values[key] / (1000 if unit == 's' else 1)
+                entries.append((arm, value, self.timing_comparisons(row, key, acceptance=acceptance)))
+            chart_context = ('Same-document, same-server pair. No matched A follow-up was recorded.'
+                             if followup else context)
+            yield metric_chart(name, label, chart_context, unit, entries, current)
+
+    def accuracy_chart(self, acc, *, identity=None):
+        a_score, aqb_score = acc['acc_ref'], acc['acc_cand']
+        rows = [('A', a_score, []),
+                ('AQB', aqb_score, [comparison('A', aqb_score, a_score, '%')])]
+        context = f'Paired Run 1 MMLU set, {acc["n"]} questions.'
+        current = 'AQB' if identity is None else 'AQBC'
+        if identity is not None and identity['status'] == 'passed':
+            inherited = identity['inherited_accuracy']
+            notes = [comparison('A', inherited, a_score, '%')]
+            notes.append(comparison('AQB', inherited, aqb_score, '%', same=inherited == aqb_score))
+            rows.append(('AQBC', inherited, notes))
+            context += ' AQBC inherits AQB’s score through the identity check.'
+        return metric_chart('mmlu', 'MMLU accuracy', context, '%', rows, current)
+
+    def charts(self, acc, *, acceptance=None):
+        identity = acceptance['accuracy'] if acceptance is not None else None
+        return ('<h2>Performance and accuracy</h2><div class="metric-charts">'
+                + ''.join(self.timing_charts(acceptance=acceptance))
+                + self.accuracy_chart(acc, identity=identity) + '</div>')
 
     def warmup(self):
         loads = [row for row in self.rows if row['kind'] == 'load'
                  and (self.run == 2 or row['arm'] != 'AQBC')]
         log_paths = {'A': 'lab/r8-final-bench/5.server.log', 'AQB': 'lab/r8-final-bench/3.server.log',
                      'AQBC': 'lab/r9-aqbc/measure-engine/server.log'}
-        rows = []
+        records = {}
         for row in loads:
             arm = row['arm']
             source = log_paths[arm]
@@ -198,8 +387,19 @@ class Report:
                 f'{i + 1}: {lines[i]}' for i in (start, end))
             link = f'evidence/{arm.lower()}-startup-markers.log'
             (self.output / link).write_text(excerpt + '\n', encoding='utf-8')
-            rows.append((arm, f'{row["metrics"]["load_s"]:.2f}', f'{clock(lines[end]) - clock(lines[start]):.2f}',
-                         a(link, 'Server log markers') + ' · ' + self.linked_row(row)))
+            records[arm] = (row['metrics']['load_s'], clock(lines[end]) - clock(lines[start]),
+                            a(link, 'Server log markers') + ' · ' + self.linked_row(row))
+        rows = []
+        for arm, (load, interval, source) in records.items():
+            references = [] if arm == 'A' else ['A']
+            if arm == 'AQBC':
+                references.append('AQB')
+            notes = [
+                [comparison(ref, value, records[ref][index], 's',
+                            context='Run 1 reference' if arm == 'AQBC' else '') for ref in references]
+                for index, value in enumerate((load, interval))
+            ]
+            rows.append((arm, metric_cell(load, 's', notes[0]), metric_cell(interval, 's', notes[1]), source))
         return ('<h2>Load and warm-up record</h2>' + table(
             ['Engine', 'Launch to ready (s)', 'Empty-run marker to slot init (s)', 'Source'], rows,
             'Server startup on the target. The marker interval includes intervening setup and bounds the empty run.')
@@ -247,12 +447,13 @@ class Report:
     def html(self):
         title = f'Run {self.run} lab report'
         timing = ('Engine', 'Prompt target', 'Request state', 'First token (s)', 'Decode (tok/s)', 'Total (s)', 'Raw rows')
-        previous = table(timing, self.original_r8(),
-                         'A baseline and the delivered AQB engine on Spark. These capped comparison cells generated 32 tokens.')
+        previous = self.timing_table(timing, self.original_r8,
+            'A baseline and the delivered AQB engine on Spark. These capped comparison cells generated 32 tokens.')
         _, r8 = self.payload('r8-final/report.json')
         acc = r8['accuracy']
-        r8_accuracy = (p(f'MMLU matched set: A scored {acc["acc_ref"]:.1%} (235/250) and AQB scored '
-                         f'{acc["acc_cand"]:.1%} (229/250). The paired comparison was inconclusive at the 5-point margin.')
+        r8_accuracy = (p(f'MMLU matched set: A answered {acc["both_right"] + acc["ref_only"]}/{acc["n"]} correctly '
+                         f'and AQB answered {acc["both_right"] + acc["cand_only"]}/{acc["n"]} correctly. '
+                         f'The paired comparison was inconclusive at the {acc["margin_pts"]}-point margin.')
                        + '<p>' + a(self.source('r8-final/report.json', '/accuracy', 'r8-accuracy'), 'Paired accuracy evidence') + '</p>')
         if self.run == 1:
             load, = (row for row in self.rows if row['arm'] == 'AQB' and row['kind'] == 'load')
@@ -261,7 +462,8 @@ class Report:
             body = (p('The factory delivered the mixed 2-bit image and its test requirements. The corrected original lab report was accepted as a partial result. The target follow-up campaign measured capped, single-slot completions against A, the NVFP4 baseline.')
                     + '<p>' + a('../projections/lab-request-and-gate.json', 'Original lab handoff')
                     + ' · ' + a('../records/decisions.json', 'Factory closure decision 39') + '</p>'
-                    + '<h2>Measurements against A</h2>' + previous + self.original_baseline() + r8_accuracy)
+                    + self.charts(acc) + '<h2>Measurements against A</h2>'
+                    + previous + self.original_baseline() + r8_accuracy)
         else:
             name = 'lab/r9-aqbc/rejudge-owner-006.json'
             _, verdict = self.payload(name)
@@ -276,13 +478,23 @@ class Report:
             summary = verdict['summary']
             warm_ratios = [ratio for row in summary['standard'] if row['judged']
                            for ratio in row['median_candidate_to_control'].values()]
-            reuse = [(row['request'][1:], f'{row["candidate_cached_tokens"]:,} / {row["document_tokens"]:,}',
-                      f'{row["control_cached_tokens"]:,}', f'{row["candidate"]["derived_ttft_ms"] / 1000:.2f}',
-                      f'{row["control"]["derived_ttft_ms"] / 1000:.2f}') for row in summary['followup']]
+            reuse = []
+            for row in summary['followup']:
+                target = row['request'][1:]
+                cached = row['candidate_cached_tokens']
+                control_cached = row['control_cached_tokens']
+                cached_notes = (comparison('AQB', cached, control_cached, 'tokens') if control_cached else
+                                f'vs AQB — {cached - control_cached:+,} cached tokens; relative gain undefined from zero')
+                candidate = self.run2_results[target, FOLLOW_UP, 'AQBC']
+                control = self.run2_results[target, FOLLOW_UP, 'AQB']
+                reuse.append((target, f'{cached:,} / {row["document_tokens"]:,}' + comparison_lines([cached_notes]),
+                              f'{control_cached:,}', self.timing_cell(candidate, 'ttft_ms', acceptance=summary),
+                              self.timing_cell(control, 'ttft_ms', acceptance=summary)))
             identity = summary['accuracy']
             body = (p('The factory handed off the configured image and test requirements. The lab agent ran the configured image on Spark with an unchanged pack and a capped, single-slot server. AQB control used the same server with prompt reuse disabled.')
                     + '<p>' + a('../projections/release.json', 'Native release decision')
                     + ' · ' + a(self.source(name, '', 'r9-acceptance'), 'Recorded lab acceptance checks and summary') + '</p>'
+                    + self.charts(acc, acceptance=summary)
                     + '<h2>Lab acceptance</h2>'
                     + p(f'Same as AQB within the lab acceptance checker’s {summary["standard_regression_tolerance"]:.0%} tolerance '
                         f'on the same server (measured warm ratios {min(warm_ratios):.2f} to {max(warm_ratios):.2f}).')
@@ -291,19 +503,21 @@ class Report:
                             reuse, 'Document follow-up reuse on the same server.')
                     + p(f'{identity["matched_letters"]}/{identity["question_count"]} answer letters matched AQB; '
                         f'{identity["zero_external_reuse"]}/{identity["question_count"]} started with zero cached tokens. '
-                        + (f'AQBC inherits AQB’s {identity["inherited_accuracy"]:.1%} ({identity["inherited_correct"]}/'
-                           f'{identity["source_question_count"]}) MMLU score.' if identity['status'] == 'passed'
+                        + (f'AQBC inherits AQB’s MMLU score ({identity["inherited_correct"]}/'
+                           f'{identity["source_question_count"]}).' if identity['status'] == 'passed'
                            else 'AQBC did not inherit the AQB MMLU score.'))
                     + '<p>' + a(self.source('lab/r9-aqbc/measure-engine/mmlu.json', '/comparison', 'r9-identity'),
                                   '25-question identity result') + '</p>'
                     + '<h2>Same-server measurements</h2>'
-                    + table(timing, self.run2_results(), 'Per-cell medians; individual repeats and follow-ups are linked.')
+                    + self.timing_table(timing, self.run2_results,
+                                        'Per-cell medians; individual repeats and follow-ups are linked.',
+                                        acceptance=summary)
                     + '<h2>A baseline and previous AQB engine</h2>'
                     + p('These are earlier target measurements from Run 1. Compare the same-load AQBC and AQB arms above for the acceptance decision.')
                     + previous + self.original_baseline() + r8_accuracy)
         return ('<!doctype html><html lang="en"><head><meta charset="utf-8">'
                 f'<meta name="viewport" content="width=device-width, initial-scale=1"><title>{title}</title>'
-                f'<style>{STYLE}</style></head><body><main><h1>{title}</h1>'
+                f'<style>{STYLE}{LAB_STYLE}</style></head><body><main><h1>{title}</h1>'
                 f'<p class="verdict"><strong>{escape(subtitle)}</strong><br>Engine image <code>{escape(image)}</code></p>'
                 + arm_names_box() + body + self.warmup() + self.method() + '</main></body></html>\n')
 
