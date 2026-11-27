@@ -76,7 +76,8 @@ def test_owner_032_renders_only_its_pinned_method_note_and_retains_revision_11(t
         store.create_task(dict(task_id=TASK, contract_id=TASK, objective='Check the recorded treatment',
                                constraints={'contract_sha256': after}))
         amendment = store.append_observation(TASK, dict(kind='operator_contract_revision', values=dict(
-            amendment='032', previous_file=original.name, previous_sha256=before, contract_sha256=after)))
+            contract_file=revised.name, contract_version=12, previous_version=11,
+            previous_file=original.name, previous_sha256=before, contract_sha256=after)))
         store.advance_decision(TASK, 0, dict(action={'type': 'report_inconclusive'},
                                             evidence_ids=[amendment['obs_id']], reason_for_change='No target verdict.'))
     out = build(home, revised, tmp_path / 'archive')

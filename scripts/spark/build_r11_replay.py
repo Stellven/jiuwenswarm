@@ -71,7 +71,9 @@ class Replay(Builder):
         if not self.owner_amendment:
             return [current]
         revisions = [row['values'] for row in self.data['observations'] if row['kind'] == 'operator_contract_revision'
-                     and str(row['values'].get('amendment')).zfill(3) == '032'
+                     and row['values'].get('contract_file') == contract_path.name
+                     and row['values'].get('contract_version') == self.version
+                     and row['values'].get('previous_version') == marker['previous_version']
                      and row['values'].get('contract_sha256') == self.contract_sha]
         if len(revisions) != 1:
             raise ValueError('Revision 12 needs its recorded owner amendment')
