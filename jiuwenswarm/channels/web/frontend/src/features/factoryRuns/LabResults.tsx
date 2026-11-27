@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { EvidenceFile, JsonRecord } from './api';
+import { requestStateLabel } from './engineBenchModel';
 import { formatChange, formatValue, labResults, type LabCell, type LabReport, type LabResults as Results, type RawRow } from './labModel';
 import './measurements.css';
 import './labResults.css';
@@ -38,6 +39,7 @@ function Report({ report, results, onOpenFile }: { report: LabReport; results: R
   const reference = results.reference.arm;
   const arms = results.arms.filter((arm) => report.tables.some((table) => table.lines.some((line) => line.cells[arm.id])));
   const shownArms = arms.length ? arms : results.arms;
+  const museReplay = results.contractId === 'muse-2bit-demo-r8' || results.contractId === 'muse-2bit-demo-r9';
   return (
     <>
       <section className="factory-lab-report-head" data-testid="factory-runs-lab-report" data-valid={String(report.valid)}>
@@ -95,21 +97,24 @@ function Report({ report, results, onOpenFile }: { report: LabReport; results: R
                 </tr>
               </thead>
               <tbody>
-                {lines.map((line) => (
-                  <tr key={`${line.request}:${line.condition}`}>
-                    <th scope="row">{line.request || '—'}</th>
-                    <th scope="row">{line.condition || '—'}</th>
-                    {shownArms.map((arm) => (
-                      <td key={arm.id}>
-                        <Cell
-                          cell={line.cells[arm.id]}
-                          title={`${metric.id} · ${line.request || 'all prompts'} · ${line.condition || 'all'} · arm ${arm.id}`}
-                          onSelect={setSelected}
-                        />
-                      </td>
-                    ))}
-                  </tr>
-                ))}
+                {lines.map((line) => {
+                  const label = museReplay ? requestStateLabel(line.condition) : line.condition;
+                  return (
+                    <tr key={`${line.request}:${line.condition}`}>
+                      <th scope="row">{line.request || '—'}</th>
+                      <th scope="row">{label || '—'}</th>
+                      {shownArms.map((arm) => (
+                        <td key={arm.id}>
+                          <Cell
+                            cell={line.cells[arm.id]}
+                            title={`${metric.id} · ${line.request || 'all prompts'} · ${label || 'all'} · arm ${arm.id}`}
+                            onSelect={setSelected}
+                          />
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

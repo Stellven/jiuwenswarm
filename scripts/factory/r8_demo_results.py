@@ -114,7 +114,7 @@ def main():
         '8 of 8 nodes complete · Engine image delivered · Lab measured', '',
         'The pack compiler produced a 267.2 GB mixed 2-bit pack from 528.9 GB of NVFP4 weights. R8 checked and reused that pack, then planned a larger prefill microbatch.',
         'Both speed arms used the delivered engine image and generated 32 tokens per prompt.', '',
-        '| Prompt | Warm result | A · NVFP4 | AQB · mixed 2-bit + prefill |',
+        '| Prompt | Warm server | A · NVFP4 | AQB · mixed 2-bit + prefill |',
         '| --- | --- | ---: | ---: |',
     ]
     for name in ('p512', 'p2048'):

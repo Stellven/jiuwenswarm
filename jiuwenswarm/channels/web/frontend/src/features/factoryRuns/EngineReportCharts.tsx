@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { armKey, armLabel, armOrder, devices, excluded, fmt, groupBy, median, mmluSummary, numeric } from './engineBenchModel';
+import { armKey, armLabel, armOrder, devices, excluded, fmt, groupBy, median, mmluSummary, numeric, requestStateLabel } from './engineBenchModel';
 import type { EngineRow, Metric, Ratio } from './engineBenchModel';
 
 export type Inspect = (row: EngineRow, related?: EngineRow[]) => void;
@@ -43,6 +43,16 @@ export function Panel({ id, title, children }: { id: string; title: string; chil
 
 export function Empty({ children = 'No data available.' }: { children?: ReactNode }) {
   return <p className="engine-empty">{children}</p>;
+}
+
+export function EngineRequestMethod() {
+  return (
+    <div data-testid="factory-runs-engine-request-method">
+      <p>Warm-server numbers. The first request after a server start is slower (W1: +36 s first token at 512 tokens); dropping file pages adds about 5%.</p>
+      <p>{"Run 2's p2048 warm decode (4.3 tok/s) is an outlier seen in both arms on that server; the comparison holds, the absolute value isn't quoted."}</p>
+      <p>The First request after start group includes later requests run on the same server after advising the OS to drop pack file pages.</p>
+    </div>
+  );
 }
 
 export function LengthPlot({
@@ -90,7 +100,7 @@ export function LengthPlot({
               data-testid="factory-runs-engine-state"
               data-variant={state}
             >
-              {state === 'warm' ? 'Warm (pages cached)' : 'Cold (pages evicted)'}
+              {requestStateLabel(state)}
             </button>
           ))}
         </div>
@@ -142,7 +152,7 @@ export function LengthPlot({
                   />
                 )}
                 {group.map(({ row, tokens, score }) => {
-                  const label = `${armLabel(row)} · ${state ?? 'State unknown'} · ${fmt(tokens)} tokens · ${fmt(score)} ${unit}`;
+                  const label = `${armLabel(row)} · ${requestStateLabel(state) ?? 'State unknown'} · ${fmt(tokens)} tokens · ${fmt(score)} ${unit}`;
                   return (
                     <circle
                       key={row.id}
@@ -179,7 +189,7 @@ export function LengthPlot({
           return (
             <li key={row.id} className="engine-series" data-arm={row.arm}>
               <span aria-hidden="true">{row.request?.state === 'warm' ? '○' : '●'}</span> {armLabel(row)} ·{' '}
-              {row.request?.state ?? 'State unknown'}
+              {requestStateLabel(row.request?.state) ?? 'State unknown'}
             </li>
           );
         })}
@@ -217,7 +227,7 @@ export function DecodeBars({ rows, inspect }: { rows: EngineRow[]; inspect: Insp
             data-testid="factory-runs-engine-decode-state"
             data-variant={state}
           >
-            {state === 'warm' ? 'Warm (pages cached)' : 'Cold (pages evicted)'}
+            {requestStateLabel(state)}
           </button>
         ))}
       </div>
@@ -277,7 +287,6 @@ export function SpeedBars({ ratios, inspect }: { ratios: Ratio[]; inspect: Inspe
         ...closest,
         value: middle,
         sources: used.flatMap(({ candidate, baselines }) => [candidate, ...baselines]),
-        warm: warm.length > 0,
       };
     })
     .sort(
@@ -288,11 +297,11 @@ export function SpeedBars({ ratios, inspect }: { ratios: Ratio[]; inspect: Inspe
   const max = Math.max(1.1, ...merged.map(({ value }) => value));
   return (
     <ul className="engine-bars">
-      {merged.map(({ candidate, value, sources, warm }) => (
+      {merged.map(({ candidate, value, sources }) => (
         <li key={candidate.id}>
           <span>
             <strong>{armLabel(candidate)}</strong>
-            <small>{`${fmt(candidate.request?.prompt_tokens ?? 0)} tokens · ${warm ? 'warm' : 'cold'}`}</small>
+            <small>{`${fmt(candidate.request?.prompt_tokens ?? 0)} tokens · ${requestStateLabel(candidate.request?.state) ?? 'State unknown'}`}</small>
           </span>
           <span
             className="engine-track"

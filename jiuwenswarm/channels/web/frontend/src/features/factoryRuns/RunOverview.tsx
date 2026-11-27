@@ -1,6 +1,7 @@
 import { createTwoFilesPatch } from 'diff';
+import { EngineRequestMethod } from './EngineReportCharts';
 import { DiffViewer } from './views/DiffViewer';
-import { mmluSummary, numeric } from './engineBenchModel';
+import { mmluSummary, numeric, requestStateLabel } from './engineBenchModel';
 import type { ReactNode } from 'react';
 import { ArrowUpRight, CheckCircle2, CircleDot, FileText, GitBranch, Layers3, PackageCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -81,7 +82,7 @@ function ReplayMeasurements({
               <tr key={row.path + row.pointer}>
                 <th scope="row">{hasMmlu && row.arm === 'P' ? 'AQB' : row.arm}</th>
                 <td>{row.request.slice(1)} ({row.prompt_tokens} rendered)</td>
-                <td>{row.state}{row.repeat != null ? ` · ${row.repeat + 1}` : ''}</td>
+                <td>{requestStateLabel(row.state)}{row.repeat != null ? ` · ${row.repeat + 1}` : ''}</td>
                 <td>{(row.ttft_ms / 1000).toFixed(3)}</td>
                 <td>{row.decode_tps.toFixed(3)}</td>
                 <td>{(row.total_ms / 1000).toFixed(3)}</td>
@@ -173,6 +174,8 @@ export function RunOverview({
   if (curated) {
     const focus = curated.steps.find((step) => step.step === currentStep) ?? curated.steps[0];
     const prefillStep = r8VerifierHelp && focus?.node_id === 'size_prefill_batch' && Boolean(focus.capsule_diff);
+    const engineMeasurement = (r8VerifierHelp && Boolean(focus?.measurement)) ||
+      (detail.contract.contract_id === 'muse-2bit-demo-r9' && focus?.node_id === 'measure_engine');
     const lead = focus?.key_files[0];
     const correction = focus?.correction ?? events.find((event) => event.step === focus?.step)?.correction;
     const stepSummary = focus?.say || focus?.original_summary;
@@ -235,6 +238,12 @@ export function RunOverview({
               </section>
             )}
             {focus.measurement && <ReplayMeasurements measurement={focus.measurement} onOpenFile={onOpenFile} />}
+            {engineMeasurement && (
+              <details className="factory-curated-more" data-testid="factory-runs-curated-engine-method">
+                <summary>Measurement method</summary>
+                <EngineRequestMethod />
+              </details>
+            )}
             {lead && (
               <button
                 type="button"

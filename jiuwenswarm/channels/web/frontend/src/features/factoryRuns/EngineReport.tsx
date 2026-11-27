@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { getApiBase } from '../../utils/env';
 import { request } from './api';
-import { AccuracyPlot, DecodeBars, LengthPlot, MemoryBars, Panel, RowValue, SpeedBars } from './EngineReportCharts';
+import { AccuracyPlot, DecodeBars, EngineRequestMethod, LengthPlot, MemoryBars, Panel, RowValue, SpeedBars } from './EngineReportCharts';
 import type { Inspect } from './EngineReportCharts';
 import {
   finalRun,
@@ -18,6 +18,7 @@ import {
   numeric,
   quietStatus,
   ratios,
+  requestStateLabel,
   sourceRef,
 } from './engineBenchModel';
 import type { Benchmark, EngineRow, Metric, QuietVerdict, Ratio } from './engineBenchModel';
@@ -157,7 +158,7 @@ function SourceDialog({ rows, close }: { rows: EngineRow[]; close: () => void })
               data-variant={source.id}
               onClick={() => setRow(source)}
             >
-              {source.arm} · {source.request?.state} ·{' '}
+              {source.arm} · {requestStateLabel(source.request?.state) ?? 'State unknown'} ·{' '}
               {source.request?.repeat == null ? source.id.split('/').at(-1) : `repeat ${source.request.repeat}`}
             </button>
           ))}
@@ -195,7 +196,7 @@ function SourceDialog({ rows, close }: { rows: EngineRow[]; close: () => void })
         facts={[
           ['Rendered prompt length', value(row.request?.prompt_tokens, 'tokens')],
           ['Request label', value(row.request?.name)],
-          ['Request state', value(row.request?.state)],
+          ['Request state', value(requestStateLabel(row.request?.state))],
           ['Repeat', value(row.request?.repeat)],
           ['Requested generation', value(row.request?.n_predict, 'tokens')],
           ['Generated', value(row.request?.generated_tokens, 'tokens')],
@@ -318,7 +319,7 @@ function ReportTable({ rows, speed, inspect }: { rows: EngineRow[]; speed: Ratio
                           '—'
                         )}
                       </td>
-                      <td>{row?.request?.state ?? '—'}</td>
+                      <td>{requestStateLabel(row?.request?.state) ?? '—'}</td>
                       {metrics.slice(0, 4).filter(([metric]) => metric !== 'prefill_tps').map(([metric]) => {
                         const samples = accepted.flatMap((source) => {
                           const measurement = source.metrics?.[metric];
@@ -398,7 +399,7 @@ function ControlTable({ rows, inspect }: { rows: EngineRow[]; inspect: Inspect }
           .sort(([left], [right]) => left.localeCompare(right, undefined, { numeric: true }))
           .map(([key, samples]) => {
             const first = samples[0];
-            return <tr key={key}><th>{first.request?.name?.slice(1)}</th><td>{first.request?.state}</td>
+            return <tr key={key}><th>{first.request?.name?.slice(1)}</th><td>{requestStateLabel(first.request?.state)}</td>
               <td>{first.arm === 'AQB' ? 'AQB control' : first.arm}</td>
               {(['ttft_ms', 'decode_tps', 'total_ms'] as const).map((metric) => {
                 const values = samples.map((row) => row.metrics?.[metric]).filter(numeric);
@@ -417,7 +418,7 @@ function FollowupTable({ rows, inspect }: { rows: EngineRow[]; inspect: Inspect 
   if (!followups.length) return null;
   return (
     <Panel id="followup" title="Follow-up question">
-      <p>Two questions share one document. AQBC reuses its processed prefix. The AQB control runs on the same server with prompt reuse off. A is the published warm reference.</p>
+      <p>Two questions share one document. AQBC reuses its processed prefix. The AQB control runs on the same server with prompt reuse off. A is the published Warm server reference.</p>
       <table>
         <thead><tr><th>Document</th><th>Arm</th><th>First token (s)</th><th>Decode (tok/s)</th><th>Total (s)</th></tr></thead>
         <tbody>
@@ -533,8 +534,9 @@ export function EngineReport() {
               <p>
                 A and AQB used the R8 image. {arms.some((row) => row.arm === 'AQBC') && 'AQBC used the Run 2 image with the same server binary and a prefix-store configuration. '}Each speed request generated 32 tokens. We estimated time to first token
                 from the server’s first sampled token, aligned to the client clock
-                {clockDifferences.length > 0 && ` (median difference from direct NVFP4 timing: ${fmt(median(clockDifferences))} ms)`}. Warm results are medians. {arms.some((row) => row.arm === 'AQBC') && 'Run 2 was measured on a shared machine; background activity recorded, not filtered. The first-request check uses warm pairs because the first cold request also read the pack into memory.'} The NVFP4 accuracy reference used the same 250 questions on Nov 25 with engine build 9048bad8d.
+                {clockDifferences.length > 0 && ` (median difference from direct NVFP4 timing: ${fmt(median(clockDifferences))} ms)`}. Warm server results are medians. {arms.some((row) => row.arm === 'AQBC') && 'Run 2 was measured on a shared machine; background activity recorded, not filtered. Its first-request check uses Warm server pairs because the first AQBC request at 512 tokens also read the pack into memory.'} The NVFP4 accuracy reference used the same 250 questions on Nov 25 with engine build 9048bad8d.
               </p>
+              <EngineRequestMethod />
               <p>
                 <a href={`${api}/readme`} data-testid="factory-runs-engine-readme">
                   Final evidence index

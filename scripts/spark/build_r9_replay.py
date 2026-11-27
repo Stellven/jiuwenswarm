@@ -23,7 +23,7 @@ NODES = {
 }
 PLACEMENT = ('placement_share_0', 'placement_share_025', 'placement_share_05')
 OWNER_AMENDMENTS = {
-    '005': ('005-OWNER-checker-all-rows.md', 'Use warm first requests for scoring and retain the cold rows',
+    '005': ('005-OWNER-checker-all-rows.md', 'Score the Warm server rows and retain every measurement',
             '2f340db14174c35eade4db5969eecb5eb9943eb5d51f73a3da0559816521d814'),
     '006': ('006-OWNER-relax-quiet.md', 'Record background activity without filtering measurements',
             'e7ebafa44d6d1041006bfd39f4ffb881278cbc5fb3c2850b36858f46b7aca013'),
@@ -362,8 +362,8 @@ class Replay(Builder):
             shown['warm_first_requests'] = rows['warm']
             shown['cold_first_requests'] = rows['cold']
             shown['first_request_policy'] = dict(
-                score='Use every warm pair at 512 and 2048 under the amended checker, with cache reuse disabled on both arms.',
-                cold='Display both cold cells for context only. The 512-token AQBC cold request ran first while the pack was still being read.',
+                score='Use every Warm server pair at 512 and 2048 under the amended checker, with cache reuse disabled on both arms.',
+                cold='Show both First request after start cells for context.',
             )
             refs.append(source)
         revised = None
@@ -392,7 +392,7 @@ class Replay(Builder):
             standard = [item for item in revised.get('summary', {}).get('standard', []) if item.get('judged')]
             if standard:
                 passing = sum(item['within_tolerance'] for item in standard)
-                comparisons = f' {passing}/{len(standard)} warm first-request cells met the same-load tolerance.'
+                comparisons = f' {passing}/{len(standard)} Warm server cells met the same-load tolerance.'
         if revised:
             for pair in revised.get('summary', {}).get('followup', []):
                 candidate = pair['candidate']['derived_ttft_ms'] / 1000
