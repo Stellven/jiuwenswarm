@@ -40,6 +40,7 @@ def test_prebuild_stop_is_a_native_demo_with_source_and_report(tmp_path):
     assert verify(out) > 0
     replay = json.loads((out / 'replay.json').read_bytes())
     assert replay['order'] == 3
+    assert replay['presentation_header']['report_kind'] == 'run'
     assert replay['presentation_header']['image_id'] is None
     assert replay['presentation_header']['outcome'].startswith('Stopped before build.')
     assert (out / replay['contract_versions'][0]['path']).read_bytes() == contract.read_bytes()

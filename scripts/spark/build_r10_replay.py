@@ -389,7 +389,8 @@ class Replay(Builder):
         self.write_json('replay.json', dict(schema=SCHEMA, title=TITLE, order=3, graph_mode='recorded', summary=outcome,
                                            primary_task=self.task_id, source_homes=['graph'], node_presentation=NODES,
                                            presentation_header=dict(objective='Trace routed-expert decode dispatch in AQBC and evaluate a gated batching change if eligible.',
-                                                                    outcome=outcome, image_id=image),
+                                                                    outcome=outcome, image_id=image,
+                                                                    report_kind='lab' if trace['may_build'] else 'run'),
                                            contract_versions=[dict(version=10, path=self.contract_file, sha256=self.contract_sha)],
                                            steps=self.steps))
         task = pick(self.task, 'task_id objective allowed_effects target budget revision current_decision_rev '
