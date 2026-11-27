@@ -233,17 +233,8 @@ function SourceDialog({ rows, close }: { rows: EngineRow[]; close: () => void })
             facts={[
               ['Test', value(row.test)],
               ['Sample size', value(row.n)],
-              ['Candidate accuracy', numeric(row.acc) ? `${fmt(row.acc * 100, 2)}%` : null],
-              ['NVFP4 accuracy', numeric(row.reference_acc) ? `${fmt(row.reference_acc * 100, 2)}%` : null],
-              ['Accuracy delta', numeric(row.delta) ? value(row.delta * 100, 'pp') : null],
-              [
-                'Interval',
-                numeric(row.interval?.lo) && numeric(row.interval?.hi)
-                  ? `${fmt(row.interval.lo * 100, 2)} to ${fmt(row.interval.hi * 100, 2)} pp`
-                  : null,
-              ],
-              ['Margin', numeric(row.margin) ? value(row.margin * 100, 'pp') : null],
-              ['Verdict', value(row.verdict)],
+              ['AQB · Mixed 2-bit', numeric(row.acc) ? `${(row.acc * 100).toFixed(1)}%` : null],
+              ['A · NVFP4', numeric(row.reference_acc) ? `${(row.reference_acc * 100).toFixed(1)}%` : null],
             ]}
           />
         </>
@@ -254,7 +245,7 @@ function SourceDialog({ rows, close }: { rows: EngineRow[]; close: () => void })
 
 function ReportTable({ rows, speed, inspect }: { rows: EngineRow[]; speed: Ratio[]; inspect: Inspect }) {
   return (
-    <Panel id="comparison" title="Baseline and mixed 2-bit comparison">
+    <Panel id="comparison" title="A and AQB comparison">
       <div className="engine-table-wrap">
         <table data-testid="factory-runs-engine-comparison-table">
           <thead>
@@ -363,7 +354,19 @@ function ReportTable({ rows, speed, inspect }: { rows: EngineRow[]; speed: Ratio
                           '—'
                         )}
                       </td>
-                      <td>{numeric(matched[0]?.totalSpeedup) ? `${fmt(matched[0].totalSpeedup)}x` : '—'}</td>
+                      <td>
+                        {numeric(matched[0]?.totalSpeedup) ? (
+                          <RowValue
+                            row={matched[0].candidate}
+                            related={matched.flatMap(({ candidate, baselines }) => [candidate, ...baselines])}
+                            inspect={inspect}
+                          >
+                            {`${fmt(matched[0].totalSpeedup)}x`}
+                          </RowValue>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
                       {index === 0 && (
                         <td rowSpan={rowsToShow.length}>
                           <Facts facts={facts.filter(([, datum]) => datum != null)} row={load} inspect={inspect} />
@@ -406,7 +409,7 @@ export function EngineReport() {
   });
   const headline = deliveryHeadline(dataset?.delivery);
   const accuracy = observations
-    .filter((row) => row.kind === 'accuracy' && row.run === finalRun && row.arm === 'P')
+    .filter((row) => row.kind === 'accuracy' && row.run === finalRun && row.arm === 'AQB')
     .sort((a, b) => (b.n ?? 0) - (a.n ?? 0))
     .slice(0, 1);
   const inspect: Inspect = (row, related = []) => {
@@ -452,14 +455,14 @@ export function EngineReport() {
                 <h3>Total request time</h3>
                 <LengthPlot rows={requests} metric="total_ms" unit="s" scale={1000} inspect={inspect} />
               </Panel>
-              <Panel id="speed" title="TTFT speedup versus A">
+              <Panel id="speed" title="AQB TTFT speedup versus A">
                 <SpeedBars ratios={speed} inspect={inspect} />
               </Panel>
               <Panel id="memory" title="Device and host memory">
                 <MemoryBars rows={starts.length ? starts : arms} inspect={inspect} />
               </Panel>
               {accuracy.length > 0 && (
-                <Panel id="accuracy" title="Paired MMLU: mixed 2-bit vs NVFP4">
+                <Panel id="accuracy" title="Accuracy">
                   <AccuracyPlot rows={accuracy} inspect={inspect} />
                 </Panel>
               )}

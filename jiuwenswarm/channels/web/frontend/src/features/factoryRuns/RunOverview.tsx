@@ -1,5 +1,6 @@
 import { createTwoFilesPatch } from 'diff';
 import { DiffViewer } from './views/DiffViewer';
+import { mmluSummary, numeric } from './engineBenchModel';
 import type { ReactNode } from 'react';
 import { ArrowUpRight, CheckCircle2, CircleDot, FileText, GitBranch, Layers3, PackageCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -47,9 +48,21 @@ function ReplayMeasurements({
   onOpenFile?: (path: string) => void;
 }) {
   const { baseline, rows, accuracy } = measurement;
+  const { reference_pct, candidate_pct } = accuracy;
+  const hasMmlu = numeric(reference_pct) && numeric(candidate_pct);
+  const measuredRows = rows.filter((row) => row.status !== 'excluded');
+  const generatedTokens = measuredRows[0]?.generated_tokens;
+  const sameGeneration = numeric(generatedTokens) && measuredRows.every((row) => row.generated_tokens === generatedTokens);
   return (
     <section className="factory-curated-measurements" data-testid="factory-runs-curated-measurements">
-      <p>{baseline}. Both arms generated 32 tokens per request.</p>
+      {hasMmlu ? (
+        <p data-testid="factory-runs-curated-measurement-arms">
+          A · NVFP4 baseline. AQB · mixed 2-bit + prefill plan.
+          {sameGeneration && ` Both arms generated ${generatedTokens} tokens per request.`}
+        </p>
+      ) : (
+        <p data-testid="factory-runs-curated-measurement-arms">{baseline}.</p>
+      )}
       <div className="factory-curated-table-scroll">
         <table>
           <thead>
@@ -64,9 +77,9 @@ function ReplayMeasurements({
             </tr>
           </thead>
           <tbody>
-            {rows.filter((row) => row.status !== 'excluded').map((row) => (
-              <tr key={row.path + row.pointer} data-excluded={row.status === 'excluded' || undefined}>
-                <th scope="row">{row.arm}</th>
+            {measuredRows.map((row) => (
+              <tr key={row.path + row.pointer}>
+                <th scope="row">{hasMmlu && row.arm === 'P' ? 'AQB' : row.arm}</th>
                 <td>{row.request.slice(1)} ({row.prompt_tokens} rendered)</td>
                 <td>{row.state}{row.repeat != null ? ` · ${row.repeat + 1}` : ''}</td>
                 <td>{(row.ttft_ms / 1000).toFixed(3)}</td>
@@ -88,7 +101,7 @@ function ReplayMeasurements({
         </table>
       </div>
       <p>
-        Paired MMLU · NVFP4 {accuracy.reference_pct}% · mixed 2-bit {accuracy.candidate_pct}% · {accuracy.n} questions.{' '}
+        {hasMmlu ? mmluSummary(accuracy.n, reference_pct, candidate_pct) : `Paired MMLU · ${accuracy.n} questions`}{' '}
         <button type="button" data-testid="factory-runs-curated-accuracy-source" onClick={() => onOpenFile?.(accuracy.path)}>
           Source
         </button>
@@ -212,8 +225,8 @@ export function RunOverview({
               />
             )}
             {focus.capsule_diff && (
-              <section aria-label="Capsule changes">
-                <h4>{focus.capsule_diff.caption}</h4>
+              <section aria-label="Capsule changes" data-testid="factory-runs-curated-capsule-diff">
+                <h4 data-testid="factory-runs-curated-capsule-diff-caption">{focus.capsule_diff.caption}</h4>
                 <DiffViewer content={createTwoFilesPatch('before', 'after',
                   JSON.stringify(focus.capsule_diff.before, null, 2) + '\n',
                   JSON.stringify(focus.capsule_diff.after, null, 2) + '\n')} />
@@ -506,8 +519,8 @@ export function RunOverview({
 
 // The capsules this week's demo is about; every other bound capsule is listed with them.
 const FEATURED: Record<string, string> = {
-  'weights.build_weight_pack_compiler': 'Quantization',
-  'engine.size_prefill_batch': 'Prefill batch',
+  'weights.build_weight_pack_compiler': 'Quantization CC Q',
+  'engine.size_prefill_batch': 'Prefill CC B',
 };
 
 function RunBuilds({ detail, events }: { detail: RunDetail; events: StoryEvent[] }) {
