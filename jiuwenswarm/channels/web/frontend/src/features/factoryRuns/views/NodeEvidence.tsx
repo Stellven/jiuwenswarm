@@ -19,7 +19,9 @@ import { NodeChecks } from './NodeChecks';
 import { CorrectionSequence, CorrectionTally } from './CorrectionSequence';
 import type { CorrectionCursor } from './correctionModel';
 import { SourceLinks, type EvidenceLinks } from './SourceLinks';
+import { NodeVerifier } from './TimelineVerifier';
 import type { NodeCheckView, PlanNode } from './checkModel';
+import type { TaskGraphTimelineNode } from './graphModel';
 import { replayCheckStage, replayEvidenceText, type ReplayCheckPresentation, type ReplayNodePresentation } from './storyModel';
 import {
   capsuleCard,
@@ -339,7 +341,8 @@ export function NodeEvidence({
   nodeId,
   node,
   checks,
-  boundCCs,
+  replayNode,
+  onOpenRecord,
   revision,
   correctionCursor,
   r8VerifierHelp,
@@ -351,7 +354,8 @@ export function NodeEvidence({
   nodeId: string;
   node?: PlanNode;
   checks?: NodeCheckView;
-  boundCCs?: readonly string[];
+  replayNode?: TaskGraphTimelineNode;
+  onOpenRecord?: (id: string) => void;
   revision: unknown;
   correctionCursor?: CorrectionCursor;
   r8VerifierHelp?: boolean;
@@ -390,21 +394,26 @@ export function NodeEvidence({
           </button>
         )}
       </header>
-      {boundCCs && <BoundCapsules ids={boundCCs} />}
+      {replayNode && (
+        <>
+          <BoundCapsules ids={replayNode.boundCCs} results={replayNode.ccVerifiers} />
+          {onOpenRecord && <NodeVerifier result={replayNode.nodeVerifier} onOpenRecord={onOpenRecord} />}
+        </>
+      )}
       {!evidence.data ? (
         <Loading {...evidence} />
       ) : (
         <>
           {evidence.data.contract && <ContractEvidence {...links} contract={evidence.data.contract} />}
           <div className="factory-node-evidence-cards" data-testid="factory-runs-node-capsules">
-            {!evidence.data.capsules.length && !boundCCs?.length && (
+            {!evidence.data.capsules.length && !replayNode?.boundCCs.length && (
               <p className="factory-muted">No capsule bindings are recorded for this node.</p>
             )}
             {evidence.data.capsules.map((capsule) => {
               const card = capsuleCard(capsule, checks);
               const comparison = evidenceRecord(card.comparison);
               const catalogName = card.catalog_name ?? card.id;
-              const title = boundCCs?.includes(card.id)
+              const title = replayNode?.boundCCs.includes(card.id)
                 ? capsuleDisplayTitle({ id: card.id, name: catalogName, title: card.title })
                 : card.title;
               return (

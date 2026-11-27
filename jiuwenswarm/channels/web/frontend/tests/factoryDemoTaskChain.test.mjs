@@ -20,6 +20,7 @@ test('Demo Task graph shows one responsive chain and keeps node and capsule acti
         "export { DemoTaskChain } from './views/DemoTaskChain';",
         "export { BoundCapsules } from './cc/BoundCapsules';",
         "export { CapsuleLinksContext } from './cc/CapsuleChips';",
+        "export { NodeVerifier } from './views/TimelineVerifier';",
       ].join('\n'),
       resolveDir: fileURLToPath(new URL('../src/features/factoryRuns/', import.meta.url)),
     },
@@ -31,7 +32,7 @@ test('Demo Task graph shows one responsive chain and keeps node and capsule acti
     jsx: 'automatic',
     loader: { '.css': 'empty' },
   });
-  const { DemoTaskChain, BoundCapsules, CapsuleLinksContext } = await import(pathToFileURL(bundle));
+  const { DemoTaskChain, BoundCapsules, CapsuleLinksContext, NodeVerifier } = await import(pathToFileURL(bundle));
   const i18n = createInstance();
   const translation = JSON.parse(readFileSync(new URL('../src/i18n/locales/en.json', import.meta.url)));
   await i18n.init({ lng: 'en', resources: { en: { translation } } });
@@ -62,6 +63,12 @@ test('Demo Task graph shows one responsive chain and keeps node and capsule acti
 
   const catalog = [{ id: 'engine.kv_reuse_lab', name: 'kv_reuse_lab' }];
   const bindings = ['factory.capped_runner', 'factory.builder', 'factory.lab_manager', 'factory.node_check'];
+  const record = { id: 'node-check:plan_prefix_store:plan:1:1234', output: 'plan' };
+  const ccVerifiers = {
+    'engine.kv_reuse_lab': { status: 'pass', records: [record] },
+    'factory.capped_runner': { status: 'not-run', records: [] },
+  };
+  const nodeVerifier = { status: 'fail', records: [record] };
   const nodes = [
     ['pin_inputs', 'done', []],
     ['plan_prefix_store', 'current', ['engine.kv_reuse_lab', 'factory.capped_runner']],
@@ -70,9 +77,18 @@ test('Demo Task graph shows one responsive chain and keeps node and capsule acti
     ['measure_engine', 'stopped', []],
     ['release_gate', 'stopped', []],
     ['archive', 'stopped', []],
-  ].map(([planId, replayState, boundCCs]) => ({ id: `step:${planId}`, planId, replayState, boundCCs }));
+  ].map(([planId, replayState, boundCCs]) => ({
+    id: `step:${planId}`,
+    planId,
+    replayState,
+    boundCCs,
+    ccVerifiers: replayState === 'current' ? ccVerifiers : {},
+    nodeVerifier: replayState === 'current' ? nodeVerifier : { status: 'not-run', records: [] },
+  }));
   const opened = [];
+  const openedRecords = [];
   const onOpenNode = (nodeId) => opened.push(nodeId);
+  const onOpenRecord = (recordId) => openedRecords.push(recordId);
   const render = (selectedNode, detail) =>
     act(() =>
       root.render(
@@ -82,8 +98,9 @@ test('Demo Task graph shows one responsive chain and keeps node and capsule acti
           createElement(
             CapsuleLinksContext.Provider,
             { value: catalog },
-            createElement(DemoTaskChain, { nodes, selectedNode, onOpenNode }),
-            detail && createElement(BoundCapsules, { ids: bindings }),
+            createElement(DemoTaskChain, { nodes, selectedNode, onOpenNode, onOpenRecord }),
+            detail && createElement(BoundCapsules, { ids: bindings, results: ccVerifiers }),
+            detail && createElement(NodeVerifier, { result: nodeVerifier, onOpenRecord }),
           ),
         ),
       ),
@@ -123,8 +140,20 @@ test('Demo Task graph shows one responsive chain and keeps node and capsule acti
   );
   links[0].click();
   assert.deepEqual(opened, []);
+  assert.deepEqual(
+    [...cards[1].querySelectorAll('[data-testid="factory-runs-demo-verifier-status"]')].map((row) => row.textContent),
+    ['Pass', 'Not run', 'Fail'],
+  );
+  const recordLink = cards[1].querySelector('[data-testid="factory-runs-demo-task-node-verifier-link"]');
+  assert.equal(recordLink.dataset.variant, record.id);
+  recordLink.click();
+  assert.deepEqual(openedRecords, [record.id]);
+  assert.deepEqual(opened, []);
+  assert.equal(cards[4].querySelector('[data-testid="factory-runs-demo-task-node-verifier-link"]'), null);
+  assert.equal(cards[4].lastElementChild.dataset.testid, 'factory-runs-demo-node-verifier');
   assert.equal(cards[2].querySelector('[data-testid="factory-runs-demo-task-node-cc-count"]').textContent, 'CCs: 4');
-  assert.equal(cards[2].querySelectorAll('a').length, 0);
+  assert.equal(cards[2].querySelectorAll('a').length, 3);
+  assert.equal(cards[2].querySelector('[data-testid="factory-runs-demo-task-node-cc-more"]').textContent, '+1 more');
 
   buttons[2].click();
   assert.deepEqual(opened, ['build_image']);
@@ -136,6 +165,8 @@ test('Demo Task graph shows one responsive chain and keeps node and capsule acti
     ),
     bindings,
   );
+  document.querySelector('[data-testid="factory-runs-node-verifier-record-link"]').click();
+  assert.deepEqual(openedRecords, [record.id, record.id]);
 
   await act(() => resize(240));
   assert.deepEqual(

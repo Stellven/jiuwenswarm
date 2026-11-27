@@ -4807,6 +4807,13 @@
       "empty": "No task graph nodes are available.",
       "ccCount": "CCs: {{count}}",
       "noCC": "no CC",
+      "moreCCs": "+{{count}} more",
+      "nodeVerifier": "Node verifier",
+      "verifier": {
+        "pass": "Pass",
+        "fail": "Fail",
+        "not-run": "Not run"
+      },
       "state": {
         "done": "Done",
         "current": "Current",

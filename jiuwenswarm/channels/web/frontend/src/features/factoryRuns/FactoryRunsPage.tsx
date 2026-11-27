@@ -142,6 +142,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   const [session, setSession] = useState<SessionSnapshot | null>(null);
   const [sessionStale, setSessionStale] = useState(false);
   const [selectedNode, setSelectedNode] = useState(entry?.node);
+  const [focusedRecordId, setFocusedRecordId] = useState<string>();
   const nodeEvidenceSection = useRef<HTMLDivElement>(null);
   const [runStatus, setRunStatus] = useState<{ id: string; run_state?: RunStateRecord; controls?: Controls }>();
   // Demo build: light theme only. The scoped dark palette had unreadable
@@ -249,10 +250,8 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
       },
     };
   }, [engineViewer, detail, selected, position, events.length, controls, reloadDetail]);
-  const planNodes = useMemo(
-    () => (Array.isArray(detail?.graph?.nodes) ? (detail.graph.nodes as PlanNode[]) : []),
-    [detail],
-  );
+  const plan = (detail?.run.demo ? detail.recorded_plan : undefined) ?? detail?.graph;
+  const planNodes = useMemo(() => (Array.isArray(plan?.nodes) ? (plan.nodes as PlanNode[]) : []), [plan]);
   const fallbackStatus = detail && !detail.curated ? pauseStatement(planNodes, controls)?.text : undefined;
   const availableOperations = !engineViewer && runKind && position === events.length ? runOperations(runKind, controls) : [];
   const runOperation = async (action: RunOperation, reason: string) => {
@@ -420,14 +419,21 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   const shownCursor = cursor ? presentEvent(cursor) : undefined;
   const records = detail?.records || {};
   const graph = useMemo(
-    () => (detail ? detectGraph(detail.graph, {
+    () => (detail ? detectGraph(plan, {
       contract: detail.contract, tasks: detail.records.tasks, observations: detail.records.observations,
       nodePresentation: detail.curated?.node_presentation,
     }) : null),
-    [detail],
+    [detail, plan],
   );
   const demoNodes = demoGraph && graph && detail
-    ? taskGraphTimeline(graph, { events, position, curated: detail.curated, runState: detail.run_state })
+    ? taskGraphTimeline(graph, {
+        events,
+        position,
+        curated: detail.curated,
+        runState: detail.run_state,
+        checks: detail.node_checks,
+        files: detail.files,
+      })
     : [];
   const eventRefs = useMemo(() => {
     const result = new Map<string, JsonRecord>();
@@ -447,12 +453,17 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   ];
   const selectPanel = (value: Panel, path = '', digest = '') => {
     setPanel(value);
+    setFocusedRecordId(undefined);
     setDiffsOnly(false);
     setExpectedSha(digest);
     if (path !== filePath) {
       setFilePath(path);
       setFile(null);
     }
+  };
+  const openVerifierRecord = (id: string) => {
+    selectPanel('events');
+    setFocusedRecordId(id);
   };
   const selectRun = (id: string) => {
     if (id === selected) return;
@@ -463,6 +474,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
     setPanel('overview');
     setDiffsOnly(false);
     setFocusedDecisionId(undefined);
+    setFocusedRecordId(undefined);
     setSelectedNode(undefined);
     setChildSource(undefined);
     setExpectedSha('');
@@ -496,7 +508,8 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
         nodeId={focusedNode}
         node={planNodes.find((node) => node.node_id === focusedNode)}
         checks={detail.node_checks?.[focusedNode]}
-        boundCCs={demoNodes.find((node) => (node.planId ?? node.id) === focusedNode)?.boundCCs}
+        replayNode={demoNodes.find((node) => (node.planId ?? node.id) === focusedNode)}
+        onOpenRecord={openVerifierRecord}
         presentation={detail.curated?.node_presentation?.[focusedNode]}
         files={detail.files}
         revision={detail}
@@ -784,7 +797,9 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                   onOpenFile={openEvidenceFile}
                 />
               )}
-              {presentation && panel === 'events' && <ReplayEventsPanel detail={detail} />}
+              {panel === 'events' && (presentation || focusedRecordId) && (
+                <ReplayEventsPanel key={focusedRecordId ?? selected} detail={detail} recordId={focusedRecordId} />
+              )}
               {panel === 'overview' && (
                 <RunOverview
                   detail={detail}
@@ -835,7 +850,12 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                 />
               )}
               {demoGraph ? (
-                <DemoTaskChain nodes={demoNodes} selectedNode={selectedNode} onOpenNode={setSelectedNode} />
+                <DemoTaskChain
+                  nodes={demoNodes}
+                  selectedNode={selectedNode}
+                  onOpenNode={setSelectedNode}
+                  onOpenRecord={openVerifierRecord}
+                />
               ) : panel === 'graph' && (
                 <DataViewer
                   key={selected}

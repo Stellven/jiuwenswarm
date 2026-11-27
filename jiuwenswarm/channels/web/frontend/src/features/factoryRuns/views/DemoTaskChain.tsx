@@ -2,18 +2,21 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BoundCapsules } from '../cc/BoundCapsules';
 import type { TaskGraphTimelineNode } from './graphModel';
+import { NodeVerifier } from './TimelineVerifier';
 import './demoTaskChain.css';
 
-const minCardWidth = 140;
+const minCardWidth = 164;
 
 export function DemoTaskChain({
   nodes,
   selectedNode,
   onOpenNode,
+  onOpenRecord,
 }: {
   nodes: readonly TaskGraphTimelineNode[];
   selectedNode?: string;
   onOpenNode: (id: string) => void;
+  onOpenRecord: (id: string) => void;
 }) {
   const { t } = useTranslation();
   const list = useRef<HTMLOListElement>(null);
@@ -79,7 +82,8 @@ export function DemoTaskChain({
                 {t(`factoryRuns.demoTaskChain.state.${node.replayState}`)}
               </span>
             </button>
-            <BoundCapsules ids={node.boundCCs} compact />
+            <BoundCapsules ids={node.boundCCs} results={node.ccVerifiers} compact />
+            <NodeVerifier result={node.nodeVerifier} onOpenRecord={onOpenRecord} compact />
           </li>
         );
       })}

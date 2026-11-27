@@ -4807,6 +4807,13 @@
       "empty": "没有可用的任务图节点。",
       "ccCount": "能力胶囊：{{count}}",
       "noCC": "无能力胶囊",
+      "moreCCs": "另有 {{count}} 项",
+      "nodeVerifier": "节点验证器",
+      "verifier": {
+        "pass": "通过",
+        "fail": "失败",
+        "not-run": "未执行"
+      },
       "state": {
         "done": "已完成",
         "current": "当前",
