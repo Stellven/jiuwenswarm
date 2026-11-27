@@ -10,6 +10,7 @@ import tempfile
 
 from helpers.verify_churn import signature_changes
 from helpers.verify_gate import gate_silence, read_source
+from helpers.seeding_premise import check_premise
 
 
 ENV_GATE = "LLAMA_EXPERT_CACHE"
@@ -255,11 +256,16 @@ def verify(inputs):
 
 def main():
     packet = json.load(sys.stdin)
-    if packet.get("capability") != "verify":
+    capability = packet.get("capability")
+    if capability == "verify":
+        outputs = verify(packet["inputs"])
+    elif capability == "check_seeding_premise":
+        outputs = check_premise(packet["inputs"]["request"])
+    else:
         print(json.dumps({"outcome": "error", "error": {
-            "code": "INVALID_INPUT", "message": "Expected the verify capability"}}))
+            "code": "INVALID_INPUT", "message": "Expected verify or check_seeding_premise"}}))
         return
-    print(json.dumps({"outcome": "ok", "outputs": verify(packet["inputs"])}))
+    print(json.dumps({"outcome": "ok", "outputs": outputs}))
 
 
 if __name__ == "__main__":

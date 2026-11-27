@@ -1,6 +1,6 @@
 cc: '2'
 id: engine.build_expert_weight_cache
-version: 1.4.2
+version: 1.5.0
 materials:
   direct_seed:
     path: DIRECT-SEED.md
@@ -42,6 +42,10 @@ materials:
     path: tasks/expert_weight_cache.json
   verifier:
     path: run.py
+  seeding_premise:
+    path: helpers/seeding_premise.py
+  aqbc_profile_trace:
+    path: helpers/aqbc-profile-trace.patch
   validation:
     path: VALIDATION.md
   gate_verifier:
@@ -58,6 +62,18 @@ bindings:
     - '{python}'
     - '{bundle}/run.py'
 capabilities:
+  check_seeding_premise:
+    does: Replay AQBC demand fill and calibration-only startup seeding over the same held-out routing and report the byte-weighted hit rate without loading the model.
+    takes:
+      request: json
+    gives:
+      done: json
+      checks: json
+      premise: json
+    needs:
+    - python
+    changes:
+    - process.exec
   verify:
     does: Check a candidate expert weight cache diff for applicability, source scope,
       gate and log signatures, and best-effort C++ syntax of new files.
