@@ -219,7 +219,7 @@ def check_final(prelim, final, *, known_ccs=None):
         if after is None:
             found.append(f'verifier for {name} dropped')
             continue
-        for field in ('verifier', 'stage'):
+        for field in ('verifier', 'stage', 'seal'):
             if verifier.get(field) and after.get(field) != verifier.get(field):
                 found.append(f'verifier for {name}: {field} must stay {verifier[field]}')
         if REVIEW_RANK.get(after.get('review', False), -1) < REVIEW_RANK.get(verifier.get('review', False), 0):

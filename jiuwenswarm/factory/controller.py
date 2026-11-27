@@ -135,7 +135,7 @@ def configure_agent(task, grants=(), home=None):
     # default queue, which the operator's worker does not read.
     for key in ('FACTORY_BRIDGE_DIR', 'FACTORY_HOST_PYTHON', 'FACTORY_JOBQ_BIN', 'JOBQ_DIR', 'FACTORY_LAB_STATE',
                 'FACTORY_YIELD_ON_JOBS', 'FACTORY_BUILD_RECIPE', 'FACTORY_NATIVE_BUILDER_IMAGE',
-                'FACTORY_CAPPED_REPLAY_REGISTRY', 'FACTORY_LAB_ROUTE', 'FACTORY_LAB_MAILBOX'):
+                'FACTORY_CAPPED_REPLAY_REGISTRY', 'FACTORY_LAB_ROUTE', 'FACTORY_LAB_MAILBOX', 'FACTORY_MUSE_DEMO'):
         if key in os.environ:
             env[key] = os.environ[key]
     # The user's runtime dir and session bus, so systemd-run --user (the memory cap of capped runs and of capsule
@@ -396,11 +396,29 @@ class Controller:
             return False
         if any(a['state'] in ACTIVE | {'unknown'} for a in data['attempts']):
             return False
+        task = self.store.get_task(task_id)
+        if latest['action']['type'] == 'accept':
+            from .node_check import _staged_document, accepted_output, CheckError
+            _, staged = _staged_document(task)
+            if staged:
+                from .taskgraph import plan_get
+                release = next((n for n in plan_get(self.store, task_id)['nodes']
+                                if n.get('node_contract') == staged['release_gate'] and n['state'] == 'done'), None)
+                if release is None:
+                    return False
+                try:
+                    outputs = [entry for entry in release['check']['outputs']
+                               if entry['kind'] == 'release' and entry.get('required', True)]
+                    if not all(accepted_output(self.store, task_id, release, output['name'])['obs_id']
+                               in latest['evidence_ids'] for output in outputs):
+                        return False
+                except CheckError:
+                    return False
         exists = self.store._db.execute("SELECT 1 FROM sqlite_master WHERE name='factory_loop_cycles'").fetchone()
         if exists and any(json.loads(row['record'])['state'] != 'collected' for row in self.store._db.execute(
                 'SELECT record FROM factory_loop_cycles WHERE task_id=?', (task_id,))):
             return False
-        self.store.validate_evidence(task_id, latest['evidence_ids'], read_tasks(self.store.get_task(task_id)))
+        self.store.validate_evidence(task_id, latest['evidence_ids'], read_tasks(task))
         return True
 
     async def _bounded_turn(self, task_id, query, turn, session_id, timeout):
@@ -667,8 +685,10 @@ class Controller:
         self._save(task_id, state)
         if new:
             return new
-        if halt_policy.policy(task)['step']:
-            held = halt_policy.step_holds(self.store, task_id, state, next_work(self.store, task_id)['runnable'])
+        policy = halt_policy.policy(task)
+        if policy['step'] or policy.get('step_nodes'):
+            only = None if policy['step'] else policy['step_nodes']
+            held = halt_policy.step_holds(self.store, task_id, state, next_work(self.store, task_id)['runnable'], only)
             self._save(task_id, state)
             if held:
                 return [dict(reason='step checkpoint before ' + ', '.join(held) + ' (STEP.md)', step=True)]

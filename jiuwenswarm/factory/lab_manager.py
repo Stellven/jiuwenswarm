@@ -389,6 +389,9 @@ class LabManager:
         if found:
             raise ValueError('Invalid lab task: ' + '; '.join(found[:20]))
         lab_task = json.loads(canonical(lab_task))
+        from .node_contract import from_contract
+        if (from_contract(contract) or {}).get('staged_release'):
+            self._verify_factory_stage(task_id, node_id, lab_task)
         lab_task['contract'] = dict(id=contract['contract_id'], sha256=digest)
         subjects = {name: dict(subject, verification=self._verify_subject(task_id, name, subject))
                     for name, subject in lab_task['subjects'].items()}
@@ -407,6 +410,26 @@ class LabManager:
                     subjects={name: s['verification'] for name, s in subjects.items()},
                     payloads={name: {k: s['payload'][k] for k in ('name', 'sha256', 'size', 'format')}
                               for name, s in subjects.items() if 'payload' in s})
+
+    def _verify_factory_stage(self, task_id, node_id, lab_task):
+        from .node_check import accepted_stage
+        from .taskgraph import plan_get
+        node = next((item for item in plan_get(self.store, task_id)['nodes'] if item['node_id'] == node_id), None)
+        if not node or node['kind'] != 'deliver':
+            raise ValueError('Staged lab composition requires the contracted delivery node')
+        _, check = accepted_stage(self.store, task_id, node, 'factory_stage')
+        sealed = (check.get('verifier') or {}).get('sealed_artifact')
+        subjects = lab_task['subjects']
+        evidence = subjects.get('factory_stage') or {}
+        if (not sealed or evidence.get('kind') != 'artifact' or evidence.get('transfer') != 'attach'
+                or evidence.get('identity', {}).get('artifact_id') != sealed):
+            raise ValueError('Staged delivery must attach the accepted factory-stage verifier artifact as factory_stage')
+        stage = json.loads(self.store.artifact_bytes(task_id, sealed))
+        for arm in lab_task['arms'].values():
+            image = subjects[arm['subject']]
+            if (image['kind'] != 'container_image' or not image.get('build_attempt_id')
+                    or image['identity'].get('id') != stage.get('image_id')):
+                raise ValueError('The staged lab arms must use the checked container image and name its build attempt')
 
     def send(self, task_id, package_id, idem_key):
         if not isinstance(idem_key, str) or not idem_key:

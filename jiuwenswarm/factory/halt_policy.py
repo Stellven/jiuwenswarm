@@ -93,14 +93,14 @@ def halt(store, task_id, state, halts):
     return new
 
 
-def step_holds(store, task_id, state, runnable):
+def step_holds(store, task_id, state, runnable, only=None):
     """Hold each runnable node once (its first step checkpoint); returns the nodes held now."""
     from .taskgraph import operator_patch
     held = []
     stepped = set(state.get('stepped', []))
     for item in runnable:
         node_id = item['node_id']
-        if node_id in stepped or item.get('state') == 'running':
+        if node_id in stepped or item.get('state') == 'running' or (only is not None and node_id not in only):
             continue
         operator_patch(store, task_id, 'hold', node_id, STEP_REASON)
         stepped.add(node_id)

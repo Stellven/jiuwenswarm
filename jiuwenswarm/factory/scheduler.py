@@ -45,6 +45,8 @@ def _contracts(host, task):
     try:
         return for_task(task)
     except (OSError, ValueError):
+        if (task.get('constraints') or {}).get('approved_capped_recipes') is not None:
+            raise
         return None
 
 
@@ -238,7 +240,16 @@ def admitted(store, task_id, capability, inputs):
     contracts = _contracts(host, task)
     capsule, cap, kind = NODE_CAPABILITIES[capability]
     node_id = inputs.get('node_id')
-    approved = (task.get('constraints') or {}).get('approved_model_packs')
+    constraints = task.get('constraints') or {}
+    approved = constraints.get('approved_model_packs')
+    recipes = constraints.get('approved_capped_recipes')
+    if recipes is not None and capability == 'capped_runner.start':
+        if not node_id or inputs.get('recipe') not in recipes.get(node_id, []):
+            raise ValueError('The task admits this capped recipe only for its approved graph node')
+    build_nodes = constraints.get('approved_build_nodes')
+    if build_nodes is not None and capability == 'builder.submit':
+        if node_id not in build_nodes or (inputs.get('request') or {}).get('config_image') != constraints.get('config_image'):
+            raise ValueError('The task admits only its pinned config image build on the approved graph node')
     if approved is not None and capability == 'capped_runner.start':
         if not node_id:
             raise ValueError('The model-load ledger requires a node on every capped run')

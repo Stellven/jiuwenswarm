@@ -335,8 +335,16 @@ def _plan_view(host, task_id, graph, contracts, node_id, prelim):
                     outputs=[dict(name=o['name'], kind=o['kind'], criteria=o.get('criteria', [])) for o in contract.get('outputs', [])],
                     **({'briefing': contract['briefing']} if contract.get('briefing') else {}))
     neighbours = dict(predecessors=[neighbour(p) for p in prelim.get('predecessors', [])])
-    neighbours['hands_to'] = neighbour(prelim['hands_to']) if prelim.get('hands_to') not in (None, 'lab_manager') else \
-        dict(node_contract='lab_manager', objective='The lab manager receives the delivered engine and runs the lab arms.')
+    handoff = prelim.get('hands_to')
+    if handoff == 'lab_manager':
+        staged = (contracts or {}).get('staged_release')
+        objective = ('The lab manager seals delivery for the graph measurement node.' if staged else
+                     'The lab manager receives the delivered engine and runs the lab arms.')
+        neighbours['hands_to'] = dict(node_contract=handoff, objective=objective)
+    elif handoff == 'operator':
+        neighbours['hands_to'] = dict(node_contract=handoff, objective='The operator receives the release verdict.')
+    else:
+        neighbours['hands_to'] = neighbour(handoff)
     return dict(rev=graph['rev'], nodes=plan), neighbours
 
 
