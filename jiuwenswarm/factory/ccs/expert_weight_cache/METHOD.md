@@ -58,3 +58,44 @@ Follow [PROFILE-RESIDENCY.md](PROFILE-RESIDENCY.md) for a separately admitted re
 Follow [PREFILL-HITS.md](PREFILL-HITS.md) to verify GPU hits avoid original host payload reads and compare refill/copy amplification under matched admission.
 
 Use [DIRECT-SEED.md](DIRECT-SEED.md) for the independent, report-driven native profile startup I/O treatment.
+
+## AQBC seeding premise
+
+Apply [the profiling patch](helpers/aqbc-profile-trace.patch) to the pinned AQBC source.
+Use the profiling library with the pinned server and GGML libraries for the
+authorized profiling load. Set `LLAMA_MOE_CACHE_TRACE` to an absolute writable
+path. The profiling patch leaves the replacement policy and routed operands
+unchanged. It flushes the header and each route record so the host can record
+request boundaries. MCT1 only emits demand-slot records and cannot establish the
+large-prefill premise.
+
+MCT2 uses the native MCT1 allocation header following the four-byte magic
+`MCT2`. Each little-endian record starts with four signed 32-bit integers
+`layer, experts_per_token, count, projection`. Projection `-1` is a demand
+update and has `count` ordered signed 32-bit expert IDs. A nonnegative
+projection is the index of a read-only weight tensor in its group; the body has
+`count` pairs of signed 32-bit expert ID and route frequency. A bulk read
+neither fills slots nor ages the cache.
+
+Pass `request` to `check_seeding_premise` with SHA-256-pinned `parent`,
+`trace`, and `manifest` file references. The manifest format
+`factory.muse-seeding-profile/1` includes `parent_sha256`, `trace_sha256`,
+`profiling_library_sha256`, and ordered `requests`. Each request includes
+`id`, `cell`, `cohort`, `trace_start`, and `trace_end` byte offsets. The
+offsets partition all records after the header. Non-startup requests add
+`prompt_sha256`, realized `prompt_n` and `generated_n`, and `cache_prompt`.
+Separate native startup work into a leading `warmup` row with cell
+`startup`. Held-out cells are `first-request`, `warm-512`, `warm-2048`, and
+`follow-up`, all with prompt reuse enabled. Record any follow-up priming as
+`warmup`. Collect independent `calibration` requests after the last held-out
+request with prompt reuse disabled.
+
+The verifier ranks only calibration transfers by their weight bytes. It leaves
+one eighth of the admitted cache slots available for ordinary demand fill.
+It replays the held-out records with the same cache geometry and replacement
+policy for each arm, reports byte-weighted hit rates and estimated host upload
+savings per cell, and records the profile's additional startup upload bytes.
+The premise can pass its verification with `may_build: false`. A build
+requires positive net held-out host upload savings and no first-request
+regression in the paired replay. Timing, output identity, and memory
+eligibility require the authorized target experiment.

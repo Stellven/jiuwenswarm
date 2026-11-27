@@ -1,0 +1,137 @@
+diff --git a/src/llama-context.cpp b/src/llama-context.cpp
+--- a/src/llama-context.cpp
++++ b/src/llama-context.cpp
+@@ -3198,6 +3198,10 @@
+         }
+
+         st.ids = ids;
++    }
++
++    if (lctx->moe_cache) {
++        lctx->moe_cache->trace_read(backend, src, ids, st.ids_data.data());
+     }
+
+     // group consecutive experts and copy them together
+diff --git a/src/llama-moe-cache.cpp b/src/llama-moe-cache.cpp
+--- a/src/llama-moe-cache.cpp
++++ b/src/llama-moe-cache.cpp
+@@ -390,6 +390,8 @@
+
+     // LLAMA_MOE_CACHE_TRACE: the selected experts of each slot lookup, for a simulator of the cache
+     FILE * trace = nullptr;
++    std::vector<int32_t> trace_counts;
++    std::vector<int32_t> trace_pairs;
+
+     // slot maps in host memory
+     ggml_context_ptr ctx_host;
+@@ -492,7 +494,7 @@
+
+         // within a device the budget is split by the size of the experts, so each group caches the same fraction of its experts
+         cpu_share_q = (uint32_t) std::lround(cpu_share*65536.0f);
+-        if (const char * path = getenv("LLAMA_MOE_CACHE_TRACE"); path != nullptr && *path != '\0') {
++        if (const char * path = getenv("LLAMA_MOE_CACHE_TRACE"); !no_alloc && path != nullptr && *path != '\0') {
+             trace = fopen(path, "wb");
+             if (trace == nullptr) {
+                 throw std::runtime_error(std::string("failed to open the MoE cache trace ") + path);
+@@ -641,15 +643,17 @@
+         return devices[groups[layers[il].ig].id].backend;
+     }
+
+-    // trace format, little endian: "MCT1", then u32 n_layer, n_expert_used, n_group
++    // trace format, little endian: "MCT2", then u32 n_layer, n_expert_used, n_group
+     // per group: u32 device, n_expert, n_layers, the layers (u32), f64 split, split_sum, u64 group host bytes, device host bytes, alignment,
+     //            u32 n_tensors, the bytes of one expert of each tensor (u64)
+-    // then one record per slot lookup: i32 layer, experts per token, n_ids, the ids (i32)
++    // records: i32 layer, experts per token, count, projection
++    // projection -1: ordered slot-map routes (count i32 IDs)
++    // projection >= 0: read-only tensor index, count pairs of (expert ID, route count)
+     void write_trace_header(double split_sum) {
+         auto u32 = [&](uint32_t v) { fwrite(&v, sizeof(v), 1, trace); };
+         auto u64 = [&](uint64_t v) { fwrite(&v, sizeof(v), 1, trace); };
+         auto f64 = [&](double   v) { fwrite(&v, sizeof(v), 1, trace); };
+-        fwrite("MCT1", 1, 4, trace);
++        fwrite("MCT2", 1, 4, trace);
+         u32(layers.size());
+         u32(n_expert_used);
+         u32(groups.size());
+@@ -671,12 +675,54 @@
+                 u64(t->nb[2]);
+             }
+         }
++        flush_trace();
++    }
++
++    void flush_trace() {
++        if (ferror(trace) || fflush(trace) != 0) {
++            throw std::runtime_error("failed to write the MoE cache trace");
++        }
+     }
+
+     void write_trace(int32_t il, int32_t n_used) {
+-        const int32_t rec[3] = { il, n_used, (int32_t) ids.size() };
+-        fwrite(rec, sizeof(int32_t), 3, trace);
++        const int32_t rec[4] = { il, n_used, (int32_t) ids.size(), -1 };
++        fwrite(rec, sizeof(int32_t), 4, trace);
+         fwrite(ids.data(), sizeof(int32_t), ids.size(), trace);
++        flush_trace();
++    }
++
++    void trace_read(ggml_backend_t backend, const ggml_tensor * w, const ggml_tensor * routes, const int32_t * trace_ids) {
++        if (trace == nullptr) {
++            return;
++        }
++        const auto it = bindings.find(w);
++        if (it == bindings.end()) {
++            return;
++        }
++        const binding & b = it->second;
++        const group & g = groups[layers[b.il].ig];
++        if (backend != devices[g.id].backend) {
++            return;
++        }
++        trace_counts.assign(w->ne[2], 0);
++        for (int64_t token = 0; token < routes->ne[1]; ++token) {
++            for (int64_t route = 0; route < routes->ne[0]; ++route) {
++                const size_t offset = token*routes->nb[1] + route*routes->nb[0];
++                const int32_t expert = trace_ids[offset / sizeof(int32_t)];
++                trace_counts.at(expert)++;
++            }
++        }
++        trace_pairs.clear();
++        for (size_t expert = 0; expert < trace_counts.size(); ++expert) {
++            if (trace_counts[expert]) {
++                trace_pairs.push_back((int32_t) expert);
++                trace_pairs.push_back(trace_counts[expert]);
++            }
++        }
++        const int32_t rec[4] = { b.il, (int32_t) routes->ne[0], (int32_t) (trace_pairs.size()/2), b.ip };
++        fwrite(rec, sizeof(int32_t), 4, trace);
++        fwrite(trace_pairs.data(), sizeof(int32_t), trace_pairs.size(), trace);
++        flush_trace();
+     }
+
+     ~impl() {
+@@ -970,6 +1016,10 @@
+     return pimpl->copy_experts(backend, w, dst, e, last);
+ }
+
++void llama_moe_cache::trace_read(ggml_backend_t backend, const ggml_tensor * w, const ggml_tensor * routes, const int32_t * trace_ids) {
++    pimpl->trace_read(backend, w, routes, trace_ids);
++}
++
+ std::map<ggml_backend_buffer_type_t, size_t> llama_moe_cache::memory_breakdown() const {
+     std::map<ggml_backend_buffer_type_t, size_t> res;
+     for (const auto & d : pimpl->devices) {
+diff --git a/src/llama-moe-cache.h b/src/llama-moe-cache.h
+--- a/src/llama-moe-cache.h
++++ b/src/llama-moe-cache.h
+@@ -60,6 +60,9 @@
+     // returns the number of experts copied, 0 if expert e is not in the cache
+     int64_t copy_experts(ggml_backend_t backend, const ggml_tensor * w, ggml_tensor * dst, int64_t e, int64_t last);
+
++    // Profile the experts selected for read-only uploads, without touching cache state.
++    void trace_read(ggml_backend_t backend, const ggml_tensor * w, const ggml_tensor * routes, const int32_t * ids);
++
+     std::map<ggml_backend_buffer_type_t, size_t> memory_breakdown() const;
+
+ private:
