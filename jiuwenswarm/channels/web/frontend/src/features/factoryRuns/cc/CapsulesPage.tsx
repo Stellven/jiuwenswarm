@@ -6,7 +6,7 @@ import { BuilderRunEvidence, CapsuleEvidenceView, Receipt } from './CapsuleEvide
 import { Integrity, Loading, MaterialDialog, MaterialList, SafeMarkdown, StructuredData } from './CapsuleMaterial';
 import { useTranslation } from 'react-i18next';
 import {
-  capsuleHeadlineRows, ccKind, displayName, headlineArmForCapsule, isRecord,
+  capsuleDisplayTitle, capsuleHeadlineRows, ccKind, displayName, headlineArmForCapsule, isRecord,
   markdownSections, plainDescription, readableName,
 } from './capsuleModel';
 import {
@@ -115,7 +115,7 @@ function Card({ capsule, results }: { capsule: CapsuleCard; results?: HeadlineRo
         </span>
         <Integrity state={capsule.integrity} />
       </div>
-      <h3>{method?.title ?? displayName(capsule)}</h3>
+      <h3>{capsuleDisplayTitle(capsule)}</h3>
       <BuilderSubtitle capsule={capsule} />
       <p>{method?.method ?? plainDescription(capsule.cc_summary || capsule.description || capsule.component || capsule.id)}</p>
       {method && <p><strong>In this run.</strong> {method.evidence}</p>}
@@ -301,7 +301,7 @@ function CapsuleHeader({ capsule }: { capsule: CapsuleDetail }) {
             </span>
           )}
         </div>
-        <h1 data-testid="factory-runs-capsule-title">{method?.title ?? displayName(capsule)}</h1>
+        <h1 data-testid="factory-runs-capsule-title">{capsuleDisplayTitle(capsule)}</h1>
         <BuilderSubtitle capsule={capsule} />
         <RawId capsule={capsule} />
         <p>{method?.method ?? plainDescription(capsule.cc_summary || capsule.description || capsule.verifier || '')}</p>

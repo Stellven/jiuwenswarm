@@ -4803,6 +4803,17 @@
   },
   "factoryRuns": {
     "iterations": "Iterations",
+    "demoTaskChain": {
+      "empty": "No task graph nodes are available.",
+      "ccCount": "CCs: {{count}}",
+      "noCC": "no CC",
+      "state": {
+        "done": "Done",
+        "current": "Current",
+        "not-reached": "Not reached",
+        "stopped": "Stopped"
+      }
+    },
     "story": {
       "engineComparison": "Engine comparison",
       "runOverview": "Run overview",

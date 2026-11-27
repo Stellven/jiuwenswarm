@@ -1,5 +1,6 @@
 import type { CapsuleCard } from './capsuleApi';
 import { atlasName, isCcKind, type CcKind } from './atlasNames.ts';
+import { inferenceCapsules } from './inferenceCapsuleCopy.ts';
 
 const headlineArms = new Map([
   ['observability_event_recorder', 'C1'],
@@ -68,6 +69,10 @@ export function displayName(capsule: Pick<CapsuleCard, 'name' | 'id'> & Partial<
     capsule.subcomponent ||
     readableName(capsule.name)
   );
+}
+
+export function capsuleDisplayTitle(capsule: Pick<CapsuleCard, 'name' | 'id'> & Partial<CapsuleCard>): string {
+  return inferenceCapsules[capsule.id]?.title ?? displayName(capsule);
 }
 
 /** Atlas CC kind: builder, tool, analysis or factory worker. */

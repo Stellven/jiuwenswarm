@@ -33,7 +33,8 @@ import { LaunchSessionDialog } from './LaunchSessionDialog';
 import { DataViewer } from './views/DataViewer';
 import { evidenceKind } from './views/dataModel';
 import { EvidenceFileBrowser } from './views/EvidenceFiles';
-import { detectGraph } from './views/graphModel';
+import { detectGraph, taskGraphTimeline } from './views/graphModel';
+import { DemoTaskChain } from './views/DemoTaskChain';
 import { FactoryRunList } from './views/RunList';
 import { contractDemoRuns } from './views/runListModel';
 import { ReplayContractPanel, ReplayEventsPanel, ReplayNodeContractsPanel } from './FactoryReplayEvidence';
@@ -399,7 +400,8 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   const replayByArtifact = useMemo(() => artifactReplayOrigins(detail?.records.observations ?? []), [detail]);
   const cursor = visibleEvents[visibleEvents.length - 1];
   const curatedStep = curatedStepFor(detail?.curated, cursor);
-  const focusedNode = selectedNode ?? (curatedStep?.original_kind === 'revise' ? undefined : curatedStep?.node_id);
+  const demoGraph = panel === 'graph' && detail?.run.demo;
+  const focusedNode = selectedNode ?? (!demoGraph && curatedStep?.original_kind !== 'revise' ? curatedStep?.node_id : undefined);
   useEffect(() => {
     if (selectedNode) nodeEvidenceSection.current?.scrollIntoView({ block: 'start' });
   }, [selectedNode]);
@@ -414,10 +416,14 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   const records = detail?.records || {};
   const graph = useMemo(
     () => (detail ? detectGraph(detail.graph, {
-      contract: detail.contract, tasks: detail.records.tasks, nodePresentation: detail.curated?.node_presentation,
+      contract: detail.contract, tasks: detail.records.tasks, observations: detail.records.observations,
+      nodePresentation: detail.curated?.node_presentation,
     }) : null),
     [detail],
   );
+  const demoNodes = demoGraph && graph && detail
+    ? taskGraphTimeline(graph, { events, position, curated: detail.curated, runState: detail.run_state })
+    : [];
   const eventRefs = useMemo(() => {
     const result = new Map<string, JsonRecord>();
     const data = detail?.records;
@@ -485,6 +491,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
         nodeId={focusedNode}
         node={planNodes.find((node) => node.node_id === focusedNode)}
         checks={detail.node_checks?.[focusedNode]}
+        boundCCs={demoNodes.find((node) => (node.planId ?? node.id) === focusedNode)?.boundCCs}
         presentation={detail.curated?.node_presentation?.[focusedNode]}
         files={detail.files}
         revision={detail}
@@ -806,7 +813,9 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                   onOpenFile={(path) => selectPanel('artifacts', path)}
                 />
               )}
-              {panel === 'graph' && (
+              {demoGraph ? (
+                <DemoTaskChain nodes={demoNodes} selectedNode={selectedNode} onOpenNode={setSelectedNode} />
+              ) : panel === 'graph' && (
                 <DataViewer
                   key={selected}
                   name={t('factoryRuns.graph')}

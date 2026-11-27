@@ -9,9 +9,10 @@ import {
   type NodeOutput,
 } from '../api';
 import { atlasTitle } from '../cc/atlasNames';
+import { BoundCapsules } from '../cc/BoundCapsules';
 import { capsuleHref } from '../cc/navigation';
 import { Loading, MaterialDialog, MaterialList, StructuredData } from '../cc/CapsuleMaterial';
-import { readableName } from '../cc/capsuleModel';
+import { capsuleDisplayTitle, readableName } from '../cc/capsuleModel';
 import { useCapsuleResource } from '../cc/useCapsuleResource';
 import { DiffViewer } from './DiffViewer';
 import { NodeChecks } from './NodeChecks';
@@ -338,6 +339,7 @@ export function NodeEvidence({
   nodeId,
   node,
   checks,
+  boundCCs,
   revision,
   correctionCursor,
   r8VerifierHelp,
@@ -349,6 +351,7 @@ export function NodeEvidence({
   nodeId: string;
   node?: PlanNode;
   checks?: NodeCheckView;
+  boundCCs?: readonly string[];
   revision: unknown;
   correctionCursor?: CorrectionCursor;
   r8VerifierHelp?: boolean;
@@ -387,18 +390,23 @@ export function NodeEvidence({
           </button>
         )}
       </header>
+      {boundCCs && <BoundCapsules ids={boundCCs} />}
       {!evidence.data ? (
         <Loading {...evidence} />
       ) : (
         <>
           {evidence.data.contract && <ContractEvidence {...links} contract={evidence.data.contract} />}
           <div className="factory-node-evidence-cards" data-testid="factory-runs-node-capsules">
-            {!evidence.data.capsules.length && (
+            {!evidence.data.capsules.length && !boundCCs?.length && (
               <p className="factory-muted">No capsule bindings are recorded for this node.</p>
             )}
             {evidence.data.capsules.map((capsule) => {
               const card = capsuleCard(capsule, checks);
               const comparison = evidenceRecord(card.comparison);
+              const catalogName = card.catalog_name ?? card.id;
+              const title = boundCCs?.includes(card.id)
+                ? capsuleDisplayTitle({ id: card.id, name: catalogName, title: card.title })
+                : card.title;
               return (
                 <article
                   className="factory-node-capsule"
@@ -411,9 +419,9 @@ export function NodeEvidence({
                       <h4>
                         <a
                           data-testid="factory-runs-node-capsule-catalog"
-                          href={capsuleHref(card.catalog_name ?? card.id)}
+                          href={capsuleHref(catalogName)}
                         >
-                          {card.title}
+                          {title}
                         </a>
                       </h4>
                       {card.kind && <span className="factory-node-evidence-kind">{card.kind}</span>}
