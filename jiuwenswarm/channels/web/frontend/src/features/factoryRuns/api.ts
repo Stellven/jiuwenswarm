@@ -18,6 +18,8 @@ export type Run = {
   demo?: boolean;
   demo_order?: number;
   contract_demo?: boolean;
+  original_run_id?: string;
+  demo_replay_id?: string;
   /** web-* launch scratch homes and synthetic smoke homes. */
   scratch?: boolean;
   /** An older export snapshot of a task that has a newer export. */

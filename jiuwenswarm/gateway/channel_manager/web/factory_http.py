@@ -363,6 +363,8 @@ class FactoryHttpService:
 
     def catalog(self):
         result = []
+        native = {}
+        replay_sources = []
         for path in self.directories():
             try:
                 replay = None
@@ -383,6 +385,12 @@ class FactoryHttpService:
                     item = dict(id=self.run_id(path, tid), name=tid, task_id=tid, kind=kind, source_name=path.name,
                                 status='replay' if kind == 'bundle' else 'live',
                                 updated=path.stat().st_mtime, objective=task.get('objective', ''))
+                    # Task names can be reused by separate launches, so bind the original creation record too.
+                    created = task.get('created')
+                    task_identity = (tid, created)
+                    has_creation_record = isinstance(created, (int, float))
+                    if kind == 'live' and has_creation_record:
+                        native.setdefault((path.name, task_identity), []).append(item)
                     if path.name == 'graph-r8' and tid == 'muse-2bit-demo-r8':
                         item['featured'] = True
                     if replay:
@@ -390,6 +398,10 @@ class FactoryHttpService:
                                     objective=replay.get('summary', ''))
                         if replay.get('presentation_header'):
                             item['contract_demo'] = True
+                            if replay.get('graph_mode') == 'recorded' and replay.get('primary_task') == tid:
+                                homes = replay.get('source_homes')
+                                if isinstance(homes, list) and has_creation_record:
+                                    replay_sources.append((item, task_identity, homes))
                     elif kind == 'live':
                         if self._historical(path):
                             item.update(read_only=True, status='replay')
@@ -408,6 +420,17 @@ class FactoryHttpService:
         for item, _ in result:
             if item['kind'] == 'bundle' and not item.get('demo') and newest[item['task_id']] is not item:
                 item['duplicate'] = True
+        preferred = sorted(replay_sources, key=lambda source: (
+            source[0]['demo_order'] if isinstance(source[0]['demo_order'], (int, float)) else 0,
+            -source[0]['updated'], source[0]['id'],
+        ))
+        for replay, identity, homes in preferred:
+            matches = {origin['id']: origin for home in homes if isinstance(home, str)
+                       for origin in native.get((home, identity), [])}
+            if len(matches) == 1:
+                run_id, origin = matches.popitem()
+                replay['original_run_id'] = run_id
+                origin.setdefault('demo_replay_id', replay['id'])
         return result
 
     def _historical(self, path):

@@ -43,7 +43,7 @@ import { curatedStepFor, keyFilesFor, keyFlags as curatedKeyFlags, presentEvent 
 import { CapsuleChips, CapsuleLinksContext } from './cc/CapsuleChips';
 import { capsuleApi, type CapsuleCard } from './cc/capsuleApi';
 import { useCapsuleCopy } from './cc/copy';
-import { capsuleHref, runHref, type FactoryEntry } from './cc/navigation';
+import { capsuleHref, runFilesHref, runHref, type FactoryEntry } from './cc/navigation';
 import { useCapsuleResource } from './cc/useCapsuleResource';
 import './factoryRuns.css';
 
@@ -116,7 +116,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   }, [selected]);
   const [loadedDetail, setDetail] = useState<RunDetail | null>(null);
   const detail = loadedDetail?.run.id === selected ? loadedDetail : null;
-  const [panel, setPanel] = useState<Panel>(entry?.file ? 'artifacts' : entry?.node ? entry.panel ?? 'capsules' : 'overview');
+  const [panel, setPanel] = useState<Panel>(entry?.file ? 'artifacts' : entry?.panel ?? (entry?.node ? 'capsules' : 'overview'));
   const [events, setEvents] = useState<StoryEvent[]>([]);
   const [position, setPosition] = useState(0);
   const [live, setLive] = useState(false);
@@ -876,6 +876,19 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                     run.kind === 'live' && run.task_id === 'spark-direct-benchmarks-20261120')?.id}
                   onOpenReport={(runId, reportId, sha256) => openIterationChild(runId, 'report', reportId, sha256)}
                 />
+              )}
+              {panel === 'artifacts' && (detail.run.original_run_id || detail.run.demo_replay_id) && (
+                <div className="factory-original-files" data-testid="factory-runs-source-files">
+                  {detail.run.original_run_id ? (
+                    <a href={runFilesHref(detail.run.original_run_id)} data-testid="factory-runs-open-original-files">
+                      Browse all original run files →
+                    </a>
+                  ) : detail.run.demo_replay_id && (
+                    <a href={runFilesHref(detail.run.demo_replay_id)} data-testid="factory-runs-back-demo-files">
+                      ← Return to demo files
+                    </a>
+                  )}
+                </div>
               )}
               {presentation && panel === 'artifacts' && (
                 <div className="factory-tabs" data-testid="factory-runs-file-filters" aria-label="File types">

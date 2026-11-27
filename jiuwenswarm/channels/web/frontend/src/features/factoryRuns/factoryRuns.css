@@ -192,6 +192,14 @@
   color: var(--color-text-secondary);
   overflow-wrap: anywhere;
 }
+.factory-original-files {
+  margin-block: 0 16px;
+}
+.factory-original-files a {
+  color: var(--color-text-link);
+  font-size: 14px;
+  font-weight: 600;
+}
 .factory-stats {
   display: flex;
   gap: 14px;
