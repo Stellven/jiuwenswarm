@@ -5,6 +5,7 @@ from datetime import datetime
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import tempfile
@@ -119,6 +120,40 @@ def pin_inputs(host, task, refs):
     return dict(image_id=parent['image_id'], evidence_ids=sorted(cited_ids(refs)), artifacts=[artifact])
 
 
+def verify_calibration_binding(contract, manifest):
+    """Compare every acquired calibration request to the contract's exact input file."""
+    from jinja2 import Environment
+    repo = Path(__file__).resolve().parents[2]
+    spec = contract['inputs']['calibration_prompts']
+    path = (repo / spec['repo_path']).resolve(strict=True)
+    if not path.is_relative_to(repo):
+        raise ValueError('Calibration input outside the checked repository')
+    raw = read_pin({'path': path, 'sha256': spec['sha256']}, 1 << 20)
+    if len(raw) != spec['size']:
+        raise ValueError('Recorded calibration input size differs from the contract')
+    prescribed = [json.loads(line) for line in raw.splitlines() if line.strip()]
+    observed = [r for r in manifest['requests'] if r.get('cohort') == 'calibration']
+    if not prescribed or len(prescribed) != len(observed):
+        raise ValueError(f'Calibration input mismatch: contract specifies {len(prescribed)} requests, trace contains {len(observed)}')
+    folder = repo / 'ops/spark/prompts/muse'
+    template = (folder/'chat_template.jinja').read_bytes()
+    if digest(template) != json.loads((folder/'MANIFEST.json').read_bytes())['files']['chat_template.jinja']:
+        raise ValueError('Calibration rendering template differs from recorded manifest')
+    env = Environment(trim_blocks=True, lstrip_blocks=True)
+    render = env.from_string(re.sub(r'\{%-?\s*(end)?generation\s*-?%\}', '', template.decode()))
+    for expected, actual in zip(prescribed, observed, strict=True):
+        prompt = expected.get('rendered_prompt')
+        if prompt is None:
+            prompt = render.render(messages=[{'role':'user', 'content':expected['prompt']}],
+                                   add_generation_prompt=True, reasoning_effort='low', current_date='2026-11-30')
+        fields = (expected['id'], digest(prompt.encode()), expected['n_predict'], False)
+        if fields != (actual['id'], actual['prompt_sha256'], actual['generated_n'], actual['cache_prompt']):
+            raise ValueError(f'Calibration request differs from contract: {expected["id"]}')
+        if 'token_ids_sha256' in expected and expected['token_ids_sha256'] != actual.get('token_ids_sha256'):
+            raise ValueError('Calibration token identities differ from contract')
+    return spec['sha256']
+
+
 def premise_inputs(host, task, refs):
     task_id = task['task_id']
     protocol = policy(task)
@@ -129,6 +164,8 @@ def premise_inputs(host, task, refs):
     for name, (key, filename) in PROFILE_INPUTS.items():
         pin, _ = operator_input(host, task_id, key, Path(protocol['profile_directory']) / filename, refs)
         request[name] = pin
+    contract = load_for_task(task, task_id)
+    verify_calibration_binding(contract, json.loads(read_pin(request['manifest'])))
     return {'request': request}
 
 
@@ -187,6 +224,10 @@ def require_eligible(host, task_id, checkpoint, nodes):
     _, result = premise(host, task_id, checkpoint, nodes)
     if not result['may_build']:
         raise ValueError('Seeding premise refused candidate work: ' + result['reason'])
+    task = host.get_task(task_id)
+    manifest = Path(policy(task)['profile_directory']) / 'manifest.json'
+    raw = read_pin(dict(path=manifest, sha256=result['manifest_sha256']))
+    verify_calibration_binding(load_for_task(task, task_id), json.loads(raw))
     return result
 
 
