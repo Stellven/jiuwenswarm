@@ -212,3 +212,44 @@ def test_old_delivered_contract_cannot_admit_identity_measurement(monkeypatch):
     monkeypatch.setattr(measure, 'LabManager', lambda _: SimpleNamespace(_package_for=lambda *_: package))
     with pytest.raises(ScopeDenied, match='requires the delivered amendment 004'):
         measure.admit(host, measure.TASK, {'request_id': 'labreq-' + '1' * 24}, 'measure_engine')
+
+
+def test_owner_006_uses_all_warm_repeats_and_keeps_cold_for_context():
+    rows = {}
+    for name in measure.PROMPTS:
+        for repeat in measure.REPEATS:
+            state = 'warm' if repeat else 'cold'
+            candidate_ratio = {0: 1.9, 1: 1.12, 2: 0.98}[repeat]
+            for arm in (measure.ARM, measure.CONTROL):
+                accepted = arm == measure.CONTROL or repeat != 2
+                row = dict(quiet=dict(status='accepted' if accepted else 'excluded',
+                                      reasons=[] if accepted else ['background'], samples=[]))
+                row.update({metric: candidate_ratio if arm == measure.ARM else 1.0 for metric in runtime.METRICS})
+                rows[arm, name, state, repeat, 'speed'] = row
+    groups = runtime._standard_comparison(rows, {}, adjudication=runtime.OWNER_006)
+    for cold, warm in zip(groups[::2], groups[1::2]):
+        assert (cold['judged'], cold['pairs_used'], cold['within_tolerance']) == (False, 1, None)
+        assert cold['median_candidate_to_control']['derived_ttft_ms'] == 1.9
+        assert (warm['judged'], warm['pairs_used'], warm['within_tolerance']) == (True, 2, True)
+        assert warm['median_candidate_to_control']['derived_ttft_ms'] == pytest.approx(1.05)
+
+
+def test_rejudge_keeps_original_manifest_and_refuses_to_overwrite(tmp_path, monkeypatch):
+    root = tmp_path / 'measure-engine'
+    root.mkdir()
+    source = root / 'measurements.json'
+    old_result = root / 'runtime.json'
+    out = tmp_path / 'rejudge-owner-006.json'
+    measure.lab.save(source, dict(root=str(root), load_id='load', request_id='request'))
+    measure.lab.save(old_result, {'decision': 'refused'})
+    original = {path: path.read_bytes() for path in (source, old_result)}
+    monkeypatch.setattr(runtime, 'verify_runtime_stage', lambda manifest, policy: dict(done=True, policy=policy))
+
+    with pytest.raises(ValueError, match='new verdict beside'):
+        runtime.rejudge_file(source, old_result)
+    result = runtime.rejudge_file(source, out)
+    assert result['source']['sha256'] == measure.digest(source)
+    assert result['policy'] == runtime.OWNER_006
+    with pytest.raises(FileExistsError):
+        runtime.rejudge_file(source, out)
+    assert original == {path: path.read_bytes() for path in original}

@@ -472,12 +472,28 @@ class RunScope:
             handle.write(time.strftime('%H:%M:%S ') + ' '.join(str(p) for p in parts) + '\n')
 
     def gate(self):
+        from .lab_host_probe import WAIT_SECONDS, shared_host_admission
+
         deadline = time.time() + float(_resources(self.task).get('gate_wait_s', GATE_WAIT_S))
         while True:
             state = machine(self.task, self.home)
             if state['ok']:
-                self.log('machine gate passed:', state['available_gib'], 'GiB available, no foreign GPU process')
-                return state
+                try:
+                    admission = shared_host_admission()
+                except (OSError, ValueError, IndexError) as exc:
+                    raise RunError('LAB_ADMISSION_PROBE', f'CPU admission probe unavailable: {exc}') from exc
+                if not admission['ok']:
+                    message = ', '.join(admission['reasons'])
+                    if time.time() > deadline:
+                        raise RunError('LAB_NOT_QUIET', f'workload admission is still closed: {message}')
+                    self.log('waiting for workload admission:', message)
+                    time.sleep(WAIT_SECONDS)
+                    continue
+                # Recheck memory and the GPU after the CPU sampling interval.
+                state = machine(self.task, self.home)
+                if state['ok']:
+                    self.log('machine gate passed:', state['available_gib'], 'GiB available, no foreign GPU process')
+                    return dict(state, shared_admission=admission)
             if time.time() > deadline:
                 raise RunError('MACHINE_BUSY', f"machine gate still closed: {state}")
             self.log('waiting for the machine:', state['available_gib'], 'GiB available, need',

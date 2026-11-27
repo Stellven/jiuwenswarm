@@ -1,6 +1,7 @@
 """Quiet Spark lab probes use minimal, privacy-preserving native evidence."""
 import json
 
+from jiuwenswarm.factory import lab_host_probe
 from scripts.factory import lab_v4_quiet as quiet
 
 
@@ -117,3 +118,80 @@ def test_empty_campaign_records_native_runner_and_descendant_exemptions(tmp_path
         sample = monitor.sample(12, tmp_path, runner_pid=10)
     assert sample['runner_tree'] == [10, 11, 12]
     assert quiet.cpu_issues(sample, limits) == ['foreign PID 13 (foreign) above 50% of one core']
+
+
+def test_shared_admission_ignores_load_average_and_blocks_own_work(monkeypatch):
+    uid = quiet.os.getuid()
+    processes = [
+        dict(kind='helper', own_lab=True, uid=uid, system_background=False),
+        dict(kind='other', own_lab=False, uid=0, system_background=True),
+        dict(kind='test', own_lab=False, uid=uid + 1, system_background=False),
+    ]
+    monkeypatch.setattr(quiet.os, 'getloadavg', lambda: (55.0, 40.0, 30.0))
+    monkeypatch.setattr(quiet, 'processes', lambda *, ownership: dict(process_count=len(processes), processes=processes))
+    limits = quiet.policy(quiet.SHARED)
+    sample = quiet.snapshot(limits, 'pre_launch_wait')
+    assert sample['ok'] and sample['load_averages'][0] == 55.0
+    processes.append(dict(kind='build', own_lab=False, uid=uid, system_background=False))
+    assert quiet.snapshot(limits, 'pre_launch_wait')['reasons'] == ['own build process present']
+
+
+def test_shared_admission_only_counts_another_users_process_above_two_cores():
+    limits = quiet.policy(quiet.SHARED)
+    metadata = [
+        dict(pid=10, uid=1000, start_ticks=1, name='runner', system_background=False),
+        dict(pid=11, uid=0, start_ticks=1, name='dockerd', system_background=True),
+        dict(pid=12, uid=1001, start_ticks=1, name='worker', system_background=False),
+    ]
+    active = [dict(pid=proc['pid'], start_ticks=1, percent_one_core=200.0 if proc['pid'] == 12 else 300.0)
+              for proc in metadata]
+    cpu = dict(interval_s=1.0, active=active)
+    assert lab_host_probe.shared_cpu_issues(cpu, metadata, limits, uid=1000) == []
+    active[-1]['percent_one_core'] = 200.01
+    assert lab_host_probe.shared_cpu_issues(cpu, metadata, limits, uid=1000) == [
+        'other user PID 12 (worker) using more than two cores']
+
+
+def test_shared_background_cpu_is_recorded_during_cell_without_filtering(monkeypatch):
+    limits = quiet.policy(quiet.SHARED)
+    process = dict(pid=3, uid=1001, start_ticks=1, name='background', system_background=False,
+                   own_lab=False, kind='other', state='S')
+    cpu = dict(interval_s=1.0, active=[dict(pid=3, start_ticks=1, percent_one_core=325)])
+    monitor = quiet.Monitor(limits)
+    monkeypatch.setattr(monitor.cpu, 'sample', lambda **_: cpu)
+    monkeypatch.setattr(quiet, 'snapshot', lambda _, phase: dict(phase=phase, reasons=[], processes=[process]))
+    idx = monitor.mark('during')
+    sample = monitor.samples[idx]
+    assert sample['cpu'] == cpu and sample['processes'] == [process]
+    assert sample['ok'] is True and sample['reasons'] == []
+    idx = monitor.mark('start_wait')
+    assert monitor.samples[idx]['ok'] is False
+
+
+def test_generic_load_gate_rechecks_machine_after_shared_admission(tmp_path, monkeypatch):
+    from jiuwenswarm.factory.capped_run import RunError, RunScope, CAP
+    import pytest
+
+    scope = RunScope(tmp_path, tmp_path, {'resources': {'gate_wait_s': 0}}, 'sample')
+    checked = []
+    machine_states = iter([True, False])
+    monkeypatch.setattr(quiet.capped_run, 'machine', lambda *_: dict(
+        ok=next(machine_states), available_gib=105.0, need_available_gib=100, foreign_gpu_processes=['pid']))
+    monkeypatch.setattr(lab_host_probe, 'shared_host_admission', lambda: checked.append('checked') or dict(ok=True))
+    with pytest.raises(RunError) as refusal:
+        scope.gate()
+    assert refusal.value.code == 'MACHINE_BUSY'
+    assert checked == ['checked']
+    assert f'MemoryMax={CAP}' in scope.capped(['llama-server'], 'serve')
+    assert 'MemorySwapMax=0' in scope.capped(['llama-server'], 'serve')
+
+    monkeypatch.setattr(quiet.capped_run, 'machine', lambda *_: dict(
+        ok=True, available_gib=105.0, need_available_gib=100, foreign_gpu_processes=[]))
+    monkeypatch.setattr(lab_host_probe, 'shared_host_admission', lambda: dict(ok=False, reasons=['own test process present']))
+    with pytest.raises(RunError, match='own test process present') as refusal:
+        scope.gate()
+    assert refusal.value.code == 'LAB_NOT_QUIET'
+
+    sample = dict(ok=True, reasons=[], load_averages=[25.0, 20.0, 15.0])
+    monkeypatch.setattr(lab_host_probe, 'shared_host_admission', lambda: sample)
+    assert scope.gate()['shared_admission'] == sample

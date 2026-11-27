@@ -73,6 +73,8 @@ def executable(path, text):
 
 @pytest.fixture
 def world(tmp_path, monkeypatch):
+    from jiuwenswarm.factory import lab_host_probe
+
     fakes = tmp_path / 'fakes'
     fakes.mkdir()
     server = executable(fakes / 'llama-server', FAKE_SERVER.replace('{python}', sys.executable))
@@ -82,6 +84,7 @@ def world(tmp_path, monkeypatch):
     monkeypatch.setattr(capped_run.Run, 'capped', lambda self, argv, unit: list(argv))  # no systemd in tests
     monkeypatch.setattr(capped_run, 'machine', lambda task, home, own_pids=(): dict(ok=True, available_gib=110.0,
                         need_available_gib=100, foreign_gpu_processes=[]))
+    monkeypatch.setattr(lab_host_probe, 'shared_host_admission', lambda: dict(ok=True, reasons=[]))
     models = tmp_path / 'models'
     models.mkdir()
     (models / 'pack-00001-of-00001.gguf').write_bytes(b'GGUF fake')

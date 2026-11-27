@@ -17,7 +17,7 @@ from scripts.factory.r8_bench_score import REQUEST
 
 STAGE = 'hardware measurement'
 OWNER_005 = 'muse-r9-owner-005'
-OWNER_006 = 'muse-r9-owner-006'
+OWNER_006 = quiet.SHARED
 REJUDGE_POLICIES = (OWNER_005, OWNER_006)
 METHOD_NOTE = 'measured on a shared machine; background activity recorded, not filtered'
 COLD_METHOD = 'The first post-start request was still paging in the pack. Cold cells are shown for context.'
@@ -57,9 +57,15 @@ def _eligible(row, policy):
             and not quiet.evidence_issues(row['quiet']['samples'], policy))
 
 
-def _speed_rows(speed, ttft, raw_log, proposal, prompts):
+def _recorded_quiet_policy(recorded, adjudication):
+    if adjudication == OWNER_006 and recorded == quiet.policy(quiet.SHARED):
+        return recorded
+    return quiet.policy(quiet.EMPTY)
+
+
+def _speed_rows(speed, ttft, raw_log, proposal, prompts, *, adjudication=None):
     expected = speed_schedule()
-    policy = quiet.policy(quiet.EMPTY)
+    policy = _recorded_quiet_policy(speed['quiet_policy'], adjudication)
     rows = speed['rows']
     require(speed['status'] == 'complete' and speed['quiet_policy'] == policy and len(rows) == len(expected),
             'Timed schedule or quiet policy is incomplete')
@@ -173,12 +179,12 @@ def _followup_comparison(rows, proposal, quiet_policy, *, adjudication=None):
     return comparisons
 
 
-def _accuracy(mmlu, raw_log, previous_end, expected, reference, load):
+def _accuracy(mmlu, raw_log, previous_end, expected, reference, load, *, adjudication=None):
     questions = expected.questions[:MMLU_IDENTITY['question_count']]
     ids = [q['id'] for q in questions]
     require(mmlu['format'] == MMLU_FORMAT and mmlu['status'] == 'complete' and mmlu['source'] == expected.source
             and mmlu['protocol'] == MMLU_IDENTITY and mmlu['request'] == dict(path='/completion', **REQUEST)
-            and mmlu['quiet_policy'] == quiet.policy(quiet.EMPTY)
+            and mmlu['quiet_policy'] == _recorded_quiet_policy(mmlu['quiet_policy'], adjudication)
             and mmlu['settings'] == dict(load['observed'], mode='sequential_on_one_slot',
                                          requests='first 25 ordered questions queued on one slot')
             and mmlu['reference'] == mmlu_reference_summary(reference, ids),
@@ -275,7 +281,8 @@ def verify_runtime_stage(manifest, policy=None):
         check('verified_image_and_capped_load', True,
               'Verified configured image and unchanged pack ran once on a capped single-slot server.')
         require(ttft['source_sha256'] == files['speed.json'], 'TTFT sidecar names different speed data')
-        rows, quiet_policy, log_end = _speed_rows(speed, ttft, raw_log, expected.proposal, prompts)
+        rows, quiet_policy, log_end = _speed_rows(speed, ttft, raw_log, expected.proposal, prompts,
+                                                adjudication=policy)
         check('valid_streams_and_coherence', True,
               'All standard and document question requests completed with 32 tokens and coherent text.')
         standard = _standard_comparison(rows, quiet_policy, adjudication=policy)
@@ -291,7 +298,7 @@ def verify_runtime_stage(manifest, policy=None):
                   for item in followup),
               'Both follow-ups reused the document prefix and beat the cache-off TTFT.' if rejudge else
               'Both follow-up pairs had quiet eligibility, reused the document prefix, and beat the cache-off TTFT.')
-        accuracy = _accuracy(mmlu, raw_log, log_end, expected, ref_mmlu, load)
+        accuracy = _accuracy(mmlu, raw_log, log_end, expected, ref_mmlu, load, adjudication=policy)
         summary['accuracy'] = accuracy
         passed = accuracy['status'] == 'passed'
         detail = (f'{accuracy["matched_letters"]}/25 answer letters matched AQB and '

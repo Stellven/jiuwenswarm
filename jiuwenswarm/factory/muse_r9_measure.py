@@ -406,7 +406,7 @@ def score(server, monitor, prepared, reference, out, settings):
 
 
 def execute(run):
-    from jiuwenswarm.factory.muse_r9_runtime import verify_runtime_stage
+    from jiuwenswarm.factory.muse_r9_runtime import OWNER_006, verify_runtime_stage
 
     req = run.req
     # Preserve the R8/Phase 0b resident-server watchdog policy.
@@ -426,7 +426,7 @@ def execute(run):
                   identity=stage, reference={key: reference[key] for key in REF_KEYS},
                   memory_cap=run.cap, swap_cap_bytes=0, device_budget_mib=DEVICE_BUDGET)
     lab.save(load_path, record)
-    limits = quiet.policy(quiet.EMPTY)
+    limits = quiet.policy(quiet.SHARED)
     server = None
     try:
         with TemporaryDirectory(dir=out, prefix='image-') as scratch:
@@ -481,7 +481,7 @@ def execute(run):
     files = {path.name: digest(path) for path in sorted(out.glob('*')) if path.is_file()}
     result = dict(format=FORMAT, root=str(out), files=files, identity=stage, load_id=run.run_id,
                   request_id=req['request_id'], status=record['status'])
-    lab.save(out / 'runtime.json', verify_runtime_stage(result))
+    lab.save(out / 'runtime.json', verify_runtime_stage(result, policy=OWNER_006))
     lab.save(out / 'measurements.json', result)
     run.files.update({path.name: path for path in out.iterdir() if path.is_file()})
     return result
