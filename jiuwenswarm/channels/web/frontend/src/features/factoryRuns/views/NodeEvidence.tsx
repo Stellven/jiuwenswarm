@@ -166,13 +166,17 @@ function OutputEvidence({
   );
 }
 
-function ContractEvidence({ contract, ...links }: { contract: NodeContract } & EvidenceLinks) {
-  const [expanded, setExpanded] = useState(false);
+export function ContractEvidence({ contract, initiallyOpen = false, ...links }: {
+  contract: NodeContract;
+  initiallyOpen?: boolean;
+} & EvidenceLinks) {
+  const [expanded, setExpanded] = useState(initiallyOpen);
   const { before, after, patch } = contractDiff(contract);
   return (
     <details
       className="factory-node-contract"
       data-testid="factory-runs-node-contract"
+      open={expanded}
       onToggle={(event) => setExpanded(event.currentTarget.open)}
     >
       <summary data-testid="factory-runs-node-contract-toggle">
@@ -188,7 +192,11 @@ function ContractEvidence({ contract, ...links }: { contract: NodeContract } & E
           {(before || after) && (
             <section className="factory-node-evidence-fields">
               <h5>Preliminary and final contract</h5>
-              {contract.preliminary?.bounds && contract.final ? <p>Never-weaker check passed. The host applied the preliminary contract’s bounds before admitting this proposal.</p> : null}
+              {contract.final && contract.final_source ? (
+                <p data-testid="factory-runs-node-contract-never-weaker">Never-weaker check passed. The host admitted the scheduler’s final contract.</p>
+              ) : contract.final ? (
+                <p data-testid="factory-runs-node-contract-never-weaker">This run supplied its final contract without a scheduler finalization record.</p>
+              ) : null}
               {patch ? (
                 <DiffViewer content={patch} />
               ) : (

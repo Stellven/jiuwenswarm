@@ -1,0 +1,56 @@
+.factory-replay-evidence {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.factory-replay-evidence-controls,
+.factory-replay-evidence-controls label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.factory-replay-evidence-controls :is(input, select) {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  color: var(--color-text-primary);
+  min-height: 32px;
+  max-width: 100%;
+  padding: 4px 8px;
+}
+
+.factory-replay-evidence-controls button[aria-pressed='true'] {
+  border-color: var(--color-action-primary);
+  color: var(--color-action-primary);
+}
+
+.factory-replay-event-list {
+  display: grid;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.factory-replay-event-list li {
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  min-width: 0;
+  padding: 8px 12px;
+}
+
+.factory-replay-event-list summary {
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.factory-replay-event-list summary > * {
+  margin-inline-start: 8px;
+}
+
+.factory-replay-event-list time {
+  color: var(--color-text-secondary);
+}
