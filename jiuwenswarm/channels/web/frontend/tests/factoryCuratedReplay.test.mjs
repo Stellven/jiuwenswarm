@@ -6,6 +6,7 @@ import {
   keyFilesFor,
   keyFlags,
   presentEvent,
+  recordedCheckRoles,
 } from '../src/features/factoryRuns/views/storyModel.ts';
 import {
   collapsibleNodes,
@@ -51,6 +52,28 @@ const files = [
 test('a curated step shows its presentation title next to the original kind', () => {
   const shown = presentEvent(event(1, 'task', 'objective', { presentation_title: 'The task', step: 1 }));
   assert.deepEqual(shown, { title: 'The task', kind: 'task', curated: true });
+});
+
+test('step badges reflect cited checks and keep delivery acceptance distinct from method verification', () => {
+  const ref = (id) => ({ table: 'observations', id, source_home: 'home' });
+  const observations = [
+    { obs_id: 'final', kind: 'node_contract_final' },
+    { obs_id: 'check', kind: 'node_check', values: { node_id: 'plan', output: 'plan', refs: { evidence_ids: ['final', 'load'] } } },
+    { obs_id: 'acceptance', kind: 'node_check', values: { node_id: 'measure', output: 'report', refs: { evidence_ids: ['load'] } } },
+  ];
+  const presentation = {
+    plan: { checks: { plan: { role: 'Node verifier', verifier_role: 'CC verifier' } } },
+    measure: { checks: { report: { role: 'Lab acceptance' } } },
+  };
+  const selected = (kind, ...records) => ({ ...curated.steps[0], original_kind: kind, node_id: 'measure', records });
+  assert.deepEqual(recordedCheckRoles(selected('node_check', ref('check'), ref('final')), observations, presentation), [
+    'CC verifier', 'Node verifier',
+  ]);
+  assert.deepEqual(recordedCheckRoles(selected('node_contract_final', ref('final')), observations, presentation), ['Scheduler']);
+  assert.deepEqual(recordedCheckRoles(selected('capped_run', ref('load')), observations, presentation), ['Node verifier', 'Lab agent']);
+  const report = selected('r8-final-bench', { table: 'file', id: 'evidence/lab/report.json' });
+  assert.deepEqual(recordedCheckRoles(report, observations, presentation), ['Lab agent']);
+  assert.deepEqual(recordedCheckRoles({ ...selected('attempt'), stages: ['runtime'] }, observations, presentation), []);
 });
 
 test('raw kinds get a readable title and keep the original kind', () => {
