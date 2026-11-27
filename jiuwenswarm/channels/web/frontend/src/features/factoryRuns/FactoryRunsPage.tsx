@@ -548,7 +548,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   );
   return (
     <div
-      className={`factory-runs-page${engineViewer ? ' factory-runs-page--audience' : ''}`}
+      className={`factory-runs-page${engineViewer || presentation ? ' factory-runs-page--audience' : ''}`}
       data-testid="factory-runs-page"
       data-appearance={appearance}
     >
