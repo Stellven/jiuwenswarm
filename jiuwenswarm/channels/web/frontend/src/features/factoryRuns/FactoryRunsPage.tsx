@@ -736,6 +736,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                   files={detail.files}
                   initialPath={filePath}
                   expectedSha={expectedSha}
+                  onOpenFile={(path) => selectPanel('artifacts', path)}
                 />
               )}
               {panel === 'graph' && (

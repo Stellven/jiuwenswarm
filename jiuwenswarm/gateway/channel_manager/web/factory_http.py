@@ -541,6 +541,7 @@ class FactoryHttpService:
                     names.add(rel)
         labels = {}
         identities = {}
+        media_types = {}
         display_names = {}
         if item['kind'] == 'bundle' and (path / 'provenance.json').is_file():
             provenance = _json(_inside(path, 'provenance.json'))
@@ -554,6 +555,8 @@ class FactoryHttpService:
             label = artifact.get('artifact_id', '')
             if label.startswith('source:') and '@sha256:' in label:
                 label = label.removeprefix('source:').rsplit('@sha256:', 1)[0]
+            if relative and artifact.get('media_type'):
+                media_types[relative] = artifact['media_type']
             if relative and label:
                 labels.setdefault(relative, []).append(label)
                 identities.setdefault(relative, []).append(artifact['artifact_id'])
@@ -561,13 +564,14 @@ class FactoryHttpService:
         for name in sorted(names):
             target = _inside(path, name)
             wanted = expected.get(name)
+            file_type = {'media_type': media_types[name]} if name in media_types else {}
             if not target.is_file():
-                rows.append(dict(path=name, display_path=display_names.get(name) or ' · '.join(labels.get(name, [name])), artifact_ids=identities.get(name, []), size=0, sha256=None, expected_sha256=wanted, integrity='missing'))
+                rows.append(dict(path=name, display_path=display_names.get(name) or ' · '.join(labels.get(name, [name])), artifact_ids=identities.get(name, []), size=0, sha256=None, expected_sha256=wanted, integrity='missing', **file_type))
                 continue
             size = target.stat().st_size
             digest = self.cached_hash(target)
             rows.append(dict(path=name, display_path=display_names.get(name) or ' · '.join(labels.get(name, [name])), artifact_ids=identities.get(name, []), size=size, sha256=digest, expected_sha256=wanted,
-                             integrity=('verified' if digest == wanted else 'mismatch') if wanted else 'untracked'))
+                             integrity=('verified' if digest == wanted else 'mismatch') if wanted else 'untracked', **file_type))
         return rows
 
     def cached_hash(self, path):

@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { factoryApi, type EvidenceFile, type FileContent } from './api';
+import { HtmlArtifact } from './views/HtmlArtifact';
+import { resolveEvidenceLink } from './views/dataModel';
 import { FactoryStructuredReport } from './FactoryStructuredReport';
 import { evidenceIndex, externalReportLink, linkedEvidence, reportFiles, reportHeadings } from './reportModel';
 import './factoryReport.css';
@@ -311,11 +313,13 @@ function ReportDocument({
   selected,
   files,
   expectedSha,
+  onOpenFile,
 }: {
   runId: string;
   selected: ReturnType<typeof reportFiles>[number];
   files: EvidenceFile[];
   expectedSha?: string;
+  onOpenFile?: (path: string) => void;
 }) {
   const { t } = useTranslation();
   const { file, loading, retry } = useRunFile(runId, selected.file);
@@ -331,7 +335,7 @@ function ReportDocument({
         <div className="factory-report-source-title">
           <span>{t('factoryRuns.reportView.source')}</span>
           <strong data-testid="factory-runs-report-source-path">{selected.label}</strong>
-          <span>{t(`factoryRuns.reportView.${selected.format}`)}</span>
+          <span>{selected.format === 'html' ? 'HTML' : t(`factoryRuns.reportView.${selected.format}`)}</span>
         </div>
         <ReportDigest source={displayed} />
       </div>
@@ -342,6 +346,10 @@ function ReportDocument({
         <p className="factory-report-status" data-testid="factory-runs-report-empty-file">
           {t('factoryRuns.reportView.emptyFile')}
         </p>
+      ) : selected.format === 'html' ? (
+        <HtmlArtifact title={selected.label} file={{ ...file, integrity: displayed.integrity }}
+          resolveLink={(href) => resolveEvidenceLink(files, selected.file, href)} onOpenFile={onOpenFile}
+          showMetadata={false} />
       ) : selected.format === 'markdown' ? (
         <MarkdownReport source={selected.file} files={files} content={file.content} onOpenEvidence={setEvidence} />
       ) : (
@@ -357,11 +365,13 @@ export function FactoryReport({
   files,
   initialPath,
   expectedSha,
+  onOpenFile,
 }: {
   runId: string;
   files: EvidenceFile[];
   initialPath?: string;
   expectedSha?: string;
+  onOpenFile?: (path: string) => void;
 }) {
   const { t } = useTranslation();
   const reports = useMemo(() => reportFiles(files), [files]);
@@ -411,6 +421,7 @@ export function FactoryReport({
             selected={selected}
             files={files}
             expectedSha={selected.file.path === initialPath ? expectedSha : undefined}
+            onOpenFile={onOpenFile}
           />
         </>
       ) : (

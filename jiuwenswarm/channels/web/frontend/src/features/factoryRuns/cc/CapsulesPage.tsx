@@ -118,6 +118,7 @@ function Card({ capsule, results }: { capsule: CapsuleCard; results?: HeadlineRo
       <h3>{method?.title ?? displayName(capsule)}</h3>
       <BuilderSubtitle capsule={capsule} />
       <p>{method?.method ?? plainDescription(capsule.cc_summary || capsule.description || capsule.component || capsule.id)}</p>
+      {method && <p><strong>In this run.</strong> {method.evidence}</p>}
       <RawId capsule={capsule} />
       {!!results?.length && <CapsuleHeadlineResults rows={results} compact />}
       {!!capsule.used_in_runs && (

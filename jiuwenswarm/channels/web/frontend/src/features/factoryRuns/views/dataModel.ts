@@ -144,8 +144,11 @@ export function evidenceKind(
   path: string,
   displayPath?: string,
   source?: string,
-): 'diff' | 'log' | 'markdown' | 'data' {
+  mediaType?: string,
+): 'diff' | 'log' | 'markdown' | 'html' | 'data' {
   const names = [path, ...(displayPath?.split(' · ') ?? [])];
+  if (mediaType?.split(';', 1)[0].trim().toLowerCase() === 'text/html') return 'html';
+  if (names.some((name) => /\.html?(?:$|[@?#])/i.test(name))) return 'html';
   if (names.some((name) => /\.(patch|diff)(?:$|[@?#])/i.test(name))) return 'diff';
   if (
     names.some((name) =>
@@ -198,7 +201,7 @@ export function chartRows(source: ChartSource, metric: string) {
 }
 
 export function resolveEvidenceLink(files: EvidenceFile[], from: EvidenceFile, href: string): string | undefined {
-  if (!href || /^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(href)) return undefined;
+  if (!href || href !== href.trim() || /^(?:[a-z][a-z0-9+.-]*:|[\\/]|#)/i.test(href)) return undefined;
   const names = (file: EvidenceFile) => [file.path, ...(file.display_path?.split(' · ') ?? [])];
   let target: string;
   try {
