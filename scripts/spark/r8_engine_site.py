@@ -35,10 +35,8 @@ STATIC_READ = re.compile(r'/(?:index\.html|logo\.(?:svg|ico)|favicon\.ico|assets
 
 
 class EngineRuns(FactoryHttpService):
-    def __init__(self, live, history, replay, second_replay=None, extra_roots=()):
-        self.demo_roots = {replay}
-        if second_replay:
-            self.demo_roots.add(second_replay)
+    def __init__(self, live, history, replay, second_replay=None, extra_roots=(), *, third_replay=None):
+        self.demo_roots = {Path(path).resolve() for path in (replay, second_replay, third_replay) if path}
         roots = tuple(dict.fromkeys((live, history, *sorted(self.demo_roots), *extra_roots)))
         super().__init__(roots=roots, historical_roots=[history, *self.demo_roots],
                          launch_root=False, launch_home_root=False)
@@ -124,7 +122,7 @@ class ViewerBoundary:
         )(scope, receive, send)
 
 
-def make_app(dist, live, history, replay, second_replay=None, *, extra_roots=()):
+def make_app(dist, live, history, replay, second_replay=None, *, extra_roots=(), third_replay=None):
     dist, live, history, replay = (Path(path).expanduser().resolve() for path in (dist, live, history, replay))
     if not (dist / 'index.html').is_file():
         raise ValueError(f'Engine web build is missing: {dist / "index.html"}')
@@ -132,7 +130,7 @@ def make_app(dist, live, history, replay, second_replay=None, *, extra_roots=())
         if not (path / 'factory.sqlite').is_file():
             raise ValueError(f'Factory home is missing its database: {path}')
 
-    service = EngineRuns(live, history, replay, second_replay, extra_roots)
+    service = EngineRuns(live, history, replay, second_replay, extra_roots, third_replay=third_replay)
     channel = WebChannel(WebChannelConfig(enabled=True, port=TAILSCALE_PORT), RobotMessageRouter())
     app = build_web_channel_app(channel, factory_service=service)
     app.mount('/', StaticFiles(directory=dist, html=True), name='engine-frontend')
@@ -149,6 +147,7 @@ def main(argv=None):
     parser.add_argument('--history', type=Path, default=muse / 'graph-v4')
     parser.add_argument('--replay', type=Path, required=True, help='Exact R8 curated replay bundle directory.')
     parser.add_argument('--second-replay', type=Path, default=muse/'r9/curated-replay')
+    parser.add_argument('--third-replay', type=Path, default=muse/'r10/curated-replay')
     args = parser.parse_args(argv)
     os.environ['JIUWENSWARM_CONFIG_URL'] = 'off'
     # Reuse the native app's configured factory roots for All runs.
@@ -156,7 +155,8 @@ def main(argv=None):
     try:
         app = make_app(args.dist, args.live, args.history, args.replay,
                        args.second_replay if args.second_replay.is_dir() else None,
-                       extra_roots=(*configured, muse / 'r9/graph'))
+                       third_replay=args.third_replay if args.third_replay.is_dir() else None,
+                       extra_roots=(*configured, muse / 'r9/graph', muse / 'r10/graph'))
     except ValueError as exc:
         parser.error(str(exc))
     # The redacting log record factory consumes formatting arguments before Uvicorn's access formatter.

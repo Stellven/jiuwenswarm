@@ -7,6 +7,7 @@ export const demoCapsuleIds: readonly string[] = [quantizationId, prefillId, pre
 export const demoContractCapsuleIds = new Map<string, readonly string[]>([
   ['muse-2bit-demo-r8', [quantizationId, prefillId]],
   ['muse-2bit-demo-r9', [prefixReuseId]],
+  ['muse-2bit-demo-r10', ['engine.gpu_kernel_lab']],
 ]);
 
 export const inferenceCapsules: Record<string, { title: string; method: string; evidence: string }> = {
