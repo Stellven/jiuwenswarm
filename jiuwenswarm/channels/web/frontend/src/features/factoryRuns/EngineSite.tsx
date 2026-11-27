@@ -17,9 +17,9 @@ export function EngineSite() {
     <div className="engine-site" data-testid="factory-runs-engine-site">
       <header className="engine-site-header">
         <a className="engine-site-brand" href={runHref()} data-testid="factory-runs-engine-home">
-          Engine Factory
+          Inference Engine Factory
         </a>
-        <nav aria-label="Engine Factory" data-testid="factory-runs-engine-navigation">
+        <nav aria-label="Inference Engine Factory" data-testid="factory-runs-engine-navigation">
           <a href={runHref()} aria-current={entry?.view === 'factoryRuns' ? 'page' : undefined} data-testid="factory-runs-engine-runs-link">Factory Runs</a>
           <a href={capsuleHref()} aria-current={entry?.view === 'capabilityCapsules' ? 'page' : undefined} data-testid="factory-runs-engine-capsules-link">Capability Capsules</a>
           <a href="#engine-report" aria-current={entry ? undefined : 'page'} data-testid="factory-runs-engine-report-link">Engine Report</a>
@@ -29,7 +29,7 @@ export function EngineSite() {
         {entry?.view === 'factoryRuns' ? (
           <FactoryRunsPage entry={entry} engineViewer />
         ) : entry?.view === 'capabilityCapsules' ? (
-          <EngineCapsules />
+          <EngineCapsules name={entry.capsule} />
         ) : (
           <EngineReport />
         )}

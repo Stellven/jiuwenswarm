@@ -14,6 +14,8 @@ import {
 } from './atlasNames.ts';
 import { type CopyKey, useCapsuleCopy } from './copy';
 import { capsuleHref } from './navigation';
+import { demoCapsuleIds, inferenceCapsules, prefixReuseId } from './inferenceCapsuleCopy';
+import { PrefixReuseEvidence } from './PrefixReuseEvidence';
 import { useCapsuleResource } from './useCapsuleResource';
 import './capsules.css';
 
@@ -94,6 +96,7 @@ function KindsLegend({ capsules }: { capsules: CapsuleCard[] }) {
 function Card({ capsule, results }: { capsule: CapsuleCard; results?: HeadlineRow[] }) {
   const copy = useCapsuleCopy();
   const arm = headlineArmForCapsule(capsule.name) || capsule.arm;
+  const method = inferenceCapsules[capsule.id];
   return (
     <a
       className="cc-card"
@@ -112,9 +115,9 @@ function Card({ capsule, results }: { capsule: CapsuleCard; results?: HeadlineRo
         </span>
         <Integrity state={capsule.integrity} />
       </div>
-      <h3>{displayName(capsule)}</h3>
+      <h3>{method?.title ?? displayName(capsule)}</h3>
       <BuilderSubtitle capsule={capsule} />
-      <p>{plainDescription(capsule.cc_summary || capsule.description || capsule.component || capsule.id)}</p>
+      <p>{method?.method ?? plainDescription(capsule.cc_summary || capsule.description || capsule.component || capsule.id)}</p>
       <RawId capsule={capsule} />
       {!!results?.length && <CapsuleHeadlineResults rows={results} compact />}
       {!!capsule.used_in_runs && (
@@ -154,27 +157,30 @@ function CatalogView({ capsules, headlines }: { capsules: CapsuleCard[]; headlin
         ...(capsule.former_names || []),
       ].some((value) => value?.toLowerCase().includes(needle)),
   );
+  const featured = shown.filter((capsule) => demoCapsuleIds.includes(capsule.id))
+    .sort((a, b) => demoCapsuleIds.indexOf(a.id) - demoCapsuleIds.indexOf(b.id));
+  const libraryRows = shown.filter((capsule) => !demoCapsuleIds.includes(capsule.id));
   const groups = [
     {
       title: 'builders',
-      rows: shown.filter((capsule) => capsule.starred).sort((a, b) => (a.arm || '').localeCompare(b.arm || '')),
+      rows: libraryRows.filter((capsule) => capsule.starred).sort((a, b) => (a.arm || '').localeCompare(b.arm || '')),
     },
-    { title: 'builderKinds', rows: shown.filter((capsule) => !capsule.starred && ccKind(capsule) === 'builder') },
+    { title: 'builderKinds', rows: libraryRows.filter((capsule) => !capsule.starred && ccKind(capsule) === 'builder') },
     {
       title: 'featuredAnalysis',
-      rows: shown
+      rows: libraryRows
         .filter((capsule) => !capsule.starred && ccKind(capsule) !== 'builder' && capsule.featured_analysis_at)
         .sort((a, b) => (b.featured_analysis_at || 0) - (a.featured_analysis_at || 0)),
     },
     {
       title: 'tools',
-      rows: shown.filter((capsule) => ccKind(capsule) === 'tool' && !capsule.featured_analysis_at),
+      rows: libraryRows.filter((capsule) => ccKind(capsule) === 'tool' && !capsule.featured_analysis_at),
     },
   ] as const;
-  const support = shown.filter(
+  const support = libraryRows.filter(
     (capsule) => !capsule.starred && ccKind(capsule) === 'factory' && !capsule.featured_analysis_at,
   );
-  const library = shown.filter((capsule) => ccKind(capsule) === 'analysis' && !capsule.featured_analysis_at);
+  const library = libraryRows.filter((capsule) => ccKind(capsule) === 'analysis' && !capsule.featured_analysis_at);
   return (
     <>
       <header className="cc-catalog-header">
@@ -204,6 +210,14 @@ function CatalogView({ capsules, headlines }: { capsules: CapsuleCard[]; headlin
           </select>
         </div>
       </header>
+      {featured.length > 0 && (
+        <section className="cc-catalog-group" data-testid="factory-runs-capsule-demo-methods">
+          <h2>{copy('demoMethods')}</h2>
+          <div className="cc-grid">
+            {featured.map((capsule) => <Card key={capsule.name} capsule={capsule} />)}
+          </div>
+        </section>
+      )}
       <KindsLegend capsules={capsules} />
       {groups
         .filter(({ rows }) => rows.length)
@@ -269,6 +283,7 @@ function CatalogView({ capsules, headlines }: { capsules: CapsuleCard[]; headlin
 function CapsuleHeader({ capsule }: { capsule: CapsuleDetail }) {
   const copy = useCapsuleCopy();
   const arm = headlineArmForCapsule(capsule.name) || capsule.arm;
+  const method = inferenceCapsules[capsule.id];
   return (
     <header className="cc-hero" data-testid="factory-runs-capsule-header">
       <div className="cc-hero-text">
@@ -285,10 +300,11 @@ function CapsuleHeader({ capsule }: { capsule: CapsuleDetail }) {
             </span>
           )}
         </div>
-        <h1 data-testid="factory-runs-capsule-title">{displayName(capsule)}</h1>
+        <h1 data-testid="factory-runs-capsule-title">{method?.title ?? displayName(capsule)}</h1>
         <BuilderSubtitle capsule={capsule} />
         <RawId capsule={capsule} />
-        <p>{plainDescription(capsule.description || capsule.verifier || '')}</p>
+        <p>{method?.method ?? plainDescription(capsule.cc_summary || capsule.description || capsule.verifier || '')}</p>
+        {method && <p><strong>In this run.</strong> {method.evidence}</p>}
         <dl className="cc-meta">
           <div>
             <dt>{copy('atlasId')}</dt>
@@ -484,6 +500,9 @@ function DetailView({ capsule, catalog, headlines }: {
         ← {copy('back')}
       </a>
       <CapsuleHeader capsule={capsule} />
+      {capsule.id === prefixReuseId && (
+        <div className="cc-section"><PrefixReuseEvidence /></div>
+      )}
       {results.length > 0 && (
         <section className="cc-section cc-detail-results" data-testid="factory-runs-capsule-detail-results">
           <h2>{copy('results')}</h2>
@@ -551,12 +570,13 @@ function DetailView({ capsule, catalog, headlines }: {
             )}
             {sections.validation && (
               <section className="cc-section">
-                <h2>{copy('tests')}</h2>
+                <h2>Factory stage · {copy('tests')}</h2>
                 <DocumentSection {...doc} path={sections.validation} />
               </section>
             )}
             <section className="cc-section">
-              <h2>{copy('verifier')}</h2>
+              <h2>Factory stage · {copy('verifier')}</h2>
+              <p>{copy('ccVerifierRole')}</p>
               <p>{capsule.verifier}</p>
               <MaterialList files={capsule.files.filter((file) => file.path === sections.verifier)} onOpen={onOpen} />
             </section>
@@ -566,7 +586,7 @@ function DetailView({ capsule, catalog, headlines }: {
             </section>
             {testFiles.length > 0 && (
               <section className="cc-section">
-                <h2>{copy('tests')}</h2>
+                <h2>Factory stage · {copy('tests')}</h2>
                 <MaterialList files={testFiles} onOpen={onOpen} />
               </section>
             )}

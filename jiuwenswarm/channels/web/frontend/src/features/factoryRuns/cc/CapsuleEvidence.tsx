@@ -173,7 +173,7 @@ export function CapsuleEvidenceView({
         </section>
       )}
       <section className="cc-section" data-testid="factory-runs-capsule-results-section">
-        <h2>{copy('results')}</h2>
+        <h2>Runtime stage · {copy('results')}</h2>
         {evidence.measurements.length ? (
           <MeasurementRows rows={evidence.measurements} />
         ) : (
@@ -388,7 +388,7 @@ export function BuilderRunEvidence({
       {run && (
         <dl className="cc-builder-grid">
           <div>
-            <dt>{copy('buildDigest')}</dt>
+            <dt>Factory stage · {copy('buildDigest')}</dt>
             <dd data-testid="factory-runs-capsule-binary-digest">
               {digest ? <code title={digest}>{digest}</code> : <span className="cc-muted">{copy('notRecorded')}</span>}
               {build?.artifact && <Integrity state={build.artifact.integrity} />}
@@ -396,21 +396,21 @@ export function BuilderRunEvidence({
             </dd>
           </div>
           <div>
-            <dt>{copy('parity')}</dt>
+            <dt>Runtime stage · {copy('parity')}</dt>
             <dd data-testid="factory-runs-capsule-parity" data-verdict={lab?.parity ?? undefined}>
               {copy(verdict(lab?.parity, 'parityMatch', 'parityMismatch'))}
               {lab?.parity != null && origin(lab)}
             </dd>
           </div>
           <div>
-            <dt>{copy('activation')}</dt>
+            <dt>Runtime stage · {copy('activation')}</dt>
             <dd data-testid="factory-runs-capsule-activation" data-verdict={lab?.activation ?? undefined}>
               {copy(verdict(lab?.activation, 'active', 'inactive'))}
               {lab?.activation != null && origin(lab)}
             </dd>
           </div>
           <div>
-            <dt>{copy('labNumbers')}</dt>
+            <dt>Runtime stage · {copy('labNumbers')}</dt>
             <dd data-testid="factory-runs-capsule-latest-lab">
               {!hasLabNumbers && <span className="cc-muted">{copy('notRecorded')}</span>}
               {measurements.length > 0 && (

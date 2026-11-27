@@ -318,12 +318,12 @@
     },
     "kv_reuse_lab": {
       "capsule_id": "engine.kv_reuse_lab",
-      "title": "Prefix store analysis",
+      "title": "Prefix reuse analysis",
       "kind": "analysis",
       "atlas_cc_id": "state.prefix_store",
       "component": null,
       "target": null,
-      "summary": "Checks exact prefix state reuse, derives the launch config, and verifies factory and runtime evidence."
+      "summary": "Turns on the engine's built-in prompt cache for document follow-up workloads."
     },
     "lab_client": {
       "capsule_id": "factory.lab_client",
@@ -602,7 +602,7 @@
       "atlas_cc_id": "weights.pack_compiler.builder",
       "component": "Pack compiler",
       "target": "llama.cpp",
-      "summary": "Writes a precision recipe for an existing GGUF pack, runs stock llama-quantize on it and verifies the new pack: types per tensor role, carried scale tensors, size."
+      "summary": "Chooses bit widths by weight group from a sensitivity census, builds the pack and checks tensor types, preserved scales and size."
     },
     "weight_placement_planner": {
       "capsule_id": "placement.build_weight_placement_planner",
@@ -629,7 +629,7 @@
       "atlas_cc_id": null,
       "component": null,
       "target": "llama.cpp",
-      "summary": "Picks the llama-server batch and micro-batch so each prompt streams CPU-resident experts as few times as the device budget allows, and checks one capped load and its outputs."
+      "summary": "Sizes prefill batches to the target device budget using measured allocation and compute costs."
     },
     "expert_fill": {
       "capsule_id": "engine.build_expert_fill",

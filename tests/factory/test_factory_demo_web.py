@@ -1,4 +1,6 @@
 from pathlib import Path
+import hashlib
+import json
 
 """The integrated Factory demo uses one native web application."""
 from fastapi.testclient import TestClient
@@ -81,6 +83,32 @@ def test_engine_viewer_uses_only_public_reads(tmp_path, monkeypatch):
     evidence.mkdir(parents=True)
     (evidence / 'README.md').write_text('Final index', encoding='utf-8')
     (evidence / 'strict-history.md').write_text('Strict history', encoding='utf-8')
+    fixture = tmp_path / 'muse-demo' / 'r9' / 'factory-fixture-c'
+    pins, configurations = {}, {}
+    for arm, task in (('stock', 4), ('configured', 9)):
+        relative = f'{arm}/server.log'
+        log = fixture / relative
+        log.parent.mkdir(parents=True)
+        first = f'0.01.000.001 I slot operator(): id  0 | task {task} | cached n_tokens = 769, memory_seq_rm [769, end)'
+        payload = f'/home/private/account\n{first}\n'.encode()
+        log.write_bytes(payload)
+        pins[relative] = hashlib.sha256(payload).hexdigest()
+        configurations[arm] = dict(
+            cached_tokens=769, prompt_tokens=788, server_log=relative, server_log_sha256=pins[relative],
+            cpu_only={'cuda_visible_devices': '-1', 'requested_gpu_layers': 0},
+            cache_prompt=True, server_closed=True,
+            rows=[{}, dict(server_log_start=0, server_log_end=len(payload),
+                           cache_evidence=dict(cache_line=first, prompt_tokens=788, task_id=task))],
+        )
+    summary = json.dumps(dict(
+        format='muse-cpu-swa-fixture/1', status='complete',
+        model=dict(id='small-swa-fixture', source='https://example.test', sha256='1' * 64, bytes=123, window_tokens=512),
+        engine=dict(image_id='sha256:' + '2' * 64, sha256='3' * 64, executable='/home/private/llama-server'),
+        configurations=configurations,
+    )).encode()
+    (fixture / 'summary.json').write_bytes(summary)
+    pins['summary.json'] = hashlib.sha256(summary).hexdigest()
+    (fixture / 'manifest.json').write_text(json.dumps(dict(files=pins, model_sha256='1' * 64)))
     site = make_engine(dist, live, history, replay)
     forwarded = {'X-Forwarded-For': '127.0.0.1', 'Forwarded': 'for=127.0.0.1'}
     with TestClient(site, base_url=f'http://{TAILSCALE_HOST}', client=('100.64.0.9', 50000)) as api:
@@ -100,6 +128,19 @@ def test_engine_viewer_uses_only_public_reads(tmp_path, monkeypatch):
             assert api.post(path, headers=forwarded).status_code == 403
         for path in ('/file-api/raw-file', '/openapi.json', '/api/factory/capsules', '/api/tasks'):
             assert api.get(path, headers=forwarded).status_code == 403
+        route = '/api/factory/capsules/kv_reuse_lab/fixture'
+        data = api.get(route).json()
+        assert data['configurations']['stock']['cached_tokens'] == 769
+        assert data['configurations']['configured']['prompt_tokens'] == 788
+        assert api.get(route + '/summary').json() == data
+        assert '/home/private' not in api.get(route + '/summary').text
+        assert 'cached n_tokens = 769' in api.get(route + '/stock').text
+        assert '/home/private' not in api.get(route + '/stock').text
+        assert api.get(route + '/manifest.json').status_code == 403
+        assert api.post(route).status_code == 403
+        (fixture / 'stock/server.log').write_text('tampered log')
+        assert api.get(route).json() is None
+        assert api.get(route + '/stock').status_code == 404
         with pytest.raises(WebSocketDisconnect), api.websocket_connect('/ws', headers=forwarded):
             pass
 

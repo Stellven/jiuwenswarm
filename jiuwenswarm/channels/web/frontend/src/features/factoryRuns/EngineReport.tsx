@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { getApiBase } from '../../utils/env';
 import { request } from './api';
+import { warmTolerance } from './cc/inferenceCapsuleCopy';
 import { AccuracyPlot, DecodeBars, EngineRequestMethod, LengthPlot, MemoryBars, Panel, RowValue, SpeedBars } from './EngineReportCharts';
 import type { Inspect } from './EngineReportCharts';
 import {
@@ -9,6 +10,7 @@ import {
   armLabel,
   deliveryHeadline,
   devices,
+  engineName,
   engineRequestGroup,
   engineRequestLabel,
   evidenceLabel,
@@ -216,7 +218,7 @@ function SourceDialog({ rows, close }: { rows: EngineRow[]; close: () => void })
       <h3>Engine and resources</h3>
       <Facts
         facts={[
-          ['Engine', value(row.engine?.name)],
+          ['Engine', value(engineName(row))],
           ['Engine commit', value(row.engine?.commit)],
           ['Engine binary', value(row.engine?.binary)],
           ['Binary SHA-256', value(row.engine?.sha256)],
@@ -419,7 +421,7 @@ function FollowupTable({ rows, inspect }: { rows: EngineRow[]; inspect: Inspect 
   if (!followups.length) return null;
   return (
     <Panel id="followup" title="Follow-up question">
-      <p>Two questions share one document. AQBC reuses its processed prefix. The AQB control runs on the same server with prompt reuse off. A is the published Warm server reference.</p>
+      <p>Measures a follow-up after an initial question on the same document. In this run, the lab agent compared AQBC with an AQB control on the same server, with prompt reuse off for the control. A is the published Warm server reference.</p>
       <table>
         <thead><tr><th>Document</th><th>Arm</th><th>First token (s)</th><th>Decode (tok/s)</th><th>Total (s)</th></tr></thead>
         <tbody>
@@ -491,7 +493,8 @@ export function EngineReport() {
         <header className="engine-report-header">
           <div>
             <h1>{arms.some((row) => row.arm === 'AQBC') ? 'Engine Report' : 'R8 Engine Report'}</h1>
-            <p>Muse Spark Open on DGX Spark</p>
+            <p>Compares a delivered engine against a reference on matched requests.</p>
+            <p>In this run: Muse Spark Open on DGX Spark.</p>
           </div>
         </header>
         {headline && (
@@ -533,10 +536,11 @@ export function EngineReport() {
             <footer className="engine-method" data-testid="factory-runs-engine-method">
               <h2>How this was measured</h2>
               <p>
-                A and AQB used the R8 image. {arms.some((row) => row.arm === 'AQBC') && 'AQBC used the Run 2 image with the same server binary and a prefix-store configuration. '}Each speed request generated 32 tokens. We estimated time to first token
+                The factory delivers the image and its test requirements. The lab agent applies those requirements on the target and records acceptance. In this run, A and AQB used the R8 image. {arms.some((row) => row.arm === 'AQBC') && 'AQBC used the same server binary with its built-in prompt cache on for document follow-ups. '}Each speed request generated 32 tokens. We estimated time to first token
                 from the server’s first sampled token, aligned to the client clock
                 {clockDifferences.length > 0 && ` (median difference from direct NVFP4 timing: ${fmt(median(clockDifferences))} ms)`}. Warm server results are medians. {arms.some((row) => row.arm === 'AQBC') && 'Run 2 was measured on a shared machine; background activity recorded, not filtered. Its first-request check uses Warm server pairs because the first AQBC request at 512 tokens also read the pack into memory.'} The NVFP4 accuracy reference used the same 250 questions on Nov 25 with engine build 9048bad8d.
               </p>
+              {arms.some((row) => row.arm === 'AQBC') && <p><strong>Lab acceptance.</strong> {warmTolerance}</p>}
               <EngineRequestMethod />
               <p>
                 <a href={`${api}/readme`} data-testid="factory-runs-engine-readme">

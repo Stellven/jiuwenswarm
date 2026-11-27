@@ -21,9 +21,10 @@ HISTORY_TASK = 'muse-2bit-ttft-v4'
 IDENTIFIER = r'[A-Za-z0-9][A-Za-z0-9_.-]{0,199}'
 RUN = r'/api/factory/runs/[a-f0-9]{24}'
 NODE = rf'{RUN}/nodes/{IDENTIFIER}'
+PREFIX_FIXTURE = r'/api/factory/capsules/kv_reuse_lab/fixture(?:/(?:summary|stock|configured))?'
 FACTORY_READ = re.compile(
     rf'(?:/api/factory/(?:runs|engine-bench(?:/(?:readme|method-history))?)'
-    rf'|{RUN}(?:/(?:state|session|story|file))?|{NODE}(?:/(?:diff|material))?)'
+    rf'|{RUN}(?:/(?:state|session|story|file))?|{NODE}(?:/(?:diff|material))?|{PREFIX_FIXTURE})'
 )
 STATIC_READ = re.compile(r'/(?:index\.html|logo\.svg|favicon\.ico|assets/[A-Za-z0-9_.-]+)?')
 
