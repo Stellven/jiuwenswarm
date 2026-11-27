@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 import json
@@ -114,7 +115,8 @@ class R8Replay(Builder):
                              'repository_file', f'evidence/graph-r8/{PLAN.name}', source_path_in_repository=str(PLAN))
         self.step('The contract: a 2-bit engine image for Muse Spark Open',
                   'The owner asked for an engine image from stock llama.cpp and the official NVFP4 checkpoint, '
-                  'a mixed 2-bit pack and a prefill plan, with the lab measuring the delivered image.',
+                  'a mixed 2-bit pack and a prefill plan. The lab compared A (NVFP4) with AQB (A plus the '
+                  'quantization and prefill capsules) using the delivered image.',
                   ['pin_inputs'], TASK, [contract, plan], refs=[f'{TASK}:plan:1'])
         finals = [row for row in self.observations.values() if row['kind'] == 'node_contract_final']
         refused = sum(row['kind'] == 'node_contract_refusal' for row in self.observations.values())
@@ -153,15 +155,18 @@ class R8Replay(Builder):
                                          lines=retained, sha256=sha(excerpt), size=len(excerpt))
         brief_file = self.key(briefing_path, 'Scheduler briefing and model record',
                               'Verbatim scheduler turn start and briefing request and response.')
-        progress = self.graph_home.parent / 'bridge/PROGRESS.md'
-        refusal = next(line for line in progress.read_text().splitlines() if 'Dry-01: pin refused scope;' in line)
+        progress_path = 'bridge/PROGRESS.md'
+        progress = (self.graph_home.parent / progress_path).read_bytes()
+        line_number, refusal = next((number, line) for number, line in enumerate(progress.decode().splitlines(), 1)
+                                    if 'Dry-01: pin refused scope;' in line)
         rehearsal = self.projection('scheduler-rehearsal.json', {'record': refusal},
                                     'Scheduler rehearsal: pin refused scope',
                                     'The host refused the proposal during the rehearsal before the run.',
-                                    [dict(path='bridge/PROGRESS.md')])
+                                    [dict(path=progress_path, line=line_number, line_sha256=sha(refusal.encode()))])
         self.step('The scheduler finalizes each node contract',
-                  f'The scheduler agent ({model}) read the briefing and finalized {len(finals)} node contracts, '
-                  f'with {refused} refusals. For the prefill node it added an acceptance criterion for the budget and the measured batch plan.',
+                  f'The scheduler agent ({model}) read the briefing and finalized {len(finals)} node contracts. '
+                  'For prefill it required a measured calibration, a cache and memory budget check, and one planned '
+                  f'micro-batch per prompt. The live run recorded {refused} refusals. In rehearsal the host rejected a pin proposal for scope.',
                   ['size_prefill_batch'], row['obs_id'], [final_file, rehearsal, brief_file], refs=[r['obs_id'] for r in finals])
 
     def implementation(self):
@@ -228,15 +233,14 @@ class R8Replay(Builder):
         smoke_file = self.artifact('run-3b1a557a0045-rows.json', 'mixed-pack-smoke.json', 'Eight held-out smoke rows',
                                    'Fresh mixed-pack E0 responses from the single capped run.')
         before = self.obs(source_census)['manifest']
-        from collections import Counter
         after_types = Counter()
         for role in replay_result['census'].values():
             after_types.update(role)
         self.step('Quantization: the new mixed 2-bit pack',
                   f"IQ2_XXS gate/up and Q2_K down cover {experts['iq2_xxs']} and {experts['q2_k']} routed tensors. "
                   f"The pack is {self.obs(pack)['bytes'] / 1e9:.1f} GB versus {source_bytes / 1e9:.1f} GB NVFP4. "
-                  'The v4 production took '
-                  f"{story.replay_duration(replay['duration_seconds'])}; r8 checked it in {self.obs(pack)['replay_seconds']} s, "
+                  'The pack compiler produced it in v4 in '
+                  f"{story.replay_duration(replay['duration_seconds'])}. R8 verified and reused it in {self.obs(pack)['replay_seconds']} s, "
                   'and eight held-out E0 prompts produced coherent text.',
                   ['requant_2bit'], pack, [recipe, census, manifest, receipt, smoke_file],
                   refs=[source_census, replay_id, smoke], replay=replay)
@@ -254,10 +258,6 @@ class R8Replay(Builder):
         repairs = ['886d66f7ce25412585d92844377871b9', '3b80764e4c9b403abebbc7bf58f9f484',
                    '52511ae961ac45f0ae14a118bbc0eaf8']
         refs = [row['obs_id'] for row in checks] + repairs
-        sequence = self.projection('requant-corrections.json', dict(timeline=trail, checks=checks,
-                                   specific_fixes=[self.observations[key] for key in repairs]),
-                                   'Requant correction sequence', 'Findings, specific fixes, repairs and passing checks.',
-                                   [self.record(key) for key in refs])
         note_files = []
         for note in notes:
             name = note['note_id'] + '.json'
@@ -265,12 +265,24 @@ class R8Replay(Builder):
             note_files.append(self.evidence(self.graph_home / relative, 'Specific-fix note · ' + name[:8],
                               'Original operator-inbox record.', 'factory_home_file', 'evidence/' + relative,
                               source_home='graph-r8', source_relative_path=relative))
+        note_sources = [dict(path=key['path'], sha256=self.files[key['path']]['sha256']) for key in note_files]
+        sequence = self.projection('requant-corrections.json', dict(timeline=trail, checks=checks,
+                                   specific_fixes=[self.observations[key] for key in repairs]),
+                                   'Requant correction sequence', 'Findings, specific fixes, repairs and passing checks.',
+                                   [self.record(key) for key in refs] + note_sources)
         note_index = self.projection('requant-specific-fix-notes.json', notes, 'Agent help · specific-fix notes',
                                      'Original notes citing the producer, hash convention and evidence limits.',
-                                     [dict(path=key['path'], sha256=self.files[key['path']]['sha256']) for key in note_files])
-        count = sum(len((row['values'].get('review') or {}).get('findings') or []) for row in checks)
+                                     note_sources)
+        findings = [event for event in trail['events'] if event['kind'] == 'finding']
+        reviewers = sum(event['actor'] == 'reviewer' for event in findings)
+        host_blocked = sum(event['actor'] == 'verifier' and event['host_passed'] is False for event in findings)
+        advisory_blockers = sum(event['output'] == 'pack_2bit' and event['advisory'] and
+                                event['severity'] == 'blocker' and event['status'] == 'open' for event in findings)
+        counts = trail['counts']
         self.step('Agent help with the verifier role',
-                  f'{count+1} findings ({count} reviewer, 1 host); 1 repair, 3 notes; 2 pack findings stay advisory.',
+                  f'{reviewers} reviewer findings and {host_blocked} host-blocked verifier call. '
+                  f"The correction trail records {counts['repairs']} repair and {counts['notes']} notes. "
+                  f'{advisory_blockers} pack blockers remain advisory.',
                   ['requant_2bit'], 'node-check:requant_2bit:recipe:6:d3710718', [sequence, note_index],
                   refs=refs, notes=notes, trail=trail)
 
@@ -290,15 +302,17 @@ class R8Replay(Builder):
         load_log = self.artifact('run-e5b36273f07c-server.log', 'prefill-load.log', 'Planned capped load log',
                                  'Recorded buffer allocation, cache and batch settings.')
         plan = self.obs(batch)['plan']
-        self.step('Prefill batch plan for the 2-bit engine',
-                  f"Batch and micro-batch {plan['batch']} with a {self.obs(paired)['requested_moe_cache_mib']} MiB "
-                  f"expert-cache request stayed within {plan['device_budget_mib']} MiB and matched the default-batch "
-                  'output. The capsule planned one 2048 micro-batch; the server log shows 2043 + 4.',
-                  ['size_prefill_batch'], check, [planned, verify_file, load_log], refs=[batch, paired, *followups],
-                  trail=self.trails['size_prefill_batch'])
         plan_file = json.loads((self.stage / planned['path']).read_bytes())
         reference = plan_file['reference']
-        self.steps[-1]['capsule_diff'] = dict(caption='Prefill arguments · NVFP4 kept defaults in calibration 2.',
+        self.step('Prefill batch plan for the 2-bit engine',
+                  f"The capsule increased the micro-batch from {reference['n_ubatch']} to {plan_file['ubatch']} "
+                  f"and requested {self.obs(paired)['requested_moe_cache_mib']} MiB of expert cache. "
+                  f"The planned load stayed within {plan['device_budget_mib']} MiB and matched default-batch output. "
+                  'The short prompt already fit in one micro-batch. The plan targeted one for the long prompt, '
+                  'and the server logged 2043 + 4 tokens.',
+                  ['size_prefill_batch'], check, [planned, verify_file, load_log], refs=[batch, paired, *followups],
+                  trail=self.trails['size_prefill_batch'])
+        self.steps[-1]['capsule_diff'] = dict(caption='Prefill arguments · default and planned settings on the mixed pack',
             before={'-b': reference['n_batch'], '-ub': reference['n_ubatch'],
                     'observed cache (MiB)': reference['device_mib']['moe_cache']},
             after={'-b': plan_file['batch'], '-ub': plan_file['ubatch'],
@@ -315,40 +329,56 @@ class R8Replay(Builder):
                                   [self.record(delivery), self.record(gate)])
         rejected = [obs for obs in self.observations.values() if obs['kind'] == 'build_image_request_validation']
         failed = self.observations['107c03b2666d44ac9e6572812a57e360:build-result']
+        blocker = next(obs for obs in self.observations.values() if obs['kind'] == 'build_image_recipe_blocker'
+                       and obs['values']['build_attempt_id'] == failed['obs_id'].split(':')[0])
         checker_files = [
             self.projection(f"checker-{obs['obs_id'][:8]}.json", obs, label, why, [self.record(obs['obs_id'])])
             for obs, label, why in [
-                *((obs, f"Rejected build request {index}", "Host validation stopped the request before a build started.")
-                  for index, obs in enumerate(rejected, 1)),
-                (failed, "Failed image build 107c03b2", "Build result before the recipe repair.")]]
+                *((obs, 'Rejected build request · ' + obs['values']['diagnostics'][0]['message'],
+                   'Host validation stopped the request before a build started.') for obs in rejected),
+                (failed, 'Failed image build 107c03b2', 'Build result before the recipe repair.'),
+                (blocker, 'Image build failure and recipe repair', 'The recorded asset failure and approved CMake flags.')]]
         self.step('The image and the gate',
-                  f"The agent commit {image['source_commit'][:9]} built image {image['image_id'][7:19]} "
-                  f"with binary digest {image['executable_sha256'][:12]}. The image passed --version without a model, "
-                  'and the delivery gate checked the retained digests.',
+                  f'The host rejected {len(rejected)} malformed build requests. A later build failed while fetching UI assets. '
+                  f"After the recipe repair, commit {image['source_commit'][:9]} built image {image['image_id'][7:19]}. "
+                  'The image passed --version and the delivery gate checked the retained digests.',
                   ['build_image', 'deliver_to_lab'], delivery, [*checker_files, image_receipt, image_check, request],
-                  refs=[f'{IMAGE}:build-result', gate])
+                  refs=[*(obs['obs_id'] for obs in rejected), failed['obs_id'], blocker['obs_id'], f'{IMAGE}:build-result', gate])
 
     def measurements(self):
         report = json.loads(self.report_path.read_bytes())
         if report.get('format') == 'r8-final-bench':
-            report_file = self.evidence(self.report_path, 'Final engine benchmark', 'Measured A and P speed and accuracy.',
+            cells = report['cells']
+            by_cell = {(cell['arm'], cell['request'], cell['state']): cell for cell in cells}
+            expected = {(arm, request, state) for arm in ('A', 'AQB') for request in ('p512', 'p2048')
+                        for state in ('cold', 'warm')}
+            if by_cell.keys() != expected or len(cells) != len(expected):
+                raise ValueError('Expected exactly one measured A and AQB row per prompt length and cold/warm state')
+            if any(cell['generated_tokens'] != 32 for cell in cells):
+                raise ValueError('The final benchmark requires 32 generated tokens in every speed cell')
+            report_file = self.evidence(self.report_path, 'Final engine benchmark', 'Measured A and AQB speed and accuracy.',
                                         'lab_file', 'evidence/lab/report.json', source_relative_path='r8-final/report.json')
             look = report['accuracy']
-            measurement = dict(baseline='A · NVFP4 baseline. P · mixed 2-bit + prefill plan',
+            measurement = dict(baseline='A · NVFP4 baseline. AQB · mixed 2-bit + prefill plan. Warm rows show medians',
                 rows=[dict(cell, path=report_file['path'], pointer=f'/cells/{index}', status='accepted', reasons=[])
-                      for index, cell in enumerate(report['cells'])],
+                      for index, cell in enumerate(cells)],
                 accuracy=dict(n=look['n'], path=report_file['path'], reference_pct=round(100*look['acc_ref'],1),
                               candidate_pct=round(100*look['acc_cand'],1), loss_pts=look['loss_pts'],
                               lo_pts=look['lo_pts'], hi_pts=look['hi_pts']))
-            primary = dict(kind=report['format'], summary='The delivered image ran both benchmark arms.',
+            primary = dict(kind=report['format'],
+                           summary='The delivered image ran both speed arms. MMLU zero-shot paired the retained NVFP4 answers '
+                                   'with the mixed-pack load.',
                            created=datetime.fromisoformat(report['ended_utc']).timestamp(),
                            id=report_file['path'], source='r8-final/report.json')
-            warm = {r['arm']: r for r in report['cells'] if r['request']=='p2048' and r['state']=='warm'}
-            say = 'The final benchmark compares NVFP4 with the mixed pack and prefill plan at 512 and 2048.'
-            if set(warm) == {'A', 'P'}:
-                say += (f" At warm 2048, the first token arrived in {warm['A']['ttft_ms']/1000:.1f} s with NVFP4 "
-                        f"and {warm['P']['ttft_ms']/1000:.1f} s with the new engine settings.")
-            self.step('The measured result', say, ['deliver_to_lab'], primary, [report_file], measurement=measurement)
+            warm_a_512 = by_cell['A', 'p512', 'warm']['ttft_ms'] / 1000
+            warm_aqb_512 = by_cell['AQB', 'p512', 'warm']['ttft_ms'] / 1000
+            warm_a_2048 = by_cell['A', 'p2048', 'warm']['ttft_ms'] / 1000
+            warm_aqb_2048 = by_cell['AQB', 'p2048', 'warm']['ttft_ms'] / 1000
+            self.step('Measured speed and accuracy',
+                      f'On warm requests, AQB reached the first token in {warm_aqb_512:.1f} s versus {warm_a_512:.1f} s for A '
+                      f'at 512, and {warm_aqb_2048:.1f} s versus {warm_a_2048:.1f} s at 2048. '
+                      f"On {look['n']} MMLU zero-shot questions, A scored {look['acc_ref']:.1%} and AQB scored {look['acc_cand']:.1%}.",
+                      ['deliver_to_lab'], primary, [report_file], measurement=measurement)
             return
         historical = json.loads(self.baseline_path.read_bytes())
         if sha(self.baseline_path.read_bytes()) != report['baseline']['sha256']:
