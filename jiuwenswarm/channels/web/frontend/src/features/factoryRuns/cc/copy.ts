@@ -2,7 +2,8 @@ import { useTranslation } from 'react-i18next';
 
 const en = {
   title: 'Capability Capsules',
-  intro: 'Builder methods, sealed materials, and run evidence for improving llama.cpp on DGX Spark.',
+  intro: 'Build methods, sealed materials, and run evidence for inference engines.',
+  demoMethods: 'Methods used in the recorded runs',
   starred: 'Starred',
   builders: 'Star builders',
   support: 'Factory and support',
@@ -70,7 +71,8 @@ const en = {
   criteria: 'Acceptance criteria',
   sparkProfile: 'Spark validation profile',
   tests: 'Tests and fixtures',
-  verifier: 'Verifier',
+  verifier: 'CC verifier',
+  ccVerifierRole: 'Checks that the capsule method, tool, or build was applied correctly.',
   latestReceipt: 'Latest verify receipt',
   noReceipt: 'No verify receipt is recorded for this capsule.',
   receiptDone: 'Checks passed',
@@ -138,7 +140,8 @@ const en = {
 
 const zh: Record<keyof typeof en, string> = {
   title: '能力胶囊',
-  intro: '用于在 DGX Spark 上改进 llama.cpp 的构建方法、封存材料和运行证据。',
+  intro: '推理引擎的构建方法、封存材料和运行证据。',
+  demoMethods: '已记录运行所用的方法',
   starred: '重点',
   builders: '重点构建器',
   support: '工厂和支持胶囊',
@@ -206,7 +209,8 @@ const zh: Record<keyof typeof en, string> = {
   criteria: '验收标准',
   sparkProfile: 'Spark 验证配置',
   tests: '测试和夹具',
-  verifier: '验证器',
+  verifier: 'CC 验证器',
+  ccVerifierRole: '检查胶囊的方法、工具或构建过程是否正确应用。',
   latestReceipt: '最新验证回执',
   noReceipt: '该胶囊没有已记录的验证回执。',
   receiptDone: '检查通过',

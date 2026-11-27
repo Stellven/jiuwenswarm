@@ -28,7 +28,7 @@ ATLAS_MAP = {
     'muse_nvfp4_reader': ('weights.checkpoint_reader.builder', 'Muse NVFP4 reader builder', 'builder'),
     'expert_scale_wiring': ('weights.format_toolkit.builder', 'Expert scale wiring builder', 'builder'),
     # Muse Run 2 owner decision 002.
-    'kv_reuse_lab': ('state.prefix_store', 'Prefix store analysis', 'analysis'),
+    'kv_reuse_lab': ('state.prefix_store', 'Prefix reuse analysis', 'analysis'),
 }
 
 

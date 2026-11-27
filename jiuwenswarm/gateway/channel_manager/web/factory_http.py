@@ -1073,6 +1073,14 @@ def attach_factory_routes(app: FastAPI, channel=None, *, service=None):
     async def capsule_file(name: str, path: str = Query(..., max_length=1024)):
         return await call(service.capsule_catalog.file, name, path)
 
+    @app.get(PREFIX + '/capsules/kv_reuse_lab/fixture')
+    async def prefix_fixture():
+        return await call(service.capsule_catalog.fixture_evidence)
+
+    @app.get(PREFIX + '/capsules/kv_reuse_lab/fixture/{key}')
+    async def prefix_fixture_file(key: str):
+        return await call(service.capsule_catalog.fixture_file, key)
+
     @app.get(PREFIX + '/measurements')
     async def measurements():
         return await call(service.measurements.listing)

@@ -23,6 +23,11 @@ SHA256 = re.compile(r'[0-9a-f]{64}')
 OWNER_MANIFEST = 'SHA256SUMS'
 CONTRACT_ID = 'star-deepseek-v1'
 CONTRACT_FILES = (CONTRACT_ID + '.json', CONTRACT_ID + '.md')
+PREFIX_FIXTURE_FILES = {
+    'summary': 'summary.json',
+    'stock': 'stock/server.log',
+    'configured': 'configured/server.log',
+}
 SECTION_KEYS = {
     'guide': ('guide', 'skill'),
     'method': ('method', 'methodology'),
@@ -160,13 +165,92 @@ def _material(root, path):
 
 
 class CapsuleCatalog:
-    def __init__(self, root=CCS, contracts=CONTRACTS, owner_ontology=None):
+    def __init__(self, root=CCS, contracts=CONTRACTS, owner_ontology=None, prefix_fixture=None):
         self.root = Path(root).resolve()
         self.contracts = Path(contracts).resolve()
         owner = owner_ontology or os.environ.get(
             'FACTORY_OWNER_ONTOLOGY_ROOT', str(Path.home() / 'predemo-spark/inputs/ontology'))
         self.owner = Path(owner).expanduser().resolve()
+        fixture = prefix_fixture or os.environ.get(
+            'FACTORY_PREFIX_REUSE_FIXTURE_ROOT', Path.home() / 'muse-demo/r9/factory-fixture-c')
+        self.prefix_fixture = Path(fixture).expanduser().resolve()
         self.names = atlas_names(self.root)
+
+    def _fixture_artifact(self, key, pins):
+        path = PREFIX_FIXTURE_FILES[key]
+        expected = pins.get(path)
+        if not SHA256.fullmatch(str(expected)):
+            raise ValueError('Missing prefix reuse fixture pin')
+        data = _read(self.prefix_fixture, path)
+        if sha(data) != expected:
+            raise ValueError('Prefix reuse fixture digest differs')
+        return data
+
+    def fixture_evidence(self):
+        try:
+            manifest = _json_file(self.prefix_fixture, 'manifest.json')
+            pins = manifest.get('files', manifest)
+            summary = json.loads(self._fixture_artifact('summary', pins))
+            if summary.get('format') != 'muse-cpu-swa-fixture/1' or summary.get('status') not in {'complete', 'stopped'}:
+                raise ValueError('Invalid prefix reuse fixture summary')
+            model, engine = summary['model'], summary['engine']
+            if (not SHA256.fullmatch(str(model['sha256'])) or not SHA256.fullmatch(str(engine['sha256']))
+                    or manifest.get('model_sha256') != model['sha256']
+                    or not 0 < model['bytes'] < 1_000_000_000 or not 0 < model['window_tokens']):
+                raise ValueError('Invalid fixture model or engine identity')
+            configurations = {}
+            for key in ('stock', 'configured'):
+                row = summary.get('configurations', {}).get(key)
+                if row is None and summary['status'] == 'stopped':
+                    continue
+                path = PREFIX_FIXTURE_FILES[key]
+                cached, prompt = row['cached_tokens'], row['prompt_tokens']
+                cpu = row['cpu_only']
+                if (type(cached) is not int or type(prompt) is not int or not 0 <= cached <= prompt
+                        or prompt <= model['window_tokens'] or row['server_log'] != path
+                        or row['server_log_sha256'] != pins.get(path) or cpu['cuda_visible_devices'] != '-1'
+                        or cpu['requested_gpu_layers'] != 0
+                        or row['cache_prompt'] is not True or row['server_closed'] is not True):
+                    raise ValueError('Invalid prefix reuse fixture request evidence')
+                log = self._fixture_artifact(key, pins)
+                followup = row['rows'][1]
+                evidence = followup['cache_evidence']
+                start, end = followup['server_log_start'], followup['server_log_end']
+                if not 0 <= start < end <= len(log) or type(evidence['task_id']) is not int:
+                    raise ValueError('Invalid fixture follow-up log boundary')
+                request_log = log[start:end].decode('utf-8', errors='replace')
+                pattern = (rf'^\d+\.\d+\.\d+\.\d+ \w slot\s+operator\(\): id\s+\d+ \| task {evidence["task_id"]}'
+                           r' \| cached n_tokens = (\d+), memory_seq_rm \[\d+, end\)$')
+                match = re.search(pattern, request_log, re.M)
+                if (not match or int(match[1]) != cached or match[0] != evidence['cache_line']
+                        or evidence['prompt_tokens'] != prompt):
+                    raise ValueError('Fixture token counts differ from the first follow-up cache line')
+                checkpoint = re.search(rb'context checkpoints enabled, max = (\d+),', log)
+                configurations[key] = dict(cached_tokens=cached, prompt_tokens=prompt, log_sha256=pins[path],
+                                           cache_line=match[0], full_swa=b'using full-size SWA cache' in log,
+                                           checkpoints_max=int(checkpoint[1]) if checkpoint else None)
+            return sanitize(dict(
+                status=summary['status'], configurations=configurations, summary_sha256=pins['summary.json'],
+                model={name: model[name] for name in ('id', 'source', 'sha256', 'bytes', 'window_tokens')},
+                engine={name: engine[name] for name in ('image_id', 'sha256')},
+            ))
+        except (OSError, TypeError, KeyError, ValueError, AttributeError, IndexError):
+            return None
+
+    def fixture_file(self, key):
+        from starlette.responses import JSONResponse, PlainTextResponse
+
+        evidence = self.fixture_evidence()
+        if key not in PREFIX_FIXTURE_FILES or evidence is None:
+            raise HTTPException(404, 'Prefix reuse fixture file is unavailable')
+        headers = {'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff'}
+        if key == 'summary':
+            return JSONResponse(evidence, headers=headers)
+        arm = evidence['configurations'].get(key)
+        if not arm:
+            raise HTTPException(404, 'Prefix reuse fixture file is unavailable')
+        return PlainTextResponse(f"Excerpt from digest-verified fixture log\n"
+                                 f"SHA-256 {arm['log_sha256']}\n\n{arm['cache_line']}\n", headers=headers)
 
     def paths(self):
         paths = {path.relative_to(self.root).as_posix() for path in self.root.rglob('cc.yaml')

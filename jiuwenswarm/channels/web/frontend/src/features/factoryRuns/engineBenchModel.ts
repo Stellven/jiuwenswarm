@@ -158,7 +158,7 @@ export const finalRun = 'r8-final-bench';
 const armTitles: Record<string, string> = {
   A: 'A · NVFP4 baseline',
   AQB: 'AQB · mixed 2-bit + prefill plan',
-  AQBC: 'AQBC · mixed 2-bit + prefill + prefix store',
+  AQBC: 'AQBC · + prefix reuse',
 };
 
 export function isReportArm(row: EngineRow) {
@@ -176,7 +176,11 @@ export function excluded(row: EngineRow) {
 export function armLabel(row: EngineRow) {
   const title = (row.run === finalRun || row.run === 'r9-aqbc') && row.arm ? armTitles[row.arm] : undefined;
   if (title) return title;
-  return [row.arm, row.engine?.name, row.pack?.format ?? row.pack?.name].filter(Boolean).join(' · ') || 'Unknown arm';
+  return [row.arm, engineName(row), row.pack?.format ?? row.pack?.name].filter(Boolean).join(' · ') || 'Unknown arm';
+}
+
+export function engineName(row: EngineRow) {
+  return row.engine?.name?.replace(/prefix[- ]store/gi, 'prefix reuse');
 }
 
 export function quietStatus(row: EngineRow) {
