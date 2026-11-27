@@ -6,8 +6,10 @@ import type { ReactNode } from 'react';
 import { ArrowUpRight, CheckCircle2, CircleDot, FileText, GitBranch, Layers3, PackageCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { EvidenceFile, JsonRecord, RunDetail, StoryEvent } from './api';
+import { BoundCapsules, type ActivityLink } from './cc/BoundCapsules';
+import type { CapsuleFacts } from './views/ccActivityModel';
 import { atlasTitle } from './cc/atlasNames.ts';
-import { collapseEvents, presentEvent, recordedCheckRoles, replayEvidenceText, type CuratedMeasurement, type CuratedStep } from './views/storyModel.ts';
+import { collapseEvents, keyFileRoles, presentEvent, recordedCheckRoles, replayEvidenceText, type CuratedMeasurement, type CuratedStep } from './views/storyModel.ts';
 import { ReplayLabel } from './views/NodeEvidence';
 import { CorrectionRecord, CorrectionSequence } from './views/CorrectionSequence';
 import { correctionStatusAt } from './views/correctionModel';
@@ -126,6 +128,8 @@ export function RunOverview({
   currentStep,
   stepPosition,
   nodeEvidence,
+  stepCapsuleFacts,
+  onOpenActivity,
 }: {
   detail: RunDetail;
   events: StoryEvent[];
@@ -138,6 +142,8 @@ export function RunOverview({
   currentStep?: CuratedStep;
   stepPosition: string;
   nodeEvidence?: ReactNode;
+  stepCapsuleFacts?: readonly CapsuleFacts[];
+  onOpenActivity?: ActivityLink;
 }) {
   const { t, i18n } = useTranslation();
   const task = detail.records.tasks?.[0] || {};
@@ -178,11 +184,18 @@ export function RunOverview({
 
   if (curated) {
     const focus = currentStep;
-    const checkRoles = focus ? recordedCheckRoles(focus, detail.records.observations ?? [], curated.node_presentation) : [];
+    const checkRoles = focus ? recordedCheckRoles(focus, detail.records.observations ?? []) : [];
     const prefillStep = r8VerifierHelp && focus?.node_id === 'size_prefill_batch' && Boolean(focus.capsule_diff);
     const engineMeasurement = (r8VerifierHelp && Boolean(focus?.measurement)) ||
       (detail.contract.contract_id === 'muse-2bit-demo-r9' && focus?.node_id === 'measure_engine');
     const lead = focus?.key_files[0];
+    const rolesFor = (path: string, label: string) => focus
+      ? keyFileRoles(fileByPath.get(path), focus, detail.records.observations ?? []).filter((role) => !label.includes(role))
+      : [];
+    const keyRoles = (path: string, label: string) => {
+      const roles = rolesFor(path, label);
+      return roles.length ? <small data-testid="factory-runs-story-key-file-roles">{roles.join(' · ')}</small> : null;
+    };
     const correction = focus?.correction ?? events.find((event) => event.step === focus?.step)?.correction;
     const stepSummary = focus?.say || focus?.original_summary;
     const recordedEvidence = focus && (
@@ -287,6 +300,9 @@ export function RunOverview({
                 {checkRoles.join(' · ')}
               </p>
             )}
+            {!!stepCapsuleFacts?.length && (
+              <BoundCapsules facts={stepCapsuleFacts} onOpenSource={onOpenActivity} compact />
+            )}
             {focus.presenter_line ? (
               <p className="factory-curated-say" data-testid="factory-runs-curated-focus-say">{focus.presenter_line}</p>
             ) : recordedEvidence}
@@ -301,6 +317,7 @@ export function RunOverview({
                 onClick={() => onOpenFile?.(lead.path)}
               >
                 ★ {lead.label}
+                {keyRoles(lead.path, lead.label)}
                 {!focus.presenter_line && lead.why && <small>{lead.why}</small>}
               </button>
             )}
@@ -327,6 +344,7 @@ export function RunOverview({
                       onClick={() => onOpenFile?.(key.path)}
                     >
                       ★ {key.label}
+                      {keyRoles(key.path, key.label)}
                     </button>
                   </li>
                 ))}
@@ -428,6 +446,9 @@ export function RunOverview({
       )}
       {headline}
       <RunBuilds detail={detail} events={events} />
+      {detail.run.live_demo && !!stepCapsuleFacts?.length && (
+        <BoundCapsules facts={stepCapsuleFacts} onOpenSource={onOpenActivity} compact />
+      )}
       <div className="factory-story-overview-grid">
         <section className="factory-story-card" data-testid="factory-runs-overview-progress">
           <div className="factory-story-card-title">

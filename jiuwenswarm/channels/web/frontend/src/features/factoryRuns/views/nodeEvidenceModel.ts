@@ -119,7 +119,7 @@ export function artifactReplayOrigins(records: readonly JsonRecord[]) {
   return replays;
 }
 
-export function capsuleCard(capsule: NodeCapsule, checks: NodeCheckView | undefined) {
+export function capsuleCard(capsule: NodeCapsule, checks: NodeCheckView | undefined, cutoff = Infinity) {
   const outputNames = new Set((capsule.outputs ?? []).map((output) => output.name));
   const attached =
     capsule.checks ??
@@ -133,7 +133,10 @@ export function capsuleCard(capsule: NodeCapsule, checks: NodeCheckView | undefi
   return {
     ...capsule,
     title: capsule.title ?? atlasTitle(capsule.id) ?? capsule.id,
-    checkView: attached?.length ? { ...checks, helpful_ccs: [], capability: undefined, outputs: attached } : undefined,
+    checkView: attached?.length ? { ...checks, helpful_ccs: [], capability: undefined, outputs: attached.map((output) => ({
+      ...output,
+      checks: output.checks.filter((row) => row.created == null || row.created <= cutoff),
+    })) } : undefined,
     failures: Array.isArray(capsule.calls?.failures) ? capsule.calls.failures.length : (capsule.calls?.failures ?? 0),
   };
 }

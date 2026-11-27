@@ -9,7 +9,8 @@ import {
   type NodeOutput,
 } from '../api';
 import { atlasTitle } from '../cc/atlasNames';
-import { BoundCapsules } from '../cc/BoundCapsules';
+import { BoundCapsules, CapsuleFactStatus, type ActivityLink } from '../cc/BoundCapsules';
+import { capsuleFactsAt, nodeVerifierAt, reopenBoundary, type CapsuleFacts } from './ccActivityModel';
 import { capsuleHref } from '../cc/navigation';
 import { Loading, MaterialDialog, MaterialList, StructuredData } from '../cc/CapsuleMaterial';
 import { capsuleDisplayTitle, readableName } from '../cc/capsuleModel';
@@ -35,7 +36,6 @@ import '../cc/capsules.css';
 import './nodeEvidence.css';
 
 const emptyCapsules: CapsuleOverview[] = [];
-const verdictLabel = (verdict: string) => (verdict === 'unchecked' ? 'No output check' : verdict);
 
 function displayTimestamp(value: unknown) {
   const date =
@@ -343,6 +343,7 @@ export function NodeEvidence({
   checks,
   replayNode,
   onOpenRecord,
+  onOpenActivity,
   revision,
   correctionCursor,
   r8VerifierHelp,
@@ -356,6 +357,7 @@ export function NodeEvidence({
   checks?: NodeCheckView;
   replayNode?: TaskGraphTimelineNode;
   onOpenRecord?: (id: string) => void;
+  onOpenActivity?: ActivityLink;
   revision: unknown;
   correctionCursor?: CorrectionCursor;
   r8VerifierHelp?: boolean;
@@ -365,6 +367,11 @@ export function NodeEvidence({
   const heading = useId();
   const load = useCallback((id: string, signal: AbortSignal) => factoryApi.node(runId, id, signal), [runId]);
   const evidence = useCapsuleResource(nodeId, load, revision);
+  const activity = evidence.data?.cc_activity;
+  const cutoff = correctionCursor?.created ?? Infinity;
+  const boundary = reopenBoundary(activity, cutoff);
+  const facts = replayNode?.capsuleFacts ?? (activity ? capsuleFactsAt(activity, cutoff, boundary) : undefined);
+  const nodeVerdict = replayNode?.nodeVerifier ?? (activity ? nodeVerifierAt(activity, cutoff, boundary, node?.state === 'done') : undefined);
   const assignedRuns = new Set(
     evidence.data?.capsules.flatMap((card) => (card.runs ?? []).map((run) => run.attempt_id)) ?? [],
   );
@@ -394,10 +401,10 @@ export function NodeEvidence({
           </button>
         )}
       </header>
-      {replayNode && (
+      {(facts || nodeVerdict) && (
         <>
-          <BoundCapsules ids={replayNode.boundCCs} results={replayNode.ccVerifiers} />
-          {onOpenRecord && <NodeVerifier result={replayNode.nodeVerifier} onOpenRecord={onOpenRecord} />}
+          {facts && <BoundCapsules facts={facts} onOpenSource={onOpenActivity} />}
+          {nodeVerdict && onOpenRecord && <NodeVerifier result={nodeVerdict} onOpenRecord={onOpenRecord} />}
         </>
       )}
       {!evidence.data ? (
@@ -410,7 +417,7 @@ export function NodeEvidence({
               <p className="factory-muted">No capsule bindings are recorded for this node.</p>
             )}
             {evidence.data.capsules.map((capsule) => {
-              const card = capsuleCard(capsule, checks);
+              const card = capsuleCard(capsule, checks, cutoff);
               const comparison = evidenceRecord(card.comparison);
               const catalogName = card.catalog_name ?? card.id;
               const title = replayNode?.boundCCs.includes(card.id)
@@ -434,11 +441,6 @@ export function NodeEvidence({
                         </a>
                       </h4>
                       {card.kind && <span className="factory-node-evidence-kind">{card.kind}</span>}
-                      {card.verdict && (
-                        <span className="factory-node-verdict" data-verdict={card.verdict}>
-                          {card.verdict}
-                        </span>
-                      )}
                     </div>
                     <p className="factory-muted">
                       <code>{card.id}</code>
@@ -526,6 +528,8 @@ export function CapsuleOverviewStrip({
   labels,
   replayByNode,
   corrections,
+  factsFor,
+  onOpenActivity,
   selected,
   onSelect,
 }: {
@@ -533,6 +537,8 @@ export function CapsuleOverviewStrip({
   labels: Map<string, string>;
   replayByNode?: Map<string, unknown[]>;
   corrections?: Record<string, CorrectionCounts>;
+  factsFor?: (id: string) => readonly CapsuleFacts[] | undefined;
+  onOpenActivity?: ActivityLink;
   selected?: string;
   onSelect: (id: string) => void;
 }) {
@@ -545,7 +551,8 @@ export function CapsuleOverviewStrip({
       </h3>
       <ul>
         {all.map((id) => {
-          const capsules = nodes[id] ?? emptyCapsules;
+          const facts = factsFor?.(id);
+          const capsules = (nodes[id] ?? emptyCapsules).filter((item) => !facts || facts.some((fact) => fact.id === item.id));
           return (
             <li key={id} data-testid="factory-runs-cc-overview-node" data-variant={id}>
               <button
@@ -560,8 +567,9 @@ export function CapsuleOverviewStrip({
               </button>
               {corrections?.[id] && <CorrectionTally counts={corrections[id]} />}
               <ReplayLabel value={replayByNode?.get(id)} />
-              {capsules.map((capsule) => (
-                <span
+              {capsules.map((capsule) => {
+                const fact = facts?.find((item) => item.id === capsule.id);
+                return <div
                   className="factory-cc-overview-chip"
                   key={capsule.id}
                   title={capsule.id}
@@ -569,13 +577,9 @@ export function CapsuleOverviewStrip({
                   data-variant={capsule.id}
                 >
                   {capsule.title ?? atlasTitle(capsule.id) ?? capsule.id}
-                  {capsule.verdict && (
-                    <small className="factory-node-verdict" data-verdict={capsule.verdict}>
-                      {verdictLabel(capsule.verdict)}
-                    </small>
-                  )}
-                </span>
-              ))}
+                  {fact && <CapsuleFactStatus fact={fact} onOpenSource={onOpenActivity} />}
+                </div>;
+              })}
             </li>
           );
         })}

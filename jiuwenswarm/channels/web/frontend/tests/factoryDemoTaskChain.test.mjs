@@ -64,10 +64,13 @@ test('Demo Task graph shows one responsive chain and keeps node and capsule acti
   const catalog = [{ id: 'engine.kv_reuse_lab', name: 'kv_reuse_lab' }];
   const bindings = ['factory.capped_runner', 'factory.builder', 'factory.lab_manager', 'factory.node_check'];
   const record = { id: 'node-check:plan_prefix_store:plan:1:1234', output: 'plan' };
-  const ccVerifiers = {
-    'engine.kv_reuse_lab': { status: 'pass', records: [record] },
-    'factory.capped_runner': { status: 'not-run', records: [] },
-  };
+  const capsuleFact = (id) => ({
+    id,
+    use: id === 'factory.capped_runner' ? 'used' : 'bound-not-used',
+    verifier: id === 'engine.kv_reuse_lab' ? 'pass' : 'no-cc-verifier-record',
+    uses: id === 'factory.capped_runner' ? [{ id: 'smoke-attempt', created: 1, kind: 'attempt' }] : [],
+    checks: id === 'engine.kv_reuse_lab' ? [{ ...record, created: 1, status: 'pass' }] : [],
+  });
   const nodeVerifier = { status: 'fail', records: [record] };
   const nodes = [
     ['pin_inputs', 'done', []],
@@ -82,14 +85,14 @@ test('Demo Task graph shows one responsive chain and keeps node and capsule acti
     planId,
     replayState,
     boundCCs,
-    ccVerifiers: replayState === 'current' ? ccVerifiers : {},
-    nodeVerifier: replayState === 'current' ? nodeVerifier : { status: 'not-run', records: [] },
+    capsuleFacts: boundCCs.map(capsuleFact),
+    nodeVerifier: replayState === 'current' ? nodeVerifier : { status: 'no-node-check', records: [] },
   }));
   const opened = [];
   const openedRecords = [];
   const onOpenNode = (nodeId) => opened.push(nodeId);
   const onOpenRecord = (recordId) => openedRecords.push(recordId);
-  const render = (selectedNode, detail) =>
+  const render = (selectedNode, detail, mode = 'run') =>
     act(() =>
       root.render(
         createElement(
@@ -98,8 +101,15 @@ test('Demo Task graph shows one responsive chain and keeps node and capsule acti
           createElement(
             CapsuleLinksContext.Provider,
             { value: catalog },
-            createElement(DemoTaskChain, { nodes, selectedNode, onOpenNode, onOpenRecord }),
-            detail && createElement(BoundCapsules, { ids: bindings, results: ccVerifiers }),
+            createElement(DemoTaskChain, {
+              nodes, selectedNode, onOpenNode, onOpenRecord, mode, onModeChange() {},
+              planner: { plan_order: ['plan_prefix_store'], nodes: [{
+                node_id: 'plan_prefix_store', draft: { objective: 'Prepare a draft' },
+                suggested_ccs: ['engine.kv_reuse_lab'], change: 'reordered',
+              }] },
+              onOpenActivity: (source) => onOpenRecord(source.id),
+            }),
+            detail && createElement(BoundCapsules, { facts: bindings.map(capsuleFact) }),
             detail && createElement(NodeVerifier, { result: nodeVerifier, onOpenRecord }),
           ),
         ),
@@ -142,8 +152,13 @@ test('Demo Task graph shows one responsive chain and keeps node and capsule acti
   assert.deepEqual(opened, []);
   assert.deepEqual(
     [...cards[1].querySelectorAll('[data-testid="factory-runs-demo-verifier-status"]')].map((row) => row.textContent),
-    ['Pass', 'Not run', 'Fail'],
+    ['Fail'],
   );
+  const facts = [...cards[1].querySelectorAll('[data-testid="factory-runs-cc-facts"]')];
+  assert.deepEqual(facts.map((row) => [row.querySelector('[data-testid="factory-runs-cc-use"]').dataset.variant,
+    row.querySelector('[data-testid="factory-runs-cc-verifier"]').dataset.variant]), [
+    ['bound-not-used', 'pass'], ['used', 'no-cc-verifier-record'],
+  ]);
   const recordLink = cards[1].querySelector('[data-testid="factory-runs-demo-task-node-verifier-link"]');
   assert.equal(recordLink.dataset.variant, record.id);
   recordLink.click();
@@ -177,4 +192,10 @@ test('Demo Task graph shows one responsive chain and keeps node and capsule acti
     cards.map((node) => node.dataset.arrow),
     [...Array(6).fill('down'), undefined],
   );
+  await render(undefined, false, 'plan');
+  assert.equal(document.querySelector('[data-testid="factory-runs-demo-task-draft"]').textContent, 'Prepare a draft');
+  assert.equal(document.querySelector('[data-testid="factory-runs-demo-node-verifier"]'), null);
+  assert.equal(document.querySelector('[data-testid="factory-runs-cc-facts"]'), null);
+  assert.ok(document.querySelector('[data-testid="factory-runs-plan-execution-toggle"]'));
+
 });

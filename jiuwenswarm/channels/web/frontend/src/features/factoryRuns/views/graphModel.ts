@@ -1,14 +1,11 @@
-import type { EvidenceFile, RunState, StoryEvent } from '../api';
+import type { EvidenceFile, NodeCapsuleActivity, RunState, StoryEvent } from '../api';
 import type { CuratedReplay, ReplayNodePresentation } from './storyModel.ts';
 import { atlasTitle } from '../cc/atlasNames.ts';
 import type { NodeCheckIndex, NodeOperator } from './checkModel.ts';
-import {
-  indexTaskGraphChecks,
-  summarizeTaskGraphVerifiers,
-  type TimelineVerifierResult,
-} from './taskGraphVerifierModel.ts';
+import { indexTaskGraphChecks, legacyTimelineActivity } from './taskGraphVerifierModel.ts';
+import { capsuleFactsAt, nodeVerifierAt, reopenBoundary, type CapsuleFacts, type TimelineVerifierResult } from './ccActivityModel.ts';
 
-export type { TimelineVerifierResult } from './taskGraphVerifierModel.ts';
+export type { TimelineVerifierResult } from './ccActivityModel.ts';
 
 type Fields = Record<string, unknown>;
 type NodeKind = 'contract' | 'task' | 'step' | 'capsule' | 'entity' | 'group';
@@ -56,6 +53,7 @@ export type GraphReplay = {
   replayByNode?: Map<string, unknown[]>;
   /** Live and exported runs: per plan node checking records (GET /runs/{id} node_checks). */
   checks?: NodeCheckIndex;
+  ccActivity?: Readonly<Record<string, NodeCapsuleActivity>>;
   /** Live homes only: hold, release and reopen. */
   operator?: NodeOperator;
 };
@@ -63,7 +61,7 @@ type NodeProgress = { phase: 'upcoming' | 'seen' | 'current'; details?: Fields }
 export type TaskGraphTimelineNode = GraphNode & {
   replayState: 'done' | 'current' | 'not-reached' | 'stopped';
   boundCCs: string[];
-  ccVerifiers: Record<string, TimelineVerifierResult>;
+  capsuleFacts: CapsuleFacts[];
   nodeVerifier: TimelineVerifierResult;
 };
 
@@ -522,24 +520,20 @@ export function taskGraphTimeline(graph: GraphModel, replay?: GraphReplay): Task
   const active = replay?.liveDemo && isLatest ? nodes.find((node) => node.planId === runState?.node_id && unresolved(node)) : undefined;
   const current = stopped || finished ? undefined : active ?? nodes.find(unresolved);
   const recordsPath = replay?.files?.find((file) => file.path === 'records/observations.json')?.path;
+  const activityCutoff = replay && !(replay.liveDemo && isLatest) ? cutoff : Infinity;
   return nodes.map((node) => {
     let replayState: TaskGraphTimelineNode['replayState'] = 'not-reached';
     if (stateOf(node) === 'done') replayState = 'done';
     else if (node === current) replayState = 'current';
     else if (stopped && unresolved(node)) replayState = 'stopped';
     const planId = node.planId ?? '';
-    const details = detailsOf(node);
-    const spec = details?.check ?? graph.defaultChecks?.[string(details?.kind) ?? ''];
-    const boundCCs = node.boundCCs ?? [];
-    const verifiers = summarizeTaskGraphVerifiers(
-      graph.taskChecks?.get(planId) ?? [],
-      spec,
-      boundCCs,
-      replay ? cutoff : Infinity,
-      reopenedAt.get(planId) ?? -Infinity,
-      recordsPath,
-    );
-    return { ...node, replayState, boundCCs, ...verifiers };
+    const activity = replay?.ccActivity?.[planId] ??
+      legacyTimelineActivity(graph.taskChecks?.get(planId) ?? [], node.boundCCs ?? [], recordsPath);
+    const boundary = reopenBoundary(activity, activityCutoff, reopenedAt.get(planId));
+    const capsuleFacts = capsuleFactsAt(activity, activityCutoff, boundary);
+    const boundCCs = capsuleFacts.map(({ id }) => id);
+    const nodeVerifier = nodeVerifierAt(activity, activityCutoff, boundary, replayState === 'done');
+    return { ...node, replayState, boundCCs, capsuleFacts, nodeVerifier };
   });
 }
 

@@ -4837,16 +4837,37 @@
         "reordered": "Reordered"
       }
     },
+    "ccActivity": {
+      "use": "Use",
+      "verifier": "CC verifier",
+      "used": "Used",
+      "bound-not-used": "Bound, not used",
+      "pass": "Pass",
+      "fail": "Fail",
+      "no-cc-verifier-record": "No CC verifier record",
+      "no-verifier-declared": "No verifier declared",
+      "legend": "Used = a worker call, attempt or receipt names this CC. Bound, not used = no worker-use record. No CC verifier record = no recorded CC verdict.",
+      "recordedPass": "Recorded pass",
+      "recordedFail": "Recorded fail",
+      "noVerdict": "No verdict recorded",
+      "recordedExecution": "Recorded execution",
+      "inThisRun": "In this run",
+      "publishedExample": "Published example.",
+      "labOmissions": "Checks the lab reported as unexecuted",
+      "noLabVerdict": "No lab verdict recorded"
+    },
     "demoTaskChain": {
       "empty": "No task graph nodes are available.",
       "ccCount": "CCs: {{count}}",
       "noCC": "no CC",
       "moreCCs": "+{{count}} more",
       "nodeVerifier": "Node verifier",
+      "closedByDecision": "Closed by decision",
+      "closedByUpdate": "Closed by graph update",
       "verifier": {
         "pass": "Pass",
         "fail": "Fail",
-        "not-run": "Not run"
+        "no-node-check": "No node check recorded"
       },
       "state": {
         "done": "Done",

@@ -4,6 +4,7 @@ import {
   collapseEvents,
   curatedStepFor,
   keyFilesFor,
+  keyFileRoles,
   keyFlags,
   presentEvent,
   recordedCheckRoles,
@@ -58,22 +59,25 @@ test('step badges reflect cited checks and keep delivery acceptance distinct fro
   const ref = (id) => ({ table: 'observations', id, source_home: 'home' });
   const observations = [
     { obs_id: 'final', kind: 'node_contract_final' },
-    { obs_id: 'check', kind: 'node_check', values: { node_id: 'plan', output: 'plan', refs: { evidence_ids: ['final', 'load'] } } },
-    { obs_id: 'acceptance', kind: 'node_check', values: { node_id: 'measure', output: 'report', refs: { evidence_ids: ['load'] } } },
+    { obs_id: 'check', kind: 'node_check', source_artifacts: ['sealed'],
+      values: { node_id: 'plan', output: 'plan', passed: true, verifier: { cc: 'plan.workbench', passed: true } } },
+    { obs_id: 'assessment', kind: 'node_check',
+      values: { node_id: 'measure', output: 'report', passed: true, refs: { evidence_ids: ['load'] } } },
+    { obs_id: 'receipt', kind: 'lab_report', values: { valid: true } },
+    { obs_id: 'future', kind: 'node_check', created: 100,
+      values: { node_id: 'measure', passed: true, verifier: { cc: 'later.workbench', passed: true } } },
   ];
-  const presentation = {
-    plan: { checks: { plan: { role: 'Node verifier', verifier_role: 'CC verifier' } } },
-    measure: { checks: { report: { role: 'Lab acceptance' } } },
-  };
-  const selected = (kind, ...records) => ({ ...curated.steps[0], original_kind: kind, node_id: 'measure', records });
-  assert.deepEqual(recordedCheckRoles(selected('node_check', ref('check'), ref('final')), observations, presentation), [
+  const selected = (kind, ...records) => ({ ...curated.steps[0], original_kind: kind, node_id: 'measure', records, created: 50 });
+  assert.deepEqual(recordedCheckRoles(selected('node_check', ref('check'), ref('final')), observations), [
     'CC verifier', 'Node verifier',
   ]);
-  assert.deepEqual(recordedCheckRoles(selected('node_contract_final', ref('final')), observations, presentation), ['Scheduler']);
-  assert.deepEqual(recordedCheckRoles(selected('capped_run', ref('load')), observations, presentation), ['Node verifier', 'Lab agent']);
+  assert.deepEqual(recordedCheckRoles(selected('node_contract_final', ref('final')), observations), ['Scheduler']);
+  assert.deepEqual(recordedCheckRoles(selected('capped_run', ref('load'), ref('future')), observations), ['Node verifier']);
+  assert.deepEqual(recordedCheckRoles(selected('lab_report', ref('receipt')), observations), ['Lab agent']);
   const report = selected('r8-final-bench', { table: 'file', id: 'evidence/lab/report.json' });
-  assert.deepEqual(recordedCheckRoles(report, observations, presentation), ['Lab agent']);
-  assert.deepEqual(recordedCheckRoles({ ...selected('attempt'), stages: ['runtime'] }, observations, presentation), []);
+  assert.deepEqual(recordedCheckRoles(report, observations), ['Lab agent']);
+  assert.deepEqual(keyFileRoles({ artifact_ids: ['sealed'] }, selected('node_check'), observations), ['CC verifier', 'Node verifier']);
+  assert.deepEqual(recordedCheckRoles({ ...selected('attempt'), stages: ['runtime'] }, observations), []);
 });
 
 test('raw kinds get a readable title and keep the original kind', () => {

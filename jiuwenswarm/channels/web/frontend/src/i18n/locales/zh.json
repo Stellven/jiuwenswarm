@@ -4837,16 +4837,37 @@
         "reordered": "重排"
       }
     },
+    "ccActivity": {
+      "use": "使用",
+      "verifier": "CC 验证器",
+      "used": "已使用",
+      "bound-not-used": "已绑定，未使用",
+      "pass": "通过",
+      "fail": "失败",
+      "no-cc-verifier-record": "无 CC 验证记录",
+      "no-verifier-declared": "未声明验证器",
+      "legend": "已使用表示工作调用、尝试或凭据明确指向该 CC。已绑定，未使用表示未记录工作调用。无 CC 验证记录表示没有已记录的 CC 判定。",
+      "recordedPass": "记录为通过",
+      "recordedFail": "记录为失败",
+      "noVerdict": "无判定记录",
+      "recordedExecution": "执行记录",
+      "inThisRun": "本次运行",
+      "publishedExample": "已发布示例。",
+      "labOmissions": "实验室报告为未执行的检查",
+      "noLabVerdict": "没有实验室判定记录"
+    },
     "demoTaskChain": {
       "empty": "没有可用的任务图节点。",
       "ccCount": "能力胶囊：{{count}}",
       "noCC": "无能力胶囊",
       "moreCCs": "另有 {{count}} 项",
       "nodeVerifier": "节点验证器",
+      "closedByDecision": "由决策关闭",
+      "closedByUpdate": "由图更新关闭",
       "verifier": {
         "pass": "通过",
         "fail": "失败",
-        "not-run": "未执行"
+        "no-node-check": "无节点检查记录"
       },
       "state": {
         "done": "已完成",

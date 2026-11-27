@@ -2,27 +2,19 @@ import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { factoryApi, type EvidenceFile, type JsonRecord, type RunDetail } from './api';
 import { Loading } from './cc/CapsuleMaterial';
+import type { ActivityLink } from './cc/BoundCapsules';
+import type { CapsuleFacts } from './views/ccActivityModel';
 import { useCapsuleResource } from './cc/useCapsuleResource';
 import { DataViewer } from './views/DataViewer';
 import { PlannerNodeComparison } from './views/PlannerEvidence';
 import { evidenceRecord, evidenceText } from './views/nodeEvidenceModel';
-import type { CuratedReplay } from './views/storyModel';
 import './factoryReplayEvidence.css';
-
-type ContractVersion = {
-  version: number;
-  path: string;
-  sha256: string;
-  amendment?: string;
-  reason?: string;
-};
 
 export function ReplayContractPanel({ detail, onOpenFile }: {
   detail: RunDetail;
   onOpenFile: (file: EvidenceFile) => void;
 }) {
-  const versions = (detail.curated as (CuratedReplay & { contract_versions?: ContractVersion[] }) | undefined)
-    ?.contract_versions ?? [];
+  const versions = detail.curated?.contract_versions ?? detail.contract_versions ?? [];
   const [activePath, setActivePath] = useState<string>();
   const active = versions.find((version) => version.path === activePath)
     ?? versions.find((version) => version.version === detail.contract.version)
@@ -105,12 +97,14 @@ function recordedNodes(detail: RunDetail) {
   return [...titles];
 }
 
-export function ReplayNodeContractsPanel({ detail, selectedNode, onSelectNode, onOpenFile, onOpenRecord }: {
+export function ReplayNodeContractsPanel({ detail, selectedNode, onSelectNode, onOpenFile, onOpenRecord, onOpenActivity, capsuleFactsFor }: {
   detail: RunDetail;
   selectedNode?: string;
   onSelectNode?: (id: string) => void;
   onOpenFile: (path: string) => void;
   onOpenRecord?: (id: string) => void;
+  onOpenActivity?: ActivityLink;
+  capsuleFactsFor?: (id: string) => readonly CapsuleFacts[] | undefined;
 }) {
   const { t } = useTranslation();
   const nodes = recordedNodes(detail);
@@ -141,12 +135,17 @@ export function ReplayNodeContractsPanel({ detail, selectedNode, onSelectNode, o
           </label>
           {!plannedNode && !loaded.data ? <Loading {...loaded} /> : (
             <PlannerNodeComparison key={node} node={plannedNode} fallback={loaded.data?.contract}
-              files={detail.files} onOpenFile={onOpenFile} onOpenRecord={onOpenRecord} />
+              files={detail.files} onOpenFile={onOpenFile} onOpenRecord={onOpenRecord}
+              capsuleFacts={capsuleFactsFor?.(node)} onOpenActivity={onOpenActivity} />
           )}
         </>
       ) : <p className="factory-muted">No nodes are recorded for this run.</p>}
     </section>
   );
+}
+
+function nativeRecordId(row: JsonRecord) {
+  return evidenceText(row.obs_id ?? row.decision_id ?? row.attempt_id ?? row.eval_id ?? row.upload_id ?? row.task_id);
 }
 
 type RecordedEvent = { id: string; kind: string; summary: string; time?: number; raw: JsonRecord };
@@ -171,7 +170,7 @@ function recordedEvents(detail: RunDetail): RecordedEvent[] {
     const rows = detail.records[table] ?? [];
     for (const [index, row] of rows.entries()) {
       const values = evidenceRecord(row.values);
-      const id = evidenceText(row.obs_id ?? row.decision_id ?? row.attempt_id ?? row.eval_id ?? row.task_id);
+      const id = nativeRecordId(row);
       const kind = evidenceText(row.kind ?? row.action) ?? category;
       const actor = kind === 'node_check'
         ? 'Node verifier'
@@ -229,7 +228,7 @@ export function ReplayEventsPanel({ detail, recordId }: { detail: RunDetail; rec
   const search = query.trim().toLowerCase();
   const kinds = [...new Set(events.map((event) => event.kind))].sort();
   const filtered = events.filter((event) => (!kind || event.kind === kind)
-    && (query && query === recordId ? event.raw.obs_id === recordId : !search || (event.kind + ' ' + event.summary + ' ' + event.id).toLowerCase().includes(search)));
+    && (query && query === recordId ? nativeRecordId(event.raw) === recordId : !search || (event.kind + ' ' + event.summary + ' ' + event.id).toLowerCase().includes(search)));
   return (
     <section className="factory-replay-evidence" data-testid="factory-runs-replay-events">
       <div className="factory-replay-evidence-controls">
@@ -256,7 +255,7 @@ export function ReplayEventsPanel({ detail, recordId }: { detail: RunDetail; rec
       </p>
       {filtered.length ? (
         <ol className="factory-replay-event-list" data-testid="factory-runs-recorded-events">
-          {filtered.slice(0, visible).map((row) => <EventRow key={row.id} row={row} initiallyOpen={Boolean(recordId && row.raw.obs_id === recordId)} />)}
+          {filtered.slice(0, visible).map((row) => <EventRow key={row.id} row={row} initiallyOpen={Boolean(recordId && nativeRecordId(row.raw) === recordId)} />)}
         </ol>
       ) : <p className="factory-muted">No recorded events match these filters.</p>}
       {visible < filtered.length && (

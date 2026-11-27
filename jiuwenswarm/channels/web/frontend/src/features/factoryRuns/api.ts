@@ -63,10 +63,12 @@ export type RunDetail = {
   summary: unknown;
   session?: SessionSnapshot | null;
   curated?: CuratedReplay | null;
+  contract_versions?: CuratedReplay['contract_versions'];
   published_report?: CuratedReplay['presentation_header'] | null;
   planner_plan?: PlannerPlan | null;
   /** Per plan node: node contract CCs, verified outputs and their host node_check records. */
   node_checks?: NodeCheckIndex;
+  cc_activity?: Record<string, NodeCapsuleActivity>;
   /** Live homes only: what an operator may do now. */
   controls?: Controls;
   run_state?: RunState;
@@ -136,6 +138,45 @@ export type CapsuleOverview = {
   purpose?: string;
   verdict?: string;
 };
+export type NativeActivitySource = {
+  id: string;
+  created: number;
+  path?: string | null;
+  source_run_id?: string;
+  source_kind?: string;
+};
+export type NativeCheckVerdict = NativeActivitySource & {
+  kind?: 'cc-verifier' | 'node-check';
+  output?: string;
+  status: 'pass' | 'fail';
+};
+export type NativeWorkerUse = NativeActivitySource & {
+  kind: 'worker-call' | 'attempt' | 'receipt';
+  capability?: string;
+};
+export type CapsuleActivity = {
+  id: string;
+  version?: string;
+  bound_at?: number;
+  bound_source?: NativeActivitySource;
+  active?: boolean;
+  unbound_at?: number;
+  bindings?: Array<{
+    version?: string;
+    source: NativeActivitySource;
+    final_digest?: string;
+    unbound_at?: number;
+    unbound_source?: NativeActivitySource;
+  }>;
+  verifier_declaration: 'declared' | 'none' | 'unknown';
+  uses: NativeWorkerUse[];
+  verifier_records: NativeCheckVerdict[];
+};
+export type NodeCapsuleActivity = {
+  capsules: CapsuleActivity[];
+  closures: Array<NativeActivitySource & { state: 'done' | 'reopened'; decision_id?: string }>;
+  node_checks: NativeCheckVerdict[];
+};
 export type NodeOutput = {
   id: string;
   name: string;
@@ -203,6 +244,7 @@ export type NodeDetail = {
   node_id: string;
   contract?: NodeContract;
   capsules: NodeCapsule[];
+  cc_activity?: NodeCapsuleActivity;
   corrections?: NodeCorrection;
   outputs?: NodeOutput[];
   runs?: JsonRecord[];

@@ -1,9 +1,10 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { PlannerNode, PlannerPlan } from '../api';
-import { BoundCapsules } from '../cc/BoundCapsules';
+import { BoundCapsules, type ActivityLink } from '../cc/BoundCapsules';
 import type { TaskGraphTimelineNode } from './graphModel';
 import { contractObjective, PlannerCapsules } from './PlannerEvidence';
+import type { CapsuleFacts } from './ccActivityModel';
 import { draftChain } from './plannerViewModel';
 import { NodeVerifier } from './TimelineVerifier';
 import './demoTaskChain.css';
@@ -11,6 +12,22 @@ import './demoTaskChain.css';
 const minCardWidth = 164;
 export type DemoGraphMode = 'plan' | 'run';
 
+function PlanExecution({ facts, onOpenSource }: { facts?: readonly CapsuleFacts[]; onOpenSource?: ActivityLink }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  return facts?.length ? (
+    <details
+      className="factory-plan-execution"
+      data-testid="factory-runs-plan-execution"
+      onToggle={(event) => setOpen(event.currentTarget.open)}
+    >
+      <summary data-testid="factory-runs-plan-execution-toggle">
+        {t('factoryRuns.ccActivity.recordedExecution')}
+      </summary>
+      {open && <BoundCapsules facts={facts} onOpenSource={onOpenSource} />}
+    </details>
+  ) : null;
+}
 function ChangeBadge({ node }: { node?: PlannerNode }) {
   const { t } = useTranslation();
   if (!node || node.change === 'unchanged') return null;
@@ -31,6 +48,7 @@ export function DemoTaskChain({
   onOpenDraft,
   onOpenPlan,
   onOpenRecord,
+  onOpenActivity,
 }: {
   nodes: readonly TaskGraphTimelineNode[];
   planner?: PlannerPlan | null;
@@ -41,6 +59,7 @@ export function DemoTaskChain({
   onOpenDraft: (id: string) => void;
   onOpenPlan: (path: string) => void;
   onOpenRecord: (id: string) => void;
+  onOpenActivity?: ActivityLink;
 }) {
   const { t } = useTranslation();
   const list = useRef<HTMLOListElement>(null);
@@ -53,6 +72,7 @@ export function DemoTaskChain({
         const id = run.planId ?? run.id;
         return { id, draft: plannerNodes.get(id), run };
       });
+  const currentFacts = new Map(nodes.map((node) => [node.planId ?? node.id, node.capsuleFacts]));
   const shown = new Set(items.map((item) => item.id));
   const outside =
     planner?.nodes.filter((node) => !shown.has(node.node_id) && node.change === (planning ? 'added' : 'removed')) ?? [];
@@ -153,11 +173,12 @@ export function DemoTaskChain({
                       {draft.draft ? contractObjective(draft.draft) : t('factoryRuns.planner.noDraft')}
                     </p>
                     {draft.draft && <PlannerCapsules ids={draft.suggested_ccs} kind="suggested" />}
+                    <PlanExecution facts={currentFacts.get(id)} onOpenSource={onOpenActivity} />
                   </>
                 )}
                 {run && (
                   <>
-                    <BoundCapsules ids={run.boundCCs} results={run.ccVerifiers} compact />
+                    <BoundCapsules facts={run.capsuleFacts} onOpenSource={onOpenActivity} compact />
                     <NodeVerifier result={run.nodeVerifier} onOpenRecord={onOpenRecord} compact />
                   </>
                 )}
@@ -185,6 +206,9 @@ export function DemoTaskChain({
           </ul>
         </section>
       )}
+      <p className="factory-cc-activity-legend" data-testid="factory-runs-cc-activity-legend">
+        {t('factoryRuns.ccActivity.legend')}
+      </p>
     </>
   );
 }

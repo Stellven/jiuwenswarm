@@ -1,5 +1,5 @@
 import { getApiBase } from '../../../utils/env';
-import type { EvidenceFile } from '../api';
+import type { CapsuleActivity, EvidenceFile } from '../api';
 
 export type CapsuleCard = {
   name: string;
@@ -114,6 +114,13 @@ export type CapsuleEvidence = {
   analyses?: CapsuleAnalysis[];
   measurements: CapsuleMeasurement[];
   runs: { id: string; name: string; kind: string }[];
+  node_activity?: Array<{
+    run_id: string;
+    run_name: string;
+    node_id: string;
+    live?: boolean;
+    capsule: CapsuleActivity;
+  }>;
 };
 
 export type CapsuleDetail = CapsuleCard & {

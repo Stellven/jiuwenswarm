@@ -4,8 +4,9 @@ export type FactoryEntry =
       view: 'factoryRuns';
       run?: string;
       file?: string;
+      record?: string;
       node?: string;
-      panel?: 'contract' | 'artifacts';
+      panel?: 'contract' | 'artifacts' | 'graph';
     };
 
 export function capsuleHref(name?: string): string {
@@ -18,11 +19,15 @@ export function runHref(run?: string, file?: string): string {
   return `#factory-run/${encodeURIComponent(run)}${query}`;
 }
 
+export function recordHref(run: string, record: string): string {
+  return `${runHref(run)}?record=${encodeURIComponent(record)}`;
+}
+
 export function runFilesHref(run: string): string {
   return `${runHref(run)}?panel=artifacts`;
 }
 
-export function nodeHref(run: string, node: string, panel?: 'contract'): string {
+export function nodeHref(run: string, node: string, panel?: 'contract' | 'graph'): string {
   return `${runHref(run)}?node=${encodeURIComponent(node)}${panel ? `&panel=${panel}` : ''}`;
 }
 
@@ -41,8 +46,9 @@ export function readFactoryEntry(hash: string): FactoryEntry | undefined {
       view: 'factoryRuns',
       run: id,
       file: id && file ? file : undefined,
+      ...(id && query.get('record') ? { record: query.get('record')! } : {}),
       ...(node && /^[A-Za-z0-9][A-Za-z0-9_.-]{0,199}$/.test(node) ? { node } : {}),
-      ...(id && panel === 'artifacts' ? { panel } : node && panel === 'contract' ? { panel } : {}),
+      ...(id && panel === 'artifacts' ? { panel } : node && (panel === 'contract' || panel === 'graph') ? { panel } : {}),
     };
   } catch {
     return undefined;

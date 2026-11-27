@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { EvidenceFile } from '../api';
 import {
   attemptsOf,
@@ -18,7 +19,7 @@ const opHint: Record<OperatorOp, string> = {
   release: 'Lift the hold; the scheduler can run or close the node again.',
   reopen: 'Send this node and its descendants back to proposed. Earlier attempts and checks no longer count; upstream outputs are kept.',
 };
-const statusLabel = { passed: 'passed', failed: 'failed', running: 'running', unchecked: 'no check yet', stale: 'needs a new check' };
+const statusLabel = { passed: 'passed', failed: 'failed', running: 'running', unchecked: '', stale: 'needs a new check' };
 
 function fileFor(files: readonly EvidenceFile[] | undefined, artifact: string | undefined) {
   if (!artifact) return undefined;
@@ -36,6 +37,7 @@ function OutputCheck({
   onOpenFile?: (path: string) => void;
   presentation?: ReplayCheckPresentation;
 }) {
+  const { t } = useTranslation();
   const { output, latest } = row;
   const older = row.history.slice(0, -1).reverse();
   const evidence = [
@@ -55,8 +57,14 @@ function OutputCheck({
           {output.declared ? '' : ' · no longer declared'}
         </small>
         <span className="factory-check-pill" data-status={row.status} data-testid="factory-runs-check-status">
-          {statusLabel[row.status]}
+          {row.status === 'unchecked' ? t('factoryRuns.demoTaskChain.verifier.no-node-check') : statusLabel[row.status]}
         </span>
+        {row.status === 'stale' && latest && (latest.state == null || latest.state === 'finished') && (
+          <span className="factory-check-pill" data-status={latest.passed ? 'passed' : 'failed'}
+            data-testid="factory-runs-check-recorded-verdict">
+            {t(latest.passed ? 'factoryRuns.ccActivity.recordedPass' : 'factoryRuns.ccActivity.recordedFail')}
+          </span>
+        )}
       </div>
       {presentation && (
         <p className="factory-check-stage" data-testid="factory-runs-check-execution-stage">
@@ -91,10 +99,12 @@ function OutputCheck({
               ? (check.stage === 'runtime acceptance' || check.stage === 'hardware measurement' ? 'runtime' : 'factory')
               : presentation?.stage;
             const role = presentation?.stage === 'mixed' && execution === 'runtime' ? 'Target evidence'
-              : presentation?.verifier_role ?? presentation?.role;
+              : latest?.verifier?.cc ? 'CC verifier' : presentation?.role;
             return (
             <li key={`${check.name}:${index}`} data-status={(check.status ?? '').toLowerCase()} data-testid="factory-runs-verifier-check">
-              <span className="factory-check-mark">{check.status ?? '?'}</span>
+              <span className="factory-check-mark">
+                {check.status === 'not_run' || check.status === 'not-run' ? t('factoryRuns.ccActivity.noVerdict') : check.status ?? '?'}
+              </span>
               <span>
                 <b>{check.name ?? 'check'}</b>
                 {execution ? (

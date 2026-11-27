@@ -311,17 +311,20 @@ test('node and capsule verdicts come from the records visible at each replay pos
   assert.deepEqual(at(3).nodeVerifier, {
     status: 'fail', records: [{ id: 'blocked-check', output: 'artifact', path: sourcePath }],
   });
-  assert.deepEqual(at(3).ccVerifiers[validator], at(3).nodeVerifier);
-  assert.equal(at(4).nodeVerifier.status, 'not-run');
-  assert.equal(at(4).ccVerifiers[validator].status, 'not-run');
+  const cc = (position, id) => at(position).capsuleFacts.find((fact) => fact.id === id);
+  assert.equal(cc(3, validator).verifier, 'fail');
+  assert.equal(at(4).nodeVerifier.status, 'fail');
+  assert.equal(cc(4, validator).verifier, 'fail');
   assert.equal(at(5).nodeVerifier.status, 'fail');
-  assert.equal(at(5).ccVerifiers[validator].status, 'pass');
-  assert.equal(at(6).nodeVerifier.status, 'not-run');
-  assert.equal(at(6).ccVerifiers[validator].status, 'pass');
+  assert.equal(cc(5, validator).verifier, 'pass');
+  assert.equal(at(6).nodeVerifier.status, 'pass');
+  assert.equal(cc(6, validator).verifier, 'pass');
   assert.deepEqual(at(7).nodeVerifier.records.map(({ id }) => id), ['delivery-check', 'sealed-artifact-check']);
   assert.equal(at(7).nodeVerifier.status, 'pass');
-  assert.equal(at(7).ccVerifiers[helper].status, 'not-run');
-  assert.deepEqual(at(8).nodeVerifier, { status: 'not-run', records: [] });
-  assert.deepEqual(at(9).nodeVerifier, { status: 'not-run', records: [] });
+  assert.equal(cc(7, helper).verifier, 'no-cc-verifier-record');
+  assert.deepEqual(at(8).nodeVerifier, { status: 'no-node-check', records: [] });
+  assert.deepEqual(at(9).nodeVerifier, {
+    status: 'pass', records: [{ id: 'other-settings', output: 'artifact', path: sourcePath }],
+  });
   assert.equal(at(5).nodeVerifier.status, 'fail');
 });
