@@ -22,9 +22,18 @@ NODES = {
     'release_gate': 'Check the runtime stage and release',
 }
 PLACEMENT = ('placement_share_0', 'placement_share_025', 'placement_share_05')
+OWNER_AMENDMENTS = {
+    '005': ('005-OWNER-checker-all-rows.md', 'Use warm first requests for scoring and retain the cold rows',
+            '2f340db14174c35eade4db5969eecb5eb9943eb5d51f73a3da0559816521d814'),
+    '006': ('006-OWNER-relax-quiet.md', 'Record background activity without filtering measurements',
+            'e7ebafa44d6d1041006bfd39f4ffb881278cbc5fb3c2850b36858f46b7aca013'),
+}
 OBSERVATION_FIELDS = {
     'taskgraph_patch': 'created decision_rev origin parent_rev patch planner rev task_id',
     'operator_input': 'artifact_id bytes how key kind sha256',
+    'operator_contract_revision': 'amendment by contract_file contract_sha256 contract_version graph_rev_after '
+                                  'graph_rev_before policy preview previous_file previous_sha256 previous_version '
+                                  'reason task_revision',
     'node_contract_final': 'by cc_versions created diff digest final node_contract node_id preliminary_digest rationale',
     'node_contract_refusal': 'by node_id reason reasons errors preliminary_digest',
     'node_check': 'entry format found key kind node_id output passed reason refs review seconds started state verifier',
@@ -169,6 +178,37 @@ class Replay(Builder):
                       f'The graph has {count} finalized node contracts and {len(refusals)} recorded refusals.',
                       first, [contracts], refs=finals + refusals)
 
+    def amendments(self):
+        recorded = [row for row in self.observations if row['kind'] == 'operator_contract_revision']
+        rows = []
+        refs = []
+        for amendment, (filename, title, expected) in OWNER_AMENDMENTS.items():
+            matching = [row for row in recorded if row['values'].get('amendment') in (amendment, int(amendment))]
+            if len(matching) > 1:
+                raise ValueError('Multiple applied revisions for owner amendment ' + amendment)
+            receipt = matching[0] if matching else None
+            path = self.home.parent.parent / 'bridge' / 'inbox' / filename
+            if not receipt and not path.is_file():
+                continue
+            source = dict(source='owner_inbox', path='bridge/inbox/' + filename, sha256=expected)
+            entry = dict(amendment=amendment, title=title, source=source,
+                         status='applied' if receipt else 'received')
+            if path.is_file():
+                raw = path.read_bytes()
+                if sha(raw) != expected:
+                    raise ValueError('Owner instruction SHA-256 differs: ' + filename)
+                entry['owner_instruction'] = raw.decode()
+            refs.append(source)
+            if receipt:
+                revision = self.observation(receipt)
+                entry['preview'] = revision['values'].pop('preview', None)
+                entry['applied'] = revision
+                refs.append(self.ref(receipt))
+            rows.append(entry)
+        if rows:
+            return self.projection('amendments', 'Owner amendments 005 and 006', rows, refs)
+        return None
+
     def planning(self, files):
         summary = None
         extra = {}
@@ -225,6 +265,29 @@ class Replay(Builder):
             return 'The lab request is recorded. The graph has yet to record a passing delivery check.'
         return None
 
+    def standard_rows(self, run, manifest):
+        identity = f"run-{run['values']['attempt_id'][:12]}-speed.json"
+        if identity not in run['source_artifacts']:
+            return None, None
+        speed, source = self.artifact(identity)
+        if source['sha256'] != manifest.get('files', {}).get('speed.json'):
+            raise ValueError('Speed rows do not match the capped measurement manifest')
+        cells = {}
+        for row in speed['rows']:
+            if row['role'] != 'speed':
+                continue
+            key = (row['state'], row['request'], row['repeat'])
+            cell = cells.setdefault(key, {})
+            if row['arm'] in cell:
+                raise ValueError('Duplicate standard speed row')
+            cell[row['arm']] = dict(pick(row, 'cache_prompt derived_ttft_ms request_total_ms decode_tokens_per_second'),
+                                    quiet=pick(row['quiet'], 'status reasons'))
+        rows = {'cold': [], 'warm': []}
+        for (state, request, repeat), arms in cells.items():
+            rows[state].append(dict(request=request, repeat=repeat, aqbc=arms.get('AQBC'),
+                                    aqb_control=arms.get('AQB-control')))
+        return rows, source
+
     def runtime(self, files, run, check):
         if not run:
             return None
@@ -234,32 +297,66 @@ class Replay(Builder):
         shown = dict(attempt_id=values['attempt_id'], outcome=values['outcome'], error=values.get('error'),
                      measurement_status=manifest.get('status'), files=manifest.get('files', {}))
         identity = f"run-{values['attempt_id'][:12]}-runtime.json"
-        identity_summary = ''
+        archived = None
         if identity in run['source_artifacts']:
-            runtime, source = self.artifact(identity)
+            archived, source = self.artifact(identity)
             if self.result_path is not None and self.result_path.is_file() and sha(self.result_path.read_bytes()) != source['sha256']:
                 raise ValueError('Runtime file differs from the retained capped-run artifact')
-            shown['lab_checker'] = pick(runtime, 'done decision checks summary stage_reached')
+            shown['initial_lab_checker'] = dict(pick(archived, 'done decision checks summary stage_reached'), source=source)
+            refs.append(source)
+        rows, source = self.standard_rows(run, manifest)
+        if rows is not None:
+            shown['warm_first_requests'] = rows['warm']
+            shown['cold_first_requests'] = rows['cold']
+            shown['first_request_policy'] = dict(
+                score='Use every warm pair at 512 and 2048 under the amended checker, with cache reuse disabled on both arms.',
+                cold='Display both cold cells for context only. The 512-token AQBC cold request ran first while the pack was still being read.',
+            )
+            refs.append(source)
+        revised = None
+        if check:
+            value = check['values']
+            shown['factory_check'] = pick(value, 'passed state reason verifier')
+            sealed = (value.get('verifier') or {}).get('sealed_artifact')
+            if sealed:
+                if sealed not in check['source_artifacts']:
+                    raise ValueError('Runtime checker artifact is unlinked')
+                revised, source = self.artifact(sealed)
+                if revised.get('policy'):
+                    shown['revised_checker'] = dict(pick(revised, 'policy done decision checks summary stage_reached'),
+                                                    source=source, check_id=check['obs_id'])
+                    refs.append(source)
+                else:
+                    revised = None
+        if rows is not None:
+            shown['revised_check_state'] = 'recorded' if revised else 'pending'
+        runtime = revised or archived
+        comparisons = ''
+        if revised:
+            standard = [item for item in revised.get('summary', {}).get('standard', []) if item.get('judged')]
+            if standard:
+                passing = sum(item['within_tolerance'] for item in standard)
+                comparisons = f' {passing}/{len(standard)} warm first-request cells met the same-load tolerance.'
+        if runtime:
             accuracy = runtime.get('summary', {}).get('accuracy', {})
+            if not accuracy and archived:
+                accuracy = archived.get('summary', {}).get('accuracy', {})
             if accuracy.get('mode') == 'identity_check':
-                identity_summary = (f" MMLU identity {accuracy['status']}: {accuracy['matched_letters']}/{accuracy['question_count']} "
-                                    f"letters matched AQB, with zero external reuse on {accuracy['zero_external_reuse']} questions.")
+                comparisons += (f" MMLU identity {accuracy['status']}: {accuracy['matched_letters']}/{accuracy['question_count']} "
+                                f"letters matched AQB, with zero external reuse on {accuracy['zero_external_reuse']} questions.")
                 inherited = accuracy['inherited_correct']
                 if accuracy['status'] == 'passed' and inherited is not None:
-                    identity_summary += (
+                    comparisons += (
                         f" AQBC inherits AQB's {inherited}/{accuracy['source_question_count']} "
                         f"({accuracy['inherited_accuracy']:.1%}) score by this check."
                     )
                 shown['mmlu_identity'] = accuracy
-            refs.append(source)
-        if check:
-            shown['factory_check'] = pick(check['values'], 'passed state reason verifier')
         files.append(self.projection('runtime', 'Same-load speed, follow-up reuse and MMLU identity', shown, refs))
         if check and check['values']['passed'] is True:
-            return 'The host runtime check passed.' + identity_summary
+            return 'The host runtime check passed.' + comparisons
         if check:
-            return f"The host runtime check refused the measurements. {check['values']['reason']}" + identity_summary
-        return 'The capped attempt returned. The graph has yet to record a finished runtime check.' + identity_summary
+            return f"The host runtime check refused the measurements. {check['values']['reason']}" + comparisons
+        return 'The capped attempt returned. The adapted scoring policy awaits the native runtime check.' + comparisons
 
     def verdict(self, release, measured):
         latest = max(self.data['decisions'], key=lambda item: item['rev'], default={})
@@ -304,6 +401,7 @@ class Replay(Builder):
                     and (not request_id or row['values'].get('request', {}).get('request_id') == request_id)), None)
         release = self.finished_check('release_gate', 'release')
         verdict, decision = self.verdict(release, measured)
+        amendments = self.amendments()
         for node, title in NODES.items():
             checks = self.checks(node)
             own_request = request if node == 'deliver_to_lab' else run if node == 'measure_engine' else None
@@ -331,6 +429,8 @@ class Replay(Builder):
             if node == 'deliver_to_lab':
                 summary = self.delivery(files, delivered, request)
             if node == 'measure_engine':
+                if amendments:
+                    files.append(amendments)
                 summary = self.runtime(files, run, measured)
             if node == 'release_gate':
                 files.append(self.projection('release', 'Release status and native decision', verdict,
@@ -354,7 +454,7 @@ class Replay(Builder):
                                            steps=self.steps))
         task = pick(self.task, 'task_id objective allowed_effects target budget revision current_decision_rev '
                                'evidence_cursor created contract_id component_cc capability_cc')
-        task['constraints'] = pick(self.task['constraints'], 'contract_sha256 contract_immutable')
+        task['constraints'] = pick(self.task['constraints'], 'contract_sha256 contract_immutable contract_revision')
         artifacts = [pick(row, 'artifact_id task_id sha256 size media_type complete created attempt_id')
                      for row in self.data['artifacts'] if row['artifact_id'] in self.referenced_artifacts]
         tables = dict(tasks=[task], artifacts=artifacts, evaluations=[], uploads=[])
