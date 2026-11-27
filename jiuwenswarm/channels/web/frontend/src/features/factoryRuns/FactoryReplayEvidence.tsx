@@ -1,9 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { factoryApi, type EvidenceFile, type JsonRecord, type RunDetail } from './api';
 import { Loading } from './cc/CapsuleMaterial';
 import { useCapsuleResource } from './cc/useCapsuleResource';
 import { DataViewer } from './views/DataViewer';
-import { ContractEvidence } from './views/NodeEvidence';
+import { PlannerNodeComparison } from './views/PlannerEvidence';
 import { evidenceRecord, evidenceText } from './views/nodeEvidenceModel';
 import type { CuratedReplay } from './views/storyModel';
 import './factoryReplayEvidence.css';
@@ -87,9 +88,8 @@ export function ReplayContractPanel({ detail, onOpenFile }: {
 }
 
 function recordedNodes(detail: RunDetail) {
-  const rows = Array.isArray(detail.graph.nodes)
-    ? detail.graph.nodes
-    : Object.values(evidenceRecord(detail.graph.nodes) ?? {});
+  const graph = detail.recorded_plan ?? detail.graph;
+  const rows = Array.isArray(graph.nodes) ? graph.nodes : Object.values(evidenceRecord(graph.nodes) ?? {});
   const titles = new Map<string, string>();
   for (const row of rows) {
     const node = evidenceRecord(row);
@@ -99,29 +99,35 @@ function recordedNodes(detail: RunDetail) {
   for (const id of Object.keys(detail.node_checks ?? {})) {
     if (!titles.has(id)) titles.set(id, id);
   }
+  for (const node of detail.planner_plan?.nodes ?? []) {
+    if (!titles.has(node.node_id)) titles.set(node.node_id, node.title ?? node.node_id);
+  }
   return [...titles];
 }
 
-export function ReplayNodeContractsPanel({ detail, selectedNode, onSelectNode, onOpenFile }: {
+export function ReplayNodeContractsPanel({ detail, selectedNode, onSelectNode, onOpenFile, onOpenRecord }: {
   detail: RunDetail;
   selectedNode?: string;
   onSelectNode?: (id: string) => void;
-  onOpenFile?: (path: string) => void;
+  onOpenFile: (path: string) => void;
+  onOpenRecord?: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const nodes = recordedNodes(detail);
   const [chosenNode, setChosenNode] = useState<string>();
   const selection = onSelectNode ? selectedNode : chosenNode ?? selectedNode;
   const node = nodes.find(([id]) => id === selection)?.[0] ?? nodes[0]?.[0];
   const loadNode = useCallback((id: string, signal: AbortSignal) => factoryApi.node(detail.run.id, id, signal),
     [detail.run.id]);
+  const plannedNode = detail.planner_plan?.nodes.find((item) => item.node_id === node);
   const contractRevision = detail.run.live_demo ? detail.records.observations?.length : undefined;
-  const loaded = useCapsuleResource(node, loadNode, contractRevision);
+  const loaded = useCapsuleResource(plannedNode ? undefined : node, loadNode, contractRevision);
   return (
     <section className="factory-replay-evidence" data-testid="factory-runs-replay-node-contracts">
       {node ? (
         <>
           <label className="factory-replay-evidence-controls">
-            Node
+            {t('factoryRuns.planner.node')}
             <select
               value={node}
               data-testid="factory-runs-node-contract-selector"
@@ -133,10 +139,9 @@ export function ReplayNodeContractsPanel({ detail, selectedNode, onSelectNode, o
               {nodes.map(([id, title]) => <option value={id} key={id}>{detail.curated?.node_presentation?.[id]?.title ?? title}</option>)}
             </select>
           </label>
-          {!loaded.data ? <Loading {...loaded} /> : (
-            loaded.data.contract?.preliminary || loaded.data.contract?.final ? (
-              <ContractEvidence key={node} contract={loaded.data.contract} files={detail.files} onOpenFile={onOpenFile} initiallyOpen />
-            ) : <p className="factory-muted">No node contract is recorded for this node.</p>
+          {!plannedNode && !loaded.data ? <Loading {...loaded} /> : (
+            <PlannerNodeComparison key={node} node={plannedNode} fallback={loaded.data?.contract}
+              files={detail.files} onOpenFile={onOpenFile} onOpenRecord={onOpenRecord} />
           )}
         </>
       ) : <p className="factory-muted">No nodes are recorded for this run.</p>}

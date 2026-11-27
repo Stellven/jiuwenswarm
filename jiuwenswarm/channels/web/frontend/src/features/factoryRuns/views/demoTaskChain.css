@@ -1,3 +1,51 @@
+.factory-demo-task-mode {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.factory-demo-task-mode > div {
+  display: flex;
+  gap: 4px;
+}
+
+.factory-demo-task-change {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 6px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-primary);
+  font-size: 12px;
+}
+
+.factory-demo-task-draft {
+  margin: 7px 0 0;
+  font-size: 13px;
+}
+
+.factory-demo-task-outside ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  list-style: none;
+  padding: 0;
+}
+
+.factory-demo-task-outside li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
+.factory-demo-task-outside .factory-demo-task-change {
+  margin: 0;
+}
+
 .factory-demo-task-chain {
   --chain-gap: 26px;
   display: grid;
@@ -63,7 +111,7 @@
   content: '↓' / '';
 }
 
-.factory-runs-page button.factory-demo-task-node[aria-expanded] {
+.factory-runs-page button.factory-demo-task-node {
   display: grid;
   gap: 3px;
   width: 100%;
