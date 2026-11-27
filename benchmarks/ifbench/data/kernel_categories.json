@@ -1,0 +1,61 @@
+{
+  "_about": "Kernel name -> operator category for L4.gpu_time_by_op. First matching rule wins; regex is case-insensitive and matched against the kernel's short name (then the demangled name). Written for llama.cpp's CUDA backend (ggml-cuda) and cuBLAS; extend it when `uncategorized` in L4.kernels_executed lists a big kernel.",
+  "rules": [
+    [
+      "attention",
+      "flash_attn|fattn|soft_max|softmax"
+    ],
+    [
+      "moe routing",
+      "topk_moe|argsort|top_k|topk|mul_mat_id|mmid|moe|k_copy_src1_to_contiguous|k_copy_dst_from_contiguous"
+    ],
+    [
+      "quantize activations",
+      "quantize_q8|quantize_mmq|quantize_row|k_quantize"
+    ],
+    [
+      "dequantize/convert",
+      "dequantize|convert_unary|to_fp16|to_fp32|to_bf16"
+    ],
+    [
+      "matmul (ggml kernels)",
+      "mul_mat_q|mmq|mul_mat_vec_q|mmvq|mul_mat_vec|mul_mat_f|mmf|mmvf|stream_k_fixup"
+    ],
+    [
+      "matmul cuBLAS",
+      "gemm|gemv|xmma|nvjet|cutlass|cublas|splitk|^kernel2?$|sm\\d+_|ampere_|hopper_|blackwell_|batched_ptrs"
+    ],
+    [
+      "kv cache write",
+      "set_rows|cpy_.*kv|store_kv"
+    ],
+    [
+      "norm",
+      "rms_norm|group_norm|l2_norm|norm_f32|layer_norm|k_norm"
+    ],
+    [
+      "rope",
+      "rope"
+    ],
+    [
+      "activation",
+      "silu|gelu|swiglu|geglu|glu|relu|sigmoid|tanh|unary"
+    ],
+    [
+      "embedding/gather",
+      "get_rows|embed"
+    ],
+    [
+      "elementwise",
+      "bin_bcast|k_bin|add_f|mul_f|scale_f|k_scale|clamp|sub_f|div_f|k_sum|sum_rows|mean|pad|concat|fill|arange"
+    ],
+    [
+      "copy/layout",
+      "cpy|copy|dup|transpose|permute|cont"
+    ],
+    [
+      "sampling/reduce",
+      "argmax|cumsum|reduce|max_f|k_max"
+    ]
+  ]
+}

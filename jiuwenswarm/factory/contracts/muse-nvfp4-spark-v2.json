@@ -1,0 +1,380 @@
+{
+  "schema": "factory.contract/2",
+  "contract_id": "muse-nvfp4-spark-v2",
+  "version": 2,
+  "title": "Muse-Spark-Open-816B-A42B-NVFP4 compact baseline on one DGX Spark (GB10)",
+  "purpose": "Establish the reproducible text-only performance, quality, stability, and memory baseline for Muse-Spark-Open-816B-A42B-NVFP4 on a single DGX Spark (128 GB unified memory), and evaluate candidate factory engines on the same checkpoint and workload.",
+  "scope": {
+    "covers": [
+      "Three measured 512-input / 32-output performance requests (engine decode throughput, E2E output throughput, and client TTFT)",
+      "Compact text-only quality and determinism gates: GSM8K (3 questions), RULER (~2K context, 2 tasks), infer-check determinism (1 prompt x 2 runs), and 2x16 top-5 token probabilities",
+      "Memory accounting by category (GPU working set, host anonymous memory, minimum system MemAvailable), SSD read split, cold load time, and L2 disconnect recovery",
+      "Separate Nsight Systems profiling pass (two 80/16 requests, marked non-comparable for speed)"
+    ],
+    "excludes": [
+      "Full-dataset GSM8K/RULER or 4K/16K context sweeps (reduced to fit a single 12-hour DGX Spark window on unoptimized llama.cpp)",
+      "Multimodal inputs, concurrent load (concurrency > 1), and multi-GPU communication",
+      "T3 engine-internal counters not present in native llama.cpp (L3.step_phase_split, L4.expert_selection, M.expert_tier_share, L5.fastpath_fallback_rate)",
+      "Nsight Compute hardware counter ratios requiring admin privileges on shared DGX Spark"
+    ]
+  },
+  "target": {
+    "profile": "spark-gb10",
+    "requires": {
+      "machine": "DGX Spark GB10",
+      "cuda": "13",
+      "sm": "121",
+      "arch": "arm64",
+      "unified_memory_gb": 128
+    }
+  },
+  "subject": {
+    "engine": {
+      "name": "llama.cpp (Muse expert global-scale fix)",
+      "source": "https://github.com/ggml-org/llama.cpp",
+      "revision": "ba3c05f71da85cd0439e84ba42b0478b24d5db16"
+    },
+    "model": {
+      "name": "unsloth/Muse-Spark-Open-816B-A42B-NVFP4 (rev fc6908f53c6882d4ec48fca5ba144e41d21e1f92, lossless GGUF V3 container)",
+      "files": [
+        {
+          "name": "Muse-Spark-Open-816B-A42B-NVFP4-lossless.gguf",
+          "size": 528942160864,
+          "sha256": "1cdf5039fa23fd18e5f066e171d8c8f976c8ba7696e564e5d350bb2362f6111a"
+        }
+      ],
+      "digest_status": "Lossless GGUF V3 container verified against all 127 original safetensors shards (533,011,023,472 bytes, revision fc6908f53c6882d4ec48fca5ba144e41d21e1f92). Original NVFP4 weights and scales are preserved unmodified."
+    }
+  },
+  "inputs": {
+    "probe_filler": {
+      "media_type": "text/plain",
+      "sha256": "078d8a508b45f1b7b364ab380791f1279f53f810c19ff134aedcb1ce68b2dbcd",
+      "size": 696,
+      "description": "Deterministic filler text used by ifbench speed probe and profiling prompts.",
+      "repo_path": "benchmarks/ifbench/data/filler.txt"
+    },
+    "token_prob_prompts": {
+      "media_type": "text/plain",
+      "sha256": "b459b85805e4dd20ec1a869576b412ecfb7b167008b1b99572562a614ecb1342",
+      "size": 815,
+      "description": "Fixed prompt set for per-position top-5 token probability capture.",
+      "repo_path": "benchmarks/ifbench/data/token_prob_prompts.txt"
+    },
+    "kernel_categories": {
+      "media_type": "application/json",
+      "sha256": "c0a351704c1203ca3b224bf5dbc54ccbcbbe4155590d24b15dc618ae5917fbe5",
+      "size": 1700,
+      "description": "CUDA kernel name to operator-class mapping used by ifbench Nsight Systems analysis.",
+      "repo_path": "benchmarks/ifbench/data/kernel_categories.json"
+    }
+  },
+  "workload": {
+    "tool": "llama-server",
+    "argv": [
+      "-m",
+      "{model}",
+      "-c",
+      "8192",
+      "-b",
+      "2048",
+      "-ub",
+      "2048",
+      "--cpu-moe",
+      "--metrics"
+    ],
+    "env": {},
+    "requests": [
+      {
+        "id": "pp512_tg32",
+        "input": "probe_filler",
+        "params": {
+          "prompt_tokens": 512,
+          "max_tokens": 32,
+          "repeats": 3,
+          "concurrency": 1,
+          "temperature": 0
+        },
+        "expect": {
+          "input_tokens": 512,
+          "output_tokens": 32
+        }
+      },
+      {
+        "id": "gsm8k_sample",
+        "params": {
+          "questions": 3,
+          "max_tokens": 1024,
+          "temperature": 0,
+          "cache_prompt": false
+        },
+        "expect": {
+          "natural_stop": true
+        }
+      },
+      {
+        "id": "ruler_sample",
+        "params": {
+          "tasks": [
+            "niah_single_2",
+            "ruler_qa_hotpot"
+          ],
+          "context_tokens_approx": 2048,
+          "max_tokens": 128,
+          "stop": [
+            "\nQuestion:"
+          ],
+          "temperature": 0,
+          "cache_prompt": false
+        },
+        "expect": {
+          "natural_stop": true
+        }
+      },
+      {
+        "id": "infer_check_sample",
+        "params": {
+          "prompts": 1,
+          "repeats": 2,
+          "max_tokens": 512,
+          "seed": 1234,
+          "temperature": 0,
+          "reasoning_effort": "low",
+          "cache_prompt": false
+        },
+        "expect": {
+          "natural_stop": true,
+          "identical_final_text": true
+        }
+      },
+      {
+        "id": "token_probs",
+        "input": "token_prob_prompts",
+        "params": {
+          "prompts": 2,
+          "positions": 16,
+          "top_k": 5,
+          "temperature": 0,
+          "cache_prompt": false
+        }
+      }
+    ]
+  },
+  "arms": [
+    {
+      "id": "baseline",
+      "role": "baseline",
+      "summary": "Pinned llama.cpp (ba3c05f + Muse expert global-scale fix patch d166c044) serving Muse-Spark-Open-816B-A42B-NVFP4 with --cpu-moe and -c 8192 -b 2048 -ub 2048.",
+      "deviations": [
+        "3-argument Muse build_moe_ffn global scale patch (patch SHA d166c0445434822fa880b5e212c4b8ac05d58b97695933c6ac523366d88981c7)",
+        "--cpu-moe placement; mixed execution (GPU bulk-prefill W4A4 MMQ, CPU experts NVFP4xQ8_0, KV F16)"
+      ]
+    },
+    {
+      "id": "candidate",
+      "role": "candidate",
+      "from": "baseline",
+      "summary": "Factory-optimized inference engine evaluated on the identical NVFP4 checkpoint and compact workload."
+    }
+  ],
+  "measurement": {
+    "primary": "engine_decode_tok_s",
+    "metrics": {
+      "engine_decode_tok_s": {
+        "unit": "tokens/s",
+        "better": "higher",
+        "how": "Sum of generated tokens (excluding first token) divided by sum of engine predicted_ms across the 3 measured pp512_tg32 requests."
+      },
+      "e2e_output_tok_s": {
+        "unit": "tokens/s",
+        "better": "higher",
+        "how": "Total output tokens divided by wall-clock window from first measured request send to last measured request completion (includes prefill and gaps)."
+      },
+      "client_ttft_ms": {
+        "unit": "ms",
+        "better": "lower",
+        "how": "Client-observed time from request send to first non-empty streamed event across the 3 measured pp512_tg32 requests."
+      },
+      "gsm8k_exact_match": {
+        "unit": "ratio",
+        "better": "higher",
+        "how": "Strict exact-match score on the 3-question GSM8K compact sample."
+      },
+      "ruler_match": {
+        "unit": "ratio",
+        "better": "higher",
+        "how": "Mean selected_sample_match across niah_single_2 and ruler_qa_hotpot (~2K context)."
+      },
+      "determinism_score": {
+        "unit": "ratio",
+        "better": "higher",
+        "how": "Mean determinism score from infer-check (seed 1234, temperature 0, 2 repeats)."
+      },
+      "gpu_working_set_gib": {
+        "unit": "GiB",
+        "better": "lower",
+        "how": "Peak GPU working set (weights, KV cache, compute buffers) reported from startup buffer allocation and CUDA memory delta."
+      },
+      "host_anonymous_gib": {
+        "unit": "GiB",
+        "better": "lower",
+        "how": "Peak engine anonymous host memory from /proc/<pid>/smaps_rollup (excludes reclaimable checkpoint file pages)."
+      },
+      "mem_available_min_gib": {
+        "unit": "GiB",
+        "better": "higher",
+        "how": "Minimum system MemAvailable observed in /proc/meminfo during the run."
+      },
+      "storage_read_prefill_gb": {
+        "unit": "GB",
+        "better": "lower",
+        "how": "Aggregate physical SSD read upper bound during prefill across the 3 measured pp512_tg32 requests."
+      },
+      "storage_read_decode_gb": {
+        "unit": "GB",
+        "better": "lower",
+        "how": "Aggregate physical SSD read upper bound during decode across the 3 measured pp512_tg32 requests."
+      },
+      "cold_load_seconds": {
+        "unit": "s",
+        "better": "lower",
+        "how": "Cold-start seconds from engine launch until health endpoint reports ready."
+      }
+    },
+    "protocol": {
+      "repeats": 3,
+      "order": "sequential",
+      "discard_first_request": true,
+      "cold_load": "separate",
+      "quiet": {
+        "max_load": 1.0,
+        "no_builds": true
+      },
+      "notes": "Warm-up and auxiliary calibration requests are archived but excluded from the 3 measured pp512_tg32 metrics. Profiling runs under Nsight Systems are always separate and marked non-comparable."
+    },
+    "derived": {
+      "decode_speedup_vs_baseline": {
+        "formula": "engine_decode_tok_s(candidate) / engine_decode_tok_s(baseline)",
+        "uses": [
+          "engine_decode_tok_s",
+          "baseline",
+          "candidate"
+        ],
+        "unit": "ratio"
+      },
+      "e2e_speedup_vs_baseline": {
+        "formula": "e2e_output_tok_s(candidate) / e2e_output_tok_s(baseline)",
+        "uses": [
+          "e2e_output_tok_s",
+          "baseline",
+          "candidate"
+        ],
+        "unit": "ratio"
+      }
+    }
+  },
+  "correctness": {
+    "equivalence": "approximate",
+    "reference": {
+      "arm": "baseline",
+      "output_sha256": null,
+      "frozen_at": null,
+      "run_ref": null
+    },
+    "checks": [
+      {
+        "id": "gsm8k_gate",
+        "does": "GSM8K strict exact match meets or exceeds the frozen floor (draft floor: 1.0 on the 3-question compact sample, pending sponsor freeze).",
+        "applies_to": [
+          "baseline",
+          "candidate"
+        ]
+      },
+      {
+        "id": "ruler_gate",
+        "does": "RULER selected_sample_match meets or exceeds the frozen floor (draft floor: 1.0 on the 2-task ~2K compact sample, pending sponsor freeze).",
+        "applies_to": [
+          "baseline",
+          "candidate"
+        ]
+      },
+      {
+        "id": "determinism_gate",
+        "does": "infer-check determinism score equals 1.0 across identical seeded repeats with natural stop.",
+        "applies_to": [
+          "baseline",
+          "candidate"
+        ]
+      },
+      {
+        "id": "zero_truncation_gate",
+        "does": "Selected quality and determinism requests finish naturally with 0% finish_reason==length truncation.",
+        "applies_to": [
+          "baseline",
+          "candidate"
+        ]
+      },
+      {
+        "id": "memory_budget_gate",
+        "does": "GPU working set stays within agreed working-set budget and system MemAvailable stays above 8 GiB safety floor.",
+        "applies_to": [
+          "baseline",
+          "candidate"
+        ]
+      },
+      {
+        "id": "disconnect_recovery_gate",
+        "does": "After mid-stream client disconnect, slot returns to idle, anonymous memory delta stays <= 256 MiB, and a follow-up request succeeds.",
+        "applies_to": [
+          "baseline",
+          "candidate"
+        ]
+      }
+    ]
+  },
+  "acceptance": {
+    "rules": [
+      "DRAFT THRESHOLDS (baseline-anchored, pending A/A noise measurement and sponsor freeze before optimization).",
+      "Baseline reference (2026-11-26 verified Spark run): engine_decode_tok_s = 0.2289 tokens/s, e2e_output_tok_s = 0.0642 tokens/s, gsm8k = 1.0 (3/3), ruler = 1.0 (2/2), determinism = 1.0, gpu_working_set = 45.66 GiB, mem_available_min = 70.64 GiB.",
+      "Candidate runs must pass gsm8k_gate, ruler_gate, determinism_gate, zero_truncation_gate, and memory_budget_gate on the exact same NVFP4 checkpoint.",
+      "Speed numbers count only from comparable runs with no profiler attached and no competing GPU processes.",
+      "Blocked or incomplete runs are reported as partial/failed and never recorded as zero."
+    ]
+  },
+  "limits": {
+    "memory_bytes": 118111600640,
+    "watchdog_available_bytes": 4294967296,
+    "wall_clock_s": 43200
+  },
+  "execution": {
+    "by": "lab_agent",
+    "lab_profile": "spark-gb10",
+    "notes": "Executed via LabAgent CommandAdapter calling python -m benchmarks.ifbench.lab_adapter {package} {output} {payloads}."
+  },
+  "revisions": [],
+  "provenance": {
+    "derived_from": [],
+    "notes": [
+      "Grounded in the 2026-11-26 DGX Spark verified baseline archive (SHA-256 ae2a4fa45c779861d9d2b8482f4fb2a09ab2b0c09fd0c3e93d7386dd4ae2ac83, 426 files verified, rev4 60-item coverage).",
+      "Original 127 NVFP4 safetensors shards (revision fc6908f53c6882d4ec48fca5ba144e41d21e1f92) are retained unmodified on the Spark lab host."
+    ]
+  },
+  "extensions": {
+    "ifbench.telemetry_rev4": {
+      "version": "rev4",
+      "total_metrics": 60,
+      "baseline_counts": {
+        "ok": 43,
+        "unavailable": 10,
+        "not_applicable": 7
+      },
+      "required_factory_t3_counters": [
+        "M.expert_tier_share",
+        "L4.expert_selection",
+        "L3.step_phase_split",
+        "L5.fastpath_fallback_rate"
+      ],
+      "effective_compute_dtype": "Mixed: GPU bulk-prefill NVFP4 x NVFP4 (W4A4 MMQ, 180 calls/req in nsys); CPU expert path NVFP4 x Q8_0 (F32 reduction); KV=F16."
+    }
+  }
+}

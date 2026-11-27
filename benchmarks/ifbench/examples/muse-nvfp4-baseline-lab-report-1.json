@@ -1,0 +1,235 @@
+{
+  "schema": "factory.lab-report/1",
+  "request_id": "labreq-2026112600000001",
+  "package_id": "pkg-muse-nvfp4-baseline-20261126",
+  "lab_task_id": "muse-nvfp4-baseline-20261126",
+  "contract": {
+    "id": "muse-nvfp4-spark-v2",
+    "sha256": "d667cd7b159a2c3208e249b2b2b11546c7bc38b0e7fa3fdc02dbb00943136fc1"
+  },
+  "lab": {
+    "name": "spark-gb10-ifbench",
+    "kind": "command",
+    "version": "0.4.1"
+  },
+  "outcome": "completed",
+  "summary": "ifbench 0.4.1 lab report: 12 metric result(s), 6/6 check(s) passed, 0 test(s) not run.",
+  "setup": {
+    "profile": "spark-gb10",
+    "runner": "ifbench/0.4.1 (DGX Spark GB10 verified baseline 2026-11-26)",
+    "deviations": [
+      "Compact 12h baseline scope (pp512/tg32 x 3, GSM8K 3, RULER 2 ~2K, infer-check 1x2, token_probs 2x16, separate nsys 80/16 x 2).",
+      "RULER Hotpot and infer-check used targeted repairs replacing 3 truncated formal attempts; superseded captures preserved as raw evidence."
+    ],
+    "started_at": "2026-11-26T15:39:11Z",
+    "ended_at": "2026-11-26T22:11:50Z"
+  },
+  "results": [
+    {
+      "test_id": "perf_pp512_tg32",
+      "arm": "baseline",
+      "metric": "engine_decode_tok_s",
+      "unit": "tokens/s",
+      "value": 0.22887467211303728,
+      "statistic": "mean",
+      "samples": [
+        0.2227039764218846,
+        0.22715007955235433,
+        0.23724967260884494
+      ],
+      "request": "pp512_tg32"
+    },
+    {
+      "test_id": "perf_pp512_tg32",
+      "arm": "baseline",
+      "metric": "e2e_output_tok_s",
+      "unit": "tokens/s",
+      "value": 0.06418469785813821,
+      "statistic": "mean",
+      "samples": [
+        0.06396342324866007,
+        0.06337988737707452,
+        0.06533651397845165
+      ],
+      "request": "pp512_tg32"
+    },
+    {
+      "test_id": "perf_pp512_tg32",
+      "arm": "baseline",
+      "metric": "client_ttft_ms",
+      "unit": "ms",
+      "value": 383307.87007774535,
+      "statistic": "mean",
+      "samples": [
+        387093.68411800824,
+        386180.8141460642,
+        376649.11196916364
+      ],
+      "request": "pp512_tg32"
+    },
+    {
+      "test_id": "perf_pp512_tg32",
+      "arm": "baseline",
+      "metric": "storage_read_prefill_gb",
+      "unit": "GB",
+      "value": 1724.5632143359999,
+      "statistic": "max",
+      "samples": [
+        1709.175566336,
+        1724.5632143359999
+      ],
+      "request": "pp512_tg32"
+    },
+    {
+      "test_id": "perf_pp512_tg32",
+      "arm": "baseline",
+      "metric": "storage_read_decode_gb",
+      "unit": "GB",
+      "value": 522.807201792,
+      "statistic": "max",
+      "samples": [
+        506.202349568,
+        522.807201792
+      ],
+      "request": "pp512_tg32"
+    },
+    {
+      "test_id": "quality_gsm8k",
+      "arm": "baseline",
+      "metric": "gsm8k_exact_match",
+      "unit": "ratio",
+      "value": 1.0,
+      "statistic": "single",
+      "samples": [
+        1.0
+      ],
+      "request": "gsm8k_sample"
+    },
+    {
+      "test_id": "quality_ruler",
+      "arm": "baseline",
+      "metric": "ruler_match",
+      "unit": "ratio",
+      "value": 1.0,
+      "statistic": "mean",
+      "samples": [
+        1.0,
+        1.0
+      ],
+      "request": "ruler_sample"
+    },
+    {
+      "test_id": "stability_determinism",
+      "arm": "baseline",
+      "metric": "determinism_score",
+      "unit": "ratio",
+      "value": 1.0,
+      "statistic": "single",
+      "samples": [
+        1.0
+      ],
+      "request": "infer_check_sample"
+    },
+    {
+      "test_id": "resources_memory_load",
+      "arm": "baseline",
+      "metric": "gpu_working_set_gib",
+      "unit": "GiB",
+      "value": 45.66,
+      "statistic": "single",
+      "samples": [
+        45.66
+      ]
+    },
+    {
+      "test_id": "resources_memory_load",
+      "arm": "baseline",
+      "metric": "host_anonymous_gib",
+      "unit": "GiB",
+      "value": 0.22,
+      "statistic": "single",
+      "samples": [
+        0.22
+      ]
+    },
+    {
+      "test_id": "resources_memory_load",
+      "arm": "baseline",
+      "metric": "mem_available_min_gib",
+      "unit": "GiB",
+      "value": 70.64,
+      "statistic": "min",
+      "samples": [
+        70.64
+      ]
+    },
+    {
+      "test_id": "resources_memory_load",
+      "arm": "baseline",
+      "metric": "cold_load_seconds",
+      "unit": "s",
+      "value": 283.5,
+      "statistic": "single",
+      "samples": [
+        283.5
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "test_id": "quality_gsm8k",
+      "check": "gsm8k_gate",
+      "verdict": "pass",
+      "arm": "baseline",
+      "detail": "GSM8K strict exact match = 1.0000 (sample_len=3)"
+    },
+    {
+      "test_id": "quality_ruler",
+      "check": "ruler_gate",
+      "verdict": "pass",
+      "arm": "baseline",
+      "detail": "RULER match = 1.0000 across 2 tasks"
+    },
+    {
+      "test_id": "stability_determinism",
+      "check": "determinism_gate",
+      "verdict": "pass",
+      "arm": "baseline",
+      "detail": "infer-check determinism = 1.0000 (identical=1/1)"
+    },
+    {
+      "test_id": "gate_truncation",
+      "check": "zero_truncation_gate",
+      "verdict": "pass",
+      "arm": "baseline",
+      "detail": "selected formal truncation=0/7 (0.00%)"
+    },
+    {
+      "test_id": "resources_memory_load",
+      "check": "memory_budget_gate",
+      "verdict": "pass",
+      "arm": "baseline",
+      "detail": "gpu_working_set=45.66 GiB, mem_available_min=70.64 GiB"
+    },
+    {
+      "test_id": "stability_disconnect",
+      "check": "disconnect_recovery_gate",
+      "verdict": "pass",
+      "arm": "baseline",
+      "detail": "L2.disconnect_recovery passed (slot returned idle, anonymous memory delta within tolerance)"
+    }
+  ],
+  "not_run": [],
+  "files": [
+    {
+      "name": "lab-agent-nvfp4-baseline.tar.gz",
+      "sha256": "ae2a4fa45c779861d9d2b8482f4fb2a09ab2b0c09fd0c3e93d7386dd4ae2ac83",
+      "size": 16990743,
+      "media_type": "application/gzip"
+    }
+  ],
+  "limits": [
+    "Compact text-only baseline sample; does not cover full benchmark suites or multimodal workloads.",
+    "Native llama.cpp lacks T3 counters (L3.step_phase_split, L4.expert_selection, M.expert_tier_share, L5.fastpath_fallback_rate)."
+  ]
+}
