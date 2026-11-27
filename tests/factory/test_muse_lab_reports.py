@@ -73,6 +73,7 @@ def test_accuracy_highlights_only_a_recorded_or_inherited_score(tmp_path):
 def test_report_separates_capsule_use_verifier_result_and_node_closure(tmp_path):
     old = {'id': 'old-failed-check', 'created': 1, 'output': 'smoke', 'status': 'fail'}
     activity = {'compile_engine': {
+        'reached': {'id': 'old-failed-check', 'created': 1},
         'capsules': [
             {'id': 'factory.capped_runner', 'uses': [{'id': 'native-worker-call', 'created': 4}],
              'verifier_declaration': 'none', 'verifier_records': []},
@@ -83,7 +84,9 @@ def test_report_separates_capsule_use_verifier_result_and_node_closure(tmp_path)
         'closures': [{'id': 'reopen', 'created': 2, 'state': 'reopened'},
                      {'id': 'patch-12', 'created': 5, 'state': 'done', 'decision_id': 'decision-12'}],
     }}
+    activity['future_node'] = {'capsules': [{'id': 'factory.builder'}], 'reached': None}
     report = render_factory_checks({'schema': 'factory.muse-cc-activity/1', 'nodes': activity}, stage=tmp_path)
+    assert '<td>Not reached</td>' in report
     assert f'href="../{FACTORY_EVIDENCE}" title="native-worker-call">Used</a>' in report
     assert 'No verifier declared' in report and 'No CC verifier record' in report
     assert 'Bound, not used' in report

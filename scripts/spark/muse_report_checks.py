@@ -1,4 +1,4 @@
-"""Render recorded roles and decisions without assigning verifier verdicts to capsule use."""
+"""Render capsule invocations, verifier outcomes, and graph progress from source records."""
 from html import escape
 from functools import cache
 import json
@@ -115,16 +115,24 @@ def render_factory_checks(activity, *, stage=None):
     checks = []
     for node_id, entry in activity['nodes'].items():
         node = '<code>' + escape(node_id) + '</code>'
+        reached = bool(entry.get('reached') or entry.get('node_checks') or entry.get('closures')
+                       or any(cc.get('uses') or cc.get('verifier_records') for cc in entry.get('capsules', [])))
         for capsule in entry.get('capsules', []):
             if not capsule.get('active', True):
                 continue
-            used = capsule.get('uses') or []
+            used = capsule.get('uses') or capsule.get('verifier_records') or []
+            if not reached:
+                capsules.append((node, escape(titles.get(capsule['id'], capsule['id'])), 'Not reached', 'Not reached'))
+                continue
             use = citation('Used', used[-1], stage=stage) if used else 'Bound, not used'
             results = verifier_links(capsule.get('verifier_records') or [], stage=stage)
             if not results:
                 results = ('No verifier declared' if capsule.get('verifier_declaration') == 'none'
                            else 'No CC verifier record')
             capsules.append((node, escape(titles.get(capsule['id'], capsule['id'])), use, results))
+        if not reached:
+            checks.append((node, 'Not reached'))
+            continue
         closures = entry.get('closures', [])
         reopened = next((row['created'] for row in reversed(closures) if row['state'] == 'reopened'), None)
         node_verdict = verifier_links((row for row in entry.get('node_checks', [])
@@ -143,8 +151,9 @@ def render_factory_checks(activity, *, stage=None):
     body = '<h2>Factory verification and capsule use</h2>'
     if capsules:
         body += table(['Task node', 'Bound capsule', 'Use', 'CC verifier'], capsules,
-                      'Use records a worker invocation. Bound, not used means no invocation is recorded. '
-                      'No CC verifier record means no method or implementation verdict is recorded for that capsule.')
+                      'Used includes recorded capability calls, verifier runs and work produced by the capsule. '
+                      'Bound, not used means the node was reached and no capsule invocation was found. '
+                      'Not reached means the node has no execution record.')
     return body + table(['Task node', 'Node verifier'], checks, 'Native node checks and recorded closures.')
 
 
