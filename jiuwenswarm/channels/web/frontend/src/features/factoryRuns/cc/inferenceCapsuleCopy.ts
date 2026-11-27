@@ -2,12 +2,13 @@ export const prefixReuseId = 'engine.kv_reuse_lab';
 export const warmTolerance = "Same as AQB: within the checker's 10% tolerance on the same server (measured ratios 0.95 to 1.03).";
 const quantizationId = 'weights.build_weight_pack_compiler';
 const prefillId = 'engine.size_prefill_batch';
-export const demoCapsuleIds: readonly string[] = [quantizationId, prefillId, prefixReuseId];
+const dispatchId = 'engine.gpu_kernel_lab';
+export const demoCapsuleIds: readonly string[] = [quantizationId, prefillId, prefixReuseId, dispatchId];
 
 export const demoContractCapsuleIds = new Map<string, readonly string[]>([
   ['muse-2bit-demo-r8', [quantizationId, prefillId]],
   ['muse-2bit-demo-r9', [prefixReuseId]],
-  ['muse-2bit-demo-r10', ['engine.gpu_kernel_lab']],
+  ['muse-2bit-demo-r10', [dispatchId]],
 ]);
 
 export const inferenceCapsules: Record<string, { title: string; method: string; evidence: string }> = {
@@ -25,6 +26,11 @@ export const inferenceCapsules: Record<string, { title: string; method: string; 
     title: 'Prefix reuse',
     method: "Turns on the engine's built-in prompt cache for document follow-up workloads.",
     evidence: 'Cache on per request; the follow-up gain comes from that. AQBC kept --swa-full and --ctx-checkpoints 32 as measured, with 736 MiB more KV and 5,704 MiB of device headroom.',
+  },
+  [dispatchId]: {
+    title: 'Routed expert batching',
+    method: 'Traces how the engine dispatches selected experts and checks whether combining their work would remove kernel launches.',
+    evidence: 'On AQBC, each tested projection already covered eight selected experts in one CUDA matvec launch.',
   },
   'weights.build_muse_nvfp4_reader': {
     title: 'Checkpoint converter',
