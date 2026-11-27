@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import tempfile
 
-from jiuwenswarm.factory import taskgraph
+from jiuwenswarm.factory import corrections, taskgraph
 from jiuwenswarm.factory.controller import TERMINAL
 from jiuwenswarm.factory.export import snapshot, verify
 from scripts.spark.build_demo_replays import Builder, SCHEMA, TABLES, sha, utc
@@ -35,7 +35,8 @@ OBSERVATION_FIELDS = {
                                   'graph_rev_before policy preview previous_file previous_sha256 previous_version '
                                   'reason task_revision',
     'node_contract_final': 'by cc_versions created diff digest final node_contract node_id preliminary_digest rationale',
-    'node_contract_refusal': 'by node_id reason reasons errors preliminary_digest',
+    'node_contract_refusal': 'by node_contract node_id reason reasons errors preliminary_digest problems '
+                             'proposal_digest rationale',
     'node_check': 'entry format found key kind node_id output passed reason refs review runtime_check_revision '
                   'seconds started state verifier',
     'build_result': 'build_wall_seconds delivery failure_stage image_id source_commit status tag target',
@@ -310,6 +311,36 @@ class Replay(Builder):
                                     aqb_control=arms.get('AQB-control')))
         return rows, source
 
+    def review_note(self, run, check, manifest):
+        if not check:
+            return None
+        review = check['values'].get('review') or {}
+        findings = [finding for finding in review.get('findings', [])
+                    if 'null' in finding.get('problem', '').lower()]
+        if not review.get('advisory') or not findings:
+            return None
+        name = 'p2048-followup-follow-up-0-aqbc.json'
+        identity = f"run-{run['values']['attempt_id'][:12]}-{name}"
+        expected = manifest.get('files', {}).get(name)
+        if identity not in run['source_artifacts'] or not expected:
+            return None
+        directory = self.home / 'operator-inbox' / self.task_id
+        note = next((row for row in reversed(corrections.read_notes(directory, self.task_id))
+                     if row['created'] >= check['created'] and expected in row['text']
+                     and 'advisory review' in row['text'].lower()), None)
+        if not note:
+            return None
+        measured, source = self.artifact(identity)
+        if source['sha256'] != expected or expected == sha(b'null') or not isinstance(measured, dict):
+            raise ValueError('Follow-up evidence does not support the operator note')
+        note_ref = dict(table='operator-inbox', id=note['note_id'], task_id=self.task_id, source_home='graph')
+        facts = dict(source=source, bytes=self.registry[identity]['size'], null_sha256=sha(b'null'),
+                     cached_tokens=measured['reuse']['cached_tokens'], ttft_ms=measured['derived_ttft_ms'],
+                     quiet_samples=len(measured['quiet']['samples']))
+        return self.projection('runtime-advisory-review', 'Advisory finding, operator note and retained follow-up evidence',
+                               dict(check_id=check['obs_id'], findings=findings, operator_note=note, evidence=facts),
+                               [self.ref(check), note_ref, self.ref(run), source])
+
     def runtime(self, files, run, check):
         if not run:
             return None
@@ -377,6 +408,9 @@ class Replay(Builder):
                     )
                 shown['mmlu_identity'] = accuracy
         files.append(self.projection('runtime', 'Same-load speed, follow-up reuse and MMLU identity', shown, refs))
+        note = self.review_note(run, check, manifest)
+        if note:
+            files.append(note)
         if check and check['values']['passed'] is True:
             return 'The host runtime check passed.' + comparisons
         if check:
