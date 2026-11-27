@@ -188,7 +188,7 @@ def closed_at_owner_boundary(path):
             and close['server_closed'] is True and close['expected_remaining_cells_dispatched'] == 0)
 
 
-def main(execute, diagnostic, diagnostic_file=None, two_lengths=False):
+def main(execute, diagnostic, diagnostic_file=None, two_lengths=False, reuse_baseline=False):
     from scripts.factory import r8_bench_score
     p, identity, plan = check_inputs()
     prepared = r8_bench_score.prepare(p)
@@ -220,7 +220,15 @@ def main(execute, diagnostic, diagnostic_file=None, two_lengths=False):
             if existing_schedule.is_file():
                 p['request_plans'].update(read(existing_schedule))
             loads = {leg['id']:leg for leg in p['required_loads']}
-            for lid in ORDER:
+            if reuse_baseline:
+                if not two_lengths or not closed_at_owner_boundary(OUT/'5.load.json'):
+                    raise ValueError('Two-arm reuse requires the closed owner boundary and two-size schedule')
+                r8_bench_score.historical_reference(prepared, OUT)
+                lab.save(OUT/'owner-final-scope.json', dict(presentation_arms={'A':'5', 'P':'3'},
+                    speed_lengths=['p512', 'p2048'], archive_only_loads=['4'], skipped_loads=['6','7'],
+                    accuracy_reference='mmlu-historical-A.json', remaining_loads=['8']))
+                record('Final scope: load 5 supplies baseline A; loads 6 and 7 skipped. Historical NVFP4 reference and all 250 prompt hashes verified. Only mixed accuracy load 8 remains.')
+            for lid in (('8',) if reuse_baseline else ORDER):
                 receipt = OUT / f'{lid}.load.json'
                 if receipt.is_file() and (read(receipt)['status'] == 'complete' or
                                           two_lengths and closed_at_owner_boundary(receipt)):
@@ -247,7 +255,7 @@ def main(execute, diagnostic, diagnostic_file=None, two_lengths=False):
                             p['request_plans'][name] = [cell for cell in p['request_plans'][name] if cell.get('role') != 'decode']
                     lab.save(OUT/'speed-schedule.json', {name: p['request_plans'][name] for name in ('speed_full', 'speed_A')})
                 run_load(OUT, p, settings(loads[lid], OUT), Path(directory), identity, plan, prepared)
-        record('Final eight-load benchmark completed. All eight load receipts are durable; starting evidence integration.')
+        record('Final benchmark complete under the owner scope. Starting evidence integration.')
 
 
 if __name__ == '__main__':
@@ -256,5 +264,6 @@ if __name__ == '__main__':
     ap.add_argument('--diagnostic-128', action='store_true')
     ap.add_argument('--diagnostic-file', type=Path)
     ap.add_argument('--two-lengths', action='store_true', help='Apply the owner amendment to remaining speed cells')
+    ap.add_argument('--reuse-baseline', action='store_true')
     opts = ap.parse_args()
-    main(opts.execute, opts.diagnostic_128, opts.diagnostic_file, opts.two_lengths)
+    main(opts.execute, opts.diagnostic_128, opts.diagnostic_file, opts.two_lengths, opts.reuse_baseline)

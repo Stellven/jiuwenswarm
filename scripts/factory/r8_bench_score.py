@@ -87,6 +87,56 @@ def prepare(proposal):
     return Prepared(proposal, questions, source)
 
 
+def historical_reference(prepared, out):
+    """Validate the actual archived reference, retaining its historical binary and pack identity."""
+    state_path = Path(prepared.source['historical_case_source']['path'])
+    raw = state_path.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != prepared.source['historical_case_source']['sha256']:
+        raise ValueError('Historical reference changed after case verification')
+    historical = json.loads(raw)
+    ids = prepared.source['question_ids_in_order']
+    source_rows = historical['rows']['A']
+    if (historical['seed'] != prepared.source['order_seed']
+            or historical['order_sha256'] != prepared.source['full_order_sha256']
+            or list(source_rows)[:len(ids)] != ids):
+        raise ValueError('Historical NVFP4 order differs from the load 8 plan')
+    for q in prepared.questions:
+        entry = source_rows[q['id']]
+        if entry['prompt_sha256'] != paired.sha(q['prompt']) or entry['answer'] != q['answer']:
+            raise ValueError(f'Historical prompt or answer mismatch at {q["id"]}')
+    arm = historical['arms']['A']
+    if (historical['slots'] != 32 or int(arm['ctx']) != 32768 or int(arm['cache_mib']) != 49152
+            or arm['args'] != ['-np','32','-kvu','-b','4096','-ub','4096']):
+        raise ValueError('Historical NVFP4 scoring settings differ from the paired plan')
+    demo = state_path.parent.parent
+    server_log = demo/'lab/A-acc.stderr.log'
+    log_bytes = server_log.read_bytes()
+    lines = log_bytes.decode().splitlines()
+    build, = [line.split('common_params_print_info: ', 1)[1] for line in lines
+              if 'common_params_print_info: build ' in line]
+    pack, = [line.split("loading model '", 1)[1].rstrip("'") for line in lines if "load_model: loading model '" in line]
+    binary = Path('/tmp/wt-spike-llama/build-cuda/bin/llama-server')
+    historical_driver = demo/'lab.py'
+    script = historical_driver.read_text()
+    if ("'A': dict(bin=E0, model=NVFP4" not in script or str(binary.parent) not in script
+            or Path(pack).name not in script or '9048bad8d' not in build):
+        raise ValueError('Historical baseline driver and server log identity differ')
+    identity = dict(build=build, executable=str(binary), retained_executable_sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
+                    first_shard=pack, role='Historical NVFP4 reference scored on Nov 25',
+                    log=str(server_log), log_sha256=hashlib.sha256(log_bytes).hexdigest(),
+                    driver=str(historical_driver), driver_sha256=hashlib.sha256(historical_driver.read_bytes()).hexdigest())
+    reference = dict(format='muse-r8-bench-historical-accuracy/1', leg='historical-A',
+                     status='complete', source=prepared.source, record='/rows/A', server=identity,
+                     settings=arm, rows={qid:source_rows[qid] for qid in ids}, verified_prompts=len(ids))
+    dest = out/'mmlu-historical-A.json'
+    if dest.exists():
+        if json.loads(dest.read_bytes()) != reference:
+            raise ValueError('Historical accuracy reference differs from its existing verification')
+    else:
+        save(dest, reference)
+    return reference
+
+
 def _leg(proposal, leg):
     leg_id = leg['id'] if isinstance(leg, dict) else str(leg)
     if leg_id not in PACKS:
@@ -187,9 +237,13 @@ def _paired(out, prepared, legs):
     for leg_id, report in legs.items():
         if report['source'] != prepared.source or report['leg'] != leg_id:
             raise ValueError(f'MMLU leg {leg_id} report has different case or leg identity')
+        if leg_id == 'historical-A':
+            accepted[leg_id] = report['rows']
+            continue
         accepted[leg_id] = {qid: report['rows'][qid] for batch in report['batches']
                             if batch['quiet']['status'] == 'accepted' for qid in batch['question_ids']}
-    ref, cand = accepted.get('7', {}), accepted.get('8', {})
+    ref_id = 'historical-A' if 'historical-A' in legs else '7'
+    ref, cand = accepted.get(ref_id, {}), accepted.get('8', {})
     prefix = 0
     for qid in ids:
         if qid not in ref or qid not in cand:
@@ -197,10 +251,10 @@ def _paired(out, prepared, legs):
         prefix += 1
     looks = [paired.look(ref, cand, ids[:n], mmlu['margin_points'], mmlu['z'], final=n == LOOKS[-1])
              for n in LOOKS if n <= prefix]
-    complete = (prefix == LOOKS[-1] and all(legs[key]['status'] == 'complete' for key in PACKS))
+    complete = (prefix == LOOKS[-1] and all(legs[key]['status'] == 'complete' for key in (ref_id, '8')))
     verdict = next((look for look in looks if look['decision'] in {'pass', 'fail', 'report'}), None)
     report = dict(format='muse-r8-bench-paired/1', verifier=mmlu['verifier'], source=prepared.source,
-                  reference_leg='7', candidate_leg='8', planned_looks=list(LOOKS), looks=looks,
+                  reference_leg=ref_id, candidate_leg='8', planned_looks=list(LOOKS), looks=looks,
                   eligible_paired_prefix=prefix, complete=complete, decision=verdict['decision'] if complete else None,
                   decision_n=verdict['n'] if complete else None,
                   legs={key: dict(path=f'mmlu-{key}.json', status=record['status'], scores=len(record['rows']),
@@ -224,8 +278,9 @@ def score(server, monitor, proposal, out, leg):
                   request=dict(path='/completion', **REQUEST), batches=[], rows={})
     legs = {leg_id: report}
     if leg_id == '8':
-        legs['7'] = json.loads((out / 'mmlu-7.json').read_text())
-        if legs['7']['source'] != prepared.source or legs['7']['leg'] != '7' or legs['7']['status'] != 'complete':
+        ref_id = 'historical-A' if (out/'mmlu-historical-A.json').is_file() else '7'
+        legs[ref_id] = json.loads((out / f'mmlu-{ref_id}.json').read_text())
+        if legs[ref_id]['source'] != prepared.source or legs[ref_id]['leg'] != ref_id or legs[ref_id]['status'] != 'complete':
             raise ValueError('MMLU candidate requires a complete reference leg on the same ordered cases')
     # Reserve the attempt exclusively. A partial report is evidence of an attempt, including after interruption.
     with path.open('x', encoding='utf-8') as handle:
