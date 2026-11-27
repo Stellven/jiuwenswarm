@@ -119,3 +119,34 @@ def test_lab_draft_has_same_image_scopes_exact_container_mount_and_receipts(stor
     assert not verified
     spec['arms']['AQBCE']['env']['LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH'] = '/opt/unsafe-other-path'
     assert any('absolute host path' in text for text in task_problems(spec, contract, task['constraints']['contract_sha256']))
+
+
+def test_pinned_calibration_rejects_short_profile():
+    contract = load(TASK)
+    with pytest.raises(ValueError, match='specifies 16 requests, trace contains 2'):
+        gate.verify_calibration_binding(contract, {'requests': [{'cohort': 'calibration'}] * 2})
+
+
+def test_rendered_calibration_compares_each_request(tmp_path, monkeypatch):
+    import shutil
+
+    folder = Path('ops/spark/prompts/muse')
+    target = tmp_path / folder
+    target.mkdir(parents=True)
+    for filename in ('chat_template.jinja', 'MANIFEST.json'):
+        shutil.copy(TASKS.parents[2] / folder / filename, target / filename)
+    monkeypatch.setattr(gate, '__file__', str(tmp_path / 'jiuwenswarm/factory/muse_r11_gate.py'))
+    source = target / 'fixture.jsonl'
+    prompt = 'Rendered fixture with a trailing newline.\n'
+    record = {'id': 'fixture', 'rendered_prompt': prompt, 'n_predict': 32, 'token_ids_sha256': 'a' * 64}
+    source.write_text(json.dumps(record) + '\n')
+    sha = gate.digest(source.read_bytes())
+    spec = dict(repo_path=str(source.relative_to(tmp_path)), size=source.stat().st_size, sha256=sha)
+    contract = {'inputs': {'calibration_prompts': spec}}
+    row = dict(id='fixture', cohort='calibration', prompt_sha256=gate.digest(prompt.encode()),
+               generated_n=32, cache_prompt=False, token_ids_sha256=record['token_ids_sha256'])
+    assert gate.verify_calibration_binding(contract, {'requests': [row]}) == sha
+    for field, other in [('id', 'other'), ('prompt_sha256', '0' * 64), ('generated_n', 31),
+                         ('cache_prompt', True), ('token_ids_sha256', 'b' * 64)]:
+        with pytest.raises(ValueError, match='differs|differ'):
+            gate.verify_calibration_binding(contract, {'requests': [{**row, field: other}]})
