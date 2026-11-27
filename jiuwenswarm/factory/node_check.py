@@ -53,8 +53,8 @@ import yaml
 KIND = 'node_check'
 FORMAT = 'factory.node-check/2'
 SHORT_FIELDS = {'verifier', 'stage', 'review'}
-OUTPUT_FIELDS = {'name', 'kind', 'required', 'verifier', 'stage', 'review', 'criteria', 'inputs'}
-OUTPUT_KINDS = ('diff', 'source_bundle', 'image', 'lab_request', 'evidence')
+OUTPUT_FIELDS = {'name', 'kind', 'required', 'verifier', 'stage', 'review', 'criteria', 'inputs', 'seal'}
+OUTPUT_KINDS = ('diff', 'source_bundle', 'image', 'lab_request', 'evidence', 'release')
 # Evidence ladder used by the capsule verifiers (see each VALIDATION.md), weakest first.
 STAGES = ('fixture', 'native CC execution', 'compile', 'runtime acceptance', 'hardware measurement')
 VERIFIER_GRANTS = ['workspace.read', 'process.exec']
@@ -108,6 +108,9 @@ def _check_output(entry):
     if entry.get('review') and entry['kind'] not in ('diff', 'evidence'):
         raise ValueError(f'Check output {entry["name"]}: reviews read diffs and evidence; '
                          f'{entry["kind"]} outputs are checked by the host')
+    if 'seal' in entry and (entry['kind'] != 'evidence' or not entry.get('verifier') or
+                            not re.fullmatch(r'[a-z][a-z0-9_]{0,31}', str(entry['seal']))):
+        raise ValueError('Sealing needs a named output of an evidence verifier')
     if 'inputs' in entry and (not isinstance(entry['inputs'], dict) or not entry['inputs'] or not entry.get('verifier')
                               or set(entry['inputs']) & {'checkout', 'diff_path'}):
         raise ValueError(f'Check output {entry["name"]}: pinned inputs are a nonempty object for its verifier '
@@ -221,6 +224,60 @@ def gate(host, task_id, before, after):
             reason = pending(host, task, node)
             if reason:
                 raise ValueError(f'Node {key} cannot be done: {reason}')
+
+
+def _staged_document(task):
+    if not task.get('contract_id'):
+        return None, None
+    from .node_contract import for_task
+    try:
+        document = for_task(task)
+    except FileNotFoundError:
+        return None, None
+    return document, (document or {}).get('staged_release')
+
+
+def accepted_output(host, task_id, node, output):
+    """Return the current check that the completed node cites."""
+    task = host.get_task(task_id)
+    if node['state'] != 'done' or pending(host, task, node):
+        raise CheckError(f'Node {node["node_id"]} lacks its current passing checks')
+    checks = current_checks(host, task_id, node, output)
+    if not checks or not checks[-1].get('passed') or checks[-1]['obs_id'] not in node['evidence_ids']:
+        raise CheckError(f'Node {node["node_id"]} has no accepted output {output}')
+    return checks[-1]
+
+
+def _predecessor(host, task_id, node, contract_id):
+    from .taskgraph import plan_get
+    matches = [other for other in plan_get(host, task_id)['nodes']
+               if other['node_id'] in node['depends_on'] and other.get('node_contract') == contract_id
+               and other['state'] == 'done']
+    if len(matches) != 1:
+        raise CheckError(f'Node {node["node_id"]} needs exactly one completed {contract_id} predecessor')
+    return matches[0]
+
+
+def accepted_stage(host, task_id, node, stage):
+    """Resolve a configured stage to the accepted check of this node's predecessor."""
+    _, staged = _staged_document(host.get_task(task_id))
+    if not staged:
+        raise CheckError('This task does not declare staged release')
+    stage_id, output = staged[stage].split('.')
+    producer = _predecessor(host, task_id, node, stage_id)
+    return producer, accepted_output(host, task_id, producer, output)
+
+
+def accepted_delivery(host, task_id, runtime_node):
+    """Resolve the sent lab request accepted by the measurement node's predecessor."""
+    document, staged = _staged_document(host.get_task(task_id))
+    if not staged:
+        raise CheckError('This task does not declare staged release')
+    delivery = next(node for node in document['nodes'] if node['kind'] == 'deliver')
+    output = next(out['name'] for out in delivery['outputs']
+                  if out['kind'] == 'lab_request' and out.get('required', True))
+    producer = _predecessor(host, task_id, runtime_node, delivery['node_id'])
+    return accepted_output(host, task_id, producer, output)
 
 
 # ---- what is checked --------------------------------------------------------------------
@@ -489,9 +546,28 @@ class NodeChecks:
         task = self.store.get_task(task_id)
         node = self._node(task_id, node_id)
         entry = self._entry(task, node, output)
+        document, staged = _staged_document(task)
+        port = f'{node.get("node_contract")}.{entry["name"]}'
+        if staged:
+            from .scheduler import effective_contract
+            from .taskgraph import dispatch_precondition
+            host = getattr(self.store, '_store', self.store)
+            if effective_contract(host, task_id, node, document)[1]:
+                raise CheckError('The scheduler must finalize this node before its check')
+            dispatch_precondition(self.store, task_id, node_id)
+        if staged and port == staged['runtime_stage']:
+            measured = self._runtime_measurement(task_id, node, refs)
+            if verifier_inputs and verifier_inputs != {'measurements': measured}:
+                raise CheckError('The runtime-stage verifier takes the measurement from the host attempt')
+            verifier_inputs = {'measurements': measured}
+        elif staged and entry.get('verifier'):
+            verifier_inputs = self._stage_inputs(task, node, document, port, verifier_inputs)
         if verifier_inputs and not entry.get('verifier'):
             raise CheckError(f'Output {entry["name"]} has no capsule verifier to take verifier_inputs')
         verifier_inputs = pin_inputs(entry, verifier_inputs)
+        if staged and verifier_inputs:
+            from .config import expand_sources
+            verifier_inputs = expand_sources(verifier_inputs)
         if entry['kind'] != 'diff':
             if checkout or diff_path:
                 raise CheckError(f'Output {entry["name"]} is a {entry["kind"]}; pass refs, not a checkout')
@@ -503,6 +579,37 @@ class NodeChecks:
         if not checkout:
             raise CheckError(f'Output {entry["name"]} is a diff: pass the checkout')
         return self._start_diff(task, node, entry, checkout, diff_path, verifier_inputs, background)
+
+    def _stage_inputs(self, task, node, document, port, supplied):
+        from .node_contract import node as contract_node
+        host = getattr(self.store, '_store', self.store)
+        task_id = task['task_id']
+        contract = contract_node(document, node.get('node_contract')) or {}
+        values = {}
+        for edge in contract.get('inputs', []):
+            predecessor, separator, output = edge['from'].partition('.')
+            if not separator:
+                continue
+            source = contract_node(document, predecessor)
+            if not any(v['output'] == output and v.get('seal') for v in source['verifiers']):
+                continue
+            producer = _predecessor(host, task_id, node, predecessor)
+            accepted = accepted_output(host, task_id, producer, output)
+            artifact_id = accepted['verifier']['sealed_artifact']
+            values[edge['name']] = json.loads(self.store.artifact_bytes(task_id, artifact_id))
+        if port == document['staged_release']['factory_stage']:
+            images = [entry for entry in outputs_of(node['check']) if entry['kind'] == 'image' and entry.get('required', True)]
+            if len(images) != 1:
+                raise CheckError('The factory stage needs one checked image output from its build')
+            checks = current_checks(host, task_id, node, images[0]['name'])
+            if not checks or not checks[-1]['passed'] or checks[-1]['entry'] != images[0]:
+                raise CheckError('Pass the image output check before verifying the factory stage')
+            build_id = checks[-1]['found']['build_attempt_id']
+            values['build_record'] = json.loads(self.store.artifact_bytes(task_id, build_id + ':build-record'))
+        supplied = supplied or {}
+        if any(key in supplied and supplied[key] != value for key, value in values.items()):
+            raise CheckError('The stage verifier inputs disagree with accepted host evidence')
+        return dict(supplied, **values) or None
 
     # -- diff outputs --------------------------------------------------------------------
     def _start_diff(self, task, node, entry, checkout, diff_path, verifier_inputs, background):
@@ -653,6 +760,8 @@ class NodeChecks:
             if request['verifier']:
                 t = time.time()
                 values['verifier'] = self._verify(request, work)
+                if values['verifier'].get('sealed_artifact'):
+                    artifacts.append(values['verifier']['sealed_artifact'])
                 values['seconds']['verifier'] = round(time.time() - t, 3)
                 if not values['verifier']['passed']:
                     values['reason'] = values['verifier']['reason']
@@ -711,6 +820,16 @@ class NodeChecks:
                                              for c in outputs.get('checks') or [] if isinstance(c, dict)])
         if 'capped_attempt_id' in receipt:
             result['capped_attempt_id'] = receipt['capped_attempt_id']
+        if passed and request['entry'].get('seal'):
+            port = request['entry']['seal']
+            payload = outputs.get(port)
+            if not isinstance(payload, dict):
+                result.update(passed=False, reason=f'Verifier did not return a JSON object at {port}')
+            else:
+                data = json.dumps(payload, sort_keys=True, indent=2, allow_nan=False).encode() + b'\n'
+                artifact_id = f'node-check-{request["key"][:24]}-{port}'
+                self.store.put_artifact(request['task_id'], artifact_id, data, 'application/json', None)
+                result['sealed_artifact'] = artifact_id
         return result
 
     def _call_verifier(self, request, work, approved_inputs=None):
@@ -813,7 +932,7 @@ class NodeChecks:
                       refs=refs, found={}, seconds={}, started=time.time())
         try:
             check = {'source_bundle': self._source_bundles, 'image': self._image,
-                     'lab_request': self._lab_request, 'evidence': self._evidence}[entry['kind']]
+                     'lab_request': self._lab_request, 'evidence': self._evidence, 'release': self._release}[entry['kind']]
             values['found'] = check(task, node, refs)
             values.update(passed=True, reason='passed')
         except (CheckError, ValueError, OSError) as exc:
@@ -898,6 +1017,47 @@ class NodeChecks:
             raise CheckError('refs.evidence_ids must list the records this output consists of')
         self.store.validate_evidence(task['task_id'], ids)
         return dict(evidence_ids=ids)
+
+    def _runtime_measurement(self, task_id, node, refs):
+        host = getattr(self.store, '_store', self.store)
+        delivery = accepted_delivery(host, task_id, node)
+        request_id = delivery['found']['request_id']
+        ids = (refs or {}).get('evidence_ids') or []
+        matched = []
+        for evidence_id in ids:
+            record = self.store.read(task_id, evidence_id)
+            values = record.get('values') or {}
+            request = values.get('request') or {}
+            if (record.get('kind') == 'capped_run' and values.get('node_id') == node['node_id']
+                    and values.get('outcome') == 'ok' and request.get('request_id') == request_id
+                    and request.get('package_id') == delivery['found']['package_id']
+                    and isinstance(values.get('result'), dict)):
+                attempt = host._get('attempts', task_id, values['attempt_id'])
+                if (attempt.get('kind') == 'model_run' and attempt.get('state') == 'succeeded'
+                        and attempt.get('request', {}).get('node_id') == node['node_id']):
+                    matched.append(values['result'])
+        if len(matched) != 1:
+            raise CheckError('Runtime verification needs one successful host measurement of the accepted lab request')
+        return matched[0]
+
+    def _release(self, task, node, refs):
+        host = getattr(self.store, '_store', self.store)
+        document, staged = _staged_document(task)
+        if not staged or node.get('node_contract') != staged['release_gate']:
+            raise CheckError('Only the contracted staged release gate can produce a release')
+        task_id = task['task_id']
+        runtime, measured = accepted_stage(host, task_id, node, 'runtime_stage')
+        delivery = accepted_delivery(host, task_id, runtime)
+        delivery_id = next(item['node_id'] for item in document['nodes'] if item['kind'] == 'deliver')
+        delivery_node = _predecessor(host, task_id, runtime, delivery_id)
+        _, factory = accepted_stage(host, task_id, delivery_node, 'factory_stage')
+        if (refs or {}).get('runtime_check_id') != measured['obs_id']:
+            raise CheckError('refs.runtime_check_id must name the accepted runtime-stage check')
+        self._runtime_measurement(task_id, runtime, measured['refs'])
+        return dict(factory_check_id=factory['obs_id'], delivery_check_id=delivery['obs_id'],
+                    runtime_check_id=measured['obs_id'], request_id=delivery['found']['request_id'],
+                    package_id=delivery['found']['package_id'],
+                    artifacts=delivery['source_artifacts'] + factory['source_artifacts'])
 
     def status(self, task_id, node_id):
         task = self.store.get_task(task_id)

@@ -8,6 +8,16 @@
   "required": ["format", "nodes"],
   "properties": {
     "format": {"const": "factory.node-contracts/1"},
+    "staged_release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["factory_stage", "runtime_stage", "release_gate"],
+      "properties": {
+        "factory_stage": {"$ref": "#/$defs/port"},
+        "runtime_stage": {"$ref": "#/$defs/port"},
+        "release_gate": {"$ref": "#/$defs/id"}
+      }
+    },
     "nodes": {
       "type": "array", "minItems": 1, "maxItems": 32,
       "items": {"$ref": "#/$defs/node"}
@@ -15,6 +25,7 @@
   },
   "$defs": {
     "id": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,31}$"},
+    "port": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,31}\\.[a-z][a-z0-9_]{0,31}$"},
     "capability": {"type": "string", "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*){2,}$",
                    "description": "A capsule capability: <capsule id>.<capability>, for example engine.build_expert_weight_cache.verify."},
     "capsule": {"type": "string", "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"},
@@ -51,7 +62,7 @@
             "type": "object", "additionalProperties": false, "required": ["name", "kind"],
             "properties": {
               "name": {"$ref": "#/$defs/id"},
-              "kind": {"enum": ["diff", "source_bundle", "image", "lab_request", "evidence"],
+              "kind": {"enum": ["diff", "source_bundle", "image", "lab_request", "evidence", "release"],
                        "description": "diff: source changes in the owned checkout. source_bundle: a stored lab source bundle. image: an engine image from a recorded build. lab_request: a request sent through the lab manager. evidence: factory records (observations, artifacts)."},
               "required": {"type": "boolean", "default": true},
               "criteria": {"type": "array", "maxItems": 12, "items": {"$ref": "#/$defs/text"},
@@ -98,6 +109,7 @@
             "properties": {
               "output": {"$ref": "#/$defs/id"},
               "verifier": {"$ref": "#/$defs/capability"},
+              "seal": {"$ref": "#/$defs/id", "description": "Store this JSON output of the successful verifier as a host artifact."},
               "stage": {"enum": ["fixture", "native CC execution", "compile", "runtime acceptance", "hardware measurement"]},
               "review": {"enum": [true, false, "advisory"], "default": false,
                          "description": "true: an independent reviewer runs and its blocker findings or fail verdict fail the check. advisory: the reviewer runs and its verdict and findings are recorded and shown, but only the capsule verifier and the host checks decide pass or fail. false: no review."}, "inputs": {"type": "object", "minProperties": 1, "maxProperties": 32, "description": "Verifier inputs the contract fixes (targets, tolerances, expected ranges); merged over the agent verifier_inputs, a different agent value is refused."}

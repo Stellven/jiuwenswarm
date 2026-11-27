@@ -1,0 +1,46 @@
+{
+  "format": "factory.plan/1",
+  "planner": "Muse demo revision 9",
+  "nodes": [
+    {
+      "node_id": "pin_inputs",
+      "node_contract": "pin_inputs",
+      "depends_on": []
+    },
+    {
+      "node_id": "plan_prefix_store",
+      "node_contract": "plan_prefix_store",
+      "depends_on": [
+        "pin_inputs"
+      ]
+    },
+    {
+      "node_id": "build_image",
+      "node_contract": "build_image",
+      "depends_on": [
+        "plan_prefix_store"
+      ]
+    },
+    {
+      "node_id": "deliver_to_lab",
+      "node_contract": "deliver_to_lab",
+      "depends_on": [
+        "build_image"
+      ]
+    },
+    {
+      "node_id": "measure_engine",
+      "node_contract": "measure_engine",
+      "depends_on": [
+        "deliver_to_lab"
+      ]
+    },
+    {
+      "node_id": "release_gate",
+      "node_contract": "release_gate",
+      "depends_on": [
+        "measure_engine"
+      ]
+    }
+  ]
+}
