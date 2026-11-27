@@ -7,8 +7,10 @@ import pytest
 from jiuwenswarm.factory.ccs.kv_reuse_lab.request_log import first_cached_tasks
 from jiuwenswarm.factory.lab_agent import LabAgent
 from jiuwenswarm.factory.lab_mailbox import Mailbox, canonical
-from jiuwenswarm.factory.muse_r11_scoring import ARMS, CELLS, GIB, NATIVE_COUNTERS, evaluate, sha, token_digest
-from scripts.factory.report_muse_r11_lab import stage_report
+from jiuwenswarm.factory.muse_r11_cache import RECIPE, TASK as LAB_TASK
+from jiuwenswarm.factory.muse_r11_scoring import ARMS, ARTIFACTS, CELLS, GIB, NATIVE_COUNTERS, evaluate, sha, token_digest
+from jiuwenswarm.factory.store import Store
+from scripts.factory.report_muse_r11_lab import native_arms, stage_report
 from scripts.factory import lab_warmup as w2
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -20,6 +22,59 @@ CONTRACT_SHA = 'd' * 64
 DELIVERY = {'obs_id': 'native-delivery', 'executable_sha256': EXEC}
 PROMPTS = {n: (sha(str(n).encode()), n - 1, sha(f'tokens-{n}'.encode())) for n in (512, 2048)}
 DEVICE_MIB = dict(model=18000, moe_cache=62464, kv=14000, compute=8000, host_compute=200)
+
+
+@pytest.mark.parametrize('overlapping', [False, True])
+def test_ledger_order_and_load_windows_use_their_native_sources(tmp_path, overlapping):
+    home = tmp_path / 'lab'
+    store = Store(home)
+    store.create_task(dict(task_id=LAB_TASK, objective='Retain capped evidence'))
+    delivery = dict(request_id=REQUEST, package_id='package', delivery_check_id='delivery',
+                    image_id=IMAGE, profile_sha256=PROFILE)
+    manifest = b'{}'
+    manifest_hash = sha(manifest)
+    origin = dict(obs_id='delivery', profile_manifest_sha256=manifest_hash)
+
+    def add_arm(arm, started, ended):
+        request = dict(recipe=RECIPE, arm=arm)
+        if arm != 'profile':
+            request['delivery'] = delivery
+        attempt = store.create_attempt(LAB_TASK, dict(kind='model_run', idem_key=arm,
+                                                     fingerprint=sha(arm.encode()), request=request))
+        ident = attempt['attempt_id']
+        # Reconciliation times describe queue status, independently of the recorded process windows.
+        store.transition_attempt(LAB_TASK, ident, 'running')
+        store.transition_attempt(LAB_TASK, ident, 'succeeded')
+        load = dict(arm=arm, status='complete', server_closed=True, started_utc=started, ended_utc=ended)
+        result = dict(arm=arm, status='complete')
+        if arm == 'profile':
+            load['format'] = 'muse-r11-load/1'
+            artifacts = {'load.json': json.dumps(load).encode(), 'manifest.json': manifest}
+            result['manifest_sha256'] = manifest_hash
+        else:
+            load['format'] = 'muse-r11-target-load/1'
+            artifacts = dict.fromkeys(ARTIFACTS, b'{}')
+            artifacts['load-receipts.json'] = json.dumps(load).encode()
+            result.update({key: delivery[key] for key in ('request_id', 'package_id', 'image_id', 'profile_sha256')})
+            result['evidence'] = {name: sha(raw) for name, raw in artifacts.items()}
+        refs = []
+        for name, raw in artifacts.items():
+            artifact = f'run-{ident[:12]}-{name}'
+            store.put_artifact(LAB_TASK, artifact, raw, 'application/json', None)
+            refs.append(artifact)
+        store.append_observation(LAB_TASK, dict(
+            kind='capped_run', values=dict(attempt_id=ident, recipe=RECIPE, outcome='ok', request=request, result=result),
+            source_artifacts=refs, host_run=dict(module='jiuwenswarm.factory.capped_run', attempt_id=ident)))
+
+    add_arm('profile', '2026-11-27T18:39:45+00:00', '2026-11-27T19:07:03+00:00')
+    assert native_arms(home, REQUEST, 'package', origin) == {}
+    start = '2026-11-27T19:07:02+00:00' if overlapping else '2026-11-27T19:07:04+00:00'
+    add_arm('AQBC', start, '2026-11-27T20:00:00+00:00')
+    if overlapping:
+        with pytest.raises(ValueError, match='recorded independent capped loads overlapped'):
+            native_arms(home, REQUEST, 'package', origin)
+    else:
+        assert set(native_arms(home, REQUEST, 'package', origin)['AQBC']['files']) == set(ARTIFACTS)
 
 
 @pytest.fixture

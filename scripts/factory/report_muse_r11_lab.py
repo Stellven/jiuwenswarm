@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 import json
 from pathlib import Path
 import tempfile
@@ -17,7 +18,8 @@ from jiuwenswarm.factory.muse_r11_gate import (
 from jiuwenswarm.factory.muse_r11_scoring import ARMS, ARTIFACTS, TASK, check, evaluate, optional_json, sha
 from jiuwenswarm.factory.views.activity import _snapshot_store
 
-MAX_ARTIFACT = 16 << 20
+# The capped runner seals complete files through this size and omits larger files.
+MAX_ARTIFACT = 64 << 20
 REPO = Path(__file__).resolve().parents[2]
 
 
@@ -81,57 +83,103 @@ def factory_delivery(graph_home, mailbox, request_id):
         return package, delivery_identity, prompts, calibration
 
 
+def reservation_time(attempt):
+    history = attempt.get('history') or []
+    first = history[0] if history else {}
+    check(first.get('state') == 'queued' and type(first.get('created')) in (int, float),
+          'A capped attempt has no initial native reservation.')
+    return first['created']
+
+
+def sealed_file(store, attempt, observation, name):
+    ident = f"run-{attempt['attempt_id'][:12]}-{name}"
+    if ident not in observation['source_artifacts']:
+        return None
+    metadata = store.read_artifact(LAB_TASK, ident)
+    check(metadata['size'] <= MAX_ARTIFACT, 'Native lab file exceeds the capped evidence bound: ' + name)
+    raw = store.artifact_bytes(LAB_TASK, ident)
+    check(len(raw) == metadata['size'] and sha(raw) == metadata['sha256'],
+          'The native capped job artifact changed: ' + name)
+    return dict(data=raw, artifact_id=ident, sha256=metadata['sha256'], size=len(raw))
+
+
+def load_window(receipt, arm):
+    document = json.loads(receipt['data'])
+    if arm == 'profile':
+        check(document.get('format') == 'muse-r11-load/1'
+              and document.get('status') == 'complete' and document.get('server_closed') is True,
+              'The profile receipt does not record a completed native load.')
+    else:
+        check(document.get('format') == 'muse-r11-target-load/1' and document.get('arm') == arm,
+              'A target load receipt belongs to another arm.')
+    try:
+        start = datetime.fromisoformat(document['started_utc'])
+        end = datetime.fromisoformat(document['ended_utc'])
+    except (KeyError, ValueError, TypeError) as error:
+        raise ValueError(f'The capped {arm} load has no recorded execution window.') from error
+    check(start.utcoffset() is not None and end.utcoffset() is not None and start <= end,
+          f'The capped {arm} load has an invalid execution window.')
+    return start, end
+
+
 def native_arms(lab_home, request_id, package_id, delivery):
     with _snapshot_store(lab_home) as store:
         ledger = store.dump(LAB_TASK)
         attempts = sorted((row for row in ledger['attempts'] if row['kind'] == 'model_run'),
-                          key=lambda row: row['created'])
+                          key=reservation_time)
         order = [row.get('request', {}).get('arm') for row in attempts]
-        check(order == ['profile', *ARMS][:len(order)] and 0 < len(order) <= 3,
+        reserved = {reservation_time(row) for row in attempts}
+        check(order == ['profile', *ARMS][:len(order)] and 0 < len(order) <= 3
+              and len(reserved) == len(attempts),
               'The independent capped ledger must have one serial load per admitted arm.')
         check(all(row['state'] in {'succeeded', 'failed', 'cancelled'} for row in attempts),
               'A capped target load is still active; wait for its sealed receipts.')
-        timed = [row for row in attempts if row.get('started') is not None]
-        check(all(row.get('ended') is not None and row['started'] <= row['ended'] for row in timed)
-              and all(row.get('started') is not None or row['state'] == 'cancelled' for row in attempts),
-              'The capped ledger has no completed timing for a load.')
-        check(all(before['ended'] <= after['started'] for before, after in zip(timed, timed[1:])),
-              'The independent capped loads overlapped.')
         result = {}
-        for attempt in attempts[1:]:
+        last_end = None
+        for attempt in attempts:
             arm = attempt['request']['arm']
             observations = [row for row in ledger['observations'] if row['kind'] == 'capped_run'
                             and row['values'].get('attempt_id') == attempt['attempt_id']]
             check(len(observations) <= 1, 'A capped attempt has ambiguous native receipts.')
             if not observations:
+                check(arm != 'profile' and attempt['state'] != 'succeeded',
+                      'A successful capped load has no native receipt.')
                 result[arm] = dict(attempt=attempt, observation={}, files={})
                 continue
             observation = observations[0]
             native = observation['values']
-            refs = observation['source_artifacts']
             request = native.get('request') or {}
-            # The admission contains the sealed delivery identity; these are not free-form request arguments.
-            identities = dict(request_id=request_id, package_id=package_id, delivery_check_id=delivery['obs_id'])
             check(native.get('recipe') == attempt['request'].get('recipe') == RECIPE
+                  and native.get('attempt_id') == attempt['attempt_id']
                   and observation.get('host_run', {}).get('module') == 'jiuwenswarm.factory.capped_run'
                   and observation['host_run'].get('attempt_id') == attempt['attempt_id']
                   and request.get('arm') == arm and request == attempt['request']
-                  and all(request.get('delivery', {}).get(key) == value for key, value in identities.items())
                   and ((native.get('outcome') == 'ok') == (attempt['state'] == 'succeeded')),
-                  'A native capped receipt belongs to an unrelated or incomplete target admission.')
-            files = {}
-            for name in ARTIFACTS:
-                ident = f"run-{attempt['attempt_id'][:12]}-{name}"
-                if ident not in refs:
-                    continue
-                metadata = store.read_artifact(LAB_TASK, ident)
-                check(metadata['size'] <= MAX_ARTIFACT, 'Native lab file exceeds the report export bound: ' + name)
-                raw = store.artifact_bytes(LAB_TASK, ident)
-                check(len(raw) == metadata['size'] and sha(raw) == metadata['sha256'],
-                      'The native capped job artifact changed: ' + name)
-                files[name] = dict(data=raw, artifact_id=ident, sha256=metadata['sha256'], size=len(raw))
+                  'A native capped receipt belongs to an unrelated or incomplete admission.')
+            receipt = native.get('result') or {}
+            if arm == 'profile':
+                check(attempt['state'] == 'succeeded' and receipt.get('arm') == 'profile'
+                      and receipt.get('status') == 'complete'
+                      and receipt.get('manifest_sha256') == delivery['profile_manifest_sha256'],
+                      'The capped profile does not match the accepted acquisition manifest.')
+                manifest = sealed_file(store, attempt, observation, 'manifest.json')
+                check(manifest and manifest['sha256'] == receipt['manifest_sha256'],
+                      'The capped profile has no sealed acquisition manifest.')
+                load = sealed_file(store, attempt, observation, 'load.json')
+                check(load, 'The capped profile has no sealed load receipt.')
+                _, last_end = load_window(load, arm)
+                continue
+            # The admission contains the sealed delivery identity.
+            identities = dict(request_id=request_id, package_id=package_id, delivery_check_id=delivery['obs_id'])
+            check(all(request.get('delivery', {}).get(key) == value for key, value in identities.items()),
+                  'A native capped load belongs to another delivery.')
+            files = {name: ref for name in ARTIFACTS if (ref := sealed_file(store, attempt, observation, name))}
+            load = files.get('load-receipts.json')
+            if load:
+                start, end = load_window(load, arm)
+                check(last_end <= start, 'The recorded independent capped loads overlapped.')
+                last_end = end
             if attempt['state'] == 'succeeded':
-                receipt = native.get('result') or {}
                 check(receipt.get('arm') == arm and receipt.get('status') == 'complete'
                       and receipt.get('request_id') == request_id and receipt.get('package_id') == package_id
                       and receipt.get('image_id') == request['delivery']['image_id']
