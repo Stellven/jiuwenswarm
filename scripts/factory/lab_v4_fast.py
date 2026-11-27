@@ -117,7 +117,7 @@ def server_peak_rss(pid, proc_root=Path('/proc')):
     return None
 
 
-def request(server, prompt, n_predict, *, benchmark=False, cache_prompt=False, retain_output=False):
+def request(server, prompt, n_predict, *, benchmark=False, cache_prompt=False, retain_output=False, retain_tokens=False):
     body = dict(prompt=prompt, n_predict=n_predict, temperature=0, seed=1, cache_prompt=cache_prompt, stream=True)
     if benchmark:
         body.update(ignore_eos=True, return_progress=True, return_tokens=True)
@@ -125,6 +125,7 @@ def request(server, prompt, n_predict, *, benchmark=False, cache_prompt=False, r
 
     def consume(response):
         first, text, final, progress, arrivals = None, [], None, [], []
+        token_ids = []
         for raw in response:
             line = raw.decode().strip()
             if not line.startswith('data:'):
@@ -146,6 +147,8 @@ def request(server, prompt, n_predict, *, benchmark=False, cache_prompt=False, r
                     first = arrived
             elif first is None and content:
                 first = time.monotonic()
+            if retain_tokens and not is_progress and not d.get('stop'):
+                token_ids.extend(d.get('tokens', []))
             if is_progress:
                 progress.append(d['prompt_progress'])
             text.append(content if not is_progress else '')
@@ -159,6 +162,7 @@ def request(server, prompt, n_predict, *, benchmark=False, cache_prompt=False, r
                     prompt_tokens=tm['prompt_n'], prompt_ms=tm['prompt_ms'], prompt_tokens_per_second=tm['prompt_per_second'],
                     generated_tokens=tm['predicted_n'], decode_tokens_per_second=tm['predicted_per_second'],
                     output_sha256=hashlib.sha256(output.encode()).hexdigest(), text_head=output[:160],
+                    **({'generated_token_ids': token_ids} if retain_tokens else {}),
                     **({'output_text': output} if retain_output else {}),
                     **({'prompt_progress': progress, 'stream_arrivals': arrivals,
                         'ttft_method': 'client arrival of first non-empty generated content'} if benchmark else {}))

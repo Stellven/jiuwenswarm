@@ -39,8 +39,8 @@ import uuid
 from . import capped_replay
 from .store import ScopeDenied, Store
 
-RECIPES = ('build', 'convert', 'quantize', 'serve', 'accuracy', 'manifest', 'muse_r9_measure')
-MODEL_LOADS = {'convert', 'quantize', 'serve', 'accuracy', 'muse_r9_measure'}
+RECIPES = ('build', 'convert', 'quantize', 'serve', 'accuracy', 'manifest', 'muse_r9_measure', 'muse_r11_cache')
+MODEL_LOADS = {'convert', 'quantize', 'serve', 'accuracy', 'muse_r9_measure', 'muse_r11_cache'}
 # attempt kind: build counts against build_attempts, model_run against gpu_launches; manifest (hashing files) neither
 KIND = {'build': 'build', 'manifest': 'manifest'}
 REPLAY_KIND = 'pack_replay'
@@ -231,6 +231,9 @@ def validate(store, task_id, recipe, args, *, node_id=None):
     home = _home(store)
     if recipe not in RECIPES:
         raise ValueError(f'recipe is one of {RECIPES}')
+    if recipe == 'muse_r11_cache':
+        from .muse_r11_cache import admit
+        return admit(getattr(store, '_store', store), task_id, args, node_id)
     if recipe == 'muse_r9_measure':
         from .muse_r9_measure import admit
         return admit(getattr(store, '_store', store), task_id, args, node_id)
@@ -1030,6 +1033,11 @@ def _run_replay(run):
     run.files['pack-manifest.json'] = copy
     run.log('replay verified', result['bytes'], 'bytes and', result['tensors'], 'tensors')
     return dict(result, replayed_from=source, seconds=round(time.monotonic() - started, 1))
+
+
+def recipe_muse_r11_cache(run):
+    from .muse_r11_cache import execute
+    return execute(run)
 
 
 def recipe_muse_r9_measure(run):

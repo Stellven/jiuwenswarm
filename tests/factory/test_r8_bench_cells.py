@@ -193,7 +193,8 @@ def test_ttft_starts_at_generated_content_after_progress_and_empty_token(monkeyp
                 clock[0] = arrival
                 yield ('data: ' + json.dumps(event) + '\n').encode()
         return consume(chunks())
-    result = lab_v4_fast.request(SimpleNamespace(post=post), 'prompt', 2, benchmark=True)
+    result = lab_v4_fast.request(SimpleNamespace(post=post), 'prompt', 2, benchmark=True, retain_tokens=True)
+    assert result['generated_token_ids'] == [42, 43]
     assert result['client_ttft_ms'] == 5200
     assert result['request_total_ms'] == 6000
     assert [a['elapsed_ms'] for a in result['stream_arrivals'] if a['generated_content']] == [5200]
