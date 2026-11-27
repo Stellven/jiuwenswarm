@@ -158,6 +158,10 @@
   color: #087668;
 }
 
+.engine-series[data-arm='AQBC'] {
+  color: #80479b;
+}
+
 .engine-legend,
 .engine-bars,
 .engine-memory,

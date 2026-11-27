@@ -29,11 +29,13 @@ STATIC_READ = re.compile(r'/(?:index\.html|logo\.svg|favicon\.ico|assets/[A-Za-z
 
 
 class EngineRuns(FactoryHttpService):
-    def __init__(self, live, history, replay):
+    def __init__(self, live, history, replay, second_replay=None):
+        published = [second_replay] if second_replay else []
         super().__init__(
-            roots=[live, history, replay], historical_roots=[history, replay],
+            roots=[live, history, replay, *published], historical_roots=[history, replay, *published],
             launch_root=False, launch_home_root=False,
         )
+        self.second_replay = second_replay
         self.live, self.history, self.replay = live, history, replay
 
     def catalog(self):
@@ -42,6 +44,7 @@ class EngineRuns(FactoryHttpService):
             if (path == self.live and item['task_id'] == LIVE_TASK and item['kind'] == 'live')
             or (path == self.history and item['task_id'] == HISTORY_TASK and item['kind'] == 'live')
             or (path == self.replay and item['task_id'] == LIVE_TASK and item.get('demo') is True)
+            or (path == self.second_replay and item['kind'] == 'bundle' and item.get('demo') is True)
         ]
 
     def detail(self, run_id):
@@ -115,7 +118,7 @@ class ViewerBoundary:
         )(scope, receive, send)
 
 
-def make_app(dist, live, history, replay):
+def make_app(dist, live, history, replay, second_replay=None):
     dist, live, history, replay = (Path(path).expanduser().resolve() for path in (dist, live, history, replay))
     if not (dist / 'index.html').is_file():
         raise ValueError(f'Engine web build is missing: {dist / "index.html"}')
@@ -123,7 +126,7 @@ def make_app(dist, live, history, replay):
         if not (path / 'factory.sqlite').is_file():
             raise ValueError(f'Factory home is missing its database: {path}')
 
-    service = EngineRuns(live, history, replay)
+    service = EngineRuns(live, history, replay, second_replay)
     app = FastAPI(openapi_url=None)
     attach_factory_routes(app, service=service)
     app.mount('/', StaticFiles(directory=dist, html=True), name='engine-frontend')
@@ -139,9 +142,10 @@ def main(argv=None):
     parser.add_argument('--live', type=Path, default=muse / 'graph-r8')
     parser.add_argument('--history', type=Path, default=muse / 'graph-v4')
     parser.add_argument('--replay', type=Path, required=True, help='Exact R8 curated replay bundle directory.')
+    parser.add_argument('--second-replay', type=Path, default=muse/'r9/curated-replay')
     args = parser.parse_args(argv)
     try:
-        app = make_app(args.dist, args.live, args.history, args.replay)
+        app = make_app(args.dist, args.live, args.history, args.replay, args.second_replay if args.second_replay.is_dir() else None)
     except ValueError as exc:
         parser.error(str(exc))
     # The redacting log record factory consumes formatting arguments before Uvicorn's access formatter.

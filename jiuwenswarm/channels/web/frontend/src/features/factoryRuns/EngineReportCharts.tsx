@@ -394,12 +394,13 @@ export function AccuracyPlot({ rows, inspect }: { rows: EngineRow[]; inspect: In
     <ul className="engine-accuracy">
       {rows.map((row) => (
         <li key={row.id}>
-          {numeric(row.n) && numeric(row.reference_acc) && numeric(row.acc) && (
+          {row.arm === 'AQBC' && row.verdict && <RowValue row={row} inspect={inspect}>{row.verdict}</RowValue>}
+          {row.arm !== 'AQBC' && numeric(row.n) && numeric(row.reference_acc) && numeric(row.acc) && (
             <RowValue row={row} inspect={inspect}>
               {mmluSummary(row.n, row.reference_acc * 100, row.acc * 100)}
             </RowValue>
           )}
-          <span>A · NVFP4 vs AQB · mixed 2-bit</span>
+          <span>{row.arm === 'AQBC' ? 'First 25 AQB load 8 questions, in the original order' : 'A · NVFP4 vs AQB · mixed 2-bit'}</span>
         </li>
       ))}
     </ul>

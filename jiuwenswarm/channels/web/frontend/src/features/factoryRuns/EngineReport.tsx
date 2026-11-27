@@ -245,7 +245,7 @@ function SourceDialog({ rows, close }: { rows: EngineRow[]; close: () => void })
 
 function ReportTable({ rows, speed, inspect }: { rows: EngineRow[]; speed: Ratio[]; inspect: Inspect }) {
   return (
-    <Panel id="comparison" title="A and AQB comparison">
+    <Panel id="comparison" title="First-request comparison">
       <div className="engine-table-wrap">
         <table data-testid="factory-runs-engine-comparison-table">
           <thead>
@@ -384,6 +384,38 @@ function ReportTable({ rows, speed, inspect }: { rows: EngineRow[]; speed: Ratio
   );
 }
 
+function FollowupTable({ rows, inspect }: { rows: EngineRow[]; inspect: Inspect }) {
+  const followups = rows.filter((row) => row.run === 'r9-aqbc' && row.request?.state === 'follow-up');
+  if (!followups.length) return null;
+  return (
+    <Panel id="followup" title="Follow-up question">
+      <p>Two questions share one document. AQBC reuses its processed prefix. The AQB control runs on the same server with prompt reuse off. A is the published warm reference.</p>
+      <table>
+        <thead><tr><th>Document</th><th>Arm</th><th>First token (s)</th><th>Decode (tok/s)</th><th>Total (s)</th></tr></thead>
+        <tbody>
+          {['p512', 'p2048'].flatMap((name) => ['A', 'AQB', 'AQBC'].map((arm) => {
+            const recorded = (arm === 'A' ? rows : followups).filter((row) => row.arm === arm &&
+              row.request?.name === name && (arm !== 'A' || (row.run === finalRun && row.request?.state === 'warm')));
+            const samples = recorded.filter((row) => !excluded(row));
+            if (!samples.length) return <tr key={name + arm}><th>{name.slice(1)}</th><td>{arm}</td>
+              <td colSpan={3}>{recorded.length
+                ? <RowValue row={recorded[0]} related={recorded} inspect={inspect}>Excluded by the quiet rule</RowValue>
+                : 'No measurement recorded'}</td></tr>;
+            return <tr key={name + arm}><th>{name.slice(1)}</th><td>{arm}</td>
+              {(['ttft_ms', 'decode_tps', 'total_ms'] as const).map((key) => {
+                const values = samples.map((row) => row.metrics?.[key]).filter(numeric);
+                return <td key={key}>{values.length > 0 && <RowValue row={samples[0]} related={samples} inspect={inspect}>
+                  {fmt(median(values) / (key === 'decode_tps' ? 1 : 1000), 2)}
+                </RowValue>}</td>;
+              })}
+            </tr>;
+          }))}
+        </tbody>
+      </table>
+    </Panel>
+  );
+}
+
 export function EngineReport() {
   const [dataset, setDataset] = useState<Benchmark>();
   const [error, setError] = useState('');
@@ -409,19 +441,18 @@ export function EngineReport() {
   });
   const headline = deliveryHeadline(dataset?.delivery);
   const accuracy = observations
-    .filter((row) => row.kind === 'accuracy' && row.run === finalRun && row.arm === 'AQB')
-    .sort((a, b) => (b.n ?? 0) - (a.n ?? 0))
-    .slice(0, 1);
+    .filter((row) => row.kind === 'accuracy' && ((row.run === finalRun && row.arm === 'AQB') || (row.run === 'r9-aqbc' && row.arm === 'AQBC')))
+    .sort((a, b) => (b.n ?? 0) - (a.n ?? 0));
   const inspect: Inspect = (row, related = []) => {
     setSelection([...new Map([row, ...related].map((source) => [source.id, source])).values()]);
   };
   const api = `${getApiBase()}/api/factory/engine-bench`;
   const status = error
-    ? `Unable to load R8 measurements. ${error}`
+    ? `Unable to load engine measurements. ${error}`
     : !dataset
-      ? 'Loading R8 measurements…'
+      ? 'Loading engine measurements…'
       : !arms.length
-        ? 'R8 measurements are unavailable.'
+        ? 'Engine measurements are unavailable.'
         : '';
 
   return (
@@ -429,7 +460,7 @@ export function EngineReport() {
       <div className="engine-report-content">
         <header className="engine-report-header">
           <div>
-            <h1>R8 Engine Report</h1>
+            <h1>{arms.some((row) => row.arm === 'AQBC') ? 'Engine Report' : 'R8 Engine Report'}</h1>
             <p>Muse Spark Open on DGX Spark</p>
           </div>
         </header>
@@ -446,6 +477,7 @@ export function EngineReport() {
         {arms.length > 0 && (
           <>
             <ReportTable rows={arms} speed={speed} inspect={inspect} />
+            <FollowupTable rows={observations} inspect={inspect} />
             <div className="engine-report-grid">
               <Panel id="ttft" title="Time to first token">
                 <LengthPlot rows={requests} metric="ttft_ms" unit="s" scale={1000} inspect={inspect} />
@@ -455,7 +487,7 @@ export function EngineReport() {
                 <h3>Total request time</h3>
                 <LengthPlot rows={requests} metric="total_ms" unit="s" scale={1000} inspect={inspect} />
               </Panel>
-              <Panel id="speed" title="AQB TTFT speedup versus A">
+              <Panel id="speed" title="TTFT speedup versus A">
                 <SpeedBars ratios={speed} inspect={inspect} />
               </Panel>
               <Panel id="memory" title="Device and host memory">
@@ -470,7 +502,7 @@ export function EngineReport() {
             <footer className="engine-method" data-testid="factory-runs-engine-method">
               <h2>How this was measured</h2>
               <p>
-                Both arms ran the same R8 image and generated 32 tokens per request. We estimated time to first token
+                A and AQB used the R8 image. {arms.some((row) => row.arm === 'AQBC') && 'AQBC used the Run 2 image with the same server binary and a prefix-store configuration. '}Each speed request generated 32 tokens. We estimated time to first token
                 from the server’s first sampled token, aligned to the client clock
                 {clockDifferences.length > 0 && ` (median difference from direct NVFP4 timing: ${fmt(median(clockDifferences))} ms)`}. Timing began on a quiet machine and
                 warm results are medians. The NVFP4 accuracy reference used the same 250 questions on Nov 25 with engine build 9048bad8d.

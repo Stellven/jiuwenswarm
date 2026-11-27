@@ -29,7 +29,7 @@ export type EngineRow = {
     name?: string;
     prompt_tokens?: number;
     n_predict?: number;
-    state?: 'cold' | 'warm';
+    state?: 'cold' | 'warm' | 'follow-up';
     repeat?: number;
     generated_tokens?: number;
     cached_tokens?: number;
@@ -110,10 +110,13 @@ export const finalRun = 'r8-final-bench';
 const armTitles: Record<string, string> = {
   A: 'A · NVFP4 baseline',
   AQB: 'AQB · mixed 2-bit + prefill plan',
+  AQBC: 'AQBC · mixed 2-bit + prefill + prefix store',
 };
 
 export function isReportArm(row: EngineRow) {
-  return row.run === finalRun && row.kind !== 'accuracy' && (row.arm === 'A' || row.arm === 'AQB');
+  if (row.kind === 'accuracy' || row.request?.state === 'follow-up') return false;
+  return (row.run === finalRun && (row.arm === 'A' || row.arm === 'AQB')) ||
+    (row.run === 'r9-aqbc' && row.arm === 'AQBC');
 }
 
 export function excluded(row: EngineRow) {
@@ -123,7 +126,7 @@ export function excluded(row: EngineRow) {
 }
 
 export function armLabel(row: EngineRow) {
-  const title = row.run === finalRun && row.arm ? armTitles[row.arm] : undefined;
+  const title = (row.run === finalRun || row.run === 'r9-aqbc') && row.arm ? armTitles[row.arm] : undefined;
   if (title) return title;
   return [row.arm, row.engine?.name, row.pack?.format ?? row.pack?.name].filter(Boolean).join(' · ') || 'Unknown arm';
 }
@@ -191,7 +194,7 @@ export function ratios(rows: EngineRow[]): Ratio[] {
   const baseline = eligible.filter((row) => row.arm === 'A');
   return eligible.flatMap((candidate) => {
     if (
-      candidate.arm !== 'AQB' ||
+      (candidate.arm !== 'AQB' && candidate.arm !== 'AQBC') ||
       (candidate.corrected_verdict?.status ?? (candidate.quiet?.eligible ? 'accepted' : '')) !== 'accepted'
     )
       return [];
@@ -204,7 +207,7 @@ export function ratios(rows: EngineRow[]): Ratio[] {
     if (!baselines.length) return [];
     const peers = eligible.filter(
       (row) =>
-        row.arm === 'AQB' &&
+        row.arm === candidate.arm &&
         row.request?.name === candidate.request?.name &&
         row.request?.prompt_tokens === candidate.request?.prompt_tokens &&
         row.request?.state === candidate.request?.state,
