@@ -25,8 +25,9 @@ def run(capability, inputs):
     if capability == 'verify_runtime_stage':
         from jiuwenswarm.factory.muse_r9_runtime import verify_runtime_stage
 
-        result = verify_runtime_stage(inputs['measurements'])
-        checks = [dict(check, status=check['status'].lower(), stage='runtime acceptance') for check in result['checks']]
+        policy = inputs.get('policy')
+        result = verify_runtime_stage(inputs['measurements'], policy=policy)
+        checks = result['checks']
         return dict(done=result['done'], checks=checks, result=result)
     return {'result': getattr(reference, OPERATIONS[capability])(inputs['spec'])}
 

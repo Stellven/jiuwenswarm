@@ -1,5 +1,6 @@
 """Recompute R9 release checks from the host measurement receipt and raw files."""
 
+import json
 import math
 from pathlib import Path
 import re
@@ -15,6 +16,11 @@ from scripts.factory import lab_v4_quiet as quiet, r8_derive_p_ttft, r9_prefix_c
 from scripts.factory.r8_bench_score import REQUEST
 
 STAGE = 'hardware measurement'
+OWNER_005 = 'muse-r9-owner-005'
+OWNER_006 = 'muse-r9-owner-006'
+REJUDGE_POLICIES = (OWNER_005, OWNER_006)
+METHOD_NOTE = 'measured on a shared machine; background activity recorded, not filtered'
+COLD_METHOD = 'The first post-start request was still paging in the pack. Cold cells are shown for context.'
 # Report raw ratios. A single uncontrolled latency observation is noisy, so the
 # check uses a declared 10% tolerance and stratifies cold and warm observations.
 REGRESSION_TOLERANCE = 0.10
@@ -113,15 +119,18 @@ def _speed_rows(speed, ttft, raw_log, proposal, prompts):
     return indexed, policy, previous_end
 
 
-def _standard_comparison(rows, policy):
+def _standard_comparison(rows, quiet_policy, *, adjudication=None):
     comparisons = []
     for name in PROMPTS:
         for state, repeats in (('cold', REPEATS[:1]), ('warm', REPEATS[1:])):
             pairs = [(rows[ARM, name, state, repeat, 'speed'], rows[CONTROL, name, state, repeat, 'speed'])
                      for repeat in repeats]
-            eligible = [(a, b) for a, b in pairs if _eligible(a, policy) and _eligible(b, policy)]
+            quiet_pairs = [(a, b) for a, b in pairs if _eligible(a, quiet_policy) and _eligible(b, quiet_policy)]
+            eligible = pairs if adjudication in REJUDGE_POLICIES else quiet_pairs
             group = dict(request=name, state=state, eligible_pairs=len(eligible), attempted_pairs=len(pairs),
                          median_candidate_to_control={})
+            if adjudication in REJUDGE_POLICIES:
+                group.update(judged=state == 'warm', pairs_used=len(eligible), quiet_pairs=len(quiet_pairs))
             for metric in METRICS:
                 ratios = [a[metric] / b[metric] for a, b in eligible]
                 if ratios:
@@ -130,11 +139,13 @@ def _standard_comparison(rows, policy):
                 ratio >= 1 - REGRESSION_TOLERANCE if metric == 'decode_tokens_per_second'
                 else ratio <= 1 + REGRESSION_TOLERANCE
                 for metric, ratio in group['median_candidate_to_control'].items())
+            if adjudication in REJUDGE_POLICIES and state == 'cold':
+                group['within_tolerance'] = None
             comparisons.append(group)
     return comparisons
 
 
-def _followup_comparison(rows, proposal, policy):
+def _followup_comparison(rows, proposal, quiet_policy, *, adjudication=None):
     comparisons = []
     for name in PROMPTS:
         candidate = rows[ARM, name, 'follow-up', 0, 'followup']
@@ -150,13 +161,15 @@ def _followup_comparison(rows, proposal, policy):
                 f'{name}: follow-up ordering is invalid')
         cached = candidate['reuse']['cached_tokens']
         document = proposal['speed_prompt_pins'][name]['verified_server_tokens']
-        eligibility = all(_eligible(row, policy) for row in (candidate, control, seed, control_seed))
+        eligibility = all(_eligible(row, quiet_policy) for row in (candidate, control, seed, control_seed))
         comparisons.append(dict(
             request=name, candidate_cached_tokens=cached, control_cached_tokens=control['reuse']['cached_tokens'],
             document_tokens=document, eligibility=eligibility,
             candidate={key: candidate[key] for key in METRICS}, control={key: control[key] for key in METRICS},
             meaningful_reuse=cached >= 0.8 * document,
             lower_ttft=candidate['derived_ttft_ms'] < control['derived_ttft_ms']))
+        if adjudication in REJUDGE_POLICIES:
+            comparisons[-1]['judged'] = True
     return comparisons
 
 
@@ -205,10 +218,17 @@ def _accuracy(mmlu, raw_log, previous_end, expected, reference, load):
     return comparison
 
 
-def verify_runtime_stage(manifest):
-    """Return a gate verdict; excluded windows and missing evidence never imply a pass."""
+def verify_runtime_stage(manifest, policy=None):
+    """Recheck immutable measurements using the selected, contract-pinned adjudication."""
+    if policy is not None and policy not in REJUDGE_POLICIES:
+        raise ValueError(f'Unknown R9 runtime checker policy: {policy!r}')
     checks = []
     summary = {}
+    rejudge = policy in REJUDGE_POLICIES
+    if rejudge:
+        summary.update(cold_method=COLD_METHOD,
+                       method_note=METHOD_NOTE if policy == OWNER_006 else
+                       'All recorded rows were used. The original quiet verdict stays with each row as a flag.')
 
     def check(name, passed, detail):
         checks.append(dict(name=name, status='pass' if passed else 'fail', stage=STAGE, detail=detail))
@@ -255,17 +275,21 @@ def verify_runtime_stage(manifest):
         check('verified_image_and_capped_load', True,
               'Verified configured image and unchanged pack ran once on a capped single-slot server.')
         require(ttft['source_sha256'] == files['speed.json'], 'TTFT sidecar names different speed data')
-        rows, policy, log_end = _speed_rows(speed, ttft, raw_log, expected.proposal, prompts)
+        rows, quiet_policy, log_end = _speed_rows(speed, ttft, raw_log, expected.proposal, prompts)
         check('valid_streams_and_coherence', True,
               'All standard and document question requests completed with 32 tokens and coherent text.')
-        standard = _standard_comparison(rows, policy)
+        standard = _standard_comparison(rows, quiet_policy, adjudication=policy)
         summary.update(standard=standard, standard_regression_tolerance=REGRESSION_TOLERANCE)
-        check('standard_same_load_speed', all(item['within_tolerance'] for item in standard),
+        judged = [item for item in standard if item.get('judged', True)]
+        check('standard_same_load_speed', all(item['within_tolerance'] for item in judged),
+              'Compare both recorded warm pairs at each length with a 10% relative tolerance.' if rejudge else
               'Compare matched quiet pairs at both lengths and page-cache states, with a 10% relative tolerance.')
-        followup = _followup_comparison(rows, expected.proposal, policy)
+        followup = _followup_comparison(rows, expected.proposal, quiet_policy, adjudication=policy)
         summary['followup'] = followup
         check('followup_reuse_and_ttft',
-              all(item['eligibility'] and item['meaningful_reuse'] and item['lower_ttft'] for item in followup),
+              all((rejudge or item['eligibility']) and item['meaningful_reuse'] and item['lower_ttft']
+                  for item in followup),
+              'Both follow-ups reused the document prefix and beat the cache-off TTFT.' if rejudge else
               'Both follow-up pairs had quiet eligibility, reused the document prefix, and beat the cache-off TTFT.')
         accuracy = _accuracy(mmlu, raw_log, log_end, expected, ref_mmlu, load)
         summary['accuracy'] = accuracy
@@ -278,5 +302,36 @@ def verify_runtime_stage(manifest):
     except (OSError, ValueError, KeyError, TypeError, IndexError, AttributeError, OverflowError, StopIteration) as error:
         check('runtime_evidence', False, str(error))
     done = bool(checks) and all(check['status'] == 'pass' for check in checks)
-    return dict(done=done, decision='passed' if done else 'refused', checks=checks, summary=summary,
-                stage_reached=STAGE if done else None)
+    result = dict(done=done, decision='passed' if done else 'refused', checks=checks, summary=summary,
+                  stage_reached=STAGE if done else None)
+    if rejudge:
+        result['policy'] = policy
+    return result
+
+
+def rejudge_file(source, destination, policy=OWNER_006):
+    """Write a new verdict beside the campaign without overwriting any evidence."""
+    source, destination = Path(source).resolve(), Path(destination).resolve()
+    manifest = read(source)
+    root = Path(manifest['root']).resolve()
+    if (source != root / 'measurements.json' or destination.parent != root.parent
+            or policy not in REJUDGE_POLICIES):
+        raise ValueError('Use the original measurements.json and a new verdict beside the measurement directory')
+    result = verify_runtime_stage(manifest, policy=policy)
+    result['source'] = dict(path=str(source), sha256=digest(source), load_id=manifest['load_id'],
+                            request_id=manifest['request_id'])
+    with destination.open('x', encoding='utf-8') as output:
+        json.dump(result, output, indent=1, allow_nan=False)
+        output.write('\n')
+    return result
+
+
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('measurements', type=Path)
+    parser.add_argument('output', type=Path)
+    parser.add_argument('--policy', choices=REJUDGE_POLICIES, default=OWNER_006)
+    options = parser.parse_args()
+    raise SystemExit(0 if rejudge_file(options.measurements, options.output, options.policy)['done'] else 1)

@@ -103,6 +103,7 @@ capabilities:
     does: Verify measured prefix reuse, same-load speed and full paired accuracy from the runtime evidence.
     takes:
       measurements: json
+      policy: {kind: text, optional: true}
     gives:
       done: {kind: json, schema: {type: boolean}}
       checks: json
