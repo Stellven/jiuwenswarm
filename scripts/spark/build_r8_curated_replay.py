@@ -14,6 +14,7 @@ from jiuwenswarm.factory.export import snapshot, verify
 from jiuwenswarm.factory.node_finalize import digest
 from jiuwenswarm.gateway.channel_manager.web.factory_http import FactoryHttpService
 from scripts.spark.build_demo_replays import Builder, SCHEMA, TABLES, Omitted, sha, utc
+from scripts.spark.muse_replay_presentation import FACTORY, RUNTIME, RUN1_NODES
 
 TASK = 'muse-2bit-demo-r8'
 TITLE = 'Muse R8 · Contract to measured engine'
@@ -114,7 +115,8 @@ class R8Replay(Builder):
         plan = self.evidence(REPO / PLAN, 'Original graph plan', 'Exact initial node plan and dependencies.',
                              'repository_file', f'evidence/graph-r8/{PLAN.name}', source_path_in_repository=str(PLAN))
         self.step('The contract: a 2-bit engine image for Muse Spark Open',
-                  'The owner asked for an engine image from stock llama.cpp and the official NVFP4 checkpoint, '
+                  'Specify the engine artifact, target, workload and acceptance criteria. In this run: '
+                  'the owner asked for an engine image from stock llama.cpp and the official NVFP4 checkpoint, '
                   'a mixed 2-bit pack and a prefill plan. The lab compared A (NVFP4) with AQB (A plus the '
                   'quantization and prefill capsules) using the delivered image.',
                   ['pin_inputs'], TASK, [contract, plan], refs=[f'{TASK}:plan:1'])
@@ -164,7 +166,8 @@ class R8Replay(Builder):
                                     'The host refused the proposal during the rehearsal before the run.',
                                     [dict(path=progress_path, line=line_number, line_sha256=sha(refusal.encode()))])
         self.step('The scheduler finalizes each node contract',
-                  f'The scheduler agent ({model}) read the briefing and finalized {len(finals)} node contracts. '
+                  'Turn the planned work into executable node contracts with evidence requirements. In this run: '
+                  f'the scheduler agent ({model}) read the briefing and finalized {len(finals)} node contracts. '
                   'For prefill it required a measured calibration, a cache and memory budget check, and one planned '
                   f'micro-batch per prompt. The live run recorded {refused} refusals. In rehearsal the host rejected a pin proposal for scope.',
                   ['size_prefill_batch'], row['obs_id'], [final_file, rehearsal, brief_file], refs=[r['obs_id'] for r in finals])
@@ -176,37 +179,40 @@ class R8Replay(Builder):
         converter_diff = self.artifact('node-check-b111d7385af11506b28e246e-diff', 'converter.diff',
                                        'Converter code diff', 'JiuwenSwarm’s retained stacked-NVFP4 source patch.')
         converter_checks = self.projection('converter-verifier.json', self.obs(converter)['verifier'],
-                                           'Converter verifier result', 'The tiny conversion compares the packed blocks bit for bit.',
+                                           'Factory stage · Converter verifier', 'The tiny conversion compares the packed blocks bit for bit.',
                                            [self.record(converter)])
         before = 'node-check:ingest_nvfp4:converter:2:f9ff60e9'
         trail = self.projection('converter-corrections.json', [self.observations[key] for key in [before, converter]],
                                 'Converter correction sequence', 'Original advisory findings and the checked revision.',
                                 [self.record(before), self.record(converter)])
         self.step('The converter: JiuwenSwarm writes it, checks pass after repairs',
-                  'The worker extended the converter for stacked NVFP4 experts. The verifier passed bit for bit, '
+                  'Convert checkpoint tensors into the engine format and verify weight values on a small fixture. In this run: '
+                  'the worker extended the converter for stacked NVFP4 experts. The verifier passed bit for bit, '
                   'and the revised diff added the requested probe and scale logging.',
                   ['ingest_nvfp4'], converter, [converter_diff, converter_checks, trail], refs=[before],
                   trail=self.trails['ingest_nvfp4'])
         wiring_diff = self.artifact('node-check-e9721ac43159b081a8ae4bc6-diff', 'expert-scale-wiring.diff',
                                     'Expert scale wiring diff', 'Retained changes to expert projection scale arguments.')
         fixture = self.artifact('run-999cc53e8979-result.json', 'expert-scale-fixture.json',
-                                'Fixture verifier report', 'Stock and wired KLD, slice limits and scale-free output comparison.')
+                                    'Factory stage · Small-fixture verifier', 'Stock and wired KLD, slice limits and scale-free output comparison.')
         fixture_checks = {check['name']: check['detail'] for check in self.obs(wiring)['verifier']['checks']}
         kld, kld_limit = re.search(r'mean KLD ([\d.]+).*limit ([\d.]+)', fixture_checks['nvfp4_kld']).groups()
         error, tolerance = re.search(r'worst max\|d\|/max\|ref\| ([\d.]+) \(tol ([\d.]+)',
                                      fixture_checks['expert_slice']).groups()
         self.step('Expert scale wiring: stock gives NaN, wired matches',
-                  f'The fixture recorded stock NaN and wired KLD {kld} (limit {kld_limit}), with worst slice '
+                  'Wire quantization scales into the engine and verify numerical agreement on small fixtures. In this run: '
+                  f'the fixture recorded stock NaN and wired KLD {kld} (limit {kld_limit}), with worst slice '
                   f'{error} (limit {tolerance}) and byte-identical scale-free output.',
                   ['wire_expert_scales'], wiring, [wiring_diff, fixture], refs=['156a50a3480d41f0bf02c7d43111be96'])
-        build = self.artifact('run-b9a0873d31b3-result.json', 'e0-build.json', 'E0 compile receipt',
+        build = self.artifact('run-b9a0873d31b3-result.json', 'e0-build.json', 'Factory stage · E0 compile receipt',
                               'The source commit and executable from the capped build.')
         smoke = self.artifact('run-14b78261ad4b-rows.json', 'e0-nvfp4-smoke.json',
-                              'E0 NVFP4 smoke · First request after start',
+                              'Runtime stage · E0 NVFP4 smoke · First request after start',
                               'The recorded request, generated text and timings.')
         smoke_receipt = self.artifact('run-14b78261ad4b-result.json', 'e0-nvfp4-smoke-receipt.json',
-                                      'Capped smoke receipt', 'Recorded 96 GiB cgroup limit and smoke outcome.')
+                                      'Runtime stage · Capped smoke receipt', 'Recorded 96 GiB cgroup limit and smoke outcome.')
         self.step('Base engine E0 compiled and smoke-tested',
+                  'Build the pinned source and check a real-model response on the target. In this run: '
                   f"E0 compiled from the agent’s commit. One NVFP4 smoke request under the "
                   f"{self.obs(e0)['memory_max'].removesuffix('G')} GiB cap generated coherent text.",
                   ['build_base_engine'], e0, [build, smoke, smoke_receipt],
@@ -226,18 +232,19 @@ class R8Replay(Builder):
         experts = replay_result['census']['routed_expert']
         source_bytes = self.obs(source_census)['manifest']['bytes']
         census = self.projection('mixed-pack-census.json', dict(census=replay_result['census'], **self.obs(pack)),
-                                 'Mixed pack census and verifier',
+                                 'Factory stage · Mixed pack census and verifier',
                                  'Native header census, scale preservation and size.',
                                  [self.record(pack), self.record(source_census), self.record(replay_id)])
         receipt = self.artifact('run-d14d2adce4a5-result.json', 'mixed-pack-replay.json', 'Read-only replay receipt',
                                 'Original job, original duration and current verification duration.')
-        smoke_file = self.artifact('run-3b1a557a0045-rows.json', 'mixed-pack-smoke.json', 'Eight held-out smoke rows',
+        smoke_file = self.artifact('run-3b1a557a0045-rows.json', 'mixed-pack-smoke.json', 'Runtime stage · Eight held-out smoke rows',
                                    'Fresh mixed-pack E0 responses from the single capped run.')
         before = self.obs(source_census)['manifest']
         after_types = Counter()
         for role in replay_result['census'].values():
             after_types.update(role)
         self.step('Quantization: the new mixed 2-bit pack',
+                  'Choose a bit width per weight group from a sensitivity census and build the pack. In this run: '
                   f"IQ2_XXS gate/up and Q2_K down cover {experts['iq2_xxs']} and {experts['q2_k']} routed tensors. "
                   f"The pack is {self.obs(pack)['bytes'] / 1e9:.1f} GB versus {source_bytes / 1e9:.1f} GB NVFP4. "
                   'The pack compiler produced it in v4 in '
@@ -281,6 +288,7 @@ class R8Replay(Builder):
                                 event['severity'] == 'blocker' and event['status'] == 'open' for event in findings)
         counts = trail['counts']
         self.step('Agent help with the verifier role',
+                  'Record review findings and verify repairs against the same evidence. In this run: '
                   f'{reviewers} reviewer findings and {host_blocked} host-blocked verifier call. '
                   f"The correction trail records {counts['repairs']} repair and {counts['notes']} notes. "
                   f'{advisory_blockers} pack blockers remain advisory.',
@@ -297,16 +305,17 @@ class R8Replay(Builder):
         verify_file = self.projection('prefill-verifier.json', dict(check=self.observations[check],
                                       paired_runtime=self.observations[paired],
                                       advisory_followups=[self.observations[key] for key in followups]),
-                                      'Prefill verifier and advisory follow-ups',
+                                      'Factory and Runtime stages · Prefill verifier and advisory follow-ups',
                                       'The capsule pass, the reviewer’s four-token tail and the paired output evidence.',
                                       [self.record(key) for key in [check, paired, *followups]])
-        load_log = self.artifact('run-e5b36273f07c-server.log', 'prefill-load.log', 'Planned capped load log',
+        load_log = self.artifact('run-e5b36273f07c-server.log', 'prefill-load.log', 'Runtime stage · Planned capped load log',
                                  'Recorded buffer allocation, cache and batch settings.')
         plan = self.obs(batch)['plan']
         plan_file = json.loads((self.stage / planned['path']).read_bytes())
         reference = plan_file['reference']
         self.step('Prefill batch plan for the 2-bit engine',
-                  f"The capsule increased the micro-batch from {reference['n_ubatch']} to {plan_file['ubatch']} "
+                  "Size prefill batches to the target's device budget from measured costs. In this run: "
+                  f"the capsule increased the micro-batch from {reference['n_ubatch']} to {plan_file['ubatch']} "
                   f"and requested {self.obs(paired)['requested_moe_cache_mib']} MiB of expert cache. "
                   f"The planned load stayed within {plan['device_budget_mib']} MiB and matched default-batch output. "
                   'The short prompt already fit in one micro-batch. The plan targeted one for the long prompt, '
@@ -320,13 +329,13 @@ class R8Replay(Builder):
                    'requested cache (MiB)': plan_file['moe_cache_mib']})
         image_receipt = self.artifact(f'{IMAGE}:receipt', 'image-build-receipt.json', 'Image build receipt',
                                       'The accepted image id and build source commit.')
-        image_check = self.artifact(f'{IMAGE}:image-check', 'image-version-check.json', 'Image version check',
+        image_check = self.artifact(f'{IMAGE}:image-check', 'image-version-check.json', 'Factory stage · Image version check',
                                     'The image ran llama-server --version without a model mount or GPU.')
         image = json.loads((self.stage / image_check['path']).read_bytes())
         delivery = 'labreq-2de8ad02113b333e0c22ae1f:request'
         gate = 'node-check:deliver_to_lab:lab_request:1:6f9e8d04'
         request = self.projection('lab-request-and-gate.json', [self.observations[key] for key in [delivery, gate]],
-                                  'Lab request and delivery gate', 'The host gate’s cited image, config and pack digests.',
+                                  'Factory stage · Lab request and delivery gate', 'The host gate’s cited image, config and pack digests.',
                                   [self.record(delivery), self.record(gate)])
         rejected = [obs for obs in self.observations.values() if obs['kind'] == 'build_image_request_validation']
         failed = self.observations['107c03b2666d44ac9e6572812a57e360:build-result']
@@ -340,7 +349,8 @@ class R8Replay(Builder):
                 (failed, 'Failed image build 107c03b2', 'Build result before the recipe repair.'),
                 (blocker, 'Image build failure and recipe repair', 'The recorded asset failure and approved CMake flags.')]]
         self.step('The image and the gate',
-                  f'The host rejected {len(rejected)} malformed build requests. A later build failed while fetching UI assets. '
+                  'Package the engine, verify its executable without a model, and seal the target request. In this run: '
+                  f'the host rejected {len(rejected)} malformed build requests. A later build failed while fetching UI assets. '
                   f"After the recipe repair, commit {image['source_commit'][:9]} built image {image['image_id'][7:19]}. "
                   'The image passed --version and the delivery gate checked the retained digests.',
                   ['build_image', 'deliver_to_lab'], delivery, [*checker_files, image_receipt, image_check, request],
@@ -357,7 +367,7 @@ class R8Replay(Builder):
                 raise ValueError('Expected exactly one measured A and AQB row per prompt length and cold/warm state')
             if any(cell['generated_tokens'] != 32 for cell in cells):
                 raise ValueError('The final benchmark requires 32 generated tokens in every speed cell')
-            report_file = self.evidence(self.report_path, 'Final engine benchmark', 'Measured A and AQB speed and accuracy.',
+            report_file = self.evidence(self.report_path, 'Runtime stage · Final engine benchmark', 'Measured A and AQB speed and accuracy.',
                                         'lab_file', 'evidence/lab/report.json', source_relative_path='r8-final/report.json')
             look = report['accuracy']
             measurement = dict(baseline='A · NVFP4 baseline. AQB · mixed 2-bit + prefill plan. Warm server rows show medians',
@@ -376,7 +386,8 @@ class R8Replay(Builder):
             warm_a_2048 = by_cell['A', 'p2048', 'warm']['ttft_ms'] / 1000
             warm_aqb_2048 = by_cell['AQB', 'p2048', 'warm']['ttft_ms'] / 1000
             self.step('Measured speed and accuracy',
-                      f'For Warm server rows, AQB reached the first token in {warm_aqb_512:.1f} s versus {warm_a_512:.1f} s for A '
+                      'Measure engine speed and correctness on the target with matched workloads. In this run: '
+                      f'for Warm server rows, AQB reached the first token in {warm_aqb_512:.1f} s versus {warm_a_512:.1f} s for A '
                       f'at 512, and {warm_aqb_2048:.1f} s versus {warm_a_2048:.1f} s at 2048. '
                       f"On {look['n']} MMLU zero-shot questions, A scored {look['acc_ref']:.1%} and AQB scored {look['acc_cand']:.1%}.",
                       ['deliver_to_lab'], primary, [report_file], measurement=measurement)
@@ -437,7 +448,8 @@ class R8Replay(Builder):
         warm_a = warm_p['baseline_a']['client_ttft_ms']
         warm_p = warm_p['measured']['client_ttft_ms']
         self.step('The measured result',
-                  f'At 2048 tokens on a Warm server, TTFT was {warm_a / 1000:.1f} s for historical A, {warm_b / 1000:.1f} s for B '
+                  'Measure speed on the target with matched workloads. In this run: '
+                  f'at 2048 tokens on a Warm server, TTFT was {warm_a / 1000:.1f} s for historical A, {warm_b / 1000:.1f} s for B '
                   f'and {warm_p / 1000:.1f} s for P. P was {warm_a / warm_p:.1f}× as fast to the first token as A.',
                   ['deliver_to_lab'], primary, [row_projection, report_file, baseline_file, accuracy_file],
                   measurement=measurement)
@@ -447,9 +459,13 @@ class R8Replay(Builder):
         node_ids = {node['node_id'] for node in graph['nodes']}
         if any(node not in node_ids for step in self.steps for node in step['graph_nodes']):
             raise ValueError('Replay references a node missing from the recorded R8 graph')
+        stages = [(), (), (FACTORY,), (FACTORY,), (FACTORY, RUNTIME), (FACTORY, RUNTIME),
+                  (FACTORY,), (FACTORY, RUNTIME), (FACTORY,), (RUNTIME,)]
+        for step, where in zip(self.steps, stages, strict=True):
+            step['stages'] = where
         self.write_json('replay.json', dict(schema=SCHEMA, title=TITLE, order=1, graph_mode='recorded',
                         summary='Ten steps from the owner contract to the delivered image and its lab measurements.',
-                        primary_task=TASK, source_homes=['graph-r8'], steps=self.steps))
+                        primary_task=TASK, source_homes=['graph-r8'], node_presentation=RUN1_NODES, steps=self.steps))
         for table in ('tasks', *TABLES):
             values = self.data[table] if table != 'artifacts' else [
                 self.artifact_rows[row['artifact_id']] for row in self.artifacts]
