@@ -4,6 +4,7 @@ Offline unit tests over a scratch store and contract file; no live agent, image 
 """
 import copy
 import json
+from pathlib import Path
 
 import pytest
 
@@ -247,3 +248,56 @@ def test_cli_revise_dry_run(live, capsys, monkeypatch):
     out = capsys.readouterr().out
     assert 'dry run, nothing written' in out and 'cancel port' in out and 'update build: depends_on [port] -> [image]' in out
     assert plan_get(store, 'rv')['history'][-1]['origin'] != 'operator'
+
+
+R9_TASK = 'muse-2bit-demo-r9'
+R9_REVISION = 'muse-2bit-demo-r9-amendment-004'
+
+
+@pytest.fixture
+def staged(tmp_path):
+    import jiuwenswarm.factory
+
+    controller = Controller(tmp_path)
+    filename = Path(jiuwenswarm.factory.__file__).parent / 'tasks' / (R9_TASK + '.json')
+    controller.init_task(filename)
+    return controller.store
+
+
+def test_operator_repins_staged_contract_and_rejects_stale_sealed_package(staged):
+    from jiuwenswarm.factory.contract import load_for_task
+    from jiuwenswarm.factory.lab_manager import LabManager
+
+    task = staged.get_task(R9_TASK)
+    before = plan_get(staged, R9_TASK)
+    manager = LabManager(staged, route='mailbox')
+    old_digest = task['constraints']['contract_sha256']
+    stored = {'contract': {'id': R9_TASK, 'sha256': old_digest}}
+    staged.put_artifact(R9_TASK, 'lab-package:old', json.dumps(stored).encode(), 'application/json', None)
+
+    draft = operator_revise(staged, R9_TASK, 'Apply amendment 004', contract_revision=R9_REVISION, dry_run=True)
+    assert {change['node_id'] for change in draft['changes']} == {'deliver_to_lab', 'measure_engine'}
+    assert staged.get_task(R9_TASK)['constraints']['contract_sha256'] == old_digest
+    assert plan_get(staged, R9_TASK) == before
+
+    result = operator_revise(staged, R9_TASK, 'Apply amendment 004', contract_revision=R9_REVISION)
+    assert result['graph']['history'][:-1] == before['history']
+    current = staged.get_task(R9_TASK)
+    contract = load_for_task(current, R9_TASK)
+    assert contract['version'] == 10
+    assert contract['extensions']['muse.r9-protocol']['accuracy']['question_count'] == 25
+    receipt = staged.read(R9_TASK, f'{R9_TASK}:contract-revision:{current["revision"]}')
+    assert receipt['values']['previous_sha256'] == old_digest
+    assert receipt['values']['contract_sha256'] == current['constraints']['contract_sha256']
+    assert not operator_revise(staged, R9_TASK, 'Repeat 004', contract_revision=R9_REVISION)['applied']
+    with pytest.raises(ValueError, match='stale contract'):
+        manager.send(R9_TASK, 'old', 'unsafe-old-retry')
+
+
+def test_operator_cannot_repin_staged_contract_after_runtime_dispatch(staged):
+    staged.create_attempt(R9_TASK, dict(kind='model_run', idem_key='measurement', fingerprint='pending',
+                                        request={'node_id': 'measure_engine'}))
+    before = staged.get_task(R9_TASK)
+    with pytest.raises(ValueError, match='runtime attempt has been recorded'):
+        operator_revise(staged, R9_TASK, 'Apply amendment 004', contract_revision=R9_REVISION)
+    assert staged.get_task(R9_TASK) == before
