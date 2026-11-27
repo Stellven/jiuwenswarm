@@ -614,7 +614,75 @@ def revise_changes(task, nodes, contracts, finals, reason, busy=()):
     return changes, problems
 
 
-def _contract_repin(task, key, graph, attempts):
+def _post_load_repin(host, task, graph, attempts, previous, candidate, staged, policy):
+    from .node_check import NodeChecks, accepted_delivery
+    from .node_contract import from_contract
+
+    fields = {'version', 'revisions', 'provenance', 'acceptance', 'extensions'}
+    if {k: v for k, v in previous.items() if k not in fields} != {
+            k: v for k, v in candidate.items() if k not in fields}:
+        raise ValueError('A post-load amendment must preserve the frozen measurement protocol')
+    protocol = 'muse.r9-protocol'
+    old_ext, new_ext = (contract['extensions'] for contract in (previous, candidate))
+    old_protocol, new_protocol = (ext.get(protocol, {}) for ext in (old_ext, new_ext))
+    revisions = candidate.get('revisions') or []
+    revision = revisions[-1] if revisions else {}
+    if (candidate['version'] != previous['version'] + 1 or revision.get('by') != 'owner'
+            or revisions[:-1] != previous['revisions']
+            or not any(item.get('sha256') == task['constraints']['contract_sha256']
+                       for item in candidate['provenance'].get('derived_from', []))
+            or {k: v for k, v in old_protocol.items() if k != 'runtime_checker'} !=
+            {k: v for k, v in new_protocol.items() if k != 'runtime_checker'}):
+        raise ValueError('A post-load owner amendment must extend the active contract and preserve its request inputs')
+
+    runtime_contract, runtime_output = staged['runtime_stage'].split('.')
+    old_nodes, new_nodes = (from_contract(contract)['nodes'] for contract in (previous, candidate))
+    if [n['node_id'] for n in new_nodes] != [n['node_id'] for n in old_nodes]:
+        raise ValueError('A post-load amendment must retain the staged graph nodes')
+    scoring_fields = {'outputs', 'verifiers', 'briefing', 'objective', 'node_limits'}
+    for old, new in zip(old_nodes, new_nodes):
+        edited = scoring_fields if old['node_id'] == runtime_contract else set()
+        if any(old.get(key) != new.get(key) for key in (old.keys() | new.keys()) - edited):
+            raise ValueError(f'A post-load amendment cannot change {old["node_id"]} outside its runtime checker')
+        if edited:
+            if new['node_limits'] != dict(old['node_limits'], gpu_launches=0):
+                raise ValueError('A post-load amendment must close the measurement node GPU budget')
+            old_check = next(v for v in old['verifiers'] if v['output'] == runtime_output)
+            new_check = next(v for v in new['verifiers'] if v['output'] == runtime_output)
+            if new_check != dict(old_check, seal='result', inputs={'policy': policy['policy']}):
+                raise ValueError('A post-load amendment must retain the runtime verifier and pin its new scoring policy')
+
+    runtimes = [node for node in graph['nodes'] if node.get('node_contract') == runtime_contract
+                and node['state'] not in TERMINAL]
+    if len(runtimes) != 1 or runtimes[0]['state'] not in {'ready', 'proposed'}:
+        raise ValueError('Post-load scoring requires the original unclosed measurement node')
+    runtime = runtimes[0]
+    task_id = task['task_id']
+    delivery = accepted_delivery(host, task_id, runtime)
+    measured = [a for a in attempts if a['kind'] in {'lab', 'model_run'}]
+    if len(measured) != 1 or measured[0]['kind'] != 'model_run' or measured[0]['state'] != 'succeeded' \
+            or measured[0]['request'].get('node_id') != runtime['node_id']:
+        raise ValueError('Post-load scoring requires exactly one reconciled, successful model attempt')
+    attempt = measured[0]
+    result_records = [row for row in host._db.execute(
+        'SELECT obs_id, "values" FROM observations WHERE task_id=? AND kind=?', (task_id, 'capped_run'))
+        if json.loads(row['values']).get('attempt_id') == attempt['attempt_id']]
+    if len(result_records) != 1:
+        raise ValueError('Post-load scoring requires one native capped_run receipt for the successful attempt')
+    observation_id = result_records[0]['obs_id']
+    measurements = NodeChecks(host)._runtime_measurement(task_id, runtime, {'evidence_ids': [observation_id]})
+    if measurements.get('status') != 'complete' or measurements.get('load_id') != attempt['attempt_id']:
+        raise ValueError('Post-load scoring requires the closed measurement manifest')
+    proof = dict(node_id=runtime['node_id'], attempt_id=attempt['attempt_id'], observation_id=observation_id,
+                 delivery_check_id=delivery['obs_id'], delivery_contract_sha256=delivery['found']['contract_sha256'],
+                 request_id=delivery['found']['request_id'], package_id=delivery['found']['package_id'])
+    existing = task['constraints'].get('runtime_check_revision')
+    if existing and existing['measurement'] != proof:
+        raise ValueError('A later checker amendment must retain the original measurement proof')
+    return dict(policy=policy['policy'], amendment=policy['amendment'], measurement=proof)
+
+
+def _contract_repin(host, task, key, graph, attempts):
     from .contract import load, load_for_task
     from .contract_v2 import file_sha256
     from .node_contract import from_contract
@@ -632,23 +700,31 @@ def _contract_repin(task, key, graph, attempts):
     if candidate['version'] <= previous['version']:
         raise ValueError('A checked-in revision must increase the contract version')
     old_nodes = from_contract(previous) or {}
+    post_load = None
     if old_nodes.get('staged_release'):
         staged = old_nodes['staged_release']
         if (from_contract(candidate) or {}).get('staged_release') != staged:
             raise ValueError('A staged revision must preserve its factory, runtime and release connections')
         runtime = staged['runtime_stage'].split('.')[0]
         delivery = next(n['node_id'] for n in old_nodes['nodes'] if n['kind'] == 'deliver')
-        if any(n['state'] == 'done' and n.get('node_contract') == delivery for n in graph['nodes']):
-            raise ValueError('Reopen the delivery node before repinning a staged contract')
         runtime_nodes = {n['node_id'] for n in graph['nodes'] if n.get('node_contract') == runtime}
-        if any(attempt['kind'] in {'lab', 'model_run'} or attempt['request'].get('node_id') in runtime_nodes
-               for attempt in attempts):
-            raise ValueError('Cannot repin a staged contract after a runtime attempt has been recorded')
+        policy = candidate['extensions'].get('muse.r9-protocol', {}).get('runtime_checker') or {}
+        if policy.get('mode') == 'post-load':
+            post_load = _post_load_repin(host, task, graph, attempts, previous, candidate, staged, policy)
+        else:
+            if any(n['state'] == 'done' and n.get('node_contract') == delivery for n in graph['nodes']):
+                raise ValueError('Reopen the delivery node before repinning a staged contract')
+            if any(attempt['kind'] in {'lab', 'model_run'} or attempt['request'].get('node_id') in runtime_nodes
+                   for attempt in attempts):
+                raise ValueError('Cannot repin a staged contract after a runtime attempt has been recorded')
     digest = file_sha256(candidate.path)
     pin = dict(before, contract_revision=key, contract_sha256=digest)
     evidence = dict(previous_file=previous.path.name, previous_sha256=before['contract_sha256'],
                     previous_version=previous['version'], contract_file=candidate.path.name,
                     contract_sha256=digest, contract_version=candidate['version'])
+    if post_load:
+        pin['runtime_check_revision'] = post_load
+        evidence.update(by='owner', amendment=post_load['amendment'], preview=post_load)
     return dict(task, constraints=pin), evidence
 
 
@@ -677,10 +753,11 @@ def operator_revise(store, task_id, reason, *, dry_run=False, expected_graph_rev
         if contract_revision is not None:
             if not isinstance(contract_revision, str) or not re.fullmatch(r'[A-Za-z0-9_-]+', contract_revision):
                 raise ValueError('Supply a checked-in contract revision name without its extension')
-            attempts = [dict(row) for row in host._db.execute('SELECT kind, request FROM attempts WHERE task_id=?', (task_id,))]
+            attempts = [dict(row) for row in host._db.execute(
+                'SELECT attempt_id, kind, state, request FROM attempts WHERE task_id=?', (task_id,))]
             for attempt in attempts:
                 attempt['request'] = json.loads(attempt['request'])
-            task, repin = _contract_repin(task, contract_revision, graph, attempts)
+            task, repin = _contract_repin(host, task, contract_revision, graph, attempts)
         contracts = for_task(task)
         if contracts is None:
             raise ValueError(f'Contract {task["contract_id"]} has no node contracts to revise against')
@@ -702,6 +779,8 @@ def operator_revise(store, task_id, reason, *, dry_run=False, expected_graph_rev
                       dry_run=bool(dry_run), applied=False)
         if repin:
             result['contract_pin'] = repin
+            if 'preview' in repin:
+                repin['preview'] = dict(repin['preview'], graph_changes=[change['node_id'] for change in changes])
         if not changes and not repin:
             return dict(result, graph_rev=graph['rev'], graph=graph)
         try:
@@ -736,6 +815,11 @@ def format_revise(result):
     lines = [f"revise {result['task_id']} to contract {result['contract_id']} version {result['contract_version']}: {state}"]
     if pin := result.get('contract_pin'):
         lines.append(f"  contract pin {pin['previous_sha256']} -> {pin['contract_sha256']}")
+        if preview := pin.get('preview'):
+            disposition = 'preview' if result['dry_run'] else 'applied'
+            native = preview['measurement']
+            lines.append(f"  owner amendment {pin['amendment']} {disposition}. Policy {preview['policy']}. "
+                         f"Recorded attempt {native['attempt_id']} from delivery {native['request_id']}.")
     for change in result['changes']:
         key = change['node_id']
         if change['action'] == 'cancel':

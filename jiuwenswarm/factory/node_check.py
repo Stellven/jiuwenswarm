@@ -278,7 +278,15 @@ def accepted_delivery(host, task_id, runtime_node):
                   if out['kind'] == 'lab_request' and out.get('required', True))
     producer = _predecessor(host, task_id, runtime_node, delivery['node_id'])
     check = accepted_output(host, task_id, producer, output)
-    if check['found'].get('contract_sha256') != host.get_task(task_id)['constraints']['contract_sha256']:
+    constraints = host.get_task(task_id)['constraints']
+    amended = constraints.get('runtime_check_revision')
+    if amended:
+        proof = amended['measurement']
+        expected = (proof['delivery_check_id'], proof['delivery_contract_sha256'], proof['request_id'], proof['package_id'])
+        actual = (check['obs_id'], *(check['found'].get(k) for k in ('contract_sha256', 'request_id', 'package_id')))
+        if actual != expected or runtime_node['node_id'] != proof['node_id']:
+            raise CheckError('The runtime amendment requires the original accepted delivery')
+    elif check['found'].get('contract_sha256') != constraints['contract_sha256']:
         raise CheckError('The accepted delivery must use the active pinned contract')
     return check
 
@@ -560,9 +568,13 @@ class NodeChecks:
             dispatch_precondition(self.store, task_id, node_id)
         if staged and port == staged['runtime_stage']:
             measured = self._runtime_measurement(task_id, node, refs)
-            if verifier_inputs and verifier_inputs != {'measurements': measured}:
-                raise CheckError('The runtime-stage verifier takes the measurement from the host attempt')
-            verifier_inputs = {'measurements': measured}
+            post_load = task['constraints'].get('runtime_check_revision')
+            approved = {'measurements': measured}
+            if post_load:
+                approved['policy'] = post_load['policy']
+            if verifier_inputs and any(k not in approved or approved[k] != v for k, v in verifier_inputs.items()):
+                raise CheckError('The runtime verifier takes the host measurement and the pinned scoring policy')
+            verifier_inputs = approved
         elif staged and entry.get('verifier'):
             verifier_inputs = self._stage_inputs(task, node, document, port, verifier_inputs)
         if verifier_inputs and not entry.get('verifier'):
@@ -682,11 +694,18 @@ class NodeChecks:
         verifier = self._prepare_verifier(entry)
         records = [self.store.read(task['task_id'], ref) for ref in refs['evidence_ids']]
         subject = json.dumps(records, indent=1, sort_keys=True, default=str).encode()
+        provenance = (task.get('constraints') or {}).get('runtime_check_revision')
+        if provenance and (node['node_id'] != provenance['measurement']['node_id']
+                           or (verifier_inputs or {}).get('policy') != provenance['policy']):
+            provenance = None
         key = _sha(dict(task=task['task_id'], node=node['node_id'], entry=entry, records=_sha(subject),
-                        verifier=verifier, inputs=verifier_inputs or {}, reviewer=reviewer))
+                        verifier=verifier, inputs=verifier_inputs or {}, reviewer=reviewer,
+                        **({'runtime_check_revision': provenance} if provenance else {})))
         request = dict(format=FORMAT, key=key, task_id=task['task_id'], node_id=node['node_id'], output=entry['name'],
                        entry=entry, kind='evidence', refs=refs, head=None, working=False, diff_sha256=_sha(subject),
                        diff_bytes=len(subject), verifier=verifier, verifier_inputs=verifier_inputs or {}, reviewer=reviewer)
+        if provenance:
+            request['runtime_check_revision'] = provenance
         return self._launch(request, subject, background)
 
     def _launch(self, request, subject, background):
@@ -751,6 +770,8 @@ class NodeChecks:
         values = dict(format=FORMAT, node_id=node_id, output=entry['name'], kind=request['kind'], entry=entry, key=request['key'],
                       state='finished', passed=False, head=request['head'], diff_sha256=request['diff_sha256'],
                       diff_bytes=request['diff_bytes'], verifier=None, review=None, seconds={}, started=time.time())
+        if request.get('runtime_check_revision'):
+            values['runtime_check_revision'] = request['runtime_check_revision']
         artifacts = []
         try:
             if _sha(diff) != request['diff_sha256']:
@@ -823,12 +844,12 @@ class NodeChecks:
                                              for c in outputs.get('checks') or [] if isinstance(c, dict)])
         if 'capped_attempt_id' in receipt:
             result['capped_attempt_id'] = receipt['capped_attempt_id']
-        if passed and request['entry'].get('seal'):
+        if (passed or request.get('runtime_check_revision')) and request['entry'].get('seal'):
             port = request['entry']['seal']
             payload = outputs.get(port)
-            if not isinstance(payload, dict):
+            if not isinstance(payload, dict) and passed:
                 result.update(passed=False, reason=f'Verifier did not return a JSON object at {port}')
-            else:
+            elif isinstance(payload, dict):
                 data = json.dumps(payload, sort_keys=True, indent=2, allow_nan=False).encode() + b'\n'
                 artifact_id = f'node-check-{request["key"][:24]}-{port}'
                 self.store.put_artifact(request['task_id'], artifact_id, data, 'application/json', None)
@@ -1031,6 +1052,9 @@ class NodeChecks:
         delivery = accepted_delivery(host, task_id, node)
         request_id = delivery['found']['request_id']
         ids = (refs or {}).get('evidence_ids') or []
+        post_load = host.get_task(task_id)['constraints'].get('runtime_check_revision')
+        if post_load and post_load['measurement']['observation_id'] not in ids:
+            raise CheckError('Runtime scoring needs the original host capped_run observation')
         matched = []
         for evidence_id in ids:
             record = self.store.read(task_id, evidence_id)
@@ -1041,6 +1065,9 @@ class NodeChecks:
                     and request.get('package_id') == delivery['found']['package_id']
                     and isinstance(values.get('result'), dict)):
                 attempt = host._get('attempts', task_id, values['attempt_id'])
+                if post_load and (evidence_id != post_load['measurement']['observation_id']
+                                  or attempt['attempt_id'] != post_load['measurement']['attempt_id']):
+                    continue
                 if (attempt.get('kind') == 'model_run' and attempt.get('state') == 'succeeded'
                         and attempt.get('request', {}).get('node_id') == node['node_id']):
                     matched.append(values['result'])
@@ -1062,10 +1089,20 @@ class NodeChecks:
         if (refs or {}).get('runtime_check_id') != measured['obs_id']:
             raise CheckError('refs.runtime_check_id must name the accepted runtime-stage check')
         self._runtime_measurement(task_id, runtime, measured['refs'])
+        post_load = task['constraints'].get('runtime_check_revision')
+        scoring = {}
+        runtime_artifacts = []
+        if post_load:
+            sealed = (measured.get('verifier') or {}).get('sealed_artifact')
+            if measured.get('runtime_check_revision') != post_load or not sealed:
+                raise CheckError('Release requires the current owner-amended runtime verdict')
+            scoring = dict(runtime_check_revision=post_load, runtime_verdict_artifact=sealed,
+                           contract_sha256=task['constraints']['contract_sha256'])
+            runtime_artifacts.append(sealed)
         return dict(factory_check_id=factory['obs_id'], delivery_check_id=delivery['obs_id'],
                     runtime_check_id=measured['obs_id'], request_id=delivery['found']['request_id'],
                     package_id=delivery['found']['package_id'],
-                    artifacts=delivery['source_artifacts'] + factory['source_artifacts'])
+                    artifacts=delivery['source_artifacts'] + factory['source_artifacts'] + runtime_artifacts, **scoring)
 
     def status(self, task_id, node_id):
         task = self.store.get_task(task_id)
@@ -1089,6 +1126,7 @@ class NodeChecks:
     @staticmethod
     def _result(row, cached=False):
         keep = ('obs_id', 'node_id', 'output', 'kind', 'state', 'passed', 'reason', 'verifier', 'review', 'found',
+                'runtime_check_revision',
                 'seconds', 'diff_sha256')
         return {k: row[k] for k in keep if k in row} | ({'cached': True} if cached else {}) | {'check_id': row.get('key', '')[:32]}
 

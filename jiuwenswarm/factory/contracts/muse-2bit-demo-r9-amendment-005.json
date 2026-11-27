@@ -1,0 +1,890 @@
+{
+  "schema": "factory.contract/2",
+  "contract_id": "muse-2bit-demo-r9",
+  "version": 11,
+  "title": "Muse AQBC prefix-store run",
+  "purpose": "Add prefix-state reuse to the accepted AQB image and measure AQBC and cache-off AQB behavior in one capped load, preserving the Run 1 weights, binary, router and published baseline.",
+  "scope": {
+    "covers": [
+      "Run 1 AQB by pinned artifact identity",
+      "One config-only prefix-store image",
+      "Same-load AQB control and AQBC hardware evidence",
+      "MMLU answer identity on the first 25 ordered Run 1 questions, with zero external reuse per prompt"
+    ],
+    "excludes": [
+      "Weight changes",
+      "Source recompilation",
+      "Expert placement changes",
+      "Extra model loads"
+    ]
+  },
+  "target": {
+    "profile": "spark-gb10",
+    "requires": {
+      "machine": "DGX Spark GB10",
+      "cuda": "13",
+      "sm": "121",
+      "arch": "arm64",
+      "memory_gb": 128
+    }
+  },
+  "subject": {
+    "engine": {
+      "name": "llama.cpp",
+      "source": "https://github.com/ggml-org/llama.cpp",
+      "revision": "17e4594f0bfb7eacd3ce5d2d0dd16fb61ba9f817"
+    },
+    "model": {
+      "name": "Muse Spark Open mixed 2-bit pack",
+      "files": [
+        {
+          "name": "mixed-pack.json",
+          "size": 2241,
+          "sha256": "806c5d5e4f34450aed6019dba7216841ad16cb0b66759b57ed3f5fe16502a905"
+        }
+      ]
+    }
+  },
+  "inputs": {
+    "prompt_512": {
+      "media_type": "text/plain",
+      "sha256": "980524e65ec3e2de160ada7210bbcb8b4af6cf2218a8eb4f09c2f4876012c575",
+      "size": 1983,
+      "description": "Fixed text that renders to 512 tokens with the Muse no-thinking chat template.",
+      "repo_path": "ops/spark/prompts/muse/512.txt"
+    },
+    "prompt_2048": {
+      "media_type": "text/plain",
+      "sha256": "cdd5010713af776ea7711a30a490479b33781335a1c63672aa8547a096b2833d",
+      "size": 10234,
+      "description": "Fixed text that renders to 2048 tokens with the Muse no-thinking chat template.",
+      "repo_path": "ops/spark/prompts/muse/2048.txt"
+    },
+    "mmlu_test": {
+      "media_type": "application/x-tar",
+      "sha256": "bec563ba4bac1d6aaf04141cd7d1605d7a5ca833e38f994051e818489592989b",
+      "size": 166184960,
+      "description": "MMLU (Hendrycks et al.) data.tar from https://people.eecs.berkeley.edu/~hendrycks/data.tar; the test split, 57 subjects, 14,042 questions."
+    }
+  },
+  "workload": {
+    "tool": "llama-server",
+    "argv": [
+      "-m",
+      "{model}",
+      "-lm",
+      "mmap",
+      "--cpu-moe",
+      "--moe-cache-cpu-share",
+      "0",
+      "-fit",
+      "on",
+      "-lv",
+      "4",
+      "-c",
+      "8192",
+      "-np",
+      "1",
+      "-b",
+      "2048",
+      "-ub",
+      "2048",
+      "--moe-cache-mib",
+      "62464",
+      "--swa-full",
+      "--ctx-checkpoints",
+      "32"
+    ],
+    "env": {},
+    "requests": [
+      {
+        "id": "p512",
+        "input": "prompt_512",
+        "params": {
+          "n_predict": 32,
+          "temperature": 0,
+          "seed": 1,
+          "cache_prompt": false,
+          "chat_template_kwargs": {
+            "reasoning_effort": "low",
+            "current_date": "2026-11-30"
+          }
+        },
+        "expect": {
+          "rendered_prompt_tokens": 512
+        }
+      },
+      {
+        "id": "p2048",
+        "input": "prompt_2048",
+        "params": {
+          "n_predict": 32,
+          "temperature": 0,
+          "seed": 1,
+          "cache_prompt": false,
+          "chat_template_kwargs": {
+            "reasoning_effort": "low",
+            "current_date": "2026-11-30"
+          }
+        },
+        "expect": {
+          "rendered_prompt_tokens": 2048
+        }
+      },
+      {
+        "id": "p512_followup",
+        "input": "prompt_512",
+        "params": {
+          "n_predict": 32,
+          "temperature": 0,
+          "seed": 1,
+          "cache_prompt": true,
+          "chat_template_kwargs": {
+            "reasoning_effort": "low",
+            "current_date": "2026-11-30"
+          }
+        },
+        "expect": {
+          "rendered_prompt_tokens": 512
+        }
+      },
+      {
+        "id": "p2048_followup",
+        "input": "prompt_2048",
+        "params": {
+          "n_predict": 32,
+          "temperature": 0,
+          "seed": 1,
+          "cache_prompt": true,
+          "chat_template_kwargs": {
+            "reasoning_effort": "low",
+            "current_date": "2026-11-30"
+          }
+        },
+        "expect": {
+          "rendered_prompt_tokens": 2048
+        }
+      }
+    ]
+  },
+  "arms": [
+    {
+      "id": "A",
+      "role": "baseline",
+      "summary": "Published Run 1 NVFP4 speed reference."
+    },
+    {
+      "id": "AQB",
+      "role": "candidate",
+      "from": "A",
+      "summary": "Published Run 1 mixed pack and prefill reference; the live control is cache off in the same capped load."
+    },
+    {
+      "id": "AQBC",
+      "role": "combined",
+      "from": "AQB",
+      "summary": "AQB plus prefix-store request policy and SWA checkpoints.",
+      "deviations": [
+        "--swa-full and --ctx-checkpoints 32",
+        "cache_prompt true for candidate follow-up pairs"
+      ]
+    }
+  ],
+  "measurement": {
+    "primary": "client_ttft_ms",
+    "metrics": {
+      "client_ttft_ms": {
+        "unit": "ms",
+        "better": "lower",
+        "how": "Client clock from sending the request to the first streamed token."
+      },
+      "decode_tokens_per_second": {
+        "unit": "tokens/s",
+        "better": "higher",
+        "how": "Generated tokens after the first, over the time they took, from the server's timings."
+      },
+      "request_total_ms": {
+        "unit": "ms",
+        "better": "lower",
+        "how": "Client clock from sending the request to the last streamed token (32 generated tokens)."
+      },
+      "prompt_tokens_per_second": {
+        "unit": "tokens/s",
+        "better": "higher",
+        "how": "Prompt tokens over prompt processing time, from the server's timings."
+      },
+      "sampled_peak_memory_bytes": {
+        "unit": "bytes",
+        "better": "lower",
+        "how": "Highest sampled resident memory of the engine process group under the cap."
+      },
+      "load_seconds": {
+        "unit": "s",
+        "better": "lower",
+        "how": "From engine start to the health endpoint answering ready."
+      }
+    },
+    "protocol": {
+      "repeats": 1,
+      "order": "sequential",
+      "discard_first_request": false,
+      "cold_load": "included",
+      "quiet": {
+        "max_load": 1.0,
+        "no_builds": true
+      },
+      "notes": "One capped server load for standard cold and warm cells, matched follow-up pairs, a coherence smoke check and the first 25 ordered MMLU prompts. Compare the answer letters with AQB load 8 and check every initial cached-token count is zero. Published AQB speed cites Run 1."
+    }
+  },
+  "correctness": {
+    "equivalence": "approximate",
+    "checks": [
+      {
+        "id": "cold_smoke",
+        "does": "The candidate returns coherent text for the pinned workload.",
+        "applies_to": [
+          "AQBC"
+        ]
+      },
+      {
+        "id": "same_load_control",
+        "does": "Same-load cache-off controls provide the first-request and follow-up comparison.",
+        "applies_to": [
+          "AQBC"
+        ]
+      },
+      {
+        "id": "cache_reuse",
+        "does": "Server logs show restored prefix state for both prompt sizes and the candidate lowers follow-up TTFT.",
+        "applies_to": [
+          "AQBC"
+        ]
+      },
+      {
+        "id": "accuracy_identity",
+        "does": "Compare answer letters on the first 25 ordered AQB load 8 MMLU questions with the same prompts and seed. Require at least 24 matches and zero external reuse on all 25.",
+        "applies_to": [
+          "AQBC"
+        ]
+      }
+    ]
+  },
+  "acceptance": {
+    "rules": [
+      "Delivery requires accepted factory-stage digests, allowlisted configuration changes, and memory budget verification.",
+      "Release requires measured cache hits and follow-up TTFT gains at 512 and 2048 tokens against same-load cache-off controls.",
+      "Require at least 24 of 25 identical MMLU answer letters and zero external reuse on every prompt. On pass, report AQBC accuracy as the AQB result (229/250, 91.6%) supported by the identity sample. On refusal, record the evidence and stop without running additional questions.",
+      "Post-load evaluation: Compare first-request speed against same-load AQB on the warm cells at both 512 and 2048 tokens. Retain the cold rows as evidence of the server startup order. Every recorded row is scored when applicable. Quiet verdicts remain recorded as flags."
+    ]
+  },
+  "limits": {
+    "memory_bytes": 103079215104,
+    "cpus": 16,
+    "start_available_bytes": 107374182400,
+    "watchdog_available_bytes": 8589934592
+  },
+  "execution": {
+    "by": "factory_lab",
+    "lab_profile": "spark-gb10",
+    "notes": "The graph measurement node runs one machine-gated 96 GiB cgroup with no swap."
+  },
+  "revisions": [
+    {
+      "at": "2026-11-27T01:45:00-05:00",
+      "by": "coordinator",
+      "change": "Replace the full single-slot MMLU rerun with the first-25 answer identity check in the same load.",
+      "evidence": "bridge/inbox/004-COORD-mmlu-identity-check.md"
+    },
+    {
+      "at": "2026-11-27T02:40:00-05:00",
+      "by": "owner",
+      "change": "Amend the post-load runtime checker using owner instruction 005. Score the original measurements with warm-only first-request comparison.",
+      "evidence": "bridge/inbox/005-OWNER-checker-all-rows.md"
+    }
+  ],
+  "provenance": {
+    "notes": [
+      "Run 1 published A and AQB retain their original provenance. The live AQB control is measured in the same AQBC load with cache_prompt false.",
+      "Owner instruction 002 adopted prefix store and retained the refused placement candidate. Instruction 003 required same-load comparison."
+    ],
+    "derived_from": [
+      {
+        "contract_id": "muse-2bit-demo-r9",
+        "sha256": "7641b9584ec85c7f2272fa547f8a08d59d040c043dea148c37e3b8bbe5a6c521",
+        "how": "Amend the post-load runtime checker using owner instruction 005. Score the original measurements with warm-only first-request comparison."
+      }
+    ]
+  },
+  "extensions": {
+    "factory.node-contracts": {
+      "format": "factory.node-contracts/1",
+      "nodes": [
+        {
+          "node_id": "pin_inputs",
+          "kind": "inspect",
+          "objective": "Verify the identities of the Run 1 AQB image, binary, mixed pack and prefill plan.",
+          "requirement_ids": [],
+          "predecessors": [],
+          "inputs": [],
+          "outputs": [
+            {
+              "name": "pinned_inputs",
+              "kind": "evidence",
+              "criteria": [
+                "Verify each operator-pinned SHA-256, cross-check the image and executable identities, and retain the pack manifest census without rereading the shards."
+              ]
+            }
+          ],
+          "evidence_obligations": [
+            "captured_input_and_output",
+            "invocation_observation"
+          ],
+          "node_limits": {
+            "turns": 15,
+            "build_attempts": 0,
+            "gpu_launches": 0,
+            "time_s": 3600
+          },
+          "authority_ceiling": {
+            "effects": [
+              "process.exec"
+            ],
+            "workspace": "none"
+          },
+          "work": {
+            "helpful_ccs": [
+              "engine.kv_reuse_lab"
+            ],
+            "eligible_ccs": [
+              "engine.kv_reuse_lab"
+            ]
+          },
+          "verifiers": [
+            {
+              "output": "pinned_inputs",
+              "verifier": "engine.kv_reuse_lab.verify_pins",
+              "stage": "native CC execution",
+              "seal": "pinned_inputs",
+              "review": false,
+              "inputs": {
+                "spec": {
+                  "image_receipt": {
+                    "path": "${FACTORY_MUSE_DEMO}/r8-final/manifests/image-receipt.json",
+                    "sha256": "d14ad913fd4cdb2dcf48b9ae6f2b42d671dbc5b3220feb3cc071e667619cd9d9"
+                  },
+                  "image_check": {
+                    "path": "${FACTORY_MUSE_DEMO}/r8-final/manifests/image-check.json",
+                    "sha256": "85defc0be265f4875c27cb105b603bacad0e877e036051d43846b37bcb9459f9"
+                  },
+                  "pack_manifest": {
+                    "path": "${FACTORY_MUSE_DEMO}/r8-final/manifests/mixed-pack.json",
+                    "sha256": "806c5d5e4f34450aed6019dba7216841ad16cb0b66759b57ed3f5fe16502a905"
+                  },
+                  "batch_plan": {
+                    "path": "${FACTORY_MUSE_DEMO}/r8-final/manifests/batch-plan.json",
+                    "sha256": "a6b4faca3fea26a188c0df5e1fa2dbb772108fc0d2510f938fed6eaa1276b690"
+                  },
+                  "aqb_load": {
+                    "path": "${FACTORY_MUSE_DEMO}/lab/r8-final-bench/3.load.json",
+                    "sha256": "72aed83d1fee53747988f5a4df862467e6ab806518d5e84a9f939ae117d8146e"
+                  },
+                  "aqb_speed": {
+                    "path": "${FACTORY_MUSE_DEMO}/lab/r8-final-bench/3.speed.json",
+                    "sha256": "69250c9729697d221498a0475fce41d3d2f5fa90505a9d5ec78773a215e845a0"
+                  },
+                  "aqb_ttft": {
+                    "path": "${FACTORY_MUSE_DEMO}/lab/r8-final-bench/3.ttft.json",
+                    "sha256": "cd33dc03cc88b392719043efb92c0a0c01473b5d23c6750660580e0cef8368c6"
+                  },
+                  "phase0b": {
+                    "path": "${FACTORY_MUSE_DEMO}/lab/r9-aqbc/phase-0b/check.json",
+                    "sha256": "c13c691983eb8c127547d4ccf676ce8b54621b921060ea7bfc878cf7d3518011"
+                  },
+                  "phase0b_log": {
+                    "path": "${FACTORY_MUSE_DEMO}/lab/r9-aqbc/phase-0b/server.log",
+                    "sha256": "30e13c52e23c596de744dfbb0b85f7a24773ae51a46a4be2f253b4d49ee3a335"
+                  },
+                  "placement_share_0": {
+                    "path": "${FACTORY_MUSE_DEMO}/lab/r9-placement-check/share-0.json",
+                    "sha256": "ea9ae5f79229d44d97a32b193a0e61ef46da6f28dde8fd389ee8812aec717664"
+                  },
+                  "placement_share_025": {
+                    "path": "${FACTORY_MUSE_DEMO}/lab/r9-placement-check/share-0.25.json",
+                    "sha256": "42d3d32ada71d42e169e7fded9f065dbe6af83cc77832b3bc3220beab408515e"
+                  },
+                  "placement_share_05": {
+                    "path": "${FACTORY_MUSE_DEMO}/lab/r9-placement-check/share-0.5.json",
+                    "sha256": "1372355010005fbd9438f0c42a03584a57f7326927b4a8ae97caf841fba56a5b"
+                  }
+                }
+              }
+            }
+          ],
+          "hands_to": "plan_prefix_store",
+          "stage": "preliminary",
+          "slots": [
+            {
+              "id": "bind",
+              "at": "work.bound_ccs",
+              "kind": "ccs",
+              "from": "Bind all the named helpful capsules to carry out and check this node under its authority ceiling."
+            }
+          ],
+          "briefing": {
+            "summary": "Verify the identities of the Run 1 AQB image, binary, mixed pack and prefill plan.",
+            "how_to_fill": [
+              "Bind engine.kv_reuse_lab. Call factory.node_check.start for pinned_inputs. Supply refs.evidence_ids with operator_input records or prior-* artifacts for image_receipt, image_check, pack_manifest and batch_plan. The host pins the verifier spec; omit verifier_inputs.",
+              "The host seals the successful verifier output as an artifact. Cite the passing node_check in the plan update."
+            ]
+          }
+        },
+        {
+          "node_id": "plan_prefix_store",
+          "kind": "tune",
+          "objective": "Choose the prefix reuse launch settings and record the measured placement candidate refusal.",
+          "requirement_ids": [],
+          "predecessors": [
+            "pin_inputs"
+          ],
+          "inputs": [
+            {
+              "name": "pinned_inputs",
+              "from": "pin_inputs.pinned_inputs"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "prefix_plan",
+              "kind": "evidence",
+              "criteria": [
+                "Use Phase 0b cache-hit evidence, preserve AQB flags except the prefix-store additions and stay within 110000 MiB with the 96 GiB cgroup cap. Retain the measured Phase 0 share alternatives and why placement was refused."
+              ]
+            }
+          ],
+          "evidence_obligations": [
+            "captured_input_and_output",
+            "invocation_observation"
+          ],
+          "node_limits": {
+            "turns": 15,
+            "build_attempts": 0,
+            "gpu_launches": 0,
+            "time_s": 3600
+          },
+          "authority_ceiling": {
+            "effects": [
+              "process.exec"
+            ],
+            "workspace": "none"
+          },
+          "work": {
+            "helpful_ccs": [
+              "engine.kv_reuse_lab"
+            ],
+            "eligible_ccs": [
+              "engine.kv_reuse_lab"
+            ]
+          },
+          "verifiers": [
+            {
+              "output": "prefix_plan",
+              "verifier": "engine.kv_reuse_lab.plan",
+              "stage": "native CC execution",
+              "seal": "prefix_plan",
+              "review": false
+            }
+          ],
+          "hands_to": "build_image",
+          "stage": "preliminary",
+          "slots": [
+            {
+              "id": "bind",
+              "at": "work.bound_ccs",
+              "kind": "ccs",
+              "from": "Bind all the named helpful capsules to carry out and check this node under its authority ceiling."
+            }
+          ],
+          "briefing": {
+            "summary": "Choose the prefix reuse launch settings and record the measured placement candidate refusal.",
+            "how_to_fill": [
+              "Bind engine.kv_reuse_lab. Call factory.node_check.start for prefix_plan with refs.evidence_ids naming the accepted pin_inputs check and the phase and placement records. Omit verifier_inputs; the host reads the accepted sealed pinned_inputs.",
+              "Read the sealed prefix_plan artifact returned by the check. It carries the ready factory.builder request and the actual candidate settings."
+            ]
+          }
+        },
+        {
+          "node_id": "build_image",
+          "kind": "build",
+          "objective": "Package the same AQB executable in a config-only image and verify its factory-stage invariants.",
+          "requirement_ids": [],
+          "predecessors": [
+            "plan_prefix_store"
+          ],
+          "inputs": [
+            {
+              "name": "prefix_plan",
+              "from": "plan_prefix_store.prefix_plan"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "image",
+              "kind": "image",
+              "criteria": [
+                "The factory builder recorded one successful config-only image build whose base is the pinned AQB image and which retains the executable bytes."
+              ]
+            },
+            {
+              "name": "factory_stage",
+              "kind": "evidence",
+              "criteria": [
+                "The verified image preserves binary and pack identity, changes only approved prefix-store settings and fits the device budget with the 96 GiB runtime cap."
+              ]
+            }
+          ],
+          "evidence_obligations": [
+            "captured_input_and_output",
+            "invocation_observation"
+          ],
+          "node_limits": {
+            "turns": 15,
+            "build_attempts": 1,
+            "gpu_launches": 0,
+            "time_s": 3600
+          },
+          "authority_ceiling": {
+            "effects": [
+              "process.exec"
+            ],
+            "workspace": "none"
+          },
+          "work": {
+            "helpful_ccs": [
+              "factory.builder",
+              "engine.kv_reuse_lab"
+            ],
+            "eligible_ccs": [
+              "factory.builder",
+              "engine.kv_reuse_lab"
+            ]
+          },
+          "verifiers": [
+            {
+              "output": "image"
+            },
+            {
+              "output": "factory_stage",
+              "verifier": "engine.kv_reuse_lab.verify_factory_stage",
+              "stage": "native CC execution",
+              "seal": "factory_stage",
+              "review": "advisory"
+            }
+          ],
+          "hands_to": "deliver_to_lab",
+          "stage": "preliminary",
+          "slots": [
+            {
+              "id": "bind",
+              "at": "work.bound_ccs",
+              "kind": "ccs",
+              "from": "Bind all the named helpful capsules to carry out and check this node under its authority ceiling."
+            }
+          ],
+          "briefing": {
+            "summary": "Package the same AQB executable in a config-only image and verify its factory-stage invariants.",
+            "how_to_fill": [
+              "Bind factory.builder and engine.kv_reuse_lab. Read prefix_plan from the predecessor check sealed_artifact. Submit prefix_plan.build_request unchanged to factory.builder.submit with node_id build_image and idem_key r9-config-image. End the turn while the attempt runs.",
+              "Read factory.builder result. Pass factory.node_check.start for image with refs {build_attempt_id,image_id}. Then start factory_stage with refs.evidence_ids including the image check and prefix_plan check. Omit verifier_inputs; the host reads the verified build record and plan.",
+              "Cite both passing checks and the build attempt in the plan patch. Record the sealed factory_stage artifact for delivery."
+            ]
+          }
+        },
+        {
+          "node_id": "deliver_to_lab",
+          "kind": "deliver",
+          "objective": "Seal and send the verified AQBC configuration to the lab manager for measured release.",
+          "requirement_ids": [
+            "AQB",
+            "AQBC",
+            "cold_smoke",
+            "same_load_control",
+            "cache_reuse",
+            "accuracy_identity",
+            "client_ttft_ms",
+            "decode_tokens_per_second",
+            "request_total_ms",
+            "prompt_tokens_per_second",
+            "sampled_peak_memory_bytes",
+            "load_seconds"
+          ],
+          "predecessors": [
+            "build_image"
+          ],
+          "inputs": [
+            {
+              "name": "image",
+              "from": "build_image.image"
+            },
+            {
+              "name": "factory_stage",
+              "from": "build_image.factory_stage"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "lab_package",
+              "kind": "lab_request",
+              "criteria": [
+                "The native lab request names the verified AQBC image, same-load AQB control, and the exact factory-stage artifact, and covers every runtime requirement.",
+                "The sealed package carries the active amended contract, including the 25-question MMLU answer identity check."
+              ]
+            }
+          ],
+          "evidence_obligations": [
+            "captured_input_and_output",
+            "invocation_observation"
+          ],
+          "node_limits": {
+            "turns": 15,
+            "build_attempts": 0,
+            "gpu_launches": 0,
+            "time_s": 3600
+          },
+          "authority_ceiling": {
+            "effects": [
+              "process.exec"
+            ],
+            "workspace": "none"
+          },
+          "work": {
+            "helpful_ccs": [
+              "factory.lab_manager"
+            ],
+            "eligible_ccs": [
+              "factory.lab_manager"
+            ]
+          },
+          "verifiers": [
+            {
+              "output": "lab_package"
+            }
+          ],
+          "hands_to": "lab_manager",
+          "stage": "preliminary",
+          "slots": [
+            {
+              "id": "bind",
+              "at": "work.bound_ccs",
+              "kind": "ccs",
+              "from": "Bind all the named helpful capsules to carry out and check this node under its authority ceiling."
+            }
+          ],
+          "briefing": {
+            "summary": "Seal and send the verified AQBC configuration to the lab manager for measured release.",
+            "how_to_fill": [
+              "Bind factory.lab_manager. Use draft_task with arm_subjects {AQB: aqbc, AQBC: aqbc}. Subjects: aqbc is a container_image, identity {id:<image_id>}, build_attempt_id from the accepted image check, transfer none; factory_stage is an artifact, identity {artifact_id:<sealed_artifact>}, transfer attach.",
+              "Compose the draft with node_id deliver_to_lab; then send with idem_key r9-aqbc-lab. The mailbox route parks the request for the graph measurement node.",
+              "Check lab_package with refs {request_id:<sent request id>}. Cite the passing check. Sending the request does not authorize or start a GPU job.",
+              "Use the active amendment 004 contract with accuracy_identity in the draft. Do not reuse any lab package sealed under the earlier 250-question contract."
+            ]
+          }
+        },
+        {
+          "node_id": "measure_engine",
+          "kind": "measure",
+          "objective": "Verify the recorded capped measurement under the owner-amended runtime checker.",
+          "requirement_ids": [
+            "AQB",
+            "AQBC",
+            "cold_smoke",
+            "same_load_control",
+            "cache_reuse",
+            "accuracy_identity",
+            "client_ttft_ms",
+            "decode_tokens_per_second",
+            "request_total_ms",
+            "prompt_tokens_per_second",
+            "sampled_peak_memory_bytes",
+            "load_seconds"
+          ],
+          "predecessors": [
+            "deliver_to_lab"
+          ],
+          "inputs": [
+            {
+              "name": "lab_package",
+              "from": "deliver_to_lab.lab_package"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "measurements",
+              "kind": "evidence",
+              "criteria": [
+                "Compare first-request speed against same-load AQB on the warm cells at both 512 and 2048 tokens. Retain the cold rows as evidence of the server startup order.",
+                "Judge every recorded follow-up pair and all 25 MMLU identity prompts on their existing requirements. Require the same pinned request and the original capped attempt.",
+                "Every recorded row is scored when applicable. Quiet verdicts remain recorded as flags."
+              ]
+            }
+          ],
+          "evidence_obligations": [
+            "captured_input_and_output",
+            "invocation_observation"
+          ],
+          "node_limits": {
+            "turns": 15,
+            "build_attempts": 0,
+            "gpu_launches": 0,
+            "time_s": 28800
+          },
+          "authority_ceiling": {
+            "effects": [
+              "process.exec"
+            ],
+            "workspace": "none"
+          },
+          "work": {
+            "helpful_ccs": [
+              "factory.capped_runner",
+              "engine.kv_reuse_lab"
+            ],
+            "eligible_ccs": [
+              "factory.capped_runner",
+              "engine.kv_reuse_lab"
+            ]
+          },
+          "verifiers": [
+            {
+              "output": "measurements",
+              "verifier": "engine.kv_reuse_lab.verify_runtime_stage",
+              "stage": "hardware measurement",
+              "review": "advisory",
+              "seal": "result",
+              "inputs": {
+                "policy": "muse-r9-owner-005"
+              }
+            }
+          ],
+          "hands_to": "release_gate",
+          "stage": "preliminary",
+          "slots": [
+            {
+              "id": "bind",
+              "at": "work.bound_ccs",
+              "kind": "ccs",
+              "from": "Bind all the named helpful capsules to carry out and check this node under its authority ceiling."
+            }
+          ],
+          "briefing": {
+            "summary": "Verify the recorded capped measurement under the owner-amended runtime checker.",
+            "facts": [
+              "AQBC was the first request after server startup, while the pack was still being read. Record and display cold cells. Compare warm-only first requests at each size.",
+              "Owner amendment 005 policy muse-r9-owner-005",
+              "Every recorded row is scored when applicable. Quiet verdicts remain recorded as flags."
+            ],
+            "how_to_fill": [
+              "Bind engine.kv_reuse_lab for host verification. Query the original successful capped_run observation and completed native model_run attempt linked to deliver_to_lab.",
+              "Call factory.node_check.start for measurements with refs.evidence_ids naming the original capped_run observation. Omit verifier_inputs: both recorded measurements and the active owner policy are bound by the host.",
+              "Cite the current passing owner-amended host check and original model_run attempt when marking measure_engine done. If refused, cite the recorded checker refusal and report inconclusive.",
+              "GPU launches are closed. Work only with the original accepted lab request and existing frozen measurements."
+            ]
+          }
+        },
+        {
+          "node_id": "release_gate",
+          "kind": "accept",
+          "objective": "Issue a release verdict gated on the accepted factory stage, delivery and runtime result.",
+          "requirement_ids": [],
+          "predecessors": [
+            "measure_engine"
+          ],
+          "inputs": [
+            {
+              "name": "measurements",
+              "from": "measure_engine.measurements"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "release",
+              "kind": "release",
+              "criteria": [
+                "Release only from the host check that links the accepted factory-stage evidence and lab package to the passing runtime-stage measurements."
+              ]
+            }
+          ],
+          "evidence_obligations": [
+            "captured_input_and_output",
+            "invocation_observation"
+          ],
+          "node_limits": {
+            "turns": 15,
+            "build_attempts": 0,
+            "gpu_launches": 0,
+            "time_s": 3600
+          },
+          "authority_ceiling": {
+            "effects": [
+              "process.exec"
+            ],
+            "workspace": "none"
+          },
+          "work": {
+            "helpful_ccs": [
+              "factory.node_check"
+            ],
+            "eligible_ccs": [
+              "factory.node_check"
+            ]
+          },
+          "verifiers": [
+            {
+              "output": "release"
+            }
+          ],
+          "hands_to": "operator",
+          "stage": "preliminary",
+          "slots": [
+            {
+              "id": "bind",
+              "at": "work.bound_ccs",
+              "kind": "ccs",
+              "from": "Bind all the named helpful capsules to carry out and check this node under its authority ceiling."
+            }
+          ],
+          "briefing": {
+            "summary": "Issue a release verdict gated on the accepted factory stage, delivery and runtime result.",
+            "how_to_fill": [
+              "Bind factory.node_check. Start the release output check with refs {runtime_check_id:<accepted measurement node check id>}. Include the resulting release check in the release_gate plan update and the terminal accept decision.",
+              "If the hardware measurement checker refuses acceptance, preserve its evidence and report inconclusive; the graph may not mark the release gate done."
+            ]
+          }
+        }
+      ],
+      "staged_release": {
+        "factory_stage": "build_image.factory_stage",
+        "runtime_stage": "measure_engine.measurements",
+        "release_gate": "release_gate"
+      }
+    },
+    "muse.r9-protocol": {
+      "accuracy": {
+        "mode": "ordered-letter-identity",
+        "question_count": 25,
+        "min_matches": 24,
+        "source_question_count": 250,
+        "reference_correct": 229,
+        "zero_external_reuse": true
+      },
+      "runtime_checker": {
+        "mode": "post-load",
+        "amendment": "005",
+        "policy": "muse-r9-owner-005",
+        "row_eligibility": "all-recorded-rows-flags-retained",
+        "method_note": "Every recorded row is scored when applicable. Quiet verdicts remain recorded as flags.",
+        "first_request_cells": "warm",
+        "cold_order_effect": "AQBC was the first request after server startup, while the pack was still being read. Record and display cold cells. Compare warm-only first requests at each size."
+      }
+    }
+  }
+}

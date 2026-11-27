@@ -794,7 +794,9 @@ class Controller:
             for key in touched:
                 state.get('finalize_tries', {}).pop(key, None)
             if 'stepped' in state:
-                state['stepped'] = sorted(set(state['stepped']) - touched)
+                preview = result.get('contract_pin', {}).get('preview')
+                score_only = {preview['measurement']['node_id']} if preview else set()
+                state['stepped'] = sorted(set(state['stepped']) - (touched - score_only))
             self._save(task_id, state)
             from .operator_notes import publish
             names = lambda action: [c['node_id'] for c in result['changes'] if c['action'] == action]

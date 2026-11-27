@@ -241,6 +241,8 @@ def admitted(store, task_id, capability, inputs):
     capsule, cap, kind = NODE_CAPABILITIES[capability]
     node_id = inputs.get('node_id')
     constraints = task.get('constraints') or {}
+    if constraints.get('runtime_check_revision') and capability in {'capped_runner.start', 'lab.submit', 'lab.ab_submit'}:
+        raise ValueError('Post-load checker revision permits scoring the recorded attempt only')
     approved = constraints.get('approved_model_packs')
     recipes = constraints.get('approved_capped_recipes')
     if recipes is not None:
