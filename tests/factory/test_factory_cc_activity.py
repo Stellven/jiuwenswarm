@@ -44,7 +44,8 @@ def test_worker_use_verifier_execution_and_declaration_are_independent():
     result = activity.project(data, graph(), calls, declarations, {'observations': 'observations.json'}, 'source-run')
     node = result['first']
     check_cc, runner, unused, unknown = node['capsules']
-    assert check_cc['uses'] == [] and check_cc['verifier_declaration'] == 'declared'
+    assert [(row['kind'], row['id']) for row in check_cc['uses']] == [('cc-verifier', 'host-verifier')]
+    assert check_cc['verifier_declaration'] == 'declared'
     assert check_cc['verifier_records'][0]['id'] == 'host-verifier'
     assert check_cc['verifier_records'][0]['status'] == 'pass'
     assert node['node_checks'][0] == dict(id='host-verifier', created=4, kind='node-check',
@@ -53,6 +54,57 @@ def test_worker_use_verifier_execution_and_declaration_are_independent():
     assert runner['verifier_declaration'] == 'none' and runner['verifier_records'] == []
     assert unused['uses'] == [] and unused['verifier_declaration'] == 'none'
     assert unknown['uses'] == [] and unknown['verifier_declaration'] == 'unknown'
+
+
+def test_reached_and_cc_use_require_node_scoped_activity():
+    data = dict(tasks=[dict(task_id='task')], observations=[
+        record('final', 'node_contract_final', 1, final(['example.check', 'example.helper'])),
+        record('future-final', 'node_contract_final', 2,
+               final(['example.check']) | dict(node_id='other', digest='future')),
+        record('planned-check', 'node_check', 4,
+               dict(node_id='first', state='finished', passed=False, verifier={'cc': 'example.check'})),
+        record('import', 'operator_input', 3, dict(artifact_id='out', producer_cc='example.helper'),
+               source_artifacts=['out']),
+        record('actual-check', 'node_check', 5, dict(node_id='first', state='finished', passed=True,
+               refs=dict(artifact_ids=['out']),
+               verifier=dict(cc='example.check', capability='verify', call='local-call', passed=False))),
+    ], decisions=[dict(task_id='task', decision_id='plan', created=2, action=dict(type='propose', node_id='other')),
+                  dict(task_id='task', decision_id='work', created=2, action=dict(type='inspect', node_id='first'))])
+    receipts = [dict(id='local-call', cc='example.check', created=4.5, capability='verify'),
+                dict(id='future-other-task', cc='example.check', node_id='other', task_id='different', created=2)]
+    result = activity.project(data, graph(), receipts=receipts)
+    node = result['first']
+    assert node['reached']['id'] == 'work'
+    assert node['searched']['operator_imports'] == ['import']
+    assert node['searched']['ccstore_calls'] == ['local-call']
+    assert node['capsules'][0]['verifier_records'][0]['status'] == 'fail'
+    assert [row['id'] for row in node['capsules'][0]['uses']] == ['local-call', 'actual-check']
+    use, = node['capsules'][1]['uses']
+    assert (use['id'], use['created'], use['artifact_id']) == ('import', 5, 'out')
+    assert result['other']['reached'] is None
+    assert result['other']['capsules'][0]['uses'] == []
+
+
+def test_read_ccstore_with_committed_rows_still_in_active_wal(tmp_path):
+    import json
+    import sqlite3
+    from contextlib import closing
+
+    path = tmp_path / 'calls.sqlite'
+    release = 'release'
+    with closing(sqlite3.connect(path)) as writer:
+        writer.execute('PRAGMA journal_mode=WAL')
+        writer.execute('CREATE TABLE calls (receipt TEXT)')
+        receipt = dict(call='native-call', release=release, capability='produce', state='succeeded',
+                       provenance=dict(started=42, inputs=dict(request=dict(node_id='first', task_id='task'))))
+        writer.execute('INSERT INTO calls VALUES (?)', (json.dumps(receipt),))
+        writer.commit()
+        assert path.with_name(path.name + '-wal').stat().st_size > 0
+        before = {file.name: file.read_bytes() for file in tmp_path.iterdir()}
+        result = activity.ccstore_calls(path, {('example.helper', '1.0'): [(release, {})]})
+        assert result == [dict(id='native-call', cc='example.helper', created=42, capability='produce',
+                               node_id='first', task_id='task', state='succeeded')]
+        assert before == {file.name: file.read_bytes() for file in tmp_path.iterdir()}
 
 
 def test_closure_and_binding_end_are_exact_committed_records():

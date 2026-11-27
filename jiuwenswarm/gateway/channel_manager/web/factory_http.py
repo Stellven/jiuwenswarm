@@ -946,7 +946,11 @@ class FactoryHttpService:
         call_run_id = item['id']
         cutoff = None
         portable = None
+        ccstore = None
+        native_home = None
+        receipt_run_id = item['id']
         if item['kind'] == 'live':
+            native_home = path
             transcript = _inside(path, f'sessions/{tid}.jsonl')
             if not item.get('live_demo'):
                 paths['transcript'] = f'sessions/{tid}.jsonl'
@@ -963,8 +967,11 @@ class FactoryHttpService:
                 except (OSError, ValueError):
                     pass
             paths.update({key: name for key, name in (('observations', 'records/observations.json'),
-                                                       ('attempts', 'records/attempts.json'))
+                                                       ('attempts', 'records/attempts.json'),
+                                                       ('decisions', 'records/decisions.json'))
                           if verified(name)})
+            if verified('ccstore/calls.sqlite'):
+                ccstore = _inside(path, 'ccstore/calls.sqlite')
             archived = _inside(path, 'session.jsonl')
             transcript = archived if verified('session.jsonl') else None
             if transcript:
@@ -977,6 +984,7 @@ class FactoryHttpService:
                                    and native['task_id'] == tid and native.get('created') == created), None)
                     if origin:
                         native, root = origin
+                        native_home = root
                         retained = factory_nodes.sealed_releases(_inside(root, 'ccstore/releases'))
                         releases = retained | releases
                         if not archived.exists():
@@ -986,7 +994,20 @@ class FactoryHttpService:
         calls = self._worker_transcript(transcript) if transcript is not None else []
         if cutoff is not None:
             calls = factory_cc_activity.calls_as_of(calls, cutoff)
-        activity = factory_cc_activity.project(data, plan, calls, releases, paths, call_run_id)
+        if ccstore is None and native_home is not None:
+            ccstore = _inside(native_home, 'ccstore/calls.sqlite')
+            receipt_run_id = item.get('original_run_id') or item['id']
+        receipts = factory_cc_activity.ccstore_calls(ccstore, releases) if ccstore is not None else None
+        single_task = native_home is not None and len(monitor.tasks(native_home)) == 1
+        boundary = factory_cc_activity.archive_cutoff(data) if item['kind'] == 'bundle' else float('inf')
+        activity = factory_cc_activity.project(
+            data, plan, calls, releases, paths, call_run_id,
+            receipts=[row for row in receipts or [] if row['created'] <= boundary],
+            receipt_run_id=receipt_run_id,
+            allow_untagged=single_task,
+            source_availability=dict(worker_transcript=transcript is not None and transcript.is_file(),
+                                     ccstore=receipts is not None),
+        )
         if portable is not None:
             activity = factory_cc_activity.merge_portable(activity, portable, data, plan, item.get('original_run_id'))
         return activity, calls, releases
