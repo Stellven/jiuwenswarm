@@ -1,4 +1,4 @@
-import type { EvidenceFile, StoryEvent } from '../api';
+import type { EvidenceFile, RunState, StoryEvent } from '../api';
 import type { CuratedReplay, ReplayNodePresentation } from './storyModel.ts';
 import { atlasTitle } from '../cc/atlasNames.ts';
 import type { NodeCheckIndex, NodeOperator } from './checkModel.ts';
@@ -14,6 +14,7 @@ export type GraphNode = {
   details: Fields;
   state?: string;
   planId?: string;
+  boundCCs?: string[];
 };
 export type GraphLink = {
   source: string;
@@ -28,12 +29,18 @@ export type GraphModel = {
   history: Fields[];
   taskId?: string;
 };
-type GraphContext = { contract?: unknown; tasks?: readonly unknown[]; nodePresentation?: Record<string, ReplayNodePresentation> };
+type GraphContext = {
+  contract?: unknown;
+  tasks?: readonly unknown[];
+  observations?: readonly unknown[];
+  nodePresentation?: Record<string, ReplayNodePresentation>;
+};
 export type GraphReplay = {
   events: readonly StoryEvent[];
   position: number;
   files?: readonly EvidenceFile[];
   curated?: CuratedReplay | null;
+  runState?: RunState;
   onOpenFile?: (path: string) => void;
   onOpenNode?: (nodeId: string) => void;
   replayByNode?: Map<string, unknown[]>;
@@ -43,6 +50,10 @@ export type GraphReplay = {
   operator?: NodeOperator;
 };
 type NodeProgress = { phase: 'upcoming' | 'seen' | 'current'; details?: Fields };
+export type TaskGraphTimelineNode = GraphNode & {
+  replayState: 'done' | 'current' | 'not-reached' | 'stopped';
+  boundCCs: string[];
+};
 
 function record(value: unknown): Fields | undefined {
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as Fields) : undefined;
@@ -70,10 +81,10 @@ function builder(kind: GraphModel['kind']) {
   const nodes = new Map<string, GraphNode>();
   const links = new Map<string, GraphLink>();
   return {
-    node(type: NodeKind, key: string, details: Fields, title = key, planId?: string) {
+    node(type: NodeKind, key: string, details: Fields, title = key, planId?: string, boundCCs?: string[]) {
       const id = idOf(type, key);
       if (!nodes.has(id))
-        nodes.set(id, { id, label: title, kind: type, details, state: string(details.state), planId });
+        nodes.set(id, { id, label: title, kind: type, details, state: string(details.state), planId, boundCCs });
       return id;
     },
     link(source: string, target: string, kind: LinkKind, label?: string) {
@@ -146,10 +157,21 @@ function taskGraph(value: Fields, context: GraphContext): GraphModel | null {
   const tasks = rows(context.tasks).filter((task) => string(task.task_id));
   const taskId = string(value.task_id);
   const declarations = addRunContext(graph, record(context.contract), tasks, taskId);
+  const bindings = new Map<string, string[]>();
+  for (const observation of rows(context.observations)) {
+    if (observation.kind !== 'node_contract_final' || (observation.task_id && observation.task_id !== taskId)) continue;
+    const final = record(observation.values);
+    const id = string(final?.node_id);
+    const digest = string(final?.digest);
+    if (!id || !digest) continue;
+    const capsules = list(record(record(final?.final)?.work)?.bound_ccs).map(string);
+    bindings.set(JSON.stringify([id, digest]), [...new Set(capsules.filter((item) => item !== undefined))]);
+  }
   for (const node of rawNodes) {
     const id = string(node.node_id);
     if (!id) continue;
-    graph.node('step', id, node, context.nodePresentation?.[id]?.title ?? string(node.title) ?? id, id);
+    const boundCCs = bindings.get(JSON.stringify([id, node.final_contract]));
+    graph.node('step', id, node, context.nodePresentation?.[id]?.title ?? string(node.title) ?? id, id, boundCCs);
   }
   for (const node of rawNodes) {
     const id = string(node.node_id);
@@ -309,6 +331,36 @@ function applyHistory(snapshots: Map<string, Fields>, patch: Fields, decisionRev
       snapshots.set(id, next);
     }
   }
+  for (const change of rows(patch.retire)) {
+    const id = string(change.node_id);
+    if (!id) continue;
+    const node = snapshots.get(id);
+    if (!node) continue;
+    touched?.add(id);
+    snapshots.set(id, { ...node, state: 'cancelled' });
+    for (const [otherId, other] of snapshots) {
+      if (list(other.depends_on).includes(id)) {
+        snapshots.set(otherId, { ...other, depends_on: list(other.depends_on).filter((dependency) => dependency !== id) });
+      }
+    }
+  }
+  for (const change of rows(patch.reopen)) {
+    const id = string(change.node_id);
+    if (!id || !snapshots.has(id)) continue;
+    const pending = new Set([id]);
+    for (const reopened of pending) {
+      const node = snapshots.get(reopened);
+      if (!node) continue;
+      if (reopened === id || !['cancelled', 'superseded', 'proposed'].includes(String(node.state))) {
+        const { final_contract: _final, hold: _hold, ...fields } = node;
+        touched?.add(reopened);
+        snapshots.set(reopened, { ...fields, state: 'proposed', evidence_ids: [], reason: change.reason });
+      }
+      for (const [otherId, other] of snapshots) {
+        if (list(other.depends_on).includes(reopened)) pending.add(otherId);
+      }
+    }
+  }
 }
 
 function graphNodesOf(event: StoryEvent | undefined) {
@@ -380,6 +432,65 @@ export function graphProgress(graph: GraphModel, replay: GraphReplay): Map<strin
     }
   }
   return result;
+}
+
+/** Replay the committed task graph up to this story position. */
+export function taskGraphTimeline(graph: GraphModel, replay?: GraphReplay): TaskGraphTimelineNode[] {
+  if (graph.kind !== 'taskgraph') return [];
+  const nodes = graph.nodes.filter((node) => node.planId !== undefined);
+  const visible = replay?.events.slice(0, replay.position) ?? [];
+  const isLatest = !replay || replay.position >= replay.events.length;
+  // A curated scheduler overview can cite contracts from across the run.
+  // Its date does not advance the execution cursor.
+  const executionEvents = visible.filter(
+    (event) => !replay?.curated || !['node_contract_final', 'node_contract_refusal'].includes(event.kind),
+  );
+  const last = executionEvents[executionEvents.length - 1];
+  const cutoff = last?.created ?? -Infinity;
+  const eventIds = new Set(executionEvents.map((event) => event.id));
+  const history = [...graph.history].sort((a, b) => Number(a.rev) - Number(b.rev));
+  const completionOrder = new Map<string, number>();
+  let revision = 0;
+  for (const [index, entry] of history.entries()) {
+    const patch = record(entry.patch);
+    if (!patch) continue;
+    // A decision and the graph patch it committed have separate timestamps.
+    const matchingRecord =
+      eventIds.has(`${graph.taskId}:plan:${entry.rev}`) ||
+      (entry.origin === 'decision' && eventIds.has(`${graph.taskId}:decision:${entry.decision_rev}`));
+    if (matchingRecord || (typeof entry.created === 'number' && entry.created < cutoff)) revision = index + 1;
+    for (const node of [...rows(patch.add), ...rows(patch.update)]) {
+      const id = string(node.node_id);
+      if (!id) continue;
+      if (node.state === 'done' && !completionOrder.has(id)) completionOrder.set(id, index);
+    }
+  }
+  const orderOf = (node: GraphNode) => completionOrder.get(node.planId ?? '') ?? history.length;
+  nodes.sort((a, b) => orderOf(a) - orderOf(b));
+  const states = new Map<string, Fields>();
+  for (const entry of history.slice(0, revision)) {
+    const patch = record(entry.patch);
+    if (patch) applyHistory(states, patch, entry.decision_rev);
+  }
+
+  const stateOf = (node: GraphNode) =>
+    !replay || (!history.length && isLatest) ? node.state : states.get(node.planId ?? '')?.state;
+  const unresolved = (node: GraphNode) => !['done', 'cancelled', 'superseded'].includes(String(stateOf(node)));
+  const runState = replay?.runState;
+  const since = typeof runState?.since === 'string' ? Date.parse(runState.since) / 1000 : runState?.since;
+  const terminalReached =
+    (runState?.source && eventIds.has(runState.source)) ||
+    (typeof since === 'number' && Number.isFinite(since) ? cutoff >= since : isLatest);
+  const stopped = runState?.state === 'stopped' && terminalReached;
+  const finished = runState?.state === 'finished' && terminalReached;
+  const current = stopped || finished ? undefined : nodes.find(unresolved);
+  return nodes.map((node) => {
+    let replayState: TaskGraphTimelineNode['replayState'] = 'not-reached';
+    if (stateOf(node) === 'done') replayState = 'done';
+    else if (node === current) replayState = 'current';
+    else if (stopped && unresolved(node)) replayState = 'stopped';
+    return { ...node, replayState, boundCCs: node.boundCCs ?? [] };
+  });
 }
 
 /** Direct children: targets of a node's outgoing links. */

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { detectGraph, graphProgress } from '../src/features/factoryRuns/views/graphModel.ts';
+import { detectGraph, graphProgress, taskGraphTimeline } from '../src/features/factoryRuns/views/graphModel.ts';
 
 const taskId = 'spark-prefill';
 const contractId = 'spark-prefill-main';
@@ -160,4 +160,98 @@ test('replay highlights committed patches and attempt events while restoring pas
   const done = graphProgress(graph, { events, position: 5 });
   assert.equal(done.get('step:build').details.state, 'done');
   assert.deepEqual(done.get('step:build').details.attempt_ids, ['try-build']);
+});
+
+test('the task chain follows native completion order across curated steps', () => {
+  const packageNode = { node_id: 'package', depends_on: ['inspect'] };
+  const graph = detectGraph(
+    {
+      schema: 'factory.taskgraph/1',
+      task_id: taskId,
+      nodes: [inspect, build, packageNode].map((node) => ({ ...node, state: 'done' })),
+      history: [
+        { rev: 1, created: 10, patch: { add: [inspect, build, packageNode] } },
+        { rev: 2, created: 30, patch: { update: [{ node_id: 'inspect', state: 'done' }] } },
+        { rev: 3, created: 50, patch: { update: [{ node_id: 'package', state: 'done' }] } },
+        {
+          rev: 4,
+          created: 70.01,
+          origin: 'decision',
+          decision_rev: 7,
+          patch: { update: [{ node_id: 'build', state: 'done' }] },
+        },
+      ],
+    },
+    { contract, tasks: [{ task_id: taskId, contract_id: contractId }] },
+  );
+  const events = [
+    { id: taskId, created: 10, kind: 'task' },
+    { id: 'scheduling-summary', created: 63, kind: 'node_contract_final', graph_nodes: ['build', 'inspect'] },
+    { id: 'check-build', created: 45, kind: 'node_check', graph_nodes: ['build'] },
+    { id: 'read-package', created: 60, kind: 'observation' },
+    { id: `${taskId}:decision:7`, created: 70, kind: 'decision' },
+  ];
+  const at = (position) =>
+    taskGraphTimeline(graph, { events, position, curated: { steps: [] } }).map(({ planId, replayState }) => [
+      planId,
+      replayState,
+    ]);
+  assert.deepEqual(at(1), [['inspect', 'current'], ['package', 'not-reached'], ['build', 'not-reached']]);
+  assert.deepEqual(at(2), at(1));
+  assert.deepEqual(at(3), [['inspect', 'done'], ['package', 'current'], ['build', 'not-reached']]);
+  assert.deepEqual(at(4), [['inspect', 'done'], ['package', 'done'], ['build', 'current']]);
+  assert.deepEqual(at(5), [['inspect', 'done'], ['package', 'done'], ['build', 'done']]);
+});
+
+test('reopen resets downstream progress until the native terminal stop is reached', () => {
+  const release = { node_id: 'release', depends_on: ['build'] };
+  const graph = detectGraph({
+    schema: 'factory.taskgraph/1',
+    task_id: taskId,
+    nodes: [inspect, build, release],
+    history: [
+      { rev: 1, created: 10, patch: { add: [inspect, build, release] } },
+      { rev: 2, created: 20, patch: { update: [{ node_id: 'inspect', state: 'done' }] } },
+      { rev: 3, created: 30, patch: { update: [{ node_id: 'build', state: 'done' }] } },
+      { rev: 4, created: 35, patch: { reopen: [{ node_id: 'inspect', reason: 'Recheck inputs' }] } },
+      { rev: 5, created: 40, patch: { update: [{ node_id: 'inspect', state: 'done' }] } },
+    ],
+  });
+  const events = [
+    { id: `${taskId}:plan:3`, created: 30 },
+    { id: `${taskId}:plan:4`, created: 35 },
+    { id: `${taskId}:plan:5`, created: 40 },
+    { id: 'terminal-record', created: 45 },
+  ];
+  const runState = { state: 'stopped', since: 45, source: 'terminal-record' };
+  const at = (position) => taskGraphTimeline(graph, { events, position, runState }).map(({ replayState }) => replayState);
+  assert.deepEqual(at(1), ['done', 'done', 'current']);
+  assert.deepEqual(at(2), ['current', 'not-reached', 'not-reached']);
+  assert.deepEqual(at(3), ['done', 'current', 'not-reached']);
+  assert.deepEqual(at(4), ['done', 'stopped', 'stopped']);
+  assert.deepEqual(at(2), ['current', 'not-reached', 'not-reached']);
+});
+
+test('the chain gets capsule IDs from the exact admitted final node contract', () => {
+  const final = (node, digest, bound_ccs, task_id = taskId) => ({
+    task_id,
+    kind: 'node_contract_final',
+    values: { node_id: node, digest, final: { work: { bound_ccs } } },
+  });
+  const graph = detectGraph(
+    {
+      schema: 'factory.taskgraph/1',
+      task_id: taskId,
+      nodes: [inspect, { ...build, final_contract: 'bound' }],
+    },
+    {
+      observations: [
+        final('build', 'bound', ['factory.builder', 'engine.kv_reuse_lab']),
+        final('build', 'older', ['factory.source_workbench']),
+        final('inspect', 'bound', ['factory.capped_runner']),
+        final('build', 'bound', ['factory.node_check'], 'different-task'),
+      ],
+    },
+  );
+  assert.deepEqual(taskGraphTimeline(graph).map(({ boundCCs }) => boundCCs), [[], ['factory.builder', 'engine.kv_reuse_lab']]);
 });
