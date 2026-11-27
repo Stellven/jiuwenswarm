@@ -8,8 +8,10 @@ from functools import cached_property
 import hashlib
 from html import escape
 import json
+import math
 from pathlib import Path
 import re
+from scripts.spark.muse_report_memory import memory_section
 from statistics import median
 
 REPORT_PATH = 'reports/lab-report.html'
@@ -58,6 +60,7 @@ summary { cursor: pointer }
 .arm-names p { margin: .55rem 0 0 }
 """
 LAB_STYLE = """
+.cap-line {position:absolute;top:0;bottom:0;border-left:2px dashed #164374}
 .metric-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 23rem), 1fr)); gap: .8rem }
 .metric-chart { margin: 0; border: 1px solid #c9d3df; border-radius: .45rem; padding: .7rem .85rem }
 .metric-chart figcaption { display: grid; gap: .2rem }
@@ -133,18 +136,21 @@ def metric_cell(value, unit, notes):
     return f'<span class="metric-value">{escape(value_label(value, unit))}</span>' + comparison_lines(notes)
 
 
-def metric_chart(metric, title, context, unit, rows, current):
+def metric_chart(metric, title, context, unit, rows, current, *, labels=None):
     ceiling = 1 if unit == '%' else max(value for _, value, _ in rows)
+    if metric == 'decode':
+        ceiling = math.ceil(ceiling)
     if ceiling <= 0:
         raise ValueError(f'Chart {metric} has no positive scale')
     entries = []
     for arm, value, notes in rows:
+        label = (labels or {}).get(arm, value_label(value, unit))
         width = 100 * value / ceiling
         entries.append(
             f'<div class="chart-row" data-arm="{escape(arm)}" data-value="{value}"'
             f' data-current="{str(arm == current).lower()}"><dt>{escape(arm)}</dt><dd>'
             f'<div class="chart-track"><span class="chart-bar" aria-hidden="true" style="width:{width:.8f}%"></span>'
-            f'<span class="chart-value">{escape(value_label(value, unit))}</span></div>'
+            f'<span class="chart-value">{escape(label)}</span></div>'
             f'{comparison_lines(notes)}</dd></div>'
         )
     return (f'<figure class="metric-chart" data-metric="{escape(metric)}" data-axis-max="{ceiling}">'
@@ -283,31 +289,23 @@ class Report:
         }
 
     def timing_comparisons(self, row, key, *, acceptance=None):
-        if row.arm == 'A':
+        if row.arm == 'A' or row.state in (AFTER_PAGE_DROP, FIRST_AFTER_START):
             return []
-        time_or_rate = 'tok/s' if key == 'decode_tps' else 's'
-        base = self.original_r8.get((row.tokens, row.state, 'A'))
-        notes = [comparison('A', row.values[key], base.values[key] if base else None, time_or_rate,
-                            context='Run 1 reference' if base and acceptance is not None else '')]
-        if row.arm == 'AQBC' and acceptance is not None:
-            prior = self.run2_results.get((row.tokens, row.state, 'AQB'))
-            context = ''
-            if prior is None and row.state == FIRST_AFTER_START:
-                # Both cold requests used page eviction. Only the candidate went first.
-                prior = self.run2_results.get((row.tokens, AFTER_PAGE_DROP, 'AQB'))
-                context = 'same server, later cold request'
-            judgement = next((group for group in acceptance['standard']
-                              if group['judged'] and row.state == WARM_SERVER
-                              and group['request'] == f'p{row.tokens}'), None)
-            matched_ratio = judgement['median_candidate_to_control'][CHECKER_METRICS[key]] if judgement else None
-            same = (prior is not None and matched_ratio is not None
-                    and abs(matched_ratio - 1) <= acceptance['standard_regression_tolerance'])
-            notes.append(comparison('AQB', row.values[key], prior.values[key] if prior else None,
-                                    time_or_rate, context=context if prior else '', same=same))
-        return notes
+        unit = 'tok/s' if key == 'decode_tps' else 's'
+        if acceptance is None:
+            base = self.original_r8.get((row.tokens, row.state, 'A'))
+            return [comparison('A', row.values[key], base.values[key], unit)] if base else []
+        if row.arm != 'AQBC':
+            return []
+        prior = self.run2_results[row.tokens, row.state, 'AQB'].values[key]
+        ratio = row.values[key] / prior
+        return [comparison('AQB', row.values[key], prior, unit,
+                           same=abs(ratio - 1) <= acceptance['standard_regression_tolerance'])]
 
     def timing_cell(self, row, key, *, acceptance=None):
         unit = 'tok/s' if key == 'decode_tps' else 's'
+        if acceptance is not None and row.tokens == '2048' and row.state == WARM_SERVER and key == 'decode_tps':
+            return 'varied between repeats; not quoted'
         value = row.values[key] / (1000 if unit == 's' else 1)
         notes = self.timing_comparisons(row, key, acceptance=acceptance)
         return f'<span class="metric-value">{value:.2f}</span>' + comparison_lines(notes)
@@ -323,32 +321,40 @@ class Report:
 
     def timing_charts(self, *, acceptance=None):
         current = 'AQBC' if acceptance is not None else 'AQB'
-        context = ('Warm server. A is the Run 1 reference; AQB and AQBC ran on the same server in Run 2.'
+        context = ('A and AQB are published Run 1 warm measurements. AQBC is measured in Run 2 and compared with its same-server AQB control.'
                    if acceptance is not None else 'Warm server on Spark, with 32 generated tokens.')
         metrics = [
             ('first-token-512', 'First token · 512-token prompt', '512', WARM_SERVER, 'ttft_ms'),
             ('first-token-2048', 'First token · 2048-token prompt', '2048', WARM_SERVER, 'ttft_ms'),
-            ('decode', 'Decode · 512-token prompt', '512', WARM_SERVER, 'decode_tps'),
+            ('decode', 'Decode · 2048-token prompt', '2048', WARM_SERVER, 'decode_tps'),
             ('total-2048', 'Total request · 2048-token prompt', '2048', WARM_SERVER, 'total_ms'),
         ]
         if acceptance is not None:
             metrics.append(('follow-up-2048', 'Follow-up first token · 2048-token document',
                             '2048', FOLLOW_UP, 'ttft_ms'))
-        rows = self.original_r8
-        if acceptance is not None:
-            rows = {**rows, **self.run2_results}
         for name, label, target, state, key in metrics:
             followup = state == FOLLOW_UP
-            arms = ('AQB', 'AQBC') if followup else ('A', 'AQB', 'AQBC') if acceptance is not None else ('A', 'AQB')
+            arms = ('A', 'AQB', 'AQBC') if acceptance is not None else ('A', 'AQB')
             unit = 'tok/s' if key == 'decode_tps' else 's'
-            entries = []
+            entries, labels = [], {}
             for arm in arms:
-                row = rows[target, state, arm]
+                if arm == 'AQBC' or (followup and arm == 'AQB'):
+                    row = self.run2_results[target, state, arm]
+                    notes = self.timing_comparisons(row, key, acceptance=acceptance)
+                else:
+                    row = self.original_r8[target, WARM_SERVER, arm]
+                    notes = self.timing_comparisons(row, key)
                 value = row.values[key] / (1000 if unit == 's' else 1)
-                entries.append((arm, value, self.timing_comparisons(row, key, acceptance=acceptance)))
-            chart_context = ('Same-document, same-server pair. No matched A follow-up was recorded.'
+                if arm == 'AQBC' and not followup and notes == ['same as AQB']:
+                    labels[arm] = 'same as AQB' if key == 'decode_tps' else value_label(value, unit) + ' · same as AQB'
+                    notes = []
+                if arm == 'AQBC' and followup:
+                    base = self.original_r8[target, WARM_SERVER, 'A'].values[key]
+                    notes.insert(0, f'{base / row.values[key]:.0f}× faster than A’s warm reference')
+                entries.append((arm, value, notes))
+            chart_context = ('A is the Run 1 warm first-token reference. AQB and AQBC are the matched Run 2 follow-ups.'
                              if followup else context)
-            yield metric_chart(name, label, chart_context, unit, entries, current)
+            yield metric_chart(name, label, chart_context, unit, entries, current, labels=labels)
 
     def accuracy_chart(self, acc, *, identity=None):
         a_score, aqb_score = acc['acc_ref'], acc['acc_cand']
@@ -369,6 +375,17 @@ class Report:
         return ('<h2>Performance and accuracy</h2><div class="metric-charts">'
                 + ''.join(self.timing_charts(acceptance=acceptance))
                 + self.accuracy_chart(acc, identity=identity) + '</div>')
+
+    def memory(self):
+        records = {}
+        for row in self.rows:
+            if row['kind'] != 'load' or (self.run == 1 and row['arm'] == 'AQBC'):
+                continue
+            arm = row['arm']
+            source = Path(row['source']['path']).relative_to(self.root).as_posix()
+            href = self.source(source, '', arm.lower() + '-load', whole_file=True)
+            records[arm] = self.payload(source)[1], href
+        return memory_section(records)
 
     def warmup(self):
         loads = [row for row in self.rows if row['kind'] == 'load'
@@ -427,7 +444,7 @@ class Report:
         if self.run == 1:
             notes += p('The original factory closure recorded report_inconclusive. Its quiet-machine rule excluded four of eight timing cells, leaving one eligible B/P pair. The follow-up campaign shown above records its own timing evidence.')
         else:
-            notes += p("Run 2's 2048-token warm decode varied between repeats in both arms (AQBC 2.2 and 4.4 tok/s, AQB control 2.1 and 4.3), so the table's 3.28 median isn't quoted as an absolute speed; the same-server comparison holds.")
+            notes += p("Run 2's 2048-token warm decode varied between repeats in both arms (AQBC 2.2 and 4.4 tok/s, AQB control 2.1 and 4.3), so an absolute speed is not quoted; the same-server comparison holds.")
         return notes
 
     def original_baseline(self):
@@ -519,7 +536,7 @@ class Report:
                 f'<meta name="viewport" content="width=device-width, initial-scale=1"><title>{title}</title>'
                 f'<style>{STYLE}{LAB_STYLE}</style></head><body><main><h1>{title}</h1>'
                 f'<p class="verdict"><strong>{escape(subtitle)}</strong><br>Engine image <code>{escape(image)}</code></p>'
-                + arm_names_box() + body + self.warmup() + self.method() + '</main></body></html>\n')
+                + arm_names_box() + body + self.memory() + self.warmup() + self.method() + '</main></body></html>\n')
 
 
 def write_lab_report(stage, muse_root, run):
