@@ -6,6 +6,7 @@ import { factoryApi, type EvidenceFile, type FileContent } from './api';
 import { HtmlArtifact } from './views/HtmlArtifact';
 import { resolveEvidenceLink } from './views/dataModel';
 import { FactoryStructuredReport } from './FactoryStructuredReport';
+import { staticBuild } from './staticData';
 import { evidenceIndex, externalReportLink, linkedEvidence, reportFiles, reportHeadings } from './reportModel';
 import './factoryReport.css';
 
@@ -174,7 +175,7 @@ function MarkdownReport({
     const indexed = evidenceIndex(files);
     const renderLink = (href: string | undefined) => {
       if (!href) return {};
-      const external = externalReportLink(href);
+      const external = staticBuild ? undefined : externalReportLink(href);
       if (external) return { href: external, external: true };
       const [path, fragment] = href.split('#');
       const evidence = path ? linkedEvidence(href, source, files) : undefined;

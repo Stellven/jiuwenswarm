@@ -10,10 +10,11 @@ import { AssetPublishHost } from './components/AssetPublishDrawer';
  * 应用主布局，整合所有组件
  */
 
-import { useState, useCallback, useEffect, useRef, Component, ReactNode, useMemo, lazy, Suspense, type ComponentProps, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
+import { useState, useCallback, useEffect, useRef, Component, ReactNode, useMemo, lazy, Suspense, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import { ChatPanel } from './components/ChatPanel';
 import { DesktopTextEditContextMenu } from './components/DesktopTextEditContextMenu';
-import { SessionSidebar } from './components/SessionSidebar';
+import { AppShell } from './components/AppShell';
+import { FactoryAudience } from './features/factoryRuns/FactoryAudience';
 import { SkillPanel } from './components/SkillPanel';
 import { AgentManagementPanel } from './components/AgentManagementPanel';
 import { FactoryRunsPage } from './features/factoryRuns/FactoryRunsPage';
@@ -375,60 +376,6 @@ async function waitForShareImageJob(
     ));
   }
   return isCurrentMonitor() ? status : null;
-}
-
-function AppShell({ sidebar, children, sessionId }: {
-  sidebar: ComponentProps<typeof SessionSidebar>;
-  children: ReactNode;
-  sessionId?: string;
-}) {
-  return (
-    <div
-      className={`shell shell--icon-rail ${sidebar.activeNav === 'agents' ? 'shell--agent-management' : ''}`}
-      data-testid="app-shell"
-      data-session-id={sessionId}
-    >
-      <SessionSidebar {...sidebar} />
-      {children}
-    </div>
-  );
-}
-
-function FactoryAudience() {
-  const [entry, setEntry] = useState(() => readFactoryEntry(window.location.hash));
-  useEffect(() => {
-    const sync = () => setEntry(readFactoryEntry(window.location.hash));
-    window.addEventListener('hashchange', sync);
-    return () => window.removeEventListener('hashchange', sync);
-  }, []);
-  const activeNav = entry?.view ?? 'factoryRuns';
-  return (
-    <AppShell
-      sidebar={{
-        activeNav,
-        showNewSession: false,
-        hiddenNavItems: ['personalContext'],
-        availableNavItems: ['factoryRuns', 'capabilityCapsules'],
-        onNavigate(nav) {
-          if (nav === 'factoryRuns' || nav === 'capabilityCapsules') {
-            window.location.hash = nav === 'factoryRuns' ? runHref() : capsuleHref();
-          }
-        },
-      }}
-    >
-      <main className="content" data-testid="app-audience-content">
-        {entry?.view === 'capabilityCapsules' ? (
-          <div className="app-section min-h-0" data-testid="app-capability-capsules">
-            <CapsulesPage name={entry.capsule} />
-          </div>
-        ) : (
-          <div className="app-section min-h-0" data-testid="app-factory-runs">
-            <FactoryRunsPage entry={entry} engineViewer />
-          </div>
-        )}
-      </main>
-    </AppShell>
-  );
 }
 
 function AppContent({

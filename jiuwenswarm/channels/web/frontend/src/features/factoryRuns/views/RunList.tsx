@@ -2,6 +2,7 @@ import { Fragment, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CapsuleChips } from '../cc/CapsuleChips';
 import type { Run } from '../api';
+import { staticBuild } from '../staticData';
 import { contractDemoRuns, groupRunEntries, runListEntries } from './runListModel';
 import { useViewerLabels } from './viewerLabels';
 
@@ -106,11 +107,13 @@ export function FactoryRunList({
           return (
             <>
               <nav className="factory-tabs" aria-label="Run lists" data-testid="factory-runs-list-tabs">
-                <button type="button" aria-pressed={listView === 'demo'} onClick={() => {
+                <button type="button" data-testid="factory-runs-list-demo" aria-pressed={listView === 'demo'} onClick={() => {
                   setListView('demo');
                   if (!demos.some(({ run }) => run.id === selected)) onSelect(demos[0].run.id);
                 }}>Demo</button>
-                <button type="button" aria-pressed={listView === 'all'} onClick={() => setListView('all')}>All runs</button>
+                {!staticBuild && (
+                  <button type="button" data-testid="factory-runs-list-all" aria-pressed={listView === 'all'} onClick={() => setListView('all')}>All runs</button>
+                )}
               </nav>
               <section
                 className="factory-run-group"

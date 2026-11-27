@@ -1,6 +1,7 @@
 import { useDeferredValue, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
+import { staticBuild } from '../staticData';
 import remarkGfm from 'remark-gfm';
 import rehypeSlug from 'rehype-slug';
 import type { EvidenceFile, FileContent } from '../api';
@@ -212,6 +213,7 @@ function ReportDocument({ file, name, resolveLink, onOpenFile }: { file: FileCon
               a: ({ href, children }) => {
                 if (!href) return <span>{children}</span>;
                 if (/^(https?:|mailto:)/i.test(href)) {
+                  if (staticBuild) return <span>{children}</span>;
                   return (
                     <a href={href} target="_blank" rel="noopener noreferrer">
                       {children}

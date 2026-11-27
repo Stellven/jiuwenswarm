@@ -1,4 +1,5 @@
 import { getApiBase } from '../../utils/env';
+import { staticBuild, staticJson } from './staticData';
 import type { CuratedReplay } from './views/storyModel.ts';
 import type { CheckOutput, Controls, NodeCheckIndex, OperatorOp } from './views/checkModel.ts';
 
@@ -277,7 +278,9 @@ export type RunList = {
 export type FileContent = EvidenceFile & { content: string; truncated: boolean };
 
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${getApiBase()}/api/factory${path}`, init);
+  const endpoint = `/api/factory${path}`;
+  if (staticBuild) return staticJson<T>(endpoint, init);
+  const response = await fetch(getApiBase() + endpoint, init);
   if (!response.ok) {
     const value = await response.json().catch(() => ({}));
     throw new Error(value.detail || value.error || `${response.status} ${response.statusText}`);

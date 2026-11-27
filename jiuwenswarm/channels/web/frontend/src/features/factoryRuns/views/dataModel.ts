@@ -205,7 +205,7 @@ export function resolveEvidenceLink(files: EvidenceFile[], from: EvidenceFile, h
   const names = (file: EvidenceFile) => [file.path, ...(file.display_path?.split(' · ') ?? [])];
   let target: string;
   try {
-    const base = 'https://evidence.invalid/' + (from.display_path || from.path).split(' · ')[0];
+    const base = 'file:///' + (from.display_path || from.path).split(' · ')[0];
     target = decodeURIComponent(new URL(href, base).pathname).replace(/^\/+/, '');
   } catch {
     return undefined;
