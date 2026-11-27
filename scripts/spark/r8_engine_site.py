@@ -1,52 +1,57 @@
-"""Serve the R8 engine viewer on the Spark Tailscale address."""
+"""Serve the JiuwenSwarm web app and its read-only factory evidence on the tailnet."""
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.responses import JSONResponse
 from starlette.staticfiles import StaticFiles
 
-from jiuwenswarm.gateway.channel_manager.web.factory_http import FactoryHttpService, _inside, attach_factory_routes
+from jiuwenswarm.gateway.channel_manager.base import RobotMessageRouter
+from jiuwenswarm.gateway.channel_manager.web.factory_http import FactoryHttpService, _inside
+from jiuwenswarm.gateway.channel_manager.web.web_channel_app import build_web_channel_app
+from jiuwenswarm.gateway.channel_manager.web.web_connect import WebChannel, WebChannelConfig
 
 TAILSCALE_HOST = '100.105.127.48'
+TAILSCALE_DNS = 'gx10-004d.tailbe236a.ts.net'
 TAILSCALE_PORT = 5173
 LIVE_TASK = 'muse-2bit-demo-r8'
 HISTORY_TASK = 'muse-2bit-ttft-v4'
 IDENTIFIER = r'[A-Za-z0-9][A-Za-z0-9_.-]{0,199}'
 RUN = r'/api/factory/runs/[a-f0-9]{24}'
 NODE = rf'{RUN}/nodes/{IDENTIFIER}'
+CAPSULE = rf'/api/factory/capsules(?:/{IDENTIFIER}(?:/file)?)?'
 PREFIX_FIXTURE = r'/api/factory/capsules/kv_reuse_lab/fixture(?:/(?:summary|stock|configured))?'
 FACTORY_READ = re.compile(
     rf'(?:/api/factory/(?:runs|engine-bench(?:/(?:readme|method-history))?)'
-    rf'|{RUN}(?:/(?:state|session|story|file))?|{NODE}(?:/(?:diff|material))?|{PREFIX_FIXTURE})'
+    rf'|{RUN}(?:/(?:state|session|story|file))?|{NODE}(?:/(?:diff|material))?|{CAPSULE}|{PREFIX_FIXTURE})'
 )
-STATIC_READ = re.compile(r'/(?:index\.html|logo\.svg|favicon\.ico|assets/[A-Za-z0-9_.-]+)?')
+STATIC_READ = re.compile(r'/(?:index\.html|logo\.(?:svg|ico)|favicon\.ico|assets/[A-Za-z0-9_.-]+)?')
 
 
 class EngineRuns(FactoryHttpService):
-    def __init__(self, live, history, replay, second_replay=None):
-        published = [second_replay] if second_replay else []
-        super().__init__(
-            roots=[live, history, replay, *published], historical_roots=[history, replay, *published],
-            launch_root=False, launch_home_root=False,
-        )
-        self.second_replay = second_replay
-        self.live, self.history, self.replay = live, history, replay
+    def __init__(self, live, history, replay, second_replay=None, extra_roots=()):
+        self.demo_roots = {replay}
+        if second_replay:
+            self.demo_roots.add(second_replay)
+        roots = tuple(dict.fromkeys((live, history, *sorted(self.demo_roots), *extra_roots)))
+        super().__init__(roots=roots, historical_roots=[history, *self.demo_roots],
+                         launch_root=False, launch_home_root=False)
 
     def catalog(self):
-        return [
-            (item, path) for item, path in super().catalog()
-            if (path == self.live and item['task_id'] == LIVE_TASK and item['kind'] == 'live')
-            or (path == self.history and item['task_id'] == HISTORY_TASK and item['kind'] == 'live')
-            or (path == self.replay and item['task_id'] == LIVE_TASK and item.get('demo') is True)
-            or (path == self.second_replay and item['kind'] == 'bundle' and item.get('demo') is True)
-        ]
+        runs = super().catalog()
+        # Earlier curated stories belong in All runs. The Demo view represents
+        # the published contracts, with one selected replay for each delivery.
+        for item, path in runs:
+            if item.get('demo') and path not in self.demo_roots:
+                item.pop('demo', None)
+                item.pop('demo_order', None)
+        return runs
 
     def detail(self, run_id):
         result = super().detail(run_id)
@@ -119,7 +124,7 @@ class ViewerBoundary:
         )(scope, receive, send)
 
 
-def make_app(dist, live, history, replay, second_replay=None):
+def make_app(dist, live, history, replay, second_replay=None, *, extra_roots=()):
     dist, live, history, replay = (Path(path).expanduser().resolve() for path in (dist, live, history, replay))
     if not (dist / 'index.html').is_file():
         raise ValueError(f'Engine web build is missing: {dist / "index.html"}')
@@ -127,11 +132,11 @@ def make_app(dist, live, history, replay, second_replay=None):
         if not (path / 'factory.sqlite').is_file():
             raise ValueError(f'Factory home is missing its database: {path}')
 
-    service = EngineRuns(live, history, replay, second_replay)
-    app = FastAPI(openapi_url=None)
-    attach_factory_routes(app, service=service)
+    service = EngineRuns(live, history, replay, second_replay, extra_roots)
+    channel = WebChannel(WebChannelConfig(enabled=True, port=TAILSCALE_PORT), RobotMessageRouter())
+    app = build_web_channel_app(channel, factory_service=service)
     app.mount('/', StaticFiles(directory=dist, html=True), name='engine-frontend')
-    app.add_middleware(TrustedHostMiddleware, allowed_hosts=[TAILSCALE_HOST])
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=[TAILSCALE_HOST, TAILSCALE_DNS])
     app.add_middleware(ViewerBoundary)
     return app
 
@@ -145,8 +150,13 @@ def main(argv=None):
     parser.add_argument('--replay', type=Path, required=True, help='Exact R8 curated replay bundle directory.')
     parser.add_argument('--second-replay', type=Path, default=muse/'r9/curated-replay')
     args = parser.parse_args(argv)
+    os.environ['JIUWENSWARM_CONFIG_URL'] = 'off'
+    # Reuse the native app's configured factory roots for All runs.
+    configured = FactoryHttpService(launch_root=False, launch_home_root=False).roots
     try:
-        app = make_app(args.dist, args.live, args.history, args.replay, args.second_replay if args.second_replay.is_dir() else None)
+        app = make_app(args.dist, args.live, args.history, args.replay,
+                       args.second_replay if args.second_replay.is_dir() else None,
+                       extra_roots=(*configured, muse / 'r9/graph'))
     except ValueError as exc:
         parser.error(str(exc))
     # The redacting log record factory consumes formatting arguments before Uvicorn's access formatter.

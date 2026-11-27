@@ -67,7 +67,7 @@ def test_native_websocket_adapter_accepts_a_unix_listener():
 def test_engine_viewer_uses_only_public_reads(tmp_path, monkeypatch):
     import pytest
     from starlette.websockets import WebSocketDisconnect
-    from scripts.spark.r8_engine_site import HISTORY_TASK, LIVE_TASK, TAILSCALE_HOST, make_app as make_engine
+    from scripts.spark.r8_engine_site import HISTORY_TASK, LIVE_TASK, TAILSCALE_DNS, TAILSCALE_HOST, make_app as make_engine
 
     dist = tmp_path / 'dist'
     dist.mkdir()
@@ -119,14 +119,18 @@ def test_engine_viewer_uses_only_public_reads(tmp_path, monkeypatch):
             assert api.post(url, headers=forwarded).status_code == 403
         assert api.get('/api/factory/engine-bench/report.json').status_code == 403
         listing = api.get('/api/factory/runs').json()
-        assert set(row['task_id'] for row in listing['runs']) == {LIVE_TASK, HISTORY_TASK}
+        assert set(row['task_id'] for row in listing['runs']) == {LIVE_TASK, HISTORY_TASK, 'another-task'}
         assert listing['launch_enabled'] is False
         run = next(row['id'] for row in listing['runs'] if row['task_id'] == LIVE_TASK)
         for path in ('/api/factory/launch', f'/api/factory/runs/{run}/pause', f'/api/factory/runs/{run}/resume',
                      f'/api/factory/runs/{run}/revise', f'/api/factory/runs/{run}/nodes/n/release',
                      f'/api/factory/runs/{run}/nodes/n/note', '/file-api/file-content', '/api/operator'):
             assert api.post(path, headers=forwarded).status_code == 403
-        for path in ('/file-api/raw-file', '/openapi.json', '/api/factory/capsules', '/api/tasks'):
+        assert api.get('/', headers={'Host': TAILSCALE_DNS}).status_code == 200
+        assert api.get('/', headers={'Host': 'elsewhere.ts.net'}).status_code == 400
+        assert api.get('/api/factory/capsules?usage=false').status_code == 200
+        assert api.post('/api/factory/capsules', headers=forwarded).status_code == 403
+        for path in ('/file-api/raw-file', '/openapi.json', '/api/tasks'):
             assert api.get(path, headers=forwarded).status_code == 403
         route = '/api/factory/capsules/kv_reuse_lab/fixture'
         data = api.get(route).json()
