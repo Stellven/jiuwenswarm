@@ -199,11 +199,11 @@ function recordedEvents(detail: RunDetail): RecordedEvent[] {
   return events.sort((a, b) => (a.time ?? Infinity) - (b.time ?? Infinity));
 }
 
-function EventRow({ row }: { row: RecordedEvent }) {
-  const [open, setOpen] = useState(false);
+function EventRow({ row, initiallyOpen }: { row: RecordedEvent; initiallyOpen: boolean }) {
+  const [open, setOpen] = useState(initiallyOpen);
   return (
     <li data-testid="factory-runs-recorded-event" data-variant={row.id}>
-      <details onToggle={(event) => setOpen(event.currentTarget.open)}>
+      <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>
         <summary data-testid="factory-runs-recorded-event-toggle">
           {row.time !== undefined && <time dateTime={new Date(row.time).toISOString()}>{new Date(row.time).toISOString().replace('T', ' ').replace('Z', ' UTC')}</time>}
           <code>{row.kind}</code>
@@ -215,15 +215,15 @@ function EventRow({ row }: { row: RecordedEvent }) {
   );
 }
 
-export function ReplayEventsPanel({ detail }: { detail: RunDetail }) {
+export function ReplayEventsPanel({ detail, recordId }: { detail: RunDetail; recordId?: string }) {
   const events = useMemo(() => recordedEvents(detail), [detail]);
   const [kind, setKind] = useState('');
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(recordId ?? '');
   const [visible, setVisible] = useState(50);
   const search = query.trim().toLowerCase();
   const kinds = [...new Set(events.map((event) => event.kind))].sort();
   const filtered = events.filter((event) => (!kind || event.kind === kind)
-    && (!search || (event.kind + ' ' + event.summary + ' ' + event.id).toLowerCase().includes(search)));
+    && (query && query === recordId ? event.raw.obs_id === recordId : !search || (event.kind + ' ' + event.summary + ' ' + event.id).toLowerCase().includes(search)));
   return (
     <section className="factory-replay-evidence" data-testid="factory-runs-replay-events">
       <div className="factory-replay-evidence-controls">
@@ -250,7 +250,7 @@ export function ReplayEventsPanel({ detail }: { detail: RunDetail }) {
       </p>
       {filtered.length ? (
         <ol className="factory-replay-event-list" data-testid="factory-runs-recorded-events">
-          {filtered.slice(0, visible).map((row) => <EventRow key={row.id} row={row} />)}
+          {filtered.slice(0, visible).map((row) => <EventRow key={row.id} row={row} initiallyOpen={Boolean(recordId && row.raw.obs_id === recordId)} />)}
         </ol>
       ) : <p className="factory-muted">No recorded events match these filters.</p>}
       {visible < filtered.length && (
