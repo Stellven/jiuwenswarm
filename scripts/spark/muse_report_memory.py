@@ -50,7 +50,7 @@ def memory_section(records):
     for key, label, unit in METRICS:
         cells = []
         for index, (arm, data) in enumerate(values.items()):
-            value = data[key]
+            value = data.get(key)
             if value is None:
                 cells.append('not recorded')
                 continue
@@ -59,7 +59,7 @@ def memory_section(records):
             if index > 1:
                 references.append(list(values)[index-1])
             for ref in references:
-                base = values[ref][key]
+                base = values[ref].get(key)
                 if base is None:
                     continue
                 diff = value - base
@@ -72,10 +72,10 @@ def memory_section(records):
     panels = []
     for key, title, unit in [('rss', 'Peak host memory', 'MiB'), ('pack', 'Weights on disk', 'GB')]:
         caps = [v['cap'] for v in values.values() if v['cap'] is not None] if key == 'rss' else []
-        scale = max([v[key] for v in values.values() if v[key] is not None] + caps, default=1) or 1
+        scale = max([v[key] for v in values.values() if v.get(key) is not None] + caps, default=1) or 1
         bars = []
         for arm, data in values.items():
-            val = data[key]
+            val = data.get(key)
             if val is None:
                 bars.append(f'<div>{escape(arm)} · not recorded</div>')
                 continue
