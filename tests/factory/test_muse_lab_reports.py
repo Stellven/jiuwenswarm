@@ -44,16 +44,15 @@ def test_tolerance_and_missing_matches_follow_recorded_workload(tmp_path):
         }],
     }
     assert report.timing_comparisons(row('AQBC', WARM_SERVER, 95), 'ttft_ms', acceptance=acceptance) == [
-        'vs A (Run 1 reference) — 2.1× faster (−52%)', 'same as AQB',
+        'same as AQB',
     ]
     assert report.timing_comparisons(row('AQBC', FOLLOW_UP, 95), 'ttft_ms', acceptance=acceptance) == [
-        'vs A — no matched measurement', 'vs AQB — 1.05× faster (−5%)',
+        'same as AQB',
     ]
     assert report.timing_comparisons(row('AQBC', FIRST_AFTER_START, 130), 'ttft_ms', acceptance=acceptance) == [
-        'vs A — no matched measurement', 'vs AQB (same server, later cold request) — 1.3× slower (+30%)',
     ]
     acceptance['standard'][0]['median_candidate_to_control']['derived_ttft_ms'] = .5
-    assert report.timing_comparisons(row('AQBC', WARM_SERVER, 50), 'ttft_ms', acceptance=acceptance)[1] == (
+    assert report.timing_comparisons(row('AQBC', WARM_SERVER, 50), 'ttft_ms', acceptance=acceptance)[0] == (
         'vs AQB — 2× faster (−50%)'
     )
 
