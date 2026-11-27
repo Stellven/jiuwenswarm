@@ -1,0 +1,46 @@
+{
+  "format": "factory.plan/1",
+  "planner": "factory.node-contracts",
+  "nodes": [
+    {
+      "node_id": "pin_inputs",
+      "node_contract": "pin_inputs",
+      "depends_on": []
+    },
+    {
+      "node_id": "check_seeding_premise",
+      "node_contract": "check_seeding_premise",
+      "depends_on": [
+        "pin_inputs"
+      ]
+    },
+    {
+      "node_id": "implement_seeding",
+      "node_contract": "implement_seeding",
+      "depends_on": [
+        "check_seeding_premise"
+      ]
+    },
+    {
+      "node_id": "verify_fixtures",
+      "node_contract": "verify_fixtures",
+      "depends_on": [
+        "implement_seeding"
+      ]
+    },
+    {
+      "node_id": "build_image",
+      "node_contract": "build_image",
+      "depends_on": [
+        "verify_fixtures"
+      ]
+    },
+    {
+      "node_id": "deliver_to_lab",
+      "node_contract": "deliver_to_lab",
+      "depends_on": [
+        "build_image"
+      ]
+    }
+  ]
+}

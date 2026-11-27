@@ -284,6 +284,11 @@ def _route(store, task_id, capability, packet, inputs):
         if checkpoint:
             from .dispatch_gate import validate_terminal
             validate_terminal(store, task_id, checkpoint, record)
+        task = store.get_task(task_id)
+        seeding = (task.get('constraints') or {}).get('seeding_checkpoint')
+        if seeding:
+            from .muse_r11_gate import validate_terminal
+            validate_terminal(getattr(store, '_store', store), task, seeding, record)
         if record.get('action', {}).get('type') == 'accept':
             from .acceptance import validate as validate_acceptance
             accepted = validate_acceptance(store, task_id)

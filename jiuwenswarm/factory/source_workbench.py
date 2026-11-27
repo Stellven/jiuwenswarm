@@ -241,4 +241,8 @@ def dispatch(store, task_id, operation, inputs):
     locks.mkdir(exist_ok=True)
     with (locks / (hashlib.sha256(str(workbench.root).encode()).hexdigest() + '.lock')).open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
+        task = workbench.store.get_task(task_id)
+        if task.get('constraints', {}).get('seeding_checkpoint') and operation in {'write', 'edit', 'localcommit'}:
+            from .muse_r11_gate import guard_source
+            guard_source(workbench.store, task, operation, inputs)
         return {'result': getattr(workbench, operation)(inputs)}

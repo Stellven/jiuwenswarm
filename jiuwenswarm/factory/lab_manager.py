@@ -125,6 +125,13 @@ def task_problems(lab_task, contract, contract_sha256):
         found.append(f'constraints/lab_profile: {profile!r} differs from the contract target {view["target"]!r}')
     from .contract_v2 import host_paths
     for path in host_paths(lab_task):
+        # This particular contract names one immutable path inside the delivered runtime.
+        # It is not a request for a host file or arbitrary lab mount.
+        seeding = (contract.get('extensions') or {}).get('muse.r11-seeding') or {}
+        candidate_env = lab_task['arms'].get('AQBCE', {}).get('env')
+        if (path == '/arms/AQBCE/env/LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH'
+                and candidate_env and candidate_env == seeding.get('profile_env')):
+            continue
         found.append(f'{path.lstrip("/")}: absolute host path; a lab task names results by identity, not location')
     return found
 
@@ -372,13 +379,27 @@ class LabManager:
             applies = [arm for arm in arms_for(contract, check['applies_to']) if arm in arms]
             if applies:
                 tests.append(dict(id=check['id'], does=check['does'], check=check['id'], arms=applies))
-        tests.append(dict(id='measure', does='Every contract metric on every arm and request.',
-                          measure=metric_ids(contract), arms=arms, requests=request_ids(contract)))
+        seeding = (task.get('constraints') or {}).get('seeding_checkpoint')
+        if seeding:
+            from .muse_r11_gate import EVIDENCE_FILES, REQUEST_METRICS
+            request_level = [metric for metric in metric_ids(contract) if metric in REQUEST_METRICS]
+            load_level = [metric for metric in metric_ids(contract) if metric not in REQUEST_METRICS]
+            tests.extend([
+                dict(id='measure', does='Compare the same-image arms for every declared request.',
+                     measure=request_level, arms=arms, requests=request_ids(contract)),
+                dict(id='load', does='Record per-arm load, readiness and startup cache fill from the source receipts.',
+                     measure=load_level, arms=arms),
+            ])
+        else:
+            tests.append(dict(id='measure', does='Every contract metric on every arm and request.',
+                              measure=metric_ids(contract), arms=arms, requests=request_ids(contract)))
         draft = dict(schema='factory.lab-task/1', lab_task_id=lab_task_id or f'{contract["contract_id"]}-lab',
                      purpose=purpose or contract['purpose'], contract=dict(id=contract['contract_id'], sha256=digest),
                      subjects=subjects, arms={arm: dict(subject=arm_subjects[arm]) for arm in arms}, tests=tests,
                      deliverables=dict(raw_samples=True, sections=['setup', 'results', 'deviations']),
                      constraints=dict(lab_profile=contract['target']['profile']), questions=dict(allowed=True))
+        if seeding:
+            draft['deliverables']['files'] = [dict(name=name, media_type='application/json') for name in EVIDENCE_FILES]
         return dict(lab_task=draft, problems=task_problems(draft, contract, digest))
 
     def compose(self, task_id, lab_task, contract_id=None, node_id=None):
@@ -392,6 +413,10 @@ class LabManager:
         from .node_contract import from_contract
         if (from_contract(contract) or {}).get('staged_release'):
             self._verify_factory_stage(task_id, node_id, lab_task)
+        seeding = (task.get('constraints') or {}).get('seeding_checkpoint')
+        if seeding:
+            from .muse_r11_gate import verify_lab_task
+            verify_lab_task(self.store, task, seeding, node_id, lab_task)
         lab_task['contract'] = dict(id=contract['contract_id'], sha256=digest)
         subjects = {name: dict(subject, verification=self._verify_subject(task_id, name, subject))
                     for name, subject in lab_task['subjects'].items()}

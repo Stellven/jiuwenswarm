@@ -123,6 +123,10 @@ class Builder:
         if not isinstance(idem_key, str) or not idem_key.strip():
             raise ValueError('idem_key must be nonempty')
         constraints = task.get('constraints', {})
+        seeding = (constraints or {}).get('seeding_checkpoint')
+        if seeding:
+            from .muse_r11_gate import verify_build_request
+            verify_build_request(self.store, task, seeding, request, node_id)
         config_only = 'config_image' in request
         if config_only:
             if node_id != 'build_image':

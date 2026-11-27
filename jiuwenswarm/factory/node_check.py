@@ -50,6 +50,8 @@ import urllib.request
 
 import yaml
 
+from .store import NotFound
+
 KIND = 'node_check'
 FORMAT = 'factory.node-check/2'
 SHORT_FIELDS = {'verifier', 'stage', 'review'}
@@ -560,14 +562,27 @@ class NodeChecks:
         document, staged = _staged_document(task)
         port = f'{node.get("node_contract")}.{entry["name"]}'
         checkpoint = (task.get('constraints') or {}).get('dispatch_checkpoint')
-        if staged or checkpoint:
+        seeding = (task.get('constraints') or {}).get('seeding_checkpoint')
+        if staged or checkpoint or seeding:
             from .scheduler import effective_contract
             from .taskgraph import dispatch_precondition
             host = getattr(self.store, '_store', self.store)
             if effective_contract(host, task_id, node, document)[1]:
                 raise CheckError('The scheduler must finalize this node before its check')
             dispatch_precondition(self.store, task_id, node_id)
-        if staged and port == staged['runtime_stage']:
+        if seeding and entry['name'] == 'premise':
+            from .muse_r11_gate import premise_inputs
+            if verifier_inputs:
+                raise CheckError('The seeding premise takes only host-imported trace and manifest inputs')
+            verifier_inputs = premise_inputs(host, task, refs)
+        elif seeding and entry['name'] == 'candidate_patch':
+            from .muse_r11_gate import checkout as owned_checkout, git, policy
+            owned = owned_checkout(host, task)
+            base = policy(task)['baseline']['engine_source']['commit']
+            if (not checkout or Path(checkout).resolve() != owned or diff_path or verifier_inputs
+                    or git(owned, 'rev-parse', 'HEAD').decode().strip() != base):
+                raise CheckError('Check the isolated AQBC working diff before committing; omit verifier inputs')
+        elif staged and port == staged['runtime_stage']:
             measured = self._runtime_measurement(task_id, node, refs)
             post_load = task['constraints'].get('runtime_check_revision')
             approved = {'measurements': measured}
@@ -911,6 +926,12 @@ class NodeChecks:
     def _call_verifier(self, request, work, approved_inputs=None):
         from jiuwenswarm.ccv2.ccv2 import Host
         verifier = request['verifier']
+        if (verifier['cc'], verifier['capability']) == ('engine.build_expert_weight_cache', 'check_seeding_premise'):
+            from .muse_r11_gate import premise_inputs
+            task = self.store.get_task(request['task_id'])
+            host_store = getattr(self.store, '_store', self.store)
+            if premise_inputs(host_store, task, request['refs']) != request['verifier_inputs']:
+                raise CheckError('AQBC premise inputs changed after this request was prepared')
         if (verifier['cc'], verifier['capability']) == ('engine.gpu_kernel_lab', 'verify_candidate'):
             task = self.store.get_task(request['task_id'])
             checkpoint = (task.get('constraints') or {}).get('dispatch_checkpoint')
@@ -1017,9 +1038,18 @@ class NodeChecks:
         try:
             check = {'source_bundle': self._source_bundles, 'image': self._image,
                      'lab_request': self._lab_request, 'evidence': self._evidence, 'release': self._release}[entry['kind']]
-            values['found'] = check(task, node, refs)
+            seeding = (task.get('constraints') or {}).get('seeding_checkpoint')
+            if seeding and entry['name'] in {'pinned_inputs', 'fixture_evidence'}:
+                from .muse_r11_gate import check_fixture, pin_inputs
+                verify = pin_inputs if entry['name'] == 'pinned_inputs' else check_fixture
+                values['found'] = verify(self.store, task, refs)
+            else:
+                values['found'] = check(task, node, refs)
+            if seeding and entry['kind'] == 'image':
+                from .muse_r11_gate import verify_image
+                values['found']['artifacts'].append(verify_image(self.store, task, refs))
             values.update(passed=True, reason='passed')
-        except (CheckError, ValueError, OSError) as exc:
+        except (CheckError, ValueError, OSError, NotFound) as exc:
             values['reason'] = str(exc)
         artifacts = [a for a in values['found'].get('artifacts', [])] if isinstance(values['found'], dict) else []
         return self._close(task_id, node_id, values, artifacts)

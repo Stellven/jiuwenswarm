@@ -322,6 +322,7 @@ def next_work(host, task_id):
     nodes = {n['node_id']: n for n in graph['nodes']}
     constraints = task.get('constraints') or {}
     checkpoint = constraints.get('dispatch_checkpoint')
+    seeding = constraints.get('seeding_checkpoint')
     finalize_ahead = constraints.get('finalize_ahead_of_dependencies')
     runnable, waiting, done, to_finalize = [], {}, [], []
     for node in graph['nodes']:  # planner order
@@ -348,6 +349,13 @@ def next_work(host, task_id):
             from .dispatch_gate import require_eligible
             try:
                 require_eligible(host, task_id, checkpoint, nodes)
+            except ValueError as exc:
+                waiting[key] = str(exc)
+                continue
+        if seeding:
+            from .muse_r11_gate import guard_node
+            try:
+                guard_node(host, task_id, seeding, nodes, key)
             except ValueError as exc:
                 waiting[key] = str(exc)
                 continue

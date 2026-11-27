@@ -1,0 +1,64 @@
+{
+  "task_id": "muse-2bit-demo-r11",
+  "contract_id": "muse-2bit-demo-r11",
+  "objective": "Determine whether a disjoint routing profile can seed AQBC’s existing GPU expert cache at startup and reduce latency with unchanged greedy output, prompt reuse, placement and caps.",
+  "target": "spark-gb10",
+  "allowed_effects": [
+    "process.exec",
+    "workspace.read",
+    "workspace.write"
+  ],
+  "budget": {
+    "max_turns": 120,
+    "wall_clock_s": 21600
+  },
+  "initial_run_config": {
+    "env": {}
+  },
+  "component_cc": "engine.build_expert_weight_cache",
+  "source": {
+    "subpath": "work",
+    "pre_integration_commit": "17e4594f0bfb7eacd3ce5d2d0dd16fb61ba9f817"
+  },
+  "constraints": {
+    "contract_immutable": true,
+    "contract_revision": "muse-2bit-demo-r11",
+    "contract_sha256": "6204dcd0243948da3765d453a16b18b0fa9eac30f9cb8b896f6b44dc60092b17",
+    "model_runs": false,
+    "approved_capped_recipes": {},
+    "local_commits": true,
+    "push_or_publish": false,
+    "finalize_ahead_of_dependencies": true,
+    "seeding_checkpoint": {
+      "premise_node": "check_seeding_premise",
+      "patch_node": "implement_seeding",
+      "fixture_node": "verify_fixtures",
+      "build_node": "build_image",
+      "delivery_node": "deliver_to_lab"
+    }
+  },
+  "operator_labels": {
+    "run": "Run 4 (AQBCE), owner 025.",
+    "safety": "Factory checks never load Muse. Only the independent operator may authorize a capped target load."
+  },
+  "resources": {
+    "capsules": [
+      "engine.build_expert_weight_cache",
+      "factory.source_workbench",
+      "factory.builder",
+      "factory.lab_manager",
+      "factory.node_check"
+    ],
+    "read_roots": [
+      "${FACTORY_MUSE_DEMO}/r10/parent-reference.json",
+      "${FACTORY_MUSE_DEMO}/lab/r11-aqbce/profile"
+    ],
+    "operator_inputs": {
+      "aqbc_parent": {
+        "path": "${FACTORY_MUSE_DEMO}/r10/parent-reference.json",
+        "how": "Published release provenance for the unchanged AQBC inputs."
+      }
+    }
+  },
+  "plan": "muse-2bit-demo-r11.plan.json"
+}

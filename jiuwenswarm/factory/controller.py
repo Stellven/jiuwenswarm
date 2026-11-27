@@ -634,6 +634,21 @@ class Controller:
                         return self._finish(task_id, state, 'paused')
                     if self._paused(task_id, state):  # before the agent turn
                         return self._finish(task_id, state, 'paused')
+                    seeding = (task.get('constraints') or {}).get('seeding_checkpoint')
+                    if seeding:
+                        from .muse_r11_gate import external_wait
+                        waiting = external_wait(self.store, task, seeding)
+                        if waiting:
+                            reason, deadline_reached = waiting
+                            state['stop_reason'] = reason
+                            self._save(task_id, state)
+                            if deadline_reached:
+                                return self._finish(task_id, state, 'partial')
+                            state['tick'] = None
+                            await self.sleep(15)
+                            state['tick'] = self.clock()
+                            continue
+                        state.pop('stop_reason', None)
                     query = self._message(task, state)
                     before = self.store.get_task(task_id)['current_decision_rev']
                     state['turns'] += 1
