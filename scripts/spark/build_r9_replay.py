@@ -1,0 +1,398 @@
+"""Package a read-only Muse Run 2 replay from retained Factory evidence."""
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+import tempfile
+
+from jiuwenswarm.factory import taskgraph
+from jiuwenswarm.factory.controller import TERMINAL
+from jiuwenswarm.factory.export import snapshot, verify
+from scripts.spark.build_demo_replays import Builder, SCHEMA, TABLES, sha, utc
+
+
+TASK = 'muse-2bit-demo-r9'
+NODES = {
+    'pin_inputs': 'Pin the delivered AQB engine',
+    'plan_prefix_store': 'Choose the prefix store',
+    'build_image': 'Build the configured image',
+    'deliver_to_lab': 'Check the factory stage and deliver',
+    'measure_engine': 'Measure first requests and follow-up questions',
+    'release_gate': 'Check the runtime stage and release',
+}
+PLACEMENT = ('placement_share_0', 'placement_share_025', 'placement_share_05')
+OBSERVATION_FIELDS = {
+    'taskgraph_patch': 'created decision_rev origin parent_rev patch planner rev task_id',
+    'operator_input': 'artifact_id bytes how key kind sha256',
+    'node_contract_final': 'by cc_versions created diff digest final node_contract node_id preliminary_digest rationale',
+    'node_contract_refusal': 'by node_id reason reasons errors preliminary_digest',
+    'node_check': 'entry format found key kind node_id output passed reason refs review seconds started state verifier',
+    'build_result': 'build_wall_seconds delivery failure_stage image_id source_commit status tag target',
+    'lab_request': 'request_id package_id lab_task_id contract',
+    'capped_run': 'format recipe outcome error seconds memory_cap peak_memory_bytes min_available_bytes node_id attempt_id',
+}
+PRIVATE_FIELDS = {
+    'agent_prompt', 'api_key', 'authorization', 'command', 'container_argv', 'env', 'environment', 'headers',
+    'messages', 'mcp_config', 'model_input', 'model_output', 'owner', 'private_key', 'prompt',
+    'raw_reply', 'reasoning', 'reviewer_output', 'session', 'session_id', 'stderr', 'stdout',
+    'system_prompt', 'tool_calls', 'tool_responses', 'transcript',
+}
+MAX_JSON = 32 * 1024 * 1024
+
+
+def pick(obj, fields):
+    return {key: obj[key] for key in fields.split() if key in obj}
+
+
+def public(value):
+    if isinstance(value, dict):
+        return {key: public(item) for key, item in value.items() if key not in PRIVATE_FIELDS}
+    if isinstance(value, list):
+        return [public(item) for item in value]
+    return value
+
+
+class Replay(Builder):
+    def __init__(self, home, stage, task_id, contract, result):
+        super().__init__(home.parent, stage, {})
+        self.home = home
+        self.task_id = task_id
+        self.result_path = result
+        self.data = snapshot(home, task_id)
+        self.task, = self.data['tasks']
+        contract_raw = contract.read_bytes()
+        self.contract_sha = sha(contract_raw)
+        self.contract = json.loads(contract_raw)
+        if self.contract['contract_id'] != self.task['contract_id'] or self.contract_sha != self.task['constraints']['contract_sha256']:
+            raise ValueError('The owner contract differs from the native task pin')
+        self.graph = taskgraph.from_records(self.data)
+        self.nodes = {node['node_id']: node for node in self.graph['nodes']}
+        self.observations = self.data['observations']
+        self.registry = {item['artifact_id']: item for item in self.data['artifacts']}
+        self.sources = {row['values']['key']: row for row in self.observations if row['kind'] == 'operator_input'}
+        self.referenced_artifacts = set()
+        self.steps = []
+
+    def ref(self, row):
+        table = 'observations' if 'obs_id' in row else 'decisions' if 'decision_id' in row else 'tasks'
+        return dict(table=table, id=row.get('obs_id', row.get('decision_id', self.task_id)),
+                    task_id=self.task_id, source_home='graph')
+
+    def artifact(self, identity):
+        item = self.registry[identity]
+        location = (self.home / item['location']).resolve(strict=True)
+        if (not location.is_relative_to(self.home / 'artifacts') or item['media_type'] != 'application/json'
+                or location.stat().st_size != item['size'] or item['size'] > MAX_JSON):
+            raise ValueError('Invalid JSON artifact source: ' + identity)
+        raw = location.read_bytes()
+        if sha(raw) != item['sha256']:
+            raise ValueError('Artifact SHA-256 differs: ' + identity)
+        self.referenced_artifacts.add(identity)
+        source = dict(table='artifacts', source_home='graph', task_id=self.task_id, id=identity, sha256=item['sha256'])
+        return json.loads(raw), source
+
+    def sealed(self, node, output):
+        checks = self.checks(node, output)
+        if not checks:
+            return None
+        check = checks[-1]
+        value = check['values']
+        artifact = (value.get('verifier') or {}).get('sealed_artifact')
+        if value.get('passed') is not True or not artifact:
+            return None
+        if artifact not in check['source_artifacts']:
+            raise ValueError('Verifier seal is unlinked: ' + check['obs_id'])
+        sealed, source = self.artifact(artifact)
+        return sealed, [self.ref(check), source]
+
+    def check_files(self, node):
+        native = [row for row in self.observations if row['kind'] == 'taskgraph_patch'
+                  and any(change.get('node_id') == node for changes in row['values']['patch'].values()
+                          if isinstance(changes, list) for change in changes if isinstance(change, dict))]
+        return [self.projection(node, 'Node state and Factory checks',
+                                dict(node=self.nodes[node], checks=[self.observation(row) for row in self.checks(node)]),
+                                [self.ref(row) for row in [*native, *self.checks(node)]])]
+
+    def checks(self, node, output=None):
+        return [row for row in self.observations if row['kind'] == 'node_check'
+                and row['values'].get('node_id') == node
+                and (output is None or row['values'].get('output') == output)]
+
+    def finished_check(self, node, output):
+        return next((row for row in reversed(self.checks(node, output)) if row['values'].get('state') == 'finished'), None)
+
+    def projection(self, name, label, data, sources):
+        path = f'projections/{name}.json'
+        self.write_json(path, public(data))
+        raw = (self.stage / path).read_bytes()
+        self.files[path] = dict(source='record_projection', sources=sources, display_name=label, sha256=sha(raw), size=len(raw))
+        return dict(path=path, label=label)
+
+    def step(self, title, node, say, primary, files, *, refs=(), **extra):
+        primary_ref = self.ref(primary)
+        self.steps.append(dict(
+            step=len(self.steps) + 1, presentation_title=title, node_id=node, graph_nodes=[node],
+            say=say, original_kind=primary.get('kind', primary_ref['table'].rstrip('s')),
+            original_summary=primary.get('values', {}).get('reason') or say,
+            created=primary['created'], created_utc=utc(primary['created']),
+            primary_record=primary_ref['id'], records=[primary_ref, *(self.ref(row) for row in refs if row != primary)],
+            key_files=files, files=[item['path'] for item in files], **extra,
+        ))
+
+    def observation(self, row):
+        kind = row['kind']
+        value = pick(row['values'], OBSERVATION_FIELDS[kind])
+        if kind == 'node_check' and isinstance(value.get('review'), dict):
+            value['review'] = pick(value['review'], 'advisory error findings passed reason summary verdict')
+        return public(dict(pick(row, 'obs_id task_id kind created limitations'), values=value,
+                           source_artifacts=[a for a in row.get('source_artifacts', []) if a in self.referenced_artifacts]))
+
+    def run_inputs(self):
+        owner_path = f'contracts/{self.task_id}.json'
+        self.write_json(owner_path, public(self.contract))
+        raw = (self.stage / owner_path).read_bytes()
+        self.files[owner_path] = dict(source='task_contract_projection', source_sha256=self.contract_sha,
+                                      sha256=sha(raw), size=len(raw))
+        self.step('Run 2 · reuse the processed document', 'pin_inputs',
+                  'Build on AQB with the same mixed pack and server executable. Retain prompt state between document questions.',
+                  self.task, [dict(path=owner_path, label='Run 2 owner contract')])
+        finals = [row for row in self.observations if row['kind'] == 'node_contract_final']
+        refusals = [row for row in self.observations if row['kind'] == 'node_contract_refusal']
+        if finals or refusals:
+            contracts = self.projection('node-contracts', 'Recorded scheduler changes and bindings',
+                                        [self.observation(row) for row in finals + refusals],
+                                        [self.ref(row) for row in finals + refusals])
+            count = len({row['values']['node_id'] for row in finals})
+            first = (finals or refusals)[0]
+            self.step('Scheduler node contracts', first['values']['node_id'],
+                      f'The graph has {count} finalized node contracts and {len(refusals)} recorded refusals.',
+                      first, [contracts], refs=finals + refusals)
+
+    def planning(self, files):
+        summary = None
+        extra = {}
+        rows = []
+        sources = []
+        for key in PLACEMENT:
+            record = self.sources.get(key)
+            if not record or not record['values'].get('artifact_id'):
+                continue
+            raw, source = self.artifact(record['values']['artifact_id'])
+            if source['sha256'] != record['values']['sha256']:
+                raise ValueError('Placement artifact differs from its operator input')
+            sources.extend([self.ref(record), source])
+            rows.append(dict(share=raw['share'], ttft_ms=raw['derived_ttft_ms'],
+                             decode_tps=raw['decode_tokens_per_second'], total_s=raw['request_total_ms'] / 1000,
+                             quiet=raw['quiet']['status'], quiet_reasons=raw['quiet']['reasons'], source=source))
+        if rows:
+            files.append(self.projection('placement', 'Placement trial timings and quiet eligibility', rows, sources))
+            summary = f'The graph retains {len(rows)} placement trial rows with their quiet eligibility.'
+        sealed = self.sealed('plan_prefix_store', 'prefix_plan')
+        if sealed:
+            plan, refs = sealed
+            before, after = plan['aqb_launch_config'], plan['launch_config']
+            extra['capsule_diff'] = dict(caption='AQB to AQBC · prefix state', before=before, after=after)
+            files.append(self.projection('prefix-plan', 'Verified prefix-store settings and budget',
+                                         pick(plan, 'format atlas phase0 phase0b memory aqb_launch_config launch_config '
+                                                    'launch_config_sha256 diff'), refs))
+            phase = plan['phase0b']
+            summary = (f"Placement candidate {plan['phase0']['status']}. Phase 0b reused {phase['cached_tokens']} "
+                       f"of {phase['prompt_tokens']} tokens with a {phase['follow_up_ttft_ms'] / 1000:.1f} s follow-up. "
+                       f"The follow-up quiet status was {phase['quiet_status']}.")
+        return summary, extra
+
+    def delivery(self, files, check, request):
+        if request:
+            values = request['values']
+            package_id = values['package_id']
+            identity = 'lab-package:' + package_id
+            if identity not in request['source_artifacts']:
+                raise ValueError('Lab request does not cite the sealed package')
+            package, source = self.artifact(identity)
+            if package['package_id'] != package_id:
+                raise ValueError('Sealed lab package identity differs')
+            details = dict(request_id=values['request_id'], package_id=package_id,
+                           subjects={name: pick(subject, 'kind identity transfer build_attempt_id')
+                                     for name, subject in package['subjects'].items()},
+                           tests=package['lab_task']['tests'])
+            if check:
+                details['host_check'] = pick(check['values'], 'passed state reason found')
+            files.append(self.projection('lab-delivery', 'Sealed lab request and subjects', details,
+                                         [self.ref(request), source, *([self.ref(check)] if check else [])]))
+            if check and check['values']['passed'] is True:
+                return 'The host accepted the sealed lab package carrying the configured image and the factory-stage check.'
+            return 'The lab request is recorded. The graph has yet to record a passing delivery check.'
+        return None
+
+    def runtime(self, files, run, check):
+        if not run:
+            return None
+        values = run['values']
+        manifest = values.get('result') or {}
+        refs = [self.ref(run), *([self.ref(check)] if check else [])]
+        shown = dict(attempt_id=values['attempt_id'], outcome=values['outcome'], error=values.get('error'),
+                     measurement_status=manifest.get('status'), files=manifest.get('files', {}))
+        identity = f"run-{values['attempt_id'][:12]}-runtime.json"
+        identity_summary = ''
+        if identity in run['source_artifacts']:
+            runtime, source = self.artifact(identity)
+            if self.result_path is not None and self.result_path.is_file() and sha(self.result_path.read_bytes()) != source['sha256']:
+                raise ValueError('Runtime file differs from the retained capped-run artifact')
+            shown['lab_checker'] = pick(runtime, 'done decision checks summary stage_reached')
+            accuracy = runtime.get('summary', {}).get('accuracy', {})
+            if accuracy.get('mode') == 'identity_check':
+                identity_summary = (f" MMLU identity {accuracy['status']}: {accuracy['matched_letters']}/{accuracy['question_count']} "
+                                    f"letters matched AQB, with zero external reuse on {accuracy['zero_external_reuse']} questions.")
+                inherited = accuracy['inherited_correct']
+                if accuracy['status'] == 'passed' and inherited is not None:
+                    identity_summary += (
+                        f" AQBC inherits AQB's {inherited}/{accuracy['source_question_count']} "
+                        f"({accuracy['inherited_accuracy']:.1%}) score by this check."
+                    )
+                shown['mmlu_identity'] = accuracy
+            refs.append(source)
+        if check:
+            shown['factory_check'] = pick(check['values'], 'passed state reason verifier')
+        files.append(self.projection('runtime', 'Same-load speed, follow-up reuse and MMLU identity', shown, refs))
+        if check and check['values']['passed'] is True:
+            return 'The host runtime check passed.' + identity_summary
+        if check:
+            return f"The host runtime check refused the measurements. {check['values']['reason']}" + identity_summary
+        return 'The capped attempt returned. The graph has yet to record a finished runtime check.' + identity_summary
+
+    def verdict(self, release, measured):
+        latest = max(self.data['decisions'], key=lambda item: item['rev'], default={})
+        action = latest.get('action', {})
+        terminal = action.get('type') in TERMINAL and bool(latest.get('evidence_ids'))
+        release_value = release['values'] if release else {}
+        output = dict(status='pending', graph_state=self.nodes['release_gate']['state'])
+        if release:
+            output['release_check'] = pick(release_value, 'passed reason found')
+        if measured:
+            output['runtime_check'] = pick(measured['values'], 'passed reason')
+        if terminal:
+            output['terminal_decision'] = dict(pick(latest, 'decision_id evidence_ids reason_for_change'),
+                                               action=pick(action, 'type reason'))
+            if action['type'] != 'accept':
+                output.update(status=action['type'], reason=action.get('reason') or latest.get('reason_for_change'))
+                return output, latest
+            if (release and release_value.get('passed') is True and output['graph_state'] == 'done'
+                    and release['obs_id'] in latest['evidence_ids']
+                    and release['obs_id'] in self.nodes['release_gate']['evidence_ids']):
+                output.update(status='released', reason=action.get('reason') or latest.get('reason_for_change'))
+                return output, latest
+        for check, label in ((release, 'release_refused'), (measured, 'runtime_refused')):
+            if check and check['values']['passed'] is False:
+                output.update(status=label, reason=check['values']['reason'])
+                return output, latest if terminal else None
+        output['reason'] = ('The release check passed. The terminal acceptance decision is pending.' if release
+                            else 'No terminal release verdict is recorded in this snapshot.')
+        return output, latest if terminal else None
+
+    def node_steps(self):
+        delivered = self.finished_check('deliver_to_lab', 'lab_package')
+        request_id = ((delivered or {}).get('values', {}).get('found') or {}).get('request_id')
+        request = next((row for row in reversed(self.observations) if row['kind'] == 'lab_request'
+                        and (not request_id or row['values']['request_id'] == request_id)), None)
+        measured = self.finished_check('measure_engine', 'measurements')
+        measurement_refs = ((measured or {}).get('values', {}).get('refs') or {}).get('evidence_ids', [])
+        run = next((row for row in reversed(self.observations) if row['kind'] == 'capped_run'
+                    and row['values'].get('recipe') == 'muse_r9_measure'
+                    and row['values'].get('node_id') == 'measure_engine'
+                    and (not measurement_refs or row['obs_id'] in measurement_refs)
+                    and (not request_id or row['values'].get('request', {}).get('request_id') == request_id)), None)
+        release = self.finished_check('release_gate', 'release')
+        verdict, decision = self.verdict(release, measured)
+        for node, title in NODES.items():
+            checks = self.checks(node)
+            own_request = request if node == 'deliver_to_lab' else run if node == 'measure_engine' else None
+            final = next((row for row in reversed(self.observations) if row['kind'] == 'node_contract_final'
+                          and row['values']['node_id'] == node), None)
+            primary = (checks or [own_request or final])[-1]
+            files = self.check_files(node)
+            summary, extra = None, {}
+            if node == 'pin_inputs':
+                sealed = self.sealed(node, 'pinned_inputs')
+                if sealed:
+                    inputs, refs = sealed
+                    files.append(self.projection('pinned-inputs', 'Verified AQB image, prefill plan and pack',
+                                                 pick(inputs, 'format identity shard_verification'), refs))
+            if node == 'plan_prefix_store':
+                summary, extra = self.planning(files)
+                primary = primary or next((self.sources[key] for key in PLACEMENT if key in self.sources), None)
+            if node == 'build_image':
+                sealed = self.sealed(node, 'factory_stage')
+                if sealed:
+                    stage, refs = sealed
+                    files.append(self.projection('factory-stage', 'Checked image, unchanged inputs and launch config',
+                                                 pick(stage, 'format status image_id base_image_id executable_sha256 '
+                                                             'launch_config launch_config_sha256 checks'), refs))
+            if node == 'deliver_to_lab':
+                summary = self.delivery(files, delivered, request)
+            if node == 'measure_engine':
+                summary = self.runtime(files, run, measured)
+            if node == 'release_gate':
+                files.append(self.projection('release', 'Release status and native decision', verdict,
+                                             [self.ref(row) for row in (release, measured, decision) if row]))
+                primary = decision or release or measured or next(
+                    row for row in self.observations if row['kind'] == 'taskgraph_patch')
+                summary = verdict['reason']
+            if primary:
+                state = self.nodes[node]['state']
+                summary = summary or f'The graph recorded {len(checks)} checks for this node. The node is {state}.'
+                self.step(title, node, summary, primary, files,
+                          refs=[row for row in [*checks, own_request, final] if row], **extra)
+        return verdict['status']
+
+    def write_bundle(self):
+        self.run_inputs()
+        release_status = self.node_steps()
+        self.write_json('replay.json', dict(schema=SCHEMA, title='Run 2 · AQBC prefix store', order=2,
+                                           graph_mode='recorded', summary='Run 2 Factory graph and lab evidence.',
+                                           primary_task=self.task_id, source_homes=['graph'], release_status=release_status,
+                                           steps=self.steps))
+        task = pick(self.task, 'task_id objective allowed_effects target budget revision current_decision_rev '
+                               'evidence_cursor created contract_id component_cc capability_cc')
+        task['constraints'] = pick(self.task['constraints'], 'contract_sha256 contract_immutable')
+        artifacts = [pick(row, 'artifact_id task_id sha256 size media_type complete created attempt_id')
+                     for row in self.data['artifacts'] if row['artifact_id'] in self.referenced_artifacts]
+        tables = dict(tasks=[task], artifacts=artifacts, evaluations=[], uploads=[])
+        tables['observations'] = [self.observation(row) for row in self.observations if row['kind'] in OBSERVATION_FIELDS]
+        tables['decisions'] = [dict(pick(row, 'decision_id task_id rev parent_rev evidence_ids created reason_for_change'),
+                                   action=pick(row['action'], 'type node_id operation output reason'))
+                               for row in self.data['decisions']]
+        tables['attempts'] = [dict(pick(row, 'attempt_id task_id kind state jobq_id started ended created result_refs'),
+                                   request=pick(row['request'], 'node_id recipe request_id package_id tag target'))
+                              for row in self.data['attempts']]
+        for table in ('tasks', *TABLES):
+            self.write_json(f'records/{table}.json', public(tables[table]))
+        self.write_json('artifacts.json', artifacts)
+        self.write_json('key_files.json', {str(step['step']): step['key_files'] for step in self.steps})
+        self.write_json('provenance.json', dict(files=self.files, records={str(step['step']): step['records'] for step in self.steps}))
+
+
+def build(home, task_id, contract, result, output):
+    home, output = home.resolve(), output.resolve()
+    if output.exists() or output.is_relative_to(home):
+        raise ValueError('Replay output must be a new directory outside the native Factory home')
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=output.parent) as temporary:
+        stage = Path(temporary) / 'bundle'
+        stage.mkdir()
+        replay = Replay(home, stage, task_id, contract, result)
+        replay.write_bundle()
+        replay.write_json('MANIFEST.json', {f.relative_to(stage).as_posix(): sha(f.read_bytes())
+                                            for f in stage.rglob('*') if f.is_file()})
+        verify(stage)
+        stage.rename(output)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    for name in ('home', 'contract', 'output'):
+        parser.add_argument('--' + name, type=Path, required=True)
+    parser.add_argument('--result', type=Path, help='Optional lab copy to verify against a retained runtime artifact')
+    parser.add_argument('--task', default=TASK)
+    args = parser.parse_args()
+    build(args.home, args.task, args.contract, args.result, args.output)
