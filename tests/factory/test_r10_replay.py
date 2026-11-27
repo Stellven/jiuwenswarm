@@ -17,7 +17,8 @@ def sources(tmp_path, *, eligibility='already_batched', action='stop_missing_pre
         'contract_id': TASK, 'version': 10,
         'extensions': {'muse.r10-dispatch': {'baseline': {'image_id': 'sha256:' + 'a' * 64}}},
     }) + '\n')
-    raw = json.dumps({'eligibility': eligibility, 'may_build': eligibility == 'eligible'}).encode()
+    raw = json.dumps({'eligibility': eligibility, 'may_build': eligibility == 'eligible',
+                      'identity': {'image_id': 'sha256:' + 'a' * 64}}).encode()
     with Store(home) as store:
         store.create_task(dict(task_id=TASK, contract_id=TASK, objective='Test dispatch gate',
                                constraints={'contract_sha256': sha(contract.read_bytes())}))

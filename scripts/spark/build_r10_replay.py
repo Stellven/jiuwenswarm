@@ -12,7 +12,7 @@ from jiuwenswarm.factory.controller import TERMINAL
 from jiuwenswarm.factory.export import snapshot, verify
 from jiuwenswarm.factory.redact import sanitize, scrub_bytes
 from scripts.spark.build_demo_replays import Builder, SCHEMA, TABLES, sha, utc
-from scripts.spark.build_muse_lab_reports import REPORT_PATH, STYLE, a, p
+from scripts.spark.build_muse_lab_reports import REPORT_PATH, STYLE, a, p, table
 from scripts.spark.build_r9_replay import OBSERVATION_FIELDS, pick, public
 from scripts.spark.muse_replay_presentation import FACTORY, RUNTIME, check, node
 
@@ -42,6 +42,12 @@ PUBLIC_OBSERVATIONS = OBSERVATION_FIELDS | {
     'dispatch_gate': 'eligibility may_build reason node_id',
 }
 MAX_FILE = 16 * 1024 * 1024
+FIXTURE_CASES = {
+    'iq2_projection': 'Gate or up projection (IQ2_XXS)',
+    'q2_down': 'Down projection (Q2_K)',
+    'iq2_gate_up_pair': 'Separate gate and up projections (IQ2_XXS)',
+    'iq2_adjacent_gate_up': 'Compatible adjacent gate/up (IQ2_XXS)',
+}
 
 
 class Replay(Builder):
@@ -147,6 +153,28 @@ class Replay(Builder):
             raise ValueError('Parent reference differs from the rev10 baseline')
         return [baseline, dict(path=path, label=label)]
 
+    def linked_trace_sources(self, trace):
+        root = self.home.parent.parent
+        dispatch_root = root / 'lab/r10-aqbcd/dispatch'
+        sources = {}
+        fixture = trace.get('fixture', {}).get('cases', {})
+        refs = {}
+        if trace.get('raw_trace'):
+            refs['trace'] = (trace['raw_trace'], 'Original pre-graph dispatch trace')
+        if fixture:
+            for case_id, label in FIXTURE_CASES.items():
+                refs[case_id] = (fixture[case_id]['log'], label + ' fixture log')
+        for key, (ref, label) in refs.items():
+            relative = ref['path']
+            path = (root / relative).resolve(strict=True)
+            if not path.is_relative_to(dispatch_root) or path != root / relative or path.stat().st_size > MAX_FILE:
+                raise ValueError('Invalid public dispatch source path or size')
+            copy = self.copy(path, f'evidence/dispatch/{path.name}',
+                             dict(source='verified_dispatch_input', display_name=label, source_path=relative),
+                             expected=ref['sha256'])
+            sources[key] = dict(path=copy, label=label)
+        return sources
+
     def step(self, title, node_id, method, result, rows, files):
         first = rows[0]
         primary = self.ref(first)
@@ -162,7 +190,7 @@ class Replay(Builder):
             files=[file['path'] for file in files],
         ))
 
-    def report(self, outcome, candidate, terminal, trace, files, *, lab_result):
+    def report(self, outcome, candidate, terminal, trace, files, *, lab_result, trace_sources):
         path = self.stage / REPORT_PATH
         path.parent.mkdir()
         links = ''.join(f'<li>{a("../" + item["path"], item["label"])}</li>' for item in files)
@@ -170,6 +198,21 @@ class Replay(Builder):
         body += '<h2>Starting engine</h2>' + p('AQBC is the released baseline.') + '<p>Image <code>'
         body += escape(self.baseline['image_id']) + '</code></p>'
         body += '<h2>Dispatch eligibility</h2>' + p(STOP_REASONS.get(trace['eligibility'], 'The trace established an eligible decode shape.'))
+        if trace.get('fixture', {}).get('cases'):
+            body += p('Before graph setup, the operator captured one-token CUDA graph executions in the exact pinned AQBC CUDA backend using synthetic tensors. The native CC verifier then checked the capture digests and rederived the result from the pinned source, mixed-pack headers and Nsight records.')
+            body += p('A matvec launch is one recorded execution of the routed quantized matrix-vector kernel in the CUDA graph. Its grid spans the selected routes. Total kernels also count activation quantization and the separate gated operation where present.')
+            fixture = trace['fixture']['cases']
+            rows = []
+            for case_id, label in FIXTURE_CASES.items():
+                case = fixture[case_id]
+                grids = {tuple(launch['grid']) for launch in case['launches'] if launch['name'] == 'mul_mat_vec_q'}
+                rows.append((escape(label), str(case['operands']['routes']), str(case['matvec_launch_count']),
+                             str(case['launch_count']), escape(', '.join(' × '.join(map(str, grid)) for grid in sorted(grids))),
+                             a('../' + trace_sources[case_id]['path'], 'Fixture log')))
+            body += table(['Projection shape', 'Selected routes', 'Matvec launches', 'Total kernels', 'Matvec grid', 'Evidence'],
+                          rows, 'Measured synthetic one-token dispatch on Spark')
+            body += p('The two separate gate/up projections each cover every route in one launch. The compatible adjacent pair also fused in the fixture. External weight scales break this adjacency on the pinned Muse path where those scales are applied.')
+            body += p('This checked dispatch behavior only. The fixture did not load Muse or measure full-model timing.')
         reason = public(sanitize(decision(terminal))).get('reason_for_change')
         if reason:
             body += p(reason)
@@ -201,6 +244,12 @@ class Replay(Builder):
         eligibility = trace['eligibility']
         if eligibility not in {*STOP_REASONS, 'eligible'} or trace.get('may_build') is not (eligibility == 'eligible'):
             raise ValueError('Dispatch eligibility and build permission disagree')
+        identity = trace.get('identity', {})
+        for field in ('image_id', 'binary_sha256', 'pack_manifest_sha256', 'launch_config_sha256'):
+            if field in self.baseline and identity.get(field) != self.baseline[field]:
+                raise ValueError('Sealed trace differs from the baseline: ' + field)
+        if terminal['action'].get('eligibility', eligibility) != eligibility:
+            raise ValueError('Native terminal eligibility differs from the sealed trace')
         build_rows = [row for row in self.observations if row['kind'] == 'build_result']
         image = next((row['values'].get('image_id') for row in reversed(build_rows)
                       if row['values'].get('image_id')), None)
@@ -233,7 +282,13 @@ class Replay(Builder):
             self.step('Scheduler node contracts', finals[0]['values']['node_id'],
                       'Finalize the node contracts with checks for each stage.',
                       f'The scheduler recorded {len(finals)} finalization or refusal records.', finals, [contracts])
+        pins = self.checks('pin_inputs', output='pinned_inputs')
+        if pins:
+            self.step('Pin the released AQBC engine', 'pin_inputs', NODES['pin_inputs']['method'],
+                      'The node verifier recorded the AQBC input checks.', [pins[-1], *pins[:-1]], baseline)
         files = [trace_file]
+        trace_sources = self.linked_trace_sources(trace)
+        files.extend(trace_sources.values())
         trace_refs = [trace_row]
         if instrumentation_diff:
             input_refs = [row for row in self.observations if row['kind'] == 'operator_input'
@@ -242,8 +297,9 @@ class Replay(Builder):
                           and row['values'].get('sha256') == self.registry[instrumentation_diff]['sha256']]
             trace_refs.extend(input_refs)
             files.append(self.check_diff(instrumentation_diff, 'Pre-graph dispatch probe instrumentation diff', trace_refs))
+        fixture_summary = fixture_line(trace)
         self.step('Trace routed-expert dispatch', 'trace_dispatch', NODES['trace_dispatch']['method'],
-                  'The native CC verifier rechecked the operator-supplied dispatch trace. '
+                  'The native CC verifier rechecked the operator-supplied dispatch trace. ' + fixture_summary
                   + STOP_REASONS.get(eligibility, 'The dispatch check established an eligible shape.'), trace_refs, files)
         evidence.extend([*baseline, *files])
         diff_file = None
@@ -271,7 +327,8 @@ class Replay(Builder):
         decision_file = self.projection('projections/terminal-decision.json', decision(terminal),
                                         'Native terminal decision', [terminal])
         links = {file['path']: file for file in [*evidence, decision_file]}
-        report = self.report(outcome, image, terminal, trace, links.values(), lab_result=lab_result)
+        report = self.report(outcome, image, terminal, trace, links.values(), lab_result=lab_result,
+                             trace_sources=trace_sources)
         final_node = (terminal['action'].get('node_id') or ('trace_dispatch' if not trace['may_build'] else 'deliver_to_lab'))
         self.step('Recorded outcome', final_node, 'Decide whether to proceed from the recorded checks.',
                   outcome, [terminal], [report, decision_file])
@@ -315,9 +372,23 @@ def scrubbed(raw, media_type):
     return False
 
 
+def fixture_line(trace):
+    cases = trace.get('fixture', {}).get('cases')
+    if not cases:
+        return ''
+    iq2, down, pair, fused = (cases[case] for case in FIXTURE_CASES)
+    return (
+        f'The pinned backend’s synthetic fixtures recorded {iq2["matvec_launch_count"]} matvec launch for '
+        f'{iq2["operands"]["routes"]} routes in an IQ2_XXS gate or up projection, '
+        f'{down["matvec_launch_count"]} for {down["operands"]["routes"]} routes in Q2_K down, '
+        f'{pair["matvec_launch_count"]} for the separate gate/up pair and '
+        f'{fused["matvec_launch_count"]} for the fused adjacent fixture. '
+    )
+
+
 def decision(row):
     return dict(pick(row, 'decision_id task_id rev parent_rev evidence_ids created reason_for_change'),
-                action=pick(row['action'], 'type node_id operation output reason'))
+                action=pick(row['action'], 'type node_id operation output reason eligibility'))
 
 
 def build(home, contract, output, task_id=TASK, *, candidate_diff=None, instrumentation_diff=None):
