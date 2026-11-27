@@ -12,7 +12,7 @@ import re
 from threading import Thread
 from urllib.parse import unquote, urlsplit
 
-from playwright.sync_api import Error, expect, sync_playwright
+from playwright.sync_api import expect, sync_playwright
 
 
 RUNS = {
@@ -47,28 +47,35 @@ class StaticHandler(SimpleHTTPRequestHandler):
     def log_message(self, *args):
         pass
 
+    def send_response(self, code, message=None):
+        self.server.receipts.append({'method': self.command, 'path': self.path, 'status': code})
+        super().send_response(code, message)
+
 
 @contextmanager
 def local_fallback(root):
     handler = partial(StaticHandler, directory=root)
     with ThreadingHTTPServer(('127.0.0.1', 0), handler) as server:
+        server.receipts = []
         worker = Thread(target=server.serve_forever, daemon=True)
         worker.start()
         try:
-            yield f'http://127.0.0.1:{server.server_port}'
+            yield f'http://127.0.0.1:{server.server_port}', server.receipts
         finally:
             server.shutdown()
             worker.join()
 
 
 class RequestEvidence:
-    def __init__(self, context, page, root, origin):
+    def __init__(self, context, page, root, origin, forward_loopback):
         self.root = root
         self.origin = origin
+        self.forward_loopback = forward_loopback
         self.requests = []
         self.errors = []
         self.responses = []
         self.failures = []
+        self.service_workers = []
         self.step = 'entry'
         cdp = context.new_cdp_session(page)
         cdp.send('Network.enable')
@@ -81,6 +88,7 @@ class RequestEvidence:
         context.on('requestfailed', lambda request: self.failures.append(
             {'url': self.display_url(request.url), 'failure': request.failure}))
         context.on('response', self.response)
+        context.on('serviceworker', lambda worker: self.service_workers.append(worker.url))
         context.expose_binding('reportBlockedRequest', lambda _, url, directive: self.record(
             'csp', url, 'GET', directive))
         context.add_init_script("""addEventListener('securitypolicyviolation', ({ blockedURI, effectiveDirective }) => {
@@ -139,7 +147,12 @@ class RequestEvidence:
     def guard(self, route):
         request = route.request
         if self.classify(request.url, request.method) == 'folder':
-            route.continue_()
+            if self.forward_loopback:
+                self.record('forwarded-to-local-server', request.url, request.method, request.resource_type)
+                response = route.fetch(max_redirects=0)
+                route.fulfill(response=response)
+            else:
+                route.continue_()
         else:
             self.record('blocked', request.url, request.method, request.resource_type)
             route.abort('blockedbyclient')
@@ -159,6 +172,7 @@ class RequestEvidence:
             'responses': self.responses,
             'bad_responses': [response for response in self.responses if response['status'] >= 400],
             'page_errors': self.errors,
+            'service_workers': self.service_workers,
         }
 
 
@@ -375,17 +389,22 @@ class DemoWalk:
             expect(self.get('capsule-catalog-title')).to_be_visible()
 
 
-def browser_walk(browser, root, entry, output, mode, *, origin=None, offline=True):
+def browser_walk(
+    browser, root, entry, output, mode, *,
+    origin=None, offline=True, forward_loopback=False, server_receipts=(),
+):
     context = browser.new_context(
-        offline=offline, service_workers='block',
+        offline=offline,
         viewport={'width': 1536, 'height': 1100}, locale='en-US',
     )
     page = context.new_page()
-    evidence = RequestEvidence(context, page, root, origin)
+    evidence = RequestEvidence(context, page, root, origin, forward_loopback)
     walk = DemoWalk(page, evidence, output / 'screenshots' / mode)
+    before = len(server_receipts)
     result = {
         'chromium_version': browser.version,
         'offline_context': offline,
+        'forward_loopback': forward_loopback,
         'entry': evidence.display_url(entry),
         'package_sha256': {
             name: sha256((root / name).read_bytes()).hexdigest()
@@ -396,14 +415,18 @@ def browser_walk(browser, root, entry, output, mode, *, origin=None, offline=Tru
     try:
         walk.walk(entry)
         audit = evidence.summary()
-        for key in ('outside_folder', 'failed_requests', 'bad_responses', 'page_errors'):
+        for key in ('outside_folder', 'failed_requests', 'bad_responses', 'page_errors', 'service_workers'):
             assert not audit[key], (key, audit[key])
+        if origin:
+            assert any(receipt['path'] == '/' and receipt['status'] == 200
+                       for receipt in server_receipts[before:]), 'Static server received no successful entry request'
         result['passed'] = True
     except Exception as error:
         result['error'] = str(error)
         result['failed_step'] = evidence.step
     finally:
         result.update(evidence.summary())
+        result['server_receipts'] = server_receipts[before:]
         result['surfaces'] = walk.verified
         (output / f'requests-{mode}.json').write_text(json.dumps(result, indent=2) + '\n')
         context.close()
@@ -422,7 +445,7 @@ def main():
     expect.set_options(timeout=12000)
     results = {}
 
-    with sync_playwright() as playwright, local_fallback(root) as origin:
+    with sync_playwright() as playwright, local_fallback(root) as (origin, server_receipts):
         browser = playwright.chromium.launch(channel='chromium', args=[
             '--disable-gpu', '--no-proxy-server', '--disable-background-networking',
             '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1',
@@ -431,12 +454,15 @@ def main():
             results['file'] = browser_walk(browser, root, (root / 'index.html').as_uri(), output, 'file')
         if args.mode in ('http', 'both'):
             entry = origin + '/'
-            offline_result = browser_walk(browser, root, entry, output, 'http-offline', origin=origin)
+            local_options = {'origin': origin, 'server_receipts': server_receipts}
+            offline_result = browser_walk(browser, root, entry, output, 'http-offline-direct', **local_options)
             if 'ERR_INTERNET_DISCONNECTED' in offline_result.get('error', ''):
-                print('Chromium offline emulation blocks the loopback server. Repeating with the folder-only request guard.')
-                results['http'] = browser_walk(browser, root, entry, output, 'http', origin=origin, offline=False)
+                print('Chromium offline emulation blocks direct loopback. Forwarding allowed requests to the static server.')
+                results['http-offline'] = browser_walk(
+                    browser, root, entry, output, 'http-offline', forward_loopback=True, **local_options)
             else:
-                results['http'] = offline_result
+                results['http-offline'] = offline_result
+            results['http'] = browser_walk(browser, root, entry, output, 'http', offline=False, **local_options)
         browser.close()
 
     for mode, result in results.items():
