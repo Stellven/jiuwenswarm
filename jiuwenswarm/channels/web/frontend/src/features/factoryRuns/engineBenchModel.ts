@@ -101,11 +101,52 @@ export const devices: [Device, string][] = [
 export const numeric = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 export const fmt = (value: number, digits = 1) => value.toLocaleString('en-US', { maximumFractionDigits: digits });
 
-export function requestStateLabel(state?: string) {
-  if (state === 'cold') return 'First request after start';
-  if (state === 'warm') return 'Warm server';
-  if (state === 'follow-up') return 'Follow-up';
-  return state;
+export const chartRequestGroups = ['warm', 'startup', 'cold', 'cold-unknown'] as const;
+export type ChartRequestGroup = (typeof chartRequestGroups)[number];
+
+export const requestGroupLabels = {
+  warm: 'Warm server',
+  startup: 'First request after start',
+  cold: 'After page drop',
+  'cold-unknown': 'Cold request',
+  'follow-up': 'Follow-up',
+} as const;
+
+export function requestIndexFromPointer(pointer?: string | number) {
+  const index = typeof pointer === 'string' ? /^\/rows\/(0|[1-9]\d*)$/.exec(pointer)?.[1] : undefined;
+  return index === undefined || !Number.isSafeInteger(Number(index)) ? undefined : Number(index);
+}
+
+function requestGroup(state?: string, requestIndex?: number) {
+  if (state === 'cold') {
+    if (requestIndex === 0) return 'startup';
+    if (requestIndex !== undefined && requestIndex > 0) return 'cold';
+    return 'cold-unknown';
+  }
+  if (state === 'warm' || state === 'follow-up') return state;
+  return undefined;
+}
+
+export function requestStateLabel(state?: string, requestIndex?: number) {
+  const group = requestGroup(state, requestIndex);
+  return group ? requestGroupLabels[group] : state;
+}
+
+export function requestIndexFromSpeedSource(source?: Partial<EngineSource>) {
+  // The primary speed source is ordered within one server load. TTFT
+  // sidecars and filtered summaries have their own, unrelated row numbers.
+  return source?.path && /(?:^|[./])speed\.json$/.test(source.path)
+    ? requestIndexFromPointer(source.record)
+    : undefined;
+}
+
+export function engineRequestGroup(row: EngineRow) {
+  return requestGroup(row.request?.state, requestIndexFromSpeedSource(row.source));
+}
+
+export function engineRequestLabel(row: EngineRow) {
+  const group = engineRequestGroup(row);
+  return group ? requestGroupLabels[group] : row.request?.state;
 }
 
 export function mmluSummary(n: number, baselinePct: number, candidatePct: number) {

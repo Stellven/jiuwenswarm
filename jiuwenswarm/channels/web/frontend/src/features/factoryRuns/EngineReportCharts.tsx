@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { armKey, armLabel, armOrder, devices, excluded, fmt, groupBy, median, mmluSummary, numeric, requestStateLabel } from './engineBenchModel';
-import type { EngineRow, Metric, Ratio } from './engineBenchModel';
+import {
+  armKey, armLabel, armOrder, chartRequestGroups, devices, engineRequestGroup, engineRequestLabel, excluded,
+  fmt, groupBy, median, mmluSummary, numeric, requestGroupLabels,
+} from './engineBenchModel';
+import type { ChartRequestGroup, EngineRow, Metric, Ratio } from './engineBenchModel';
 
 export type Inspect = (row: EngineRow, related?: EngineRow[]) => void;
 
@@ -49,8 +52,33 @@ export function EngineRequestMethod() {
   return (
     <div data-testid="factory-runs-engine-request-method">
       <p>Warm-server numbers. The first request after a server start is slower (W1: +36 s first token at 512 tokens); dropping file pages adds about 5%.</p>
-      <p>{"Run 2's p2048 warm decode (4.3 tok/s) is an outlier seen in both arms on that server; the comparison holds, the absolute value isn't quoted."}</p>
-      <p>The First request after start group includes later requests run on the same server after advising the OS to drop pack file pages.</p>
+      <p>{"Run 2's 2048-token warm decode varied between repeats in both arms (AQBC 2.2 and 4.4 tok/s, AQB control 2.1 and 4.3), so the table's 3.28 median isn't quoted as an absolute speed; the same-server comparison holds."}</p>
+    </div>
+  );
+}
+
+function RequestGroupControls({ groups, selected, select, label, testId }: {
+  groups: readonly ChartRequestGroup[];
+  selected?: ChartRequestGroup;
+  select: (group: ChartRequestGroup) => void;
+  label: string;
+  testId: string;
+}) {
+  if (groups.length < 2) return null;
+  return (
+    <div className="engine-toggle" role="group" aria-label={label}>
+      {groups.map((group) => (
+        <button
+          key={group}
+          type="button"
+          aria-pressed={selected === group}
+          onClick={() => select(group)}
+          data-testid={testId}
+          data-variant={group}
+        >
+          {requestGroupLabels[group]}
+        </button>
+      ))}
     </div>
   );
 }
@@ -68,19 +96,20 @@ export function LengthPlot({
   scale?: number;
   inspect: Inspect;
 }) {
-  const [shownState, setShownState] = useState<'warm' | 'cold'>('warm');
+  const [shownState, setShownState] = useState<ChartRequestGroup>('warm');
   const all = rows
     .filter((row) => !excluded(row))
     .flatMap((row) => {
       const tokens = row.request?.prompt_tokens;
       const value = row.metrics?.[metric];
-      return numeric(tokens) && numeric(value) ? [{ row, tokens, score: value / scale }] : [];
+      return numeric(tokens) && numeric(value) ? [{ row, tokens, score: value / scale, group: engineRequestGroup(row) }] : [];
     });
   if (!all.length) return <Empty />;
-  const states = new Set(all.map(({ row }) => row.request?.state));
-  const points = states.has(shownState) ? all.filter(({ row }) => row.request?.state === shownState) : all;
+  const choices = chartRequestGroups.filter((group) => all.some((point) => point.group === group));
+  const selected = choices.includes(shownState) ? shownState : choices[0];
+  const points = selected ? all.filter(({ group }) => group === selected) : all;
   const lengths = [...new Set(points.map((point) => point.tokens))].sort((a, b) => a - b);
-  const groups = [...groupBy(points, ({ row }) => JSON.stringify([armKey(row), row.request?.state])).values()].sort(
+  const groups = [...groupBy(points, ({ row, group }) => JSON.stringify([armKey(row), group])).values()].sort(
     (a, b) => armOrder(a[0].row, b[0].row),
   );
   const x = (length: number) => 96 + (lengths.indexOf(length) * 524) / Math.max(1, lengths.length - 1);
@@ -89,22 +118,8 @@ export function LengthPlot({
   const digits = max >= 100 ? 0 : 1;
   return (
     <>
-      {states.has('warm') && states.has('cold') && (
-        <div className="engine-toggle" role="group" aria-label="Request state">
-          {(['warm', 'cold'] as const).map((state) => (
-            <button
-              key={state}
-              type="button"
-              aria-pressed={shownState === state}
-              onClick={() => setShownState(state)}
-              data-testid="factory-runs-engine-state"
-              data-variant={state}
-            >
-              {requestStateLabel(state)}
-            </button>
-          ))}
-        </div>
-      )}
+      <RequestGroupControls groups={choices} selected={selected} select={setShownState}
+        label="Request state" testId="factory-runs-engine-state" />
       <div className="engine-plot-scroll">
         <svg
           className="engine-plot"
@@ -152,7 +167,7 @@ export function LengthPlot({
                   />
                 )}
                 {group.map(({ row, tokens, score }) => {
-                  const label = `${armLabel(row)} · ${requestStateLabel(state) ?? 'State unknown'} · ${fmt(tokens)} tokens · ${fmt(score)} ${unit}`;
+                  const label = `${armLabel(row)} · ${engineRequestLabel(row) ?? 'State unknown'} · ${fmt(tokens)} tokens · ${fmt(score)} ${unit}`;
                   return (
                     <circle
                       key={row.id}
@@ -189,7 +204,7 @@ export function LengthPlot({
           return (
             <li key={row.id} className="engine-series" data-arm={row.arm}>
               <span aria-hidden="true">{row.request?.state === 'warm' ? '○' : '●'}</span> {armLabel(row)} ·{' '}
-              {requestStateLabel(row.request?.state) ?? 'State unknown'}
+              {engineRequestLabel(row) ?? 'State unknown'}
             </li>
           );
         })}
@@ -199,38 +214,28 @@ export function LengthPlot({
 }
 
 export function DecodeBars({ rows, inspect }: { rows: EngineRow[]; inspect: Inspect }) {
-  const [shownState, setShownState] = useState<'warm' | 'cold'>('warm');
+  const [shownState, setShownState] = useState<ChartRequestGroup>('warm');
   const points = rows.flatMap((row) => {
     const length = row.request?.prompt_tokens;
     const speed = row.metrics?.decode_tps;
-    return numeric(length) && numeric(speed) ? [{ row, length, speed }] : [];
+    return numeric(length) && numeric(speed) ? [{ row, length, speed, group: engineRequestGroup(row) }] : [];
   });
   const eligible = points.filter(({ row }) => !excluded(row));
   if (!eligible.length) return <Empty />;
 
-  const lengths = [...new Set(points.map(({ length }) => length))].sort((a, b) => b - a);
-  const arms = [...groupBy(points, ({ row }) => armKey(row)).entries()].sort((a, b) =>
+  const choices = chartRequestGroups.filter((group) => eligible.some((point) => point.group === group));
+  const selected = choices.includes(shownState) ? shownState : choices[0];
+  const shown = selected ? eligible.filter(({ group }) => group === selected) : eligible;
+  const lengths = [...new Set(shown.map(({ length }) => length))].sort((a, b) => b - a);
+  const arms = [...groupBy(shown, ({ row }) => armKey(row)).entries()].sort((a, b) =>
     armOrder(a[1][0].row, b[1][0].row),
   );
-  const shown = eligible.filter(({ row }) => row.request?.state === shownState);
   const max = Math.max(1, ...eligible.map(({ speed }) => speed));
 
   return (
     <>
-      <div className="engine-toggle" role="group" aria-label="Decode request state">
-        {(['warm', 'cold'] as const).map((state) => (
-          <button
-            key={state}
-            type="button"
-            aria-pressed={shownState === state}
-            onClick={() => setShownState(state)}
-            data-testid="factory-runs-engine-decode-state"
-            data-variant={state}
-          >
-            {requestStateLabel(state)}
-          </button>
-        ))}
-      </div>
+      <RequestGroupControls groups={choices} selected={selected} select={setShownState}
+        label="Decode request state" testId="factory-runs-engine-decode-state" />
       {lengths.map((length) => (
         <section
           key={length}
@@ -301,7 +306,7 @@ export function SpeedBars({ ratios, inspect }: { ratios: Ratio[]; inspect: Inspe
         <li key={candidate.id}>
           <span>
             <strong>{armLabel(candidate)}</strong>
-            <small>{`${fmt(candidate.request?.prompt_tokens ?? 0)} tokens · ${requestStateLabel(candidate.request?.state) ?? 'State unknown'}`}</small>
+            <small>{`${fmt(candidate.request?.prompt_tokens ?? 0)} tokens · ${engineRequestLabel(candidate) ?? 'State unknown'}`}</small>
           </span>
           <span
             className="engine-track"
