@@ -4,7 +4,7 @@ import struct
 
 from . import capped_run
 from .muse_r9_measure import digest, read, verify_image, quiet_request, now, first_cached_tasks, read_log
-from .store import ScopeDenied
+from .store import ScopeDenied, Store
 from scripts.factory import lab_v4_fast as lab, lab_v4_quiet as quiet, lab_warmup as w2
 from scripts.factory import r8_bench_cells, r8_final_benchmark, r9_prefix_check
 from scripts.factory.warmup_w1 import document_shell, fit_notebook
@@ -29,6 +29,21 @@ def admit(store, task_id, args, node_id):
         raise ScopeDenied('This recipe requires the independent Run 4 target lab grant.')
     if arm != 'profile':
         raise ScopeDenied('Candidate measurements require the sealed build and delivery.')
+    from .muse_r11_gate import graph, check_for
+    native_home = ROOT/'r11/graph'
+    if not (native_home/'factory.sqlite').is_file():
+        raise ScopeDenied('Run 4 has no admitted graph')
+    native = Store(native_home)
+    try:
+        factory_id = 'muse-2bit-demo-r11'
+        native_task = native.get_task(factory_id)
+        nodes = graph(native, factory_id)
+        if (native_task['constraints']['model_runs'] is not False or nodes['pin_inputs']['state'] != 'done'
+                or nodes['check_seeding_premise']['state'] in {'done', 'failed', 'superseded', 'cancelled'}):
+            raise ScopeDenied('A profile needs the pinned live AQBC inputs and an outstanding premise')
+        check_for(native, factory_id, nodes, 'pin_inputs', 'pinned_inputs')
+    finally:
+        native.close()
     if digest(ROOT/'r10/parent-reference.json') != PARENT or digest(PROFILE_LIB) != OVERLAY:
         raise ValueError('Pinned AQBC parent or profiling instrument differs')
     return dict(recipe=RECIPE, arm=arm, parent_sha256=PARENT, profiling_library_sha256=OVERLAY)
