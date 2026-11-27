@@ -312,12 +312,14 @@ function ReportDocument({
   runId,
   selected,
   files,
+  title,
   expectedSha,
   onOpenFile,
 }: {
   runId: string;
   selected: ReturnType<typeof reportFiles>[number];
   files: EvidenceFile[];
+  title?: string;
   expectedSha?: string;
   onOpenFile?: (path: string) => void;
 }) {
@@ -347,7 +349,7 @@ function ReportDocument({
           {t('factoryRuns.reportView.emptyFile')}
         </p>
       ) : selected.format === 'html' ? (
-        <HtmlArtifact title={selected.label} file={{ ...file, integrity: displayed.integrity }}
+        <HtmlArtifact title={title ?? selected.label} file={{ ...file, integrity: displayed.integrity }}
           resolveLink={(href) => resolveEvidenceLink(files, selected.file, href)} onOpenFile={onOpenFile}
           showMetadata={false} />
       ) : selected.format === 'markdown' ? (
@@ -363,12 +365,14 @@ function ReportDocument({
 export function FactoryReport({
   runId,
   files,
+  title,
   initialPath,
   expectedSha,
   onOpenFile,
 }: {
   runId: string;
   files: EvidenceFile[];
+  title?: string;
   initialPath?: string;
   expectedSha?: string;
   onOpenFile?: (path: string) => void;
@@ -386,7 +390,7 @@ export function FactoryReport({
   );
 
   return (
-    <section className="factory-report" aria-label={t('factoryRuns.report')} data-testid="factory-runs-report">
+    <section className="factory-report" aria-label={title ?? t('factoryRuns.report')} data-testid="factory-runs-report">
       {selected ? (
         <>
           {reports.length > 1 && (
@@ -420,6 +424,7 @@ export function FactoryReport({
             runId={runId}
             selected={selected}
             files={files}
+            title={title}
             expectedSha={selected.file.path === initialPath ? expectedSha : undefined}
             onOpenFile={onOpenFile}
           />

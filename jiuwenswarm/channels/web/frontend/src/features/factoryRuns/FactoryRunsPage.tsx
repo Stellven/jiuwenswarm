@@ -27,7 +27,7 @@ import { artifactReplayOrigins, checkArtifactLabels, evidenceText, labelCheckArt
 import './labResults.css';
 import { Iterations } from './Iterations';
 import { FactoryReport } from './FactoryReport';
-import { reportFiles } from './reportModel';
+import { contractReportLabels, reportFiles } from './reportModel';
 import { LiveSession } from './LiveSession';
 import { LaunchSessionDialog } from './LaunchSessionDialog';
 import { DataViewer } from './views/DataViewer';
@@ -65,8 +65,8 @@ const panels = [
   'terminal',
   'report',
 ] as const;
-const contractReplayTabs = [
-  ['report', 'Lab report'],
+const contractReplayTabs = (reportTitle: string) => [
+  ['report', reportTitle],
   ['overview', 'Story'],
   ['graph', 'Task graph'],
   ['contract', 'Contract'],
@@ -74,7 +74,7 @@ const contractReplayTabs = [
   ['events', 'Events'],
   ['artifacts', 'Files and diffs'],
 ] as const;
-type Panel = (typeof panels)[number] | (typeof contractReplayTabs)[number][0];
+type Panel = (typeof panels)[number] | ReturnType<typeof contractReplayTabs>[number][0];
 // A curated replay tells one story: the stepper, its graph, its files and the report.
 const curatedPanels: readonly Panel[] = ['overview', 'graph', 'artifacts', 'report'];
 // A task-graph run (node contracts, scheduler, capsule checks) has no ontology or iteration records.
@@ -200,6 +200,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   const controls = detail && runStatus?.id === selected ? runStatus.controls : detail?.controls;
   const status = detail && runStatus?.id === selected ? runStatus.run_state : detail?.run_state;
   const presentation = detail?.curated?.presentation_header;
+  const reportLabels = presentation && contractReportLabels(presentation);
   const contractCapsuleIds = useMemo(() => {
     const contractId = detail?.contract.contract_id;
     if (!presentation || typeof contractId !== 'string') return undefined;
@@ -515,7 +516,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   }
   const nativeTabs = detail?.curated && (!engineViewer || !detail.curated.native)
     ? curatedPanels : engineViewer || detail?.cc_overview ? graphRunPanels : panels;
-  const tabItems = presentation ? contractReplayTabs : nativeTabs.map((value) => [
+  const tabItems = reportLabels ? contractReplayTabs(reportLabels.title) : nativeTabs.map((value) => [
     value, value === 'artifacts' ? label('artifacts') : t(`factoryRuns.${value}`),
   ] as const);
   const navigation = detail && (
@@ -640,7 +641,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                   )}
                 </div>
                 <button type="button" data-testid="factory-runs-attached-report" onClick={() => selectPanel('report')}>
-                  Open lab report
+                  {reportLabels?.open}
                 </button>
               </section>
             ) : demoHeadline || isTerminalDemo ? (
@@ -799,6 +800,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                 <FactoryReport
                   runId={detail.run.id}
                   files={detail.files}
+                  title={reportLabels?.title}
                   initialPath={filePath}
                   expectedSha={expectedSha}
                   onOpenFile={(path) => selectPanel('artifacts', path)}

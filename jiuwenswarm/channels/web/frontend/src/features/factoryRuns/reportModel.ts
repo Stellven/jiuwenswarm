@@ -3,6 +3,13 @@ import { gfmFromMarkdown } from 'mdast-util-gfm';
 import { gfm } from 'micromark-extension-gfm';
 import type { RootContent } from 'mdast';
 import type { EvidenceFile } from './api';
+import type { CuratedReplay } from './views/storyModel';
+
+export function contractReportLabels(presentation: NonNullable<CuratedReplay['presentation_header']>) {
+  return presentation.report_kind === 'run'
+    ? { title: 'Run report', open: 'Open run report' }
+    : { title: 'Lab report', open: 'Open lab report' };
+}
 
 function evidencePaths(file: EvidenceFile): string[] {
   const aliases = file.display_path?.split(' · ') ?? [];
