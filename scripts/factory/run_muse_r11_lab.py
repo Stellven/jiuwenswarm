@@ -5,13 +5,16 @@ from pathlib import Path
 
 from jiuwenswarm.factory import api
 from jiuwenswarm.factory.muse_r11_cache import ROOT, TASK, RECIPE
+from jiuwenswarm.factory.muse_r11_target import ARMS
 from jiuwenswarm.factory.store import Store
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('arm', choices=['profile', 'control', 'seeded'])
+    aliases = {'control': 'AQBC', 'seeded': 'AQBCE'}
+    parser.add_argument('arm', choices=['profile', *ARMS, *aliases])
     args = parser.parse_args()
+    arm = aliases.get(args.arm, args.arm)
     graph_home = ROOT/'r11/graph'
     if not (graph_home/'factory.sqlite').is_file():
         raise ValueError('Native Run 4 graph has not been admitted.')
@@ -29,7 +32,7 @@ def main():
                                attempt_limits={'model_run':3}), resources=dict(memory_cap='96G',
                                floor_gib=8, need_available_gib=100, device_budget_mib=110000)))
     result = api.dispatch(store.scoped(TASK), TASK, 'capped_runner.start', dict(inputs=dict(
-        recipe=RECIPE, args={'arm':args.arm}, idem_key='run4-'+args.arm)))
+        recipe=RECIPE, args={'arm':arm}, idem_key='run4-'+arm)))
     print(result)
 
 

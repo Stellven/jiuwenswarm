@@ -795,7 +795,8 @@ def server_error(log, tail_bytes=200_000):
 
 
 class Server:
-    def __init__(self, run, server, model, server_args, env, log_name, *, log_path=None, capture_stdout=False):
+    def __init__(self, run, server, model, server_args, env, log_name, *, log_path=None, capture_stdout=False,
+                 inherit_env=True, watchdog=None):
         self.run, self.port = run, _free_port()
         self.log = Path(log_path) if log_path is not None else run.dir / log_name
         run.files[log_name] = self.log
@@ -809,8 +810,11 @@ class Server:
         with self.log.open('ab') as handle:
             stdout = handle if capture_stdout else subprocess.DEVNULL
             self.proc = subprocess.Popen(self.argv, stdout=stdout, stderr=handle,
-                                         env={**os.environ, 'LD_LIBRARY_PATH': bindir, **env}, start_new_session=True)
+                                         env={**(os.environ if inherit_env else {}), 'LD_LIBRARY_PATH': bindir, **env},
+                                         start_new_session=True)
         try:
+            if watchdog:
+                watchdog.attach(self.proc, self.argv)
             while True:
                 time.sleep(2)
                 run.watch(self.proc)
