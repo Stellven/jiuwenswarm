@@ -1,4 +1,4 @@
-"""Independent AQBC/QBCE paired acquisition from the accepted Run 4 delivery."""
+"""Independent AQBC/AQBCE paired acquisition from the accepted Run 4 delivery."""
 from datetime import datetime
 import hashlib
 import json
@@ -9,6 +9,7 @@ import re
 import signal
 import stat
 import subprocess
+import tempfile
 import threading
 import time
 
@@ -32,7 +33,8 @@ PROFILE_PATH_ENV = 'LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH'
 STARTUP_MARKER = 'muse_cache_startup'
 COUNTER_MARKER = 'muse_cache_counters'
 COUNTERS = (
-    'demand_hits', 'demand_misses', 'demand_evictions', 'read_only_hits', 'read_only_misses',
+    'graphs', 'demand_hits', 'demand_misses', 'demand_evictions', 'demand_seeded_hits', 'demand_seeded_evictions',
+    'read_only_hits', 'read_only_misses', 'read_only_seeded_hits',
     'hit_bytes', 'host_bytes', 'prefill_hits', 'prefill_misses', 'decode_hits', 'decode_misses',
 )
 SEED_FIELDS = ('slots_admitted', 'slots_populated', 'charged_bytes', 'uploaded_bytes')
@@ -186,7 +188,9 @@ def delivery(root):
                         source_commit=image_check['source_commit'], pack=pack,
                         prefill_plan_sha256=parent['prefill_plan_sha256'], launch_config=launch,
                         launch_config_sha256=parent['launch_config_sha256'], profile_sha256=profile_sha,
-                        profile_artifact_id=attached['artifact_id'], profile_manifest_sha256=premise['manifest_sha256'])
+                        profile_artifact_id=attached['artifact_id'], profile_manifest_sha256=premise['manifest_sha256'],
+                        parent_image_id=parent['image_id'], parent_executable_sha256=parent['binary_sha256'],
+                        profiling_library_sha256=manifest['profiling_library_sha256'])
         return identity, raw, {arm: arms[arm].get('env', {}) for arm in ARMS}, workload
 
 
@@ -230,6 +234,36 @@ def _image_hashes(directory):
     checked('libllama.so.1' in rows and any(name.startswith('libggml-cuda.so') for name in rows),
             'Extracted image does not have its native GPU library set')
     return rows
+
+
+def _library_delta(root, candidate, identity):
+    """Compare the actual candidate library with the same path in the pinned parent image."""
+    parent_image = identity['parent_image_id']
+    checked(re.fullmatch(r'sha256:[0-9a-f]{64}', parent_image), 'Invalid parent image identifier')
+    cached = root/'r11/extracted'/parent_image.removeprefix('sha256:')
+    checked(digest(cached/'llama-server') == identity['parent_executable_sha256'],
+            'Released parent executable does not match its pin')
+    command = lambda args: subprocess.run(['docker', *args], check=True, capture_output=True, text=True, timeout=60)
+    image = command(['image', 'inspect', '--format', '{{.Id}}', parent_image]).stdout.strip()
+    checked(image == parent_image, 'Installed parent runtime image differs from its pinned identity')
+    with tempfile.TemporaryDirectory(prefix='parent-library-', dir=candidate.parent.parent) as directory:
+        library = Path(directory) / 'libllama.so.1'
+        container = command(['create', parent_image]).stdout.strip()
+        try:
+            command(['cp', '-L', f'{container}:/opt/llamacpp/libllama.so.1', str(library)])
+        finally:
+            command(['rm', container])
+        official = digest(library)
+    checked(digest(cached/'libllama.so.1') == official, 'Cached parent runtime differs from its exact Docker image')
+    raw = candidate.read_bytes()
+    markers = [COUNTER_ENV, PROFILE_PATH_ENV, STARTUP_MARKER, COUNTER_MARKER]
+    candidate_sha = _bytes_sha(raw)
+    checked(candidate_sha not in {official, identity['profiling_library_sha256']}
+            and all(marker.encode() in raw for marker in markers),
+            'The candidate image lacks the native seeding/counter implementation or uses the profiling overlay')
+    return dict(parent_image_id=parent_image, parent_library_sha256=official,
+                candidate_library_sha256=candidate_sha, path_in_image='/opt/llamacpp/libllama.so.1',
+                checked_marker_strings=markers)
 
 
 def _stage_profile(directory, raw, sha):
@@ -301,12 +335,32 @@ def startup_receipt(path, arm):
     return dict(format='muse-r11-startup-fill/1', arm=arm, source=source, **data)
 
 
+def device_budget(path, ready_end, ready):
+    """Report the comparable device reservation inventory against the full native log."""
+    with path.open('rb') as stream:
+        stream.seek(ready_end)
+        later = r8_final_benchmark.parse_log(stream.read().decode(errors='replace'))['device_mib']
+    checked(not later, 'Post-ready memory reservations changed; comparable device peak cannot be reconstructed')
+    categories = ready['device_mib']
+    required = ('model', 'kv', 'compute', 'moe_cache')
+    checked(all(key in categories for key in (*required, 'host_compute')), 'Native device allocation inventory is incomplete')
+    peak = round(sum(categories[key] for key in required), 2)
+    checked(peak <= DEVICE_BUDGET, 'Comparable device allocations exceed the approved budget')
+    return dict(device_peak_mib=peak, device_peak_categories_mib=categories,
+                device_budget_headroom_mib=round(DEVICE_BUDGET-peak, 2),
+                device_peak_scope='Engine buffer reservations by comparable category, not GPU-wide occupation',
+                device_peak_source=dict(path='server.log', start=0, ready_end=ready_end, end=path.stat().st_size))
+
+
 def _validate_counters(values):
     checked(isinstance(values, dict) and all(type(values.get(key)) is int and values[key] >= 0 for key in COUNTERS),
             'Invalid native request cache counter fields')
     checked(values['prefill_hits'] + values['decode_hits'] == values['demand_hits'] + values['read_only_hits']
             and values['prefill_misses'] + values['decode_misses'] == values['demand_misses'] + values['read_only_misses'],
             'Native phase counters double count or omit lookups')
+    checked(values['demand_seeded_hits'] <= values['demand_hits']
+            and values['demand_seeded_evictions'] <= values['demand_evictions']
+            and values['read_only_seeded_hits'] <= values['read_only_hits'], 'Native seeded-event counters exceed totals')
     return {key: values[key] for key in COUNTERS}
 
 
@@ -408,6 +462,10 @@ def acquire(server, monitor, out, arm, workload, ticker):
             checked(log_start <= after_source['start'] < after_source['end'] <= log_end,
                     'No native cache sample strictly inside the measured request')
             counters = _delta(before, after)
+            if arm == 'AQBC':
+                checked(not any(counters[key] for key in ('demand_seeded_hits', 'demand_seeded_evictions',
+                                                          'read_only_seeded_hits')),
+                        'The switch-off arm recorded seeded traffic')
             hits = counters['prefill_hits'] + counters['decode_hits']
             misses = counters['prefill_misses'] + counters['decode_misses']
             checked(hits + misses > 0, 'No expert lookup in a measured request')
@@ -585,6 +643,7 @@ def execute(run, root, base):
     guard = MemoryWatchdog(run)
     try:
         binary, images = _extract_image(identity, out)
+        record['library_delta'] = _library_delta(root, binary.parent/'libllama.so.1', identity)
         _previous_load(base, arm, prior, identity, images)
         path, profile = _stage_profile(binary.parent, raw_profile, identity['profile_sha256'])
         env = _environment(binary, configs[arm], path)
@@ -606,6 +665,7 @@ def execute(run, root, base):
                         server, dict(role=arm, ctx=8192, batch=2048, ubatch=2048, moe_cache_mib=62464))
                     record.update(status='loaded', load_seconds=server.ready_s, argv=server.argv,
                                   placement=server.placement, observed=native, image_scope_pid=server.proc.pid)
+                    ready_log_end = server.log.stat().st_size
                     lab.save(out/STARTUP, startup_receipt(server.log, arm))
                     ticker = CacheLog(server.log)
                     ticker.read()  # Require native baseline before the first external completion.
@@ -621,6 +681,7 @@ def execute(run, root, base):
             guard.healthy()
         checked(record['server_closed'] and _image_hashes(binary.parent) == images,
                 'The exact binary or libraries changed, or server did not close')
+        record.update(device_budget(out/'server.log', ready_log_end, native))
         record['profile_mapping_after'] = _profile_identity(path, identity['profile_sha256'])
         checked(record['profile_mapping_after'] == profile, 'Read-only profile mapping changed while the server ran')
         record['status'] = 'complete'
