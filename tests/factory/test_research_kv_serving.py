@@ -13,7 +13,11 @@ def test_native_host_all_reference_capabilities(name,tmp_path):
     package=BASE/name; release=host.prepare(package)
     examples=json.loads((package/'fixtures/example.json').read_text())
     declaration=host.describe(release)
-    assert set(declaration['capabilities'])==set(examples)|{'verify'}
+    expected = set(examples) | {'verify'}
+    if name == 'kv_reuse_lab':
+        expected.update({'verify_pins', 'plan', 'verify_factory_stage',
+                         'verify_cpu_fixture', 'verify_runtime_stage'})
+    assert set(declaration['capabilities']) == expected
     for cap,spec in examples.items():
         receipt=host.call(release,cap,{'spec':spec})
         assert receipt['state']=='succeeded',receipt
