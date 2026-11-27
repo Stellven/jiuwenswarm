@@ -92,6 +92,26 @@ def test_sanitized_artifact_keeps_original_digest(bundle):
     assert result['sha256'] == manifest[target.name]
 
 
+@pytest.mark.parametrize(('source', 'expected'), [
+    (b'{ "version" : 8, "label": "\\u00e9" }\r\n', b'{ "version" : 8, "label": "\\u00e9" }\r\n'),
+    (b'{"nested":{"password":"overwritten value","password":"<redacted>"}}\n',
+     b'{\n  "nested": {\n    "password": "<redacted>"\n  }\n}'),
+])
+def test_json_file_keeps_original_format_when_safe(bundle, source, expected):
+    target = bundle / 'contract.json'
+    target.write_bytes(source)
+    manifest_path = bundle / 'MANIFEST.json'
+    manifest = json.loads(manifest_path.read_text())
+    manifest[target.name] = hashlib.sha256(source).hexdigest()
+    manifest_path.write_text(json.dumps(manifest))
+    service = FactoryHttpService(roots=[bundle])
+    rid = service.listing()['runs'][0]['id']
+    result = client(service).get(f'/api/factory/runs/{rid}/file', params={'path': target.name})
+    assert result.status_code == 200
+    assert result.json()['content'].encode() == expected
+    assert result.json()['sha256'] == manifest[target.name]
+
+
 def test_launch_rejects_cross_origin_unconfigured_and_arbitrary_payload(bundle):
     api = client(FactoryHttpService(roots=[bundle]))
     assert api.post('/api/factory/launch', json={'template_id': 'x'}, headers={'origin': 'http://evil.invalid'}).status_code == 403
