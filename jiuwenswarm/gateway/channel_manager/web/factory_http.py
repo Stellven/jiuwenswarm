@@ -35,7 +35,7 @@ from jiuwenswarm.factory.contract import CONTRACTS
 from jiuwenswarm.factory.redact import sanitize, scrub_bytes
 from jiuwenswarm.factory.run_pause import current_in
 from jiuwenswarm.factory.store import FactoryError
-from . import factory_nodes
+from . import factory_nodes, factory_planner_story
 from .capsule_catalog import CapsuleCatalog, _parse as parse_material
 from .capsule_evidence import capsule_usage, collect_capsule_evidence
 from .engine_bench import read_engine_bench, read_engine_bench_document
@@ -696,6 +696,17 @@ class FactoryHttpService:
                 digest.update(chunk)
         return digest.hexdigest()
 
+    def _planner_story(self, item, path, data, graph, replay, trails):
+        planner = self.planner_plan(item, path, data, graph) if item.get('contract_demo') else None
+        home = item['source_name']
+        replay = factory_planner_story.curated_with_plan(replay, planner, item['task_id'], home)
+        if replay:
+            return replay, curated_events(replay)
+        native = self.events(data, trails=trails)
+        if planner:
+            native = factory_planner_story.native_with_plan(native, planner, data['tasks'][0], home)
+        return replay, native
+
     def detail(self, run_id):
         item, path = self.resolve(run_id)
         data = self.load(item, path)
@@ -716,7 +727,7 @@ class FactoryHttpService:
         replay = bundled
         if item['kind'] == 'bundle' and replay is None:
             replay = factory_nodes.native_replay(data, plan, files, item['source_name'], trails=trails)
-        events = curated_events(replay) if replay else self.events(data, trails=trails)
+        replay, events = self._planner_story(item, path, data, plan, replay, trails)
         if item['kind'] == 'live':
             _inside(path, 'telemetry/events.jsonl')
             trace = telemetry.read_events(path, item['task_id'])
@@ -1007,11 +1018,11 @@ class FactoryHttpService:
         data = self.load(item, path)
         replay = curated_replay(path) if item['kind'] == 'bundle' else None
         trails = corrections.project(data)
+        plan = taskgraph.from_records(data)
         if item['kind'] == 'bundle' and not replay and data['tasks'][0].get('contract_id') == 'muse-2bit-demo-r8':
-            plan = taskgraph.from_records(data)
             if plan['nodes'] and all(n['state'] in {'done', 'cancelled', 'superseded'} for n in plan['nodes']):
                 replay = factory_nodes.native_replay(data, plan, self.files(item, path, data), item['source_name'], trails=trails)
-        events = curated_events(replay) if replay else self.events(data, trails=trails)
+        replay, events = self._planner_story(item, path, data, plan, replay, trails)
         return sanitize(dict(events=events, cursor=len(events), total=len(events),
                              reset=bool(since)))
 

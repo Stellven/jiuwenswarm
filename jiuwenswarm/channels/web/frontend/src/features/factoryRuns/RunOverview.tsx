@@ -412,6 +412,20 @@ export function RunOverview({
           </button>
         )}
       </header>
+      {detail.run.live_demo && events.some((event) => typeof event.key_file === 'string') && (
+        <section className="factory-story-card" data-testid="factory-runs-live-planner-step">
+          {events.filter((event) => typeof event.key_file === 'string').map((event) => (
+            <div key={event.id}>
+              <h4>{String(event.presentation_title)}</h4>
+              <p>{String(event.presenter_line)}</p>
+              <p>{event.summary}</p>
+              <button type="button" className="factory-story-text-button" onClick={() => onOpenFile?.(String(event.key_file))}>
+                ★ Planner’s plan record
+              </button>
+            </div>
+          ))}
+        </section>
+      )}
       {headline}
       <RunBuilds detail={detail} events={events} />
       <div className="factory-story-overview-grid">
