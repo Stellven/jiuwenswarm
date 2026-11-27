@@ -168,6 +168,9 @@ html:not(.electron-desktop):has(.factory-runs-page--audience) {
 .factory-replay ~ .factory-evidence {
   overflow-anchor: none;
 }
+.factory-main--live-demo .factory-replay ~ .factory-evidence {
+  overflow-anchor: auto;
+}
 .factory-main:has(.factory-replay) {
   scrollbar-gutter: stable;
 }
