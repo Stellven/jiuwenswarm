@@ -46,7 +46,7 @@ class EngineRuns(FactoryHttpService):
         # Earlier curated stories belong in All runs. The Demo view represents
         # the published contracts, with one selected replay for each delivery.
         for item, path in runs:
-            if item.get('demo') and path not in self.demo_roots:
+            if item.get('demo') and not item.get('live_demo') and path not in self.demo_roots:
                 item.pop('demo', None)
                 item.pop('demo_order', None)
         return runs
