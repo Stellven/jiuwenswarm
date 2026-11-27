@@ -25,6 +25,7 @@ PROMPTS = ('p512', 'p2048')
 REPEATS = (0, 1, 2)
 REF_KEYS = ('proposal', 'aqb_speed', 'aqb_ttft', 'aqb_mmlu')
 FORMAT = 'factory.muse-r9-measurements/1'
+WARMED_FORMAT = 'factory.muse-r9-measurements/2'
 MMLU_FORMAT = 'muse-r9-mmlu/2'
 MMLU_IDENTITY = dict(mode='ordered-letter-identity', question_count=25, min_matches=24,
                      source_question_count=250, reference_correct=229, zero_external_reuse=True)
@@ -247,6 +248,13 @@ def workload(server, proposal, prompts):
     return cases
 
 
+def measured_prompts(prompts, questions):
+    """Every rendered string the speed and scoring paths may complete."""
+    return [*prompts.values(),
+            *(question for prompt in prompts.values() for question in r9_prefix_check.questions(prompt)),
+            *(question['prompt'] for question in questions[:MMLU_IDENTITY['question_count']])]
+
+
 def quiet_request(monitor, call):
     """Use the R8 quiet measurements around one request or score batch."""
     start, _ = monitor.wait('start', 'during', lab.log)
@@ -407,6 +415,7 @@ def score(server, monitor, prepared, reference, out, settings):
 
 def execute(run):
     from jiuwenswarm.factory.muse_r9_runtime import OWNER_006, verify_runtime_stage
+    from scripts.factory import lab_warmup
 
     req = run.req
     # Preserve the R8/Phase 0b resident-server watchdog policy.
@@ -457,6 +466,10 @@ def execute(run):
                     record.update(status='loaded', argv=server.argv, pid=server.proc.pid, load_seconds=server.ready_s,
                                   placement=server.placement, observed=dict(settings, n_seq_max=1))
                     lab.save(load_path, record)
+                    warmup = lab_warmup.run(server, monitor, out, template=prompts['p512'],
+                                            measured_prompts=measured_prompts(prompts, prepared.questions))
+                    record['warmup'] = warmup['summary']
+                    lab.save(load_path, record)
                     run_speed(server, monitor, out, prepared.proposal, prompts, stage, reference_speed)
                     score(server, monitor, prepared, reference_mmlu, out,
                           dict(record['observed'], mode='sequential_on_one_slot',
@@ -479,7 +492,7 @@ def execute(run):
     record['ended_utc'] = now()
     lab.save(load_path, record)
     files = {path.name: digest(path) for path in sorted(out.glob('*')) if path.is_file()}
-    result = dict(format=FORMAT, root=str(out), files=files, identity=stage, load_id=run.run_id,
+    result = dict(format=WARMED_FORMAT, root=str(out), files=files, identity=stage, load_id=run.run_id,
                   request_id=req['request_id'], status=record['status'])
     lab.save(out / 'runtime.json', verify_runtime_stage(result, policy=OWNER_006))
     lab.save(out / 'measurements.json', result)

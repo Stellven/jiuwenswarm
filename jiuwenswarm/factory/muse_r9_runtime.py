@@ -8,11 +8,12 @@ from statistics import median
 
 from jiuwenswarm.factory import capped_run
 from jiuwenswarm.factory.muse_r9_measure import (
-    ARM, CONTROL, FORMAT, PROMPTS, REPEATS, DEVICE_BUDGET, MMLU_FORMAT, MMLU_IDENTITY,
-    accuracy_identity, digest, first_cached_tasks, mmlu_reference_summary, read, references, speed_schedule,
+    ARM, CONTROL, FORMAT, WARMED_FORMAT, PROMPTS, REPEATS, DEVICE_BUDGET, MMLU_FORMAT, MMLU_IDENTITY,
+    accuracy_identity, digest, first_cached_tasks, measured_prompts, mmlu_reference_summary, read,
+    references, speed_schedule,
 )
 from jiuwenswarm.factory.ccs.paired_accuracy import paired
-from scripts.factory import lab_v4_quiet as quiet, r8_derive_p_ttft, r9_prefix_check
+from scripts.factory import lab_v4_quiet as quiet, lab_warmup, r8_derive_p_ttft, r9_prefix_check
 from scripts.factory.r8_bench_score import REQUEST
 
 STAGE = 'hardware measurement'
@@ -240,11 +241,13 @@ def verify_runtime_stage(manifest, policy=None):
         checks.append(dict(name=name, status='pass' if passed else 'fail', stage=STAGE, detail=detail))
 
     try:
-        require(manifest['format'] == FORMAT and manifest['status'] == 'complete',
+        require(manifest['format'] in (FORMAT, WARMED_FORMAT) and manifest['status'] == 'complete',
                 'The one capped load did not finish')
+        warmed = manifest['format'] == WARMED_FORMAT
         root = Path(manifest['root'])
         files = manifest['files']
-        require(root.is_absolute() and REQUIRED_FILES <= files.keys(), 'Measurement files are incomplete')
+        required = REQUIRED_FILES | {lab_warmup.WARMUP_FILE} if warmed else REQUIRED_FILES
+        require(root.is_absolute() and required <= files.keys(), 'Measurement files are incomplete')
         for name, sha in files.items():
             path = root / name
             require(name == Path(name).name and not path.is_symlink() and digest(path) == sha,
@@ -283,6 +286,13 @@ def verify_runtime_stage(manifest, policy=None):
         require(ttft['source_sha256'] == files['speed.json'], 'TTFT sidecar names different speed data')
         rows, quiet_policy, log_end = _speed_rows(speed, ttft, raw_log, expected.proposal, prompts,
                                                 adjudication=policy)
+        if warmed:
+            line = lab_warmup.validate(read(root / lab_warmup.WARMUP_FILE), raw_log,
+                                       speed['rows'][0]['server_log_start'],
+                                       measured_prompts(prompts, expected.questions))
+            require(line == load['warmup'], 'Lab report differs from the warm-up evidence')
+            summary['warmup'] = line
+            check('target_lab_warmup', True, line)
         check('valid_streams_and_coherence', True,
               'All standard and document question requests completed with 32 tokens and coherent text.')
         standard = _standard_comparison(rows, quiet_policy, adjudication=policy)
