@@ -3,7 +3,10 @@
 from itertools import takewhile
 import re
 
-from jiuwenswarm.factory.llama_request_log import first_cached_tasks
+if __package__:
+    from .request_log import first_cached_tasks
+else:
+    from request_log import first_cached_tasks
 
 
 def _checkpoint_limit(startup_log):

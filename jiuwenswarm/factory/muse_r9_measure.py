@@ -10,8 +10,8 @@ from tempfile import TemporaryDirectory
 import time
 
 from jiuwenswarm.factory import capped_run
+from jiuwenswarm.factory.ccs.kv_reuse_lab.request_log import first_cached_tasks
 from jiuwenswarm.factory.lab_mailbox import canonical
-from jiuwenswarm.factory.llama_request_log import first_cached_tasks
 from jiuwenswarm.factory.lab_manager import LabManager
 from jiuwenswarm.factory.store import ScopeDenied
 from scripts.factory import lab_v4_fast as lab, lab_v4_quiet as quiet

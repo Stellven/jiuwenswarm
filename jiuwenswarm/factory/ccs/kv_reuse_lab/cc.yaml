@@ -108,7 +108,7 @@ capabilities:
     needs: [python]
     changes: [process.exec]
   verify_runtime_stage:
-    does: Verify measured prefix reuse, same-load speed and full paired accuracy from the runtime evidence.
+    does: Replay recorded Muse lab acceptance for same-load speed, prefix reuse and the 25-question answer identity check.
     takes:
       measurements: json
       policy: {kind: text, optional: true}

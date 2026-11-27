@@ -52,4 +52,8 @@ Pass the plan's `build_request` to `factory.builder.submit` from the graph's
 `build-record` artifact and prefix plan to `verify_factory_stage`. The checker
 verifies the unchanged root filesystem, executable and pack, and compares the
 sealed image launch configuration against the plan. Lab delivery requires this
-check. Runtime evidence determines release.
+check. The target lab's acceptance determines release after delivery.
+
+`verify_runtime_stage` is the historical replay entry point for recorded Muse
+lab acceptance. It reproduces the same-load speed, prompt reuse and
+25-question answer identity checks from the sealed run evidence.
