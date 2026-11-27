@@ -140,52 +140,75 @@ def test_incomplete_measurement_refuses_release():
     assert result['done'] is False
     assert result['checks'][0]['status'] == 'fail'
 
-def test_all_250_scores_are_rechecked_from_one_slots_raw_log(tmp_path, monkeypatch):
+@pytest.mark.parametrize(('mismatch_count','cached_count','status'), [
+    (0, 0, 'passed'),
+    (1, 0, 'passed'),
+    (2, 0, 'refused'),
+    (0, 1, 'refused'),
+])
+def test_only_first_25_mmlu_questions_run_and_need_letter_identity_and_no_reuse(
+        tmp_path, monkeypatch, mismatch_count, cached_count, status):
     server_log = tmp_path / 'server.log'
     server_log.touch()
     questions = [dict(id=f'q{idx}', prompt=f'Prompt {idx}', answer='A') for idx in range(250)]
     ids = [q['id'] for q in questions]
-    top = [{'token': ' A' if idx == 0 else f'token{idx}', 'logprob': -idx - 0.1} for idx in range(20)]
-    batches = [32] * 7 + [26]
-    prepared = r8_bench_score.Prepared(
-        dict(request_plans={'mmlu250': {'request_batches': batches}}), questions,
-        dict(question_ids_in_order=ids))
-    offset = 0
+    prepared = r8_bench_score.Prepared({}, questions, dict(question_ids_in_order=ids))
+    requests = []
 
     def post(body):
-        nonlocal offset
+        requests.append(body)
         assert {key: body[key] for key in r8_bench_score.REQUEST} == r8_bench_score.REQUEST
-        prompts = body['prompt']
-        assert prompts == [q['prompt'] for q in questions[offset:offset + len(prompts)]]
+        assert body['prompt'] == [q['prompt'] for q in questions[:25]]
         result = []
         with server_log.open('ab') as handle:
-            for index, _ in enumerate(prompts):
-                count = 29 + offset % 7
-                handle.write(log_task(offset + 1, count, 0))
+            for index, _ in enumerate(body['prompt']):
+                count = 29 + index % 7
+                handle.write(log_task(index + 1, count, int(index < cached_count)))
+                letter = ' B' if index < mismatch_count else ' A'
+                top = [{'token': letter if i == 0 else f'token{i}', 'logprob': -i - 0.1} for i in range(20)]
                 result.append(dict(index=index, id_slot=0, stop=True, truncated=False, tokens_evaluated=count,
                                    tokens_predicted=1, completion_probabilities=[dict(top_logprobs=top)]))
-                offset += 1
         return result
 
     limits = runtime.quiet.policy(runtime.quiet.EMPTY)
     server = SimpleNamespace(post=post, log=server_log, run=SimpleNamespace(log=lambda *_: None))
-    chunks = [ids[idx:idx + 32] for idx in range(0, len(ids), 32)]
-    reference = dict(rows={q['id']: dict(correct=True, answer='A', probs=dict(A=0.904837, B=0, C=0, D=0))
-                           for q in questions}, server=dict(slots=32),
-                     batches=[dict(question_ids=chunk, quiet=dict(status='accepted' if idx != 2 else 'excluded'))
-                              for idx, chunk in enumerate(chunks)])
+    reference = dict(rows={q['id']: dict(correct=idx < 229, answer='A', pick='A')
+                           for idx, q in enumerate(questions)}, server=dict(slots=32))
     settings = dict(n_seq_max=1)
-    timing = dict(settings, mode='sequential_on_one_slot', requests='ordered batches queued on one slot')
+    timing = dict(settings, mode='sequential_on_one_slot', requests='first 25 ordered questions queued on one slot')
     monkeypatch.setattr(measure, 'quiet_request',
                         lambda monitor, call: (call(), dict(status='accepted', reasons=[], samples=[]), None))
     monkeypatch.setattr(runtime.quiet, 'evidence_issues', lambda *_: [])
     report = measure.score(server, SimpleNamespace(limits=limits), prepared, reference, tmp_path, timing)
-    comparison = runtime._accuracy(report, server_log.read_bytes(), 0, prepared, reference, dict(observed=settings))
-    assert comparison['question_count'] == 250
-    assert comparison['reference_timing_eligible'] == 218
-    assert comparison['candidate_timing_eligible'] == 250
-    assert comparison['paired']['decision'] == 'pass'
+    raw = server_log.read_bytes()
+    load = dict(observed=settings)
+    comparison = runtime._accuracy(report, raw, 0, prepared, reference, load)
+    assert len(requests) == 1
+    assert len(report['source']['question_ids_in_order']) == comparison['source_question_count'] == 250
+    assert list(report['rows']) == ids[:25]
+    assert comparison['status'] == status
+    assert comparison['question_count'] == 25
+    assert comparison['matched_letters'] == 25 - mismatch_count
+    assert comparison['zero_external_reuse'] == 25 - cached_count
+    assert comparison['reference_correct'] == 229
+    assert comparison['inherited_accuracy'] == (0.916 if status == 'passed' else None)
+    assert comparison['inherited_correct'] == (229 if status == 'passed' else None)
 
-    report['rows']['q249']['prompt_sha256'] = 'changed'
+    with pytest.raises(ValueError, match='log coverage'):
+        runtime._accuracy(report, raw + log_task(26, 29, 0), 0, prepared, reference, load)
+    report['rows']['q24']['prompt_sha256'] = 'changed'
     with pytest.raises(ValueError, match='inconsistent scoring'):
-        runtime._accuracy(report, server_log.read_bytes(), 0, prepared, reference, dict(observed=settings))
+        runtime._accuracy(report, raw, 0, prepared, reference, load)
+
+
+def test_old_delivered_contract_cannot_admit_identity_measurement(monkeypatch):
+    host = SimpleNamespace(
+        get_task=lambda _: dict(contract_id=measure.TASK, resources={
+            'memory_cap': '96G', 'device_budget_mib': 110000, 'need_available_gib': 100},
+            constraints={'approved_capped_recipes': {'measure_engine': [measure.RECIPE]}}),
+        _get=lambda *_: dict(kind='lab_request', values=dict(package_id='pkg')))
+    package = dict(package_id='pkg', origin=dict(node_id='deliver_to_lab'),
+                   contract=dict(id=measure.TASK, document=dict(version=9)))
+    monkeypatch.setattr(measure, 'LabManager', lambda _: SimpleNamespace(_package_for=lambda *_: package))
+    with pytest.raises(ScopeDenied, match='requires the delivered amendment 004'):
+        measure.admit(host, measure.TASK, {'request_id': 'labreq-' + '1' * 24}, 'measure_engine')

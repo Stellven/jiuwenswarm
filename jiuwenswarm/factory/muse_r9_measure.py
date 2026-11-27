@@ -25,6 +25,9 @@ PROMPTS = ('p512', 'p2048')
 REPEATS = (0, 1, 2)
 REF_KEYS = ('proposal', 'aqb_speed', 'aqb_ttft', 'aqb_mmlu')
 FORMAT = 'factory.muse-r9-measurements/1'
+MMLU_FORMAT = 'muse-r9-mmlu/2'
+MMLU_IDENTITY = dict(mode='ordered-letter-identity', question_count=25, min_matches=24,
+                     source_question_count=250, reference_correct=229, zero_external_reuse=True)
 DEVICE_BUDGET = 110000
 TASK_LOG = re.compile(r'\bid\s+(\d+)\s*\|\s*task\s+(\d+)\s*\|\s*(.*)')
 NEW_PROMPT = re.compile(r'\bnew prompt, .*?task\.n_tokens = (\d+)')
@@ -73,6 +76,10 @@ def admit(store, task_id, args, node_id):
     if (sent['kind'] != 'lab_request' or sent['values']['package_id'] != package['package_id']
             or package['origin'].get('node_id') != 'deliver_to_lab' or package['contract']['id'] != TASK):
         raise ScopeDenied('R9 measurement requires its deliver_to_lab package')
+    contract = package['contract']['document']
+    accuracy = contract.get('extensions', {}).get('muse.r9-protocol', {}).get('accuracy')
+    if contract.get('version') != 10 or accuracy != MMLU_IDENTITY:
+        raise ScopeDenied('R9 measurement requires the delivered amendment 004 MMLU identity protocol')
     subjects = package['subjects']
     subject = subjects['factory_stage']
     artifact_id = subject['payload']['artifact_id']
@@ -125,7 +132,8 @@ def references(reference, stage):
                 expected_pack['manifest_sha256'])
     if (ref_mmlu['status'] != 'complete' or ref_mmlu['leg'] != '8' or ref_mmlu['source'] != prepared.source
             or ref_mmlu['request'] != dict(path='/completion', **r8_bench_score.REQUEST)
-            or list(ref_mmlu['rows']) != ids
+            or list(ref_mmlu['rows']) != ids or len(ids) != MMLU_IDENTITY['source_question_count']
+            or sum(row['correct'] for row in ref_mmlu['rows'].values()) != MMLU_IDENTITY['reference_correct']
             or (ref_server['image_id'], ref_server['llama_server_sha256'],
                 ref_server['pack_manifest_sha256']) != expected):
         raise ValueError('AQB MMLU reference is incomplete or belongs to another benchmark')
@@ -324,60 +332,77 @@ def run_speed(server, monitor, out, proposal, prompts, stage, speed_rows):
     return report
 
 
+def mmlu_reference_summary(reference, sample_ids):
+    rows = reference['rows']
+    return dict(settings=reference['server'], rows={qid: rows[qid] for qid in sample_ids},
+                source_question_count=len(rows), correct=sum(row['correct'] for row in rows.values()))
+
+
+def accuracy_identity(report, tasks):
+    reference = report['reference']
+    rows = report['rows']
+    ids = list(reference['rows'])
+    if list(rows) != ids or len(ids) != MMLU_IDENTITY['question_count']:
+        raise ValueError('MMLU identity requires exactly the first 25 ordered responses')
+
+    # With zero letter probability the legacy argmax defaults to A. Such a
+    # response did not pick a letter, so it cannot support identity.
+    def matched(qid):
+        row = rows[qid]
+        return (row['pick'] == reference['rows'][qid]['pick']
+                and any(token.strip() == row['pick'] for token, _ in row['top_logprobs']))
+
+    letters = sum(matched(qid) for qid in ids)
+    independent = sum(task.get('cached_tokens') == 0 and task.get('slot_id') == 0 and bool(task.get('end'))
+                      for task in tasks)
+    total = reference['source_question_count']
+    correct = reference['correct']
+    if (total != MMLU_IDENTITY['source_question_count'] or correct != MMLU_IDENTITY['reference_correct']):
+        raise ValueError('Pinned AQB reference does not establish its declared 229/250 score')
+    minimum = MMLU_IDENTITY['min_matches']
+    accepted = (letters >= minimum and len(tasks) == independent == len(ids)
+                and len({task['task_id'] for task in tasks}) == len(ids))
+    return dict(mode='identity_check', status='passed' if accepted else 'refused',
+                question_count=len(ids), matched_letters=letters, zero_external_reuse=independent,
+                min_matches=minimum, source_question_count=total, reference_correct=correct,
+                reference_accuracy=correct / total, inherited_correct=correct if accepted else None,
+                inherited_accuracy=correct / total if accepted else None)
+
+
 def score(server, monitor, prepared, reference, out, settings):
     path = out / 'mmlu.json'
     request = dict(path='/completion', **r8_bench_score.REQUEST)
-    reference_rows = reference['rows']
-    eligible_ref = [qid for batch in reference['batches'] if batch['quiet']['status'] == 'accepted'
-                    for qid in batch['question_ids']]
-    report = dict(format='muse-r9-mmlu/1', status='running', request=request, settings=settings,
-                  source=prepared.source, quiet_policy=monitor.limits, batches=[], rows={},
-                  reference=dict(settings=reference['server'], rows=reference_rows,
-                                 timing_eligible_question_ids=eligible_ref))
+    questions = prepared.questions[:MMLU_IDENTITY['question_count']]
+    ids = [q['id'] for q in questions]
+    report = dict(format=MMLU_FORMAT, status='running', request=request, settings=settings,
+                  source=prepared.source, protocol=MMLU_IDENTITY, quiet_policy=monitor.limits, rows={},
+                  reference=mmlu_reference_summary(reference, ids))
     lab.save(path, report)
     try:
-        start = 0
-        for count in prepared.proposal['request_plans']['mmlu250']['request_batches']:
-            questions = prepared.questions[start:start + count]
-            offset = server.log.stat().st_size
-            t0 = time.monotonic()
-            rows, evidence, error = quiet_request(monitor, lambda: r8_bench_score._scores(server, questions, retain_distribution=True))
-            raw = read_log(server, offset)
-            tasks = first_cached_tasks(raw)
-            batch = dict(index=len(report['batches']), question_ids=[q['id'] for q in questions],
-                         quiet=evidence, elapsed_including_admission_seconds=round(time.monotonic() - t0, 3),
-                         server_log_start=offset, server_log_end=offset + len(raw),
-                         cache_evidence=tasks)
-            report['batches'].append(batch)
-            if rows:
-                report['rows'].update(rows)
-            lab.save(path, report)
-            if error:
-                raise error
-            if (len(tasks) != count or any(t.get('cached_tokens') != 0 or t.get('slot_id') != 0
-                                           or not t.get('end') for t in tasks)):
-                raise ValueError(f'MMLU batch {batch["index"]} did not prove all prompts independent')
-            start += count
-            server.run.log(f'MMLU {start}/250 scored on the existing slot')
-        ids = prepared.source['question_ids_in_order']
-        report['comparison'] = accuracy_comparison(report, ids)
+        offset = server.log.stat().st_size
+        t0 = time.monotonic()
+        rows, evidence, error = quiet_request(
+            monitor, lambda: r8_bench_score._scores(server, questions, retain_distribution=True))
+        raw = read_log(server, offset)
+        tasks = first_cached_tasks(raw)
+        report['batch'] = dict(question_ids=ids, quiet=evidence, server_log_start=offset,
+                               server_log_end=offset + len(raw), cache_evidence=tasks,
+                               elapsed_including_admission_seconds=round(time.monotonic() - t0, 3))
+        if rows:
+            report['rows'] = rows
+        if error:
+            raise error
+        report['comparison'] = accuracy_identity(report, tasks)
         report['status'] = 'complete'
+        result = report['comparison']
+        server.run.log(f'MMLU identity {result["status"]}: {result["matched_letters"]}/25 letters matched, '
+                       f'{result["zero_external_reuse"]}/25 started without cached tokens')
+    except BaseException:
+        report['status'] = 'stopped'
+        raise
     finally:
         lab.save(path, report)
     return report
-
-
-def accuracy_comparison(report, ids):
-    ref, cand = report['reference']['rows'], report['rows']
-    if list(ref) != ids or list(cand) != ids:
-        raise ValueError('Paired accuracy requires every ordered question from both arms')
-    eligible = [qid for batch in report['batches'] if batch['quiet']['status'] == 'accepted'
-                for qid in batch['question_ids']]
-    return dict(question_count=len(ids), reference_correct=sum(ref[qid]['correct'] for qid in ids),
-                candidate_correct=sum(cand[qid]['correct'] for qid in ids),
-                reference_timing_eligible=len(report['reference']['timing_eligible_question_ids']),
-                candidate_timing_eligible=len(eligible),
-                paired=paired.look(ref, cand, ids, 5, paired.Z_SEQ, final=True))
 
 
 def execute(run):
@@ -435,7 +460,7 @@ def execute(run):
                     run_speed(server, monitor, out, prepared.proposal, prompts, stage, reference_speed)
                     score(server, monitor, prepared, reference_mmlu, out,
                           dict(record['observed'], mode='sequential_on_one_slot',
-                               requests='ordered batches queued on one slot'))
+                               requests='first 25 ordered questions queued on one slot'))
                     record['status'] = 'complete'
                 finally:
                     if server:

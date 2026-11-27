@@ -7,8 +7,8 @@ from statistics import median
 
 from jiuwenswarm.factory import capped_run
 from jiuwenswarm.factory.muse_r9_measure import (
-    ARM, CONTROL, FORMAT, PROMPTS, REPEATS, DEVICE_BUDGET, accuracy_comparison,
-    digest, first_cached_tasks, read, references, speed_schedule,
+    ARM, CONTROL, FORMAT, PROMPTS, REPEATS, DEVICE_BUDGET, MMLU_FORMAT, MMLU_IDENTITY,
+    accuracy_identity, digest, first_cached_tasks, mmlu_reference_summary, read, references, speed_schedule,
 )
 from jiuwenswarm.factory.ccs.paired_accuracy import paired
 from scripts.factory import lab_v4_quiet as quiet, r8_derive_p_ttft, r9_prefix_check
@@ -161,43 +161,33 @@ def _followup_comparison(rows, proposal, policy):
 
 
 def _accuracy(mmlu, raw_log, previous_end, expected, reference, load):
-    ids = expected.source['question_ids_in_order']
-    require(mmlu['status'] == 'complete' and mmlu['source'] == expected.source
-            and mmlu['request'] == dict(path='/completion', **REQUEST)
+    questions = expected.questions[:MMLU_IDENTITY['question_count']]
+    ids = [q['id'] for q in questions]
+    require(mmlu['format'] == MMLU_FORMAT and mmlu['status'] == 'complete' and mmlu['source'] == expected.source
+            and mmlu['protocol'] == MMLU_IDENTITY and mmlu['request'] == dict(path='/completion', **REQUEST)
             and mmlu['quiet_policy'] == quiet.policy(quiet.EMPTY)
             and mmlu['settings'] == dict(load['observed'], mode='sequential_on_one_slot',
-                                         requests='ordered batches queued on one slot')
-            and mmlu['reference']['rows'] == reference['rows']
-            and mmlu['reference']['settings'] == reference['server']
-            and mmlu['reference']['timing_eligible_question_ids'] == [
-                qid for batch in reference['batches'] if batch['quiet']['status'] == 'accepted'
-                for qid in batch['question_ids']],
-            'MMLU source, reference or request settings differ from approval')
-    orders = []
-    task_ids = set()
-    for batch in mmlu['batches']:
-        group = batch['question_ids']
-        require(batch['index'] == len(orders) and batch['server_log_start'] >= previous_end,
-                'MMLU batch order or log interval is invalid')
-        if batch['quiet']['status'] == 'accepted':
-            require(_eligible(batch, mmlu['quiet_policy']), 'MMLU batch was assigned unsupported quiet eligibility')
-        else:
-            require(batch['quiet']['status'] == 'excluded' and batch['quiet']['reasons'],
-                    'MMLU batch lacks a reason for quiet exclusion')
-        previous_end = batch['server_log_end']
-        orders.append(group)
-        tasks = _raw_tasks(raw_log, batch)
-        require(tasks == batch['cache_evidence'] and len(tasks) == len(group), 'MMLU task log coverage is incomplete')
-        for index, (task, qid) in enumerate(zip(tasks, group)):
-            row = mmlu['rows'][qid]
-            require(task['cached_tokens'] == 0 and 'end' in task and task['slot_id'] == 0
-                    and task['task_id'] not in task_ids and task['prompt_tokens'] == row['prompt_tokens']
-                    and row['response_index'] == index, f'MMLU question {qid} lacks independent scoring evidence')
-            task_ids.add(task['task_id'])
-    require([qid for group in orders for qid in group] == ids
-            and [len(group) for group in orders] == [32] * 7 + [26], 'MMLU cases are missing or reordered')
-    for q in expected.questions:
+                                         requests='first 25 ordered questions queued on one slot')
+            and mmlu['reference'] == mmlu_reference_summary(reference, ids),
+            'MMLU source, reference or identity protocol differs from approval')
+    batch = mmlu['batch']
+    require(batch['question_ids'] == ids and batch['server_log_start'] >= previous_end
+            and len(ids) == MMLU_IDENTITY['question_count'] and list(mmlu['rows']) == ids,
+            'MMLU identity cases are missing, reordered or exceed the approved 25')
+    if batch['quiet']['status'] == 'accepted':
+        require(_eligible(batch, mmlu['quiet_policy']), 'MMLU batch was assigned unsupported quiet eligibility')
+    else:
+        require(batch['quiet']['status'] == 'excluded' and batch['quiet']['reasons'],
+                'MMLU batch lacks a reason for quiet exclusion')
+    tasks = _raw_tasks(raw_log, batch)
+    require(tasks == batch['cache_evidence'] and len(tasks) == len(ids)
+            and len({task['task_id'] for task in tasks}) == len(ids)
+            and not first_cached_tasks(raw_log[batch['server_log_end']:]), 'MMLU task log coverage differs from the approved 25')
+    for index, (task, q) in enumerate(zip(tasks, questions)):
         row = mmlu['rows'][q['id']]
+        require('end' in task and task['slot_id'] == 0 and type(task.get('cached_tokens')) is int
+                and task['prompt_tokens'] == row['prompt_tokens'] and row['response_index'] == index,
+                f'MMLU question {q["id"]} lacks independently verifiable scoring evidence')
         top = row['top_logprobs']
         require(len(top) == REQUEST['n_probs'] and all(
             isinstance(token, str) and type(logprob) in (float, int) and math.isfinite(logprob) and logprob <= 0
@@ -210,8 +200,8 @@ def _accuracy(mmlu, raw_log, previous_end, expected, reference, load):
                 and row['pick'] == pick and row['top_token'] == top[0][0] and row['letter_mass'] == round(mass, 4)
                 and type(row['correct']) is bool and row['correct'] == (pick == q['answer'] and mass > 0),
                 f'MMLU question {q["id"]} has inconsistent scoring data')
-    comparison = accuracy_comparison(mmlu, ids)
-    require(comparison == mmlu['comparison'], 'Recorded MMLU comparison differs from the 250 scores')
+    comparison = accuracy_identity(mmlu, tasks)
+    require(comparison == mmlu['comparison'], 'Recorded MMLU identity differs from the 25 measured responses')
     return comparison
 
 
@@ -279,8 +269,12 @@ def verify_runtime_stage(manifest):
               'Both follow-up pairs had quiet eligibility, reused the document prefix, and beat the cache-off TTFT.')
         accuracy = _accuracy(mmlu, raw_log, log_end, expected, ref_mmlu, load)
         summary['accuracy'] = accuracy
-        check('paired_mmlu_coverage', accuracy['question_count'] == 250,
-              'Compared all 250 independent scores with R8 AQB, with timing eligibility reported separately.')
+        passed = accuracy['status'] == 'passed'
+        detail = (f'{accuracy["matched_letters"]}/25 answer letters matched AQB and '
+                  f'{accuracy["zero_external_reuse"]}/25 started with zero cached tokens.')
+        if passed:
+            detail += ' AQBC inherits the pinned AQB score of 91.6% (229/250) by this identity check.'
+        check('mmlu_identity', passed, detail)
     except (OSError, ValueError, KeyError, TypeError, IndexError, AttributeError, OverflowError, StopIteration) as error:
         check('runtime_evidence', False, str(error))
     done = bool(checks) and all(check['status'] == 'pass' for check in checks)
