@@ -1,5 +1,5 @@
 import type { EvidenceFile, StoryEvent } from '../api';
-import type { CuratedReplay } from './storyModel.ts';
+import type { CuratedReplay, ReplayNodePresentation } from './storyModel.ts';
 import { atlasTitle } from '../cc/atlasNames.ts';
 import type { NodeCheckIndex, NodeOperator } from './checkModel.ts';
 
@@ -28,7 +28,7 @@ export type GraphModel = {
   history: Fields[];
   taskId?: string;
 };
-type GraphContext = { contract?: unknown; tasks?: readonly unknown[] };
+type GraphContext = { contract?: unknown; tasks?: readonly unknown[]; nodePresentation?: Record<string, ReplayNodePresentation> };
 export type GraphReplay = {
   events: readonly StoryEvent[];
   position: number;
@@ -149,7 +149,7 @@ function taskGraph(value: Fields, context: GraphContext): GraphModel | null {
   for (const node of rawNodes) {
     const id = string(node.node_id);
     if (!id) continue;
-    graph.node('step', id, node, string(node.title) ?? id, id);
+    graph.node('step', id, node, context.nodePresentation?.[id]?.title ?? string(node.title) ?? id, id);
   }
   for (const node of rawNodes) {
     const id = string(node.node_id);

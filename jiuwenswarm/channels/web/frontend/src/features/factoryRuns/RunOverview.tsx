@@ -7,7 +7,7 @@ import { ArrowUpRight, CheckCircle2, CircleDot, FileText, GitBranch, Layers3, Pa
 import { useTranslation } from 'react-i18next';
 import type { EvidenceFile, JsonRecord, RunDetail, StoryEvent } from './api';
 import { atlasTitle } from './cc/atlasNames.ts';
-import { collapseEvents, presentEvent, type CuratedMeasurement } from './views/storyModel.ts';
+import { collapseEvents, presentEvent, replayCheckStage, replayEvidenceText, type CuratedMeasurement } from './views/storyModel.ts';
 import { ReplayLabel } from './views/NodeEvidence';
 import { CorrectionRecord, CorrectionSequence } from './views/CorrectionSequence';
 import { correctionStatusAt } from './views/correctionModel';
@@ -187,6 +187,14 @@ export function RunOverview({
         <header className="factory-story-hero" data-testid="factory-runs-overview-brief">
           <span className="factory-story-kicker">{curated.title}</span>
           <p className="factory-curated-label" data-testid="factory-runs-curated-summary">{curated.summary}</p>
+          {curated.node_presentation && (
+            <details data-testid="factory-runs-curated-check-roles">
+              <summary>Who checks what</summary>
+              <p>Factory stage runs on the factory machine using builds, digest checks and small fixtures. Runtime stage uses the full model on the target.</p>
+              <p>The CC verifier checks that the capsule’s method, tool or build was used correctly. The scheduler writes the node contract and the node verifier checks whether the node met it.</p>
+              <p>The factory delivers the image, test requirements and acceptance criteria. The lab agent runs the tests on the target and decides whether the engine passes. Lab acceptance can run without a CC.</p>
+            </details>
+          )}
         </header>
         {focus && (
           <section
@@ -217,9 +225,14 @@ export function RunOverview({
               </button>
             )}
             <ReplayLabel value={focus.replayed_from} />
-            {!correction && stepSummary && (
+            {!!focus.stages?.length && (
+              <p className="factory-story-kicker" data-testid="factory-runs-curated-check-stage">
+                {focus.stages.map(replayCheckStage).join(' · ')}
+              </p>
+            )}
+            {(!correction || curated.node_presentation) && stepSummary && (
               <p className="factory-curated-say" data-testid="factory-runs-curated-focus-say">
-                {stepSummary}
+                {curated.node_presentation ? replayEvidenceText(stepSummary) : stepSummary}
               </p>
             )}
             {correction && (
@@ -275,7 +288,9 @@ export function RunOverview({
             <details className="factory-curated-more" key={focus.step} open={(curated.graph_mode === 'recorded' && !prefillStep) || undefined}>
               <summary>Recorded summary and other key files</summary>
               {!correction && focus.original_summary && focus.original_summary !== stepSummary && (
-                <p className="factory-muted">{focus.original_summary}</p>
+                <p className="factory-muted">
+                  {curated.node_presentation ? replayEvidenceText(focus.original_summary) : focus.original_summary}
+                </p>
               )}
               <ul className="factory-curated-key-files">
                 {focus.key_files.slice(1).map((key) => (

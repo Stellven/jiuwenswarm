@@ -10,6 +10,7 @@ import {
   type PlanNode,
 } from './checkModel';
 import './nodeChecks.css';
+import { replayCheckStage, replayEvidenceText, type ReplayCheckPresentation, type ReplayNodePresentation } from './storyModel';
 
 const opLabel: Record<OperatorOp, string> = { hold: 'Hold', release: 'Release', reopen: 'Reopen' };
 const opHint: Record<OperatorOp, string> = {
@@ -28,10 +29,12 @@ function OutputCheck({
   row,
   files,
   onOpenFile,
+  presentation,
 }: {
   row: OutputSummary;
   files?: readonly EvidenceFile[];
   onOpenFile?: (path: string) => void;
+  presentation?: ReplayCheckPresentation;
 }) {
   const { output, latest } = row;
   const older = row.history.slice(0, -1).reverse();
@@ -55,14 +58,20 @@ function OutputCheck({
           {statusLabel[row.status]}
         </span>
       </div>
+      {presentation && (
+        <p className="factory-check-stage" data-testid="factory-runs-check-execution-stage">
+          <b>{replayCheckStage(presentation.stage)} · {presentation.role}</b> · {presentation.method}
+        </p>
+      )}
       <p className="factory-check-how">
-        {output.verifier ? <code>{output.verifier}</code> : <span>host record check</span>}
+        {presentation?.role === 'Lab acceptance' ? <span>Node verifier records the target verdict</span>
+          : output.verifier ? <code>{output.verifier}</code> : <span>host record check</span>}
         {output.review && <span> + independent review</span>}
         {output.criteria && output.criteria.length > 0 && <span> · {output.criteria.length} criteria</span>}
       </p>
       {(row.stageRequired || row.stageReached) && (
         <p className="factory-check-stage" data-testid="factory-runs-check-stage" data-met={row.stageMet === undefined ? undefined : String(row.stageMet)}>
-          <small>Stage</small> reached <b>{row.stageReached ?? '—'}</b> · required <b>{row.stageRequired ?? 'any'}</b>
+          <small>{presentation ? 'Recorded verifier level' : 'Stage'}</small> reached <b>{row.stageReached ?? '—'}</b> · required <b>{row.stageRequired ?? 'any'}</b>
         </p>
       )}
       {output.inputs && (
@@ -72,18 +81,28 @@ function OutputCheck({
       )}
       {latest && latest.reason && latest.reason !== 'passed' && (
         <p className="factory-check-reason" data-testid="factory-runs-check-reason">
-          {latest.reason}
+          {presentation ? replayEvidenceText(latest.reason) : latest.reason}
         </p>
       )}
       {row.verifierChecks.length > 0 && (
         <ul className="factory-check-list" data-testid="factory-runs-verifier-checks">
-          {row.verifierChecks.map((check, index) => (
+          {row.verifierChecks.map((check, index) => {
+            const execution = presentation?.stage === 'mixed' && check.stage
+              ? (check.stage === 'runtime acceptance' || check.stage === 'hardware measurement' ? 'runtime' : 'factory')
+              : presentation?.stage;
+            const role = presentation?.stage === 'mixed' && execution === 'runtime' ? 'Target evidence'
+              : presentation?.verifier_role ?? presentation?.role;
+            return (
             <li key={`${check.name}:${index}`} data-status={(check.status ?? '').toLowerCase()} data-testid="factory-runs-verifier-check">
               <span className="factory-check-mark">{check.status ?? '?'}</span>
               <span>
                 <b>{check.name ?? 'check'}</b>
-                {check.stage && <small> · {check.stage}</small>}
-                {typeof check.detail === 'string' && <span className="factory-check-detail"> {check.detail}</span>}
+                {execution ? (
+                  <small title={check.stage}> · {replayCheckStage(execution)}{role && ` · ${role}`}</small>
+                ) : check.stage && <small> · {check.stage}</small>}
+                {typeof check.detail === 'string' && (
+                  <span className="factory-check-detail"> {presentation ? replayEvidenceText(check.detail) : check.detail}</span>
+                )}
                 {check.detail != null && typeof check.detail !== 'string' && (
                   <span className="factory-check-detail">
                     <code>{JSON.stringify(check.detail)}</code>
@@ -91,7 +110,8 @@ function OutputCheck({
                 )}
               </span>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
       {latest?.review && (
@@ -145,6 +165,7 @@ function OutputCheck({
             {older.map((check) => (
               <li key={check.obs_id} data-superseded={check.superseded || undefined}>
                 <code>{check.obs_id}</code> · {check.state !== 'finished' ? check.state : check.passed ? 'passed' : 'failed'}
+                {presentation && <small> · {replayCheckStage(presentation.stage)} · {presentation.role}</small>}
                 {check.superseded && <small> · superseded by an operator reopen</small>}
                 {check.reason && check.reason !== 'passed' && <span> · {check.reason}</span>}
               </li>
@@ -249,6 +270,7 @@ export function NodeChecks({
   files,
   onOpenFile,
   operator,
+  presentation,
   outputOnly = false,
 }: {
   view?: NodeCheckView;
@@ -256,6 +278,7 @@ export function NodeChecks({
   files?: readonly EvidenceFile[];
   onOpenFile?: (path: string) => void;
   operator?: NodeOperator;
+  presentation?: ReplayNodePresentation;
   outputOnly?: boolean;
 }) {
   const summary = summarizeNode(view, node);
@@ -293,7 +316,8 @@ export function NodeChecks({
           {summary.outputs.length > 0 && (
             <ul className="factory-check-outputs">
               {summary.outputs.map((row) => (
-                <OutputCheck key={row.output.name} row={row} files={files} onOpenFile={onOpenFile} />
+                <OutputCheck key={row.output.name} row={row} files={files} onOpenFile={onOpenFile}
+                  presentation={presentation?.checks[row.output.name]} />
               ))}
             </ul>
           )}

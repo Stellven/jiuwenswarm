@@ -19,6 +19,7 @@ import { CorrectionSequence, CorrectionTally } from './CorrectionSequence';
 import type { CorrectionCursor } from './correctionModel';
 import { SourceLinks, type EvidenceLinks } from './SourceLinks';
 import type { NodeCheckView, PlanNode } from './checkModel';
+import { replayCheckStage, replayEvidenceText, type ReplayCheckPresentation, type ReplayNodePresentation } from './storyModel';
 import {
   capsuleCard,
   contractDiff,
@@ -121,11 +122,13 @@ function OutputEvidence({
   runId,
   nodeId,
   output,
+  presentation,
   ...links
 }: EvidenceLinks & {
   runId: string;
   nodeId: string;
   output: NodeOutput;
+  presentation?: ReplayCheckPresentation;
 }) {
   const [expanded, setExpanded] = useState(false);
   return (
@@ -135,6 +138,11 @@ function OutputEvidence({
         <span className="factory-node-evidence-kind">{output.kind}</span>
         <ReplayLabel value={output.replayed_from} />
       </div>
+      {presentation && (
+        <p data-testid="factory-runs-node-output-stage">
+          <b>{replayCheckStage(presentation.stage)} · {presentation.role}</b> · {presentation.method}
+        </p>
+      )}
       {output.summary != null && Object.keys(evidenceRecord(output.summary) ?? { value: true }).length > 0 && (
         <StructuredData value={output.summary} />
       )}
@@ -269,13 +277,20 @@ function comparisonBody(value: unknown) {
     : value;
 }
 
-function CappedRuns({ runs, ...links }: EvidenceLinks & { runs?: NodeCapsule['runs'] }) {
+function CappedRuns({ runs, presentation, ...links }: EvidenceLinks & {
+  runs?: NodeCapsule['runs'];
+  presentation?: ReplayNodePresentation;
+}) {
   if (!runs?.length) return null;
   return (
     <section className="factory-node-evidence-fields" data-testid="factory-runs-node-capsule-capped-runs">
       <h5>Capped runs</h5>
       {runs.map((run, index) => {
         const id = evidenceText(run.attempt_id ?? run.id);
+        const recipe = evidenceText(run.recipe);
+        const stage = !presentation ? undefined
+          : recipe === 'serve' || recipe === 'muse_r9_measure' ? 'runtime'
+          : recipe === 'build' || recipe === 'convert' || recipe === 'quantize' ? 'factory' : undefined;
         const title = [evidenceText(run.recipe ?? run.kind), evidenceText(run.state ?? run.outcome)]
           .filter(Boolean)
           .join(' · ');
@@ -291,7 +306,7 @@ function CappedRuns({ runs, ...links }: EvidenceLinks & { runs?: NodeCapsule['ru
             data-testid="factory-runs-node-capped-run"
             data-variant={id}
           >
-            <p>{title}</p>
+            <p>{stage && <b>{replayCheckStage(stage)} · </b>}{title}</p>
             <ReplayLabel value={run.replayed_from} />
             <SourceLinks
               {...links}
@@ -318,6 +333,7 @@ export function NodeEvidence({
   revision,
   correctionCursor,
   r8VerifierHelp,
+  presentation,
   onClose,
   ...links
 }: EvidenceLinks & {
@@ -328,6 +344,7 @@ export function NodeEvidence({
   revision: unknown;
   correctionCursor?: CorrectionCursor;
   r8VerifierHelp?: boolean;
+  presentation?: ReplayNodePresentation;
   onClose?: () => void;
 }) {
   const heading = useId();
@@ -348,7 +365,8 @@ export function NodeEvidence({
       <header className="factory-node-evidence-header">
         <div>
           <small>Node evidence</small>
-          <h3 id={heading}>{nodeId}</h3>
+          <h3 id={heading}>{presentation?.title ?? nodeId}</h3>
+          {presentation && <p data-testid="factory-runs-node-method">{presentation.method}</p>}
         </div>
         {onClose && (
           <button
@@ -401,7 +419,7 @@ export function NodeEvidence({
                       <code>{card.id}</code>
                       {card.version && <> · {card.version}</>}
                     </p>
-                    {card.purpose && card.purpose !== card.title && <p>{card.purpose}</p>}
+                    {card.purpose && card.purpose !== card.title && <p>{presentation ? replayEvidenceText(card.purpose) : card.purpose}</p>}
                   </header>
                   <CapsuleMaterials capsule={card} runId={runId} nodeId={nodeId} />
                   {card.calls && (
@@ -419,16 +437,18 @@ export function NodeEvidence({
                       <ExpandableFields label="Call records" value={card.calls.records} />
                     </section>
                   )}
-                  <CappedRuns {...links} runs={card.runs} />
+                  <CappedRuns {...links} runs={card.runs} presentation={presentation} />
                   {!!card.outputs?.length && (
                     <ul className="factory-node-evidence-outputs" data-testid="factory-runs-node-capsule-outputs">
                       {card.outputs.map((output) => (
-                        <OutputEvidence {...links} key={output.id} runId={runId} nodeId={nodeId} output={output} />
+                        <OutputEvidence {...links} key={output.id} runId={runId} nodeId={nodeId}
+                          output={output} presentation={presentation?.checks[output.name]} />
                       ))}
                     </ul>
                   )}
                   {card.checkView && (
-                    <NodeChecks view={card.checkView} node={node ?? { node_id: nodeId }} {...links} outputOnly />
+                    <NodeChecks view={card.checkView} node={node ?? { node_id: nodeId }} {...links}
+                      presentation={presentation} outputOnly />
                   )}
                   {card.comparison != null && (
                     <section className="factory-node-comparison" data-testid="factory-runs-node-stock-comparison">
@@ -458,13 +478,14 @@ export function NodeEvidence({
           {evidence.data.corrections && (
             <CorrectionSequence {...links} corrections={evidence.data.corrections} cursor={correctionCursor} r8VerifierHelp={r8VerifierHelp} />
           )}
-          <CappedRuns {...links} runs={otherRuns} />
+          <CappedRuns {...links} runs={otherRuns} presentation={presentation} />
           {unassigned.length > 0 && (
             <section className="factory-node-evidence-fields">
               <h5>Other node outputs</h5>
               <ul className="factory-node-evidence-outputs">
                 {unassigned.map((output) => (
-                  <OutputEvidence {...links} key={output.id} runId={runId} nodeId={nodeId} output={output} />
+                  <OutputEvidence {...links} key={output.id} runId={runId} nodeId={nodeId}
+                    output={output} presentation={presentation?.checks[output.name]} />
                 ))}
               </ul>
             </section>

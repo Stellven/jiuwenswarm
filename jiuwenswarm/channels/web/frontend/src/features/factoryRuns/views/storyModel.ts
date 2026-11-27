@@ -2,6 +2,24 @@ import type { CorrectionEvent, EvidenceFile, NodeCorrection, StoryEvent } from '
 import { replayLabel, revisionEvent } from './nodeEvidenceModel.ts';
 
 export type KeyFile = { path: string; label: string; why?: string; step?: number };
+export type ReplayCheckStage = 'factory' | 'runtime' | 'mixed';
+export type ReplayCheckPresentation = { stage: ReplayCheckStage; method: string; role: string; verifier_role?: string };
+export type ReplayNodePresentation = {
+  title: string;
+  method: string;
+  checks: Record<string, ReplayCheckPresentation>;
+};
+
+export function replayCheckStage(stage: ReplayCheckStage) {
+  if (stage === 'factory') return 'Factory stage';
+  if (stage === 'runtime') return 'Runtime stage';
+  return 'Factory and Runtime stages';
+}
+
+export function replayEvidenceText(value: string) {
+  return value.replace(/\bprefix[ -]store\b/gi, (name) => name.startsWith('P') ? 'Prefix reuse' : 'prefix reuse');
+}
+
 export type CuratedMeasurement = {
   baseline: string;
   accuracy: { reference_pct?: number; candidate_pct?: number; loss_pts: number; lo_pts: number; hi_pts: number; n: number; path: string };
@@ -43,6 +61,7 @@ export type CuratedStep = {
   correction_trail?: NodeCorrection;
   measurement?: CuratedMeasurement;
   capsule_diff?: { caption: string; before: object; after: object };
+  stages?: ReplayCheckStage[];
 };
 export type CuratedReplay = {
   schema: string;
@@ -51,6 +70,7 @@ export type CuratedReplay = {
   source_homes?: string[];
   native?: boolean;
   graph_mode?: 'recorded';
+  node_presentation?: Record<string, ReplayNodePresentation>;
   steps: CuratedStep[];
 };
 

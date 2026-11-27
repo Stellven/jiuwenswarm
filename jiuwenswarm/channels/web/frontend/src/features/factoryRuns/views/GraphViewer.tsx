@@ -16,7 +16,7 @@ import { Box, ChevronsDownUp, ChevronsUpDown, ClipboardList, FileText, GitBranch
 import { useTranslation } from 'react-i18next';
 import type { GraphLink, GraphModel, GraphNode, GraphReplay } from './graphModel';
 import { collapsibleNodes, graphChildren, graphProgress, hiddenUnder, visibleGraphNodes } from './graphModel';
-import type { KeyFile } from './storyModel.ts';
+import { replayEvidenceText, type KeyFile } from './storyModel.ts';
 import { MembershipEdge } from './MembershipEdge';
 import { checkBadge, nodeHold, primaryCapsule, type CheckBadge } from './checkModel';
 import { NodeChecks } from './NodeChecks';
@@ -377,6 +377,7 @@ function NodeDetails({
     (step.graph_nodes ?? []).some((id) => id === node.id || id === node.planId),
   );
   const evidenceNode = steps.find((step) => step.node_id)?.node_id ?? node.planId;
+  const presentation = node.planId ? replay?.curated?.node_presentation?.[node.planId] : undefined;
   const stepRecordIds = steps.flatMap((step) => (step.records ?? []).map((row) => row.id));
   const recordIds = [...linked, ...stepRecordIds];
   const files = (replay?.files ?? []).filter((file) =>
@@ -407,7 +408,12 @@ function NodeDetails({
           <section className="factory-graph-summary-fields" data-testid="factory-runs-graph-node-summary">
             {purpose.length > 0 && (
               <p data-testid="factory-runs-graph-purpose">
-                <small>{text.purpose}</small> {purpose.join(' · ')}
+                <small>{text.purpose}</small> {presentation ? presentation.method : purpose.join(' · ')}
+              </p>
+            )}
+            {presentation && typeof details.title === 'string' && (
+              <p data-testid="factory-runs-graph-node-evidence-summary">
+                <small>In this run</small> {replayEvidenceText(details.title)}
               </p>
             )}
             <p data-testid="factory-runs-graph-status">
@@ -433,6 +439,7 @@ function NodeDetails({
               files={replay?.files}
               onOpenFile={replay?.onOpenFile}
               operator={replay?.operator}
+              presentation={presentation}
             />
           )}
           {keys.length > 0 && (

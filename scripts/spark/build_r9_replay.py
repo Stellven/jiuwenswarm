@@ -4,23 +4,18 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 import tempfile
 
 from jiuwenswarm.factory import corrections, taskgraph
 from jiuwenswarm.factory.controller import TERMINAL
 from jiuwenswarm.factory.export import snapshot, verify
 from scripts.spark.build_demo_replays import Builder, SCHEMA, TABLES, sha, utc
+from scripts.spark.muse_replay_presentation import FACTORY, PREFIX_METHOD, RUNTIME, RUN2_NODES
 
 
 TASK = 'muse-2bit-demo-r9'
-NODES = {
-    'pin_inputs': 'Pin the delivered AQB engine',
-    'plan_prefix_store': 'Choose the prefix store',
-    'build_image': 'Build the configured image',
-    'deliver_to_lab': 'Check the factory stage and deliver',
-    'measure_engine': 'Measure first requests and follow-up questions',
-    'release_gate': 'Check the runtime stage and release',
-}
+NODES = {key: item['title'] for key, item in RUN2_NODES.items()}
 PLACEMENT = ('placement_share_0', 'placement_share_025', 'placement_share_05')
 OWNER_AMENDMENTS = {
     '005': ('005-OWNER-checker-all-rows.md', 'Score the Warm server rows and retain every measurement',
@@ -65,7 +60,7 @@ def public(value):
 
 
 class Replay(Builder):
-    def __init__(self, home, stage, task_id, contract, result):
+    def __init__(self, home, stage, task_id, contract, result, fixture=None):
         super().__init__(home.parent, stage, {})
         self.home = home
         self.task_id = task_id
@@ -84,6 +79,7 @@ class Replay(Builder):
         self.sources = {row['values']['key']: row for row in self.observations if row['kind'] == 'operator_input'}
         self.referenced_artifacts = set()
         self.steps = []
+        self.fixture_path = fixture
 
     def ref(self, row):
         table = 'observations' if 'obs_id' in row else 'decisions' if 'decision_id' in row else 'tasks'
@@ -186,8 +182,9 @@ class Replay(Builder):
         raw = (self.stage / owner_path).read_bytes()
         self.files[owner_path] = dict(source='task_contract_projection', source_sha256=self.contract_sha,
                                       sha256=sha(raw), size=len(raw))
-        self.step('Run 2 · reuse the processed document', 'pin_inputs',
-                  'Build on AQB with the same mixed pack and server executable. Retain prompt state between document questions.',
+        self.step('Run 2 · AQBC · + prefix reuse', 'pin_inputs',
+                  PREFIX_METHOD + ' In this run: cache on per request. The follow-up gain comes from that. '
+                  'AQBC uses the AQB mixed pack and unchanged server executable.',
                   self.task, [dict(path=owner_path, label='Run 2 owner contract')])
         finals = [row for row in self.observations if row['kind'] == 'node_contract_final']
         refusals = [row for row in self.observations if row['kind'] == 'node_contract_refusal']
@@ -198,7 +195,8 @@ class Replay(Builder):
             count = len({row['values']['node_id'] for row in finals})
             first = (finals or refusals)[0]
             self.step('Scheduler node contracts', first['values']['node_id'],
-                      f'The graph has {count} finalized node contracts and {len(refusals)} recorded refusal{"" if len(refusals) == 1 else "s"}.',
+                      'Finalize planned nodes with executable checks and evidence requirements. In this run: '
+                      f'the graph has {count} finalized node contracts and {len(refusals)} recorded refusal{"" if len(refusals) == 1 else "s"}.',
                       first, [contracts], refs=finals + refusals)
 
     def amendments(self):
@@ -232,6 +230,52 @@ class Replay(Builder):
             return self.projection('amendments', 'Owner amendments 005 and 006', rows, refs)
         return None
 
+    def fixture(self, files):
+        if self.fixture_path is None:
+            return None
+        path = self.fixture_path
+        manifest = json.loads(path.with_name('manifest.json').read_bytes())['files']
+        raw = path.read_bytes()
+        if sha(raw) != manifest.get(path.name):
+            raise ValueError('CPU fixture summary differs from the fixture manifest')
+        fixture = json.loads(raw)
+        if fixture.get('format') != 'muse-cpu-swa-fixture/1' or fixture.get('stage') != FACTORY:
+            raise ValueError('CPU fixture summary does not declare the expected Factory stage')
+        refs = [dict(source='factory_fixture', path=f'r9/factory-fixture-c/{path.name}', sha256=sha(raw))]
+        configs = {}
+        for name in ('stock', 'configured'):
+            record = fixture['configurations'][name]
+            log = f'{name}/server.log'
+            log_bytes = (path.parent / log).read_bytes()
+            log_sha = sha(log_bytes)
+            if log_sha != manifest.get(log) or log_sha != record['server_log_sha256']:
+                raise ValueError(f'CPU fixture log differs from the fixture pins for {name}')
+            configs[name] = pick(record, 'cached_tokens prompt_tokens shared_prefix_tokens server_log_sha256')
+            checkpoint_match = re.search(rb'context checkpoints enabled, max = (\d+)', log_bytes)
+            configs[name]['checkpoints'] = int(checkpoint_match[1]) if checkpoint_match else None
+            configs[name]['checkpoint_flag_supplied'] = '--ctx-checkpoints' in record['args']
+            refs.append(dict(source='factory_fixture', path='r9/factory-fixture-c/' + log, sha256=log_sha))
+        detail = dict(stage='Factory stage', role='CC verifier', status=fixture['status'],
+                      evidence_timing='Subsequent check of the released configuration after the Run 2 decision.',
+                      method='Compare built-in prompt-cache behavior with stock and planned arguments on a CPU fixture.',
+                      model=pick(fixture['model'], 'id name revision source sha256 bytes window_tokens'),
+                      engine=pick(fixture['engine'], 'sha256 source_commit'),
+                      configurations=configs)
+        stock, configured = configs['stock'], configs['configured']
+        stock_count = f"{stock['cached_tokens']}/{stock['prompt_tokens']}"
+        tuned_count = f"{configured['cached_tokens']}/{configured['prompt_tokens']}"
+        conclusion = (f"Stock reused {stock_count} tokens on the CPU fixture. "
+                      f"The configured cache reused {tuned_count} tokens.")
+        if stock['cached_tokens'] > 0 and stock_count == tuned_count and stock['checkpoints'] == 32 \
+                and not stock['checkpoint_flag_supplied']:
+            conclusion = (f"Factory check: the stock prompt cache already reuses the document ({stock_count} tokens, "
+                          "same as with C's flags). C's extra flags were not needed on the fixture. "
+                          "AQBC kept them as measured (+736 MiB KV). The stock log reported up to 32 context checkpoints "
+                          "with the default settings.")
+        detail['finding'] = conclusion
+        files.append(self.projection('prefix-fixture', 'Factory stage · CC verifier CPU cache fixture', detail, refs))
+        return 'The CC verifier ran this subsequent check after release. ' + conclusion
+
     def planning(self, files):
         summary = None
         extra = {}
@@ -249,19 +293,31 @@ class Replay(Builder):
                              decode_tps=raw['decode_tokens_per_second'], total_s=raw['request_total_ms'] / 1000,
                              quiet=raw['quiet']['status'], quiet_reasons=raw['quiet']['reasons'], source=source))
         if rows:
-            files.append(self.projection('placement', 'Placement trial timings and quiet eligibility', rows, sources))
+            files.append(self.projection('placement', 'Runtime stage · Placement trial timings and activity flags', rows, sources))
             summary = f'The graph retains {len(rows)} placement trial rows with their quiet eligibility.'
         sealed = self.sealed('plan_prefix_store', 'prefix_plan')
         if sealed:
             plan, refs = sealed
             before, after = plan['aqb_launch_config'], plan['launch_config']
-            extra['capsule_diff'] = dict(caption='AQB to AQBC · prefix state', before=before, after=after)
-            files.append(self.projection('prefix-plan', 'Verified prefix-store settings and budget',
-                                         pick(plan, 'format atlas phase0 phase0b memory aqb_launch_config launch_config '
-                                                    'launch_config_sha256 diff'), refs))
+            extra['capsule_diff'] = dict(caption='AQB to AQBC · Built-in prompt-cache configuration', before=before, after=after)
+            files.append(self.projection('prefix-plan', 'Factory stage · Verified arguments and budget, with runtime trial inputs',
+                                         dict(pick(plan, 'format atlas phase0 phase0b memory aqb_launch_config launch_config '
+                                                         'launch_config_sha256 diff'),
+                                              evidence_stages=dict(memory='Factory stage', phase0='Runtime stage',
+                                                                   phase0b='Runtime stage')), refs))
             phase = plan['phase0b']
-            summary = (f"Placement candidate {plan['phase0']['status']}. Phase 0b reused {phase['cached_tokens']} "
-                       f"of {phase['prompt_tokens']} tokens with a {phase['follow_up_ttft_ms'] / 1000:.1f} s follow-up.")
+            summary = (
+                'Cache on per request. The follow-up gain comes from that. '
+                'The factory checked arguments and memory for the measured `--swa-full --ctx-checkpoints 32` settings. '
+                f"The plan added {plan['memory']['kv_delta_mib']:,.0f} MiB of KV memory and retained "
+                f"{plan['memory']['headroom_mib']:,.0f} MiB of headroom. "
+                f"Runtime stage on the target: Phase 0 placement was {plan['phase0']['status']}. "
+                f"Phase 0b reused {phase['cached_tokens']} of {phase['prompt_tokens']} tokens "
+                f"with a {phase['follow_up_ttft_ms'] / 1000:.1f} s follow-up."
+            )
+        fixture = self.fixture(files)
+        if fixture:
+            summary = ' '.join(part for part in (summary, fixture) if part)
         return summary, extra
 
     def delivery(self, files, check, request):
@@ -372,7 +428,9 @@ class Replay(Builder):
         revised = None
         if check:
             value = check['values']
-            shown['factory_check'] = pick(value, 'passed state reason verifier runtime_check_revision')
+            shown['node_verifier'] = dict(
+                role='Records acceptance of the delivered node contract from the target evidence.',
+                **pick(value, 'passed state reason verifier runtime_check_revision'))
             sealed = (value.get('verifier') or {}).get('sealed_artifact')
             if sealed:
                 if sealed not in check['source_artifacts']:
@@ -382,8 +440,9 @@ class Replay(Builder):
                 if pin and revised.get('policy') != pin['policy']:
                     raise ValueError('Sealed runtime verdict differs from the native scoring policy')
                 if revised.get('policy'):
-                    shown['revised_checker'] = dict(pick(revised, 'policy done decision checks summary stage_reached'),
-                                                    source=source, check_id=check['obs_id'])
+                    shown['lab_acceptance'] = dict(pick(revised, 'policy done decision checks summary stage_reached'),
+                                                   stage='Runtime stage', role='Lab acceptance of target measurements',
+                                                   source=source, check_id=check['obs_id'])
                     refs.append(source)
                 else:
                     revised = None
@@ -395,7 +454,14 @@ class Replay(Builder):
             standard = [item for item in revised.get('summary', {}).get('standard', []) if item.get('judged')]
             if standard:
                 passing = sum(item['within_tolerance'] for item in standard)
-                comparisons = f' {passing}/{len(standard)} Warm server cells met the same-load tolerance.'
+                tolerance = revised['summary']['standard_regression_tolerance']
+                ratios = [ratio for item in standard for ratio in item['median_candidate_to_control'].values()]
+                if passing == len(standard) and ratios:
+                    comparisons = (f" Same as AQB: within the checker's {tolerance:.0%} tolerance on the same server "
+                                   f"(measured ratios {min(ratios):.2f} to {max(ratios):.2f}).")
+                else:
+                    comparisons = f' {passing}/{len(standard)} Warm server cells met the same-load tolerance.'
+                shown['standard_speed_note'] = comparisons.strip()
         if revised:
             for pair in revised.get('summary', {}).get('followup', []):
                 candidate = pair['candidate']['derived_ttft_ms'] / 1000
@@ -416,11 +482,11 @@ class Replay(Builder):
                         f"({accuracy['inherited_accuracy']:.1%}) score by this check."
                     )
                 shown['mmlu_identity'] = accuracy
-        files.append(self.projection('runtime', 'Same-load speed, follow-up reuse and MMLU identity', shown, refs))
+        files.append(self.projection('runtime', 'Runtime stage · Same-load speed, follow-up reuse and MMLU identity', shown, refs))
         if check and check['values']['passed'] is True:
-            return 'The host runtime check passed.' + comparisons
+            return 'Lab acceptance passed on the target evidence. The node verifier recorded the verdict.' + comparisons
         if check:
-            return f"The host runtime check refused the measurements. {check['values']['reason']}" + comparisons
+            return f"Lab acceptance refused the target measurements. {check['values']['reason']}" + comparisons
         return 'The capped attempt returned. The adapted scoring policy awaits the native runtime check.' + comparisons
 
     def verdict(self, release, measured):
@@ -479,7 +545,7 @@ class Replay(Builder):
                 sealed = self.sealed(node, 'pinned_inputs')
                 if sealed:
                     inputs, refs = sealed
-                    summary = 'The factory checked the delivered AQB image, server executable, mixed pack and prefill plan before adding prefix reuse.'
+                    summary = 'The factory checked the AQB image, server executable, mixed pack and prefill plan before configuring prefix reuse.'
                     files.append(self.projection('pinned-inputs', 'Verified AQB image, prefill plan and pack',
                                                  pick(inputs, 'format identity shard_verification'), refs))
             if node == 'plan_prefix_store':
@@ -489,9 +555,9 @@ class Replay(Builder):
                 sealed = self.sealed(node, 'factory_stage')
                 if sealed:
                     stage, refs = sealed
-                    summary = (f"The factory built image {stage['image_id'].split(':')[-1][:12]} with the prefix-store settings. "
+                    summary = (f"The factory built image {stage['image_id'].split(':')[-1][:12]} with the prefix reuse configuration. "
                                "It verified that the image retained the original server binary and mixed pack.")
-                    files.append(self.projection('factory-stage', 'Checked image, unchanged inputs and launch config',
+                    files.append(self.projection('factory-stage', 'Factory stage · Checked image, unchanged inputs and launch configuration',
                                                  pick(stage, 'format status image_id base_image_id executable_sha256 '
                                                              'launch_config launch_config_sha256 checks'), refs))
             if node == 'deliver_to_lab':
@@ -511,7 +577,7 @@ class Replay(Builder):
                             "and asked whether activity on the shared machine had been recorded. "
                             f"The operator checked the file and found {facts['cached_tokens']:,} cached tokens, "
                             f"{facts['ttft_ms'] / 1000:.1f} seconds to first token and {facts['quiet_samples']} activity samples. "
-                            "The runtime checker passed, and the release gate accepted the engine."
+                            "Lab acceptance passed, and the release gate accepted the engine."
                         )
             if node == 'release_gate':
                 files.append(self.projection('release', 'Release status and native decision', verdict,
@@ -524,17 +590,20 @@ class Replay(Builder):
             if primary:
                 state = self.nodes[node]['state']
                 summary = summary or f'The graph recorded {len(checks)} checks for this node. The node is {state}.'
-                self.step(title, node, summary, primary, files,
-                          refs=[row for row in [*checks, own_request, final] if row], **extra)
+                where = (FACTORY, RUNTIME) if node in {'plan_prefix_store', 'release_gate'} else (
+                    RUNTIME if node == 'measure_engine' else FACTORY,)
+                self.step(title, node, RUN2_NODES[node]['method'] + ' In this run: ' + summary,
+                          primary, files, refs=[row for row in [*checks, own_request, final] if row],
+                          stages=where, **extra)
         return verdict['status']
 
     def write_bundle(self):
         self.run_inputs()
         release_status = self.node_steps()
-        self.write_json('replay.json', dict(schema=SCHEMA, title='Run 2 · AQBC prefix store', order=2,
+        self.write_json('replay.json', dict(schema=SCHEMA, title='Run 2 · AQBC · + prefix reuse', order=2,
                                            graph_mode='recorded', summary='Run 2 Factory graph and lab evidence.',
                                            primary_task=self.task_id, source_homes=['graph'], release_status=release_status,
-                                           steps=self.steps))
+                                           node_presentation=RUN2_NODES, steps=self.steps))
         task = pick(self.task, 'task_id objective allowed_effects target budget revision current_decision_rev '
                                'evidence_cursor created contract_id component_cc capability_cc')
         task['constraints'] = pick(self.task['constraints'], 'contract_sha256 contract_immutable contract_revision '
@@ -556,7 +625,7 @@ class Replay(Builder):
         self.write_json('provenance.json', dict(files=self.files, records={str(step['step']): step['records'] for step in self.steps}))
 
 
-def build(home, task_id, contract, result, output):
+def build(home, task_id, contract, result, output, fixture=None):
     home, output = home.resolve(), output.resolve()
     if output.exists() or output.is_relative_to(home):
         raise ValueError('Replay output must be a new directory outside the native Factory home')
@@ -564,7 +633,7 @@ def build(home, task_id, contract, result, output):
     with tempfile.TemporaryDirectory(dir=output.parent) as temporary:
         stage = Path(temporary) / 'bundle'
         stage.mkdir()
-        replay = Replay(home, stage, task_id, contract, result)
+        replay = Replay(home, stage, task_id, contract, result, fixture)
         replay.write_bundle()
         replay.write_json('MANIFEST.json', {f.relative_to(stage).as_posix(): sha(f.read_bytes())
                                             for f in stage.rglob('*') if f.is_file()})
@@ -577,6 +646,7 @@ if __name__ == '__main__':
     for name in ('home', 'contract', 'output'):
         parser.add_argument('--' + name, type=Path, required=True)
     parser.add_argument('--result', type=Path, help='Optional original lab runtime.json to verify against its graph artifact')
+    parser.add_argument('--fixture', type=Path, help='Factory CPU fixture summary and adjacent manifest and logs')
     parser.add_argument('--task', default=TASK)
     args = parser.parse_args()
-    build(args.home, args.task, args.contract, args.result, args.output)
+    build(args.home, args.task, args.contract, args.result, args.output, args.fixture)

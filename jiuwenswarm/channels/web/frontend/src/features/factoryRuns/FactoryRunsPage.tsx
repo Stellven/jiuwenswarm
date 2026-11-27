@@ -382,15 +382,17 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   }, [selectedNode]);
   const nodeLabels = useMemo(() => new Map(planNodes.flatMap((node) => {
     const id = evidenceText(node.node_id);
-    const title = evidenceText(node.title) ?? id;
+    const title = (id ? detail?.curated?.node_presentation?.[id]?.title : undefined) ?? evidenceText(node.title) ?? id;
     return id && title ? [[id, title] as const] : [];
-  })), [planNodes]);
+  })), [planNodes, detail?.curated?.node_presentation]);
   const stepKeyFiles = useMemo(() => keyFilesFor(curatedStep, detail?.files ?? []), [curatedStep, detail]);
   const keyFlagMap = useMemo(() => curatedKeyFlags(detail?.curated), [detail]);
   const shownCursor = cursor ? presentEvent(cursor) : undefined;
   const records = detail?.records || {};
   const graph = useMemo(
-    () => (detail ? detectGraph(detail.graph, { contract: detail.contract, tasks: detail.records.tasks }) : null),
+    () => (detail ? detectGraph(detail.graph, {
+      contract: detail.contract, tasks: detail.records.tasks, nodePresentation: detail.curated?.node_presentation,
+    }) : null),
     [detail],
   );
   const eventRefs = useMemo(() => {
@@ -458,6 +460,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
         nodeId={focusedNode}
         node={planNodes.find((node) => node.node_id === focusedNode)}
         checks={detail.node_checks?.[focusedNode]}
+        presentation={detail.curated?.node_presentation?.[focusedNode]}
         files={detail.files}
         revision={detail}
         correctionCursor={correctionCursor}
