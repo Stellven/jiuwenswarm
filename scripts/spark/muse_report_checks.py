@@ -38,7 +38,8 @@ def report_labels():
 
 def snapshot_activity(data, home, contract):
     from jiuwenswarm.factory.taskgraph import from_records
-    from jiuwenswarm.gateway.channel_manager.web.factory_cc_activity import archive_cutoff, calls_as_of, project
+    from jiuwenswarm.gateway.channel_manager.web.factory_cc_activity import archive_cutoff, calls_as_of, ccstore_calls, project
+    from jiuwenswarm.factory import monitor
     from jiuwenswarm.gateway.channel_manager.web.factory_http import FactoryHttpService
     from jiuwenswarm.gateway.channel_manager.web.factory_nodes import sealed_releases, worker_calls
 
@@ -47,10 +48,15 @@ def snapshot_activity(data, home, contract):
     graph = from_records(data)
     source = FactoryHttpService.run_id(home.resolve(), task_id)
     as_of = archive_cutoff(data)
-    calls = calls_as_of(worker_calls(home / 'sessions' / f'{task_id}.jsonl'), as_of)
-    nodes = project(dict(data, _contract=contract), graph, calls, sealed_releases(home / 'ccstore/releases'),
-                    {'observations': 'records/observations.json', 'attempts': 'records/attempts.json'},
-                    call_run_id=source)
+    transcript = home / 'sessions' / f'{task_id}.jsonl'
+    calls = calls_as_of(worker_calls(transcript), as_of)
+    releases = sealed_releases(home / 'ccstore/releases')
+    receipts = ccstore_calls(home / 'ccstore/calls.sqlite', releases)
+    paths = {table: f'records/{table}.json' for table in ('observations', 'attempts', 'decisions')}
+    nodes = project(dict(data, _contract=contract), graph, calls, releases, paths, call_run_id=source,
+                    receipts=[r for r in receipts or [] if r['created'] <= as_of],
+                    allow_untagged=len(monitor.tasks(home)) == 1,
+                    source_availability=dict(worker_transcript=transcript.is_file(), ccstore=receipts is not None))
     return dict(schema='factory.muse-cc-activity/1', task_id=task_id, task_created=task['created'],
                 source_run_id=source, graph_rev=graph['rev'], as_of=as_of, nodes=nodes)
 
