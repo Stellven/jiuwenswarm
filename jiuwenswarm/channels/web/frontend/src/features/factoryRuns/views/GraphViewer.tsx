@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   Background,
   Handle,
@@ -6,6 +6,7 @@ import {
   Panel,
   Position,
   ReactFlow,
+  useNodesInitialized,
   useReactFlow,
   type Edge,
   type Node,
@@ -256,9 +257,9 @@ function GraphCard({ data, selected }: NodeProps<FlowNode>) {
 const nodeTypes = { factoryNode: GraphCard };
 const edgeTypes = { membership: MembershipEdge };
 
-function layout(graph: GraphModel): { placement: GraphPlacement[]; links: GraphLink[] } {
+function layout(graph: GraphModel, recorded: boolean): { placement: GraphPlacement[]; links: GraphLink[] } {
   const positions = new dagre.graphlib.Graph()
-    .setGraph({ rankdir: 'LR', nodesep: 34, ranksep: 120, acyclicer: 'greedy' })
+    .setGraph({ rankdir: 'LR', nodesep: 34, ranksep: recorded ? 74 : 120, acyclicer: 'greedy' })
     .setDefaultEdgeLabel(() => ({}));
   for (const node of graph.nodes) positions.setNode(node.id, { width: nodeWidth, height: nodeHeight });
   for (const link of graph.links) positions.setEdge(link.source, link.target);
@@ -341,16 +342,19 @@ function ZoomControls({
   );
 }
 
-/** Zoom to the current replay step so its nodes are readable, not the whole graph at fit. */
-function FocusCurrent({ ids }: { ids: string }) {
-  const { fitView } = useReactFlow();
-  useEffect(() => {
-    if (!ids) return;
-    const timer = window.setTimeout(() => {
-      void fitView({ nodes: ids.split('|').map((id) => ({ id })), padding: 0.5, maxZoom: 1, duration: 300 });
-    }, 50);
-    return () => window.clearTimeout(timer);
-  }, [fitView, ids]);
+/** Keep the replay's active nodes readable while the rest of the graph remains pannable. */
+function FocusCurrent({ ids, recorded }: { ids: string; recorded: boolean }) {
+  const { fitView, viewportInitialized } = useReactFlow();
+  const nodesInitialized = useNodesInitialized();
+  useLayoutEffect(() => {
+    if (!ids || !nodesInitialized || !viewportInitialized) return;
+    void fitView({
+      nodes: ids.split('|').map((id) => ({ id })),
+      padding: 0.25,
+      minZoom: recorded ? 0.82 : fitOptions.minZoom,
+      maxZoom: 1,
+    });
+  }, [fitView, ids, nodesInitialized, viewportInitialized, recorded]);
   return null;
 }
 
@@ -593,7 +597,8 @@ export function GraphViewer({ graph: fullGraph, replay }: { graph: GraphModel; r
     return () => observer.disconnect();
   }, [graph]);
   const grouped = useMemo(() => layoutOntologyGroups(graph, width), [graph, width]);
-  const geometry = useMemo(() => grouped ?? layout(graph), [graph, grouped]);
+  const recorded = replay?.curated?.graph_mode === 'recorded';
+  const geometry = useMemo(() => grouped ?? layout(graph, recorded), [graph, grouped, recorded]);
   const nodeLabels = useMemo(() => new Map(fullGraph.nodes.map((node) => [node.id, node.label])), [fullGraph.nodes]);
   const progress = useMemo(() => (replay ? graphProgress(fullGraph, replay) : undefined), [fullGraph, replay]);
   const nodes = useMemo<FlowNode[]>(
@@ -677,6 +682,8 @@ export function GraphViewer({ graph: fullGraph, replay }: { graph: GraphModel; r
   const selected = fullGraph.nodes.find((node) => node.id === selectedId);
   const selectedProgress = selected ? progress?.get(selected.id) : undefined;
   const showReplayLegend = Boolean(replay && graph.kind !== 'ontology');
+  const currentIds = graph.nodes.filter((node) => progress?.get(node.id)?.phase === 'current')
+    .map((node) => node.id).join('|');
   if (!nodes.length)
     return (
       <p className="factory-graph-empty" data-testid="factory-runs-graph-empty">
@@ -728,7 +735,7 @@ export function GraphViewer({ graph: fullGraph, replay }: { graph: GraphModel; r
           defaultMarkerColor="var(--color-text-secondary)"
           zoomOnScroll={!grouped}
           preventScrolling={!grouped}
-          fitView={!grouped}
+          fitView={!grouped && !(recorded && currentIds)}
           fitViewOptions={fitOptions}
           onPaneClick={() => setSelectedId('')}
           onKeyDown={(event) => {
@@ -740,12 +747,7 @@ export function GraphViewer({ graph: fullGraph, replay }: { graph: GraphModel; r
         >
           <Background gap={19} size={1.2} color="var(--color-border-default)" />
           {replay && !grouped && (
-            <FocusCurrent
-              ids={graph.nodes
-                .filter((node) => progress?.get(node.id)?.phase === 'current')
-                .map((node) => node.id)
-                .join('|')}
-            />
+            <FocusCurrent ids={currentIds} recorded={recorded} />
           )}
           <ZoomControls
             grouped={Boolean(grouped)}
