@@ -14,10 +14,22 @@ from jiuwenswarm.factory.export import snapshot, verify
 from jiuwenswarm.factory.node_finalize import digest
 from jiuwenswarm.gateway.channel_manager.web.factory_http import FactoryHttpService
 from scripts.spark.build_demo_replays import Builder, SCHEMA, TABLES, Omitted, sha, utc
-from scripts.spark.muse_replay_presentation import FACTORY, RUNTIME, RUN1_NODES
+from scripts.spark.muse_replay_presentation import FACTORY, RUNTIME, RUN1_NODES, argument_diff
 
 TASK = 'muse-2bit-demo-r8'
-TITLE = 'Muse R8 · Contract to measured engine'
+TITLE = 'Run 1 · Quantization + prefill (AQB)'
+PRESENTER_LINES = (
+    'Pin the engine, mixed-weight pack and target lab requirements.',
+    'The scheduler finalizes node contracts with executable checks.',
+    'JiuwenSwarm repairs the converter and verifies it on a small fixture.',
+    'Connect the expert scales so the model produces valid outputs.',
+    'Compile the base engine and smoke-test it on the target.',
+    'Apply the mixed quantization recipe and verify the resulting weights.',
+    'The verifier identifies a quantization mismatch and checks the repair.',
+    'Size the prefill batch from the mixed pack’s measured memory use.',
+    'Build the engine image and deliver it with the target test requirements.',
+    'Compare first-token speed and answer accuracy against the measured baseline.',
+)
 REPO = Path(__file__).resolve().parents[2]
 CONTRACT = Path('jiuwenswarm/factory/contracts') / f'{TASK}.json'
 PLAN = Path('jiuwenswarm/factory/tasks') / f'{TASK}.plan.json'
@@ -88,7 +100,8 @@ class R8Replay(Builder):
                             task_id=TASK) for note in notes)
         number = len(self.steps) + 1
         step = dict(step=number, presentation_label='Presentation title', presentation_title=title,
-                    say_label='Presenter line', say=say, graph_nodes=nodes, node_id=nodes[0],
+                    say_label='Presenter line', presenter_line=PRESENTER_LINES[number - 1], say=say,
+                    graph_nodes=nodes, node_id=nodes[0],
                     original_kind=original_kind, original_summary=summary, created=created,
                     created_utc=utc(created), primary_record=primary, records=records,
                     files=[file['path'] for file in files], key_files=files)
@@ -327,11 +340,17 @@ class R8Replay(Builder):
                     'observed cache (MiB)': reference['device_mib']['moe_cache']},
             after={'-b': plan_file['batch'], '-ub': plan_file['ubatch'],
                    'requested cache (MiB)': plan_file['moe_cache_mib']})
+        step = self.steps[-1]
+        diff = argument_diff(self, 'projections/prefill-arguments.diff', step['capsule_diff']['before'],
+                             step['capsule_diff']['after'], step['records'], 'Diff · Prefill arguments')
+        step['files'].append(diff['path'])
+        step['key_files'].append(diff)
         image_receipt = self.artifact(f'{IMAGE}:receipt', 'image-build-receipt.json', 'Image build receipt',
                                       'The accepted image id and build source commit.')
         image_check = self.artifact(f'{IMAGE}:image-check', 'image-version-check.json', 'Factory stage · Image version check',
                                     'The image ran llama-server --version without a model mount or GPU.')
         image = json.loads((self.stage / image_check['path']).read_bytes())
+        self.image_id = image['image_id']
         delivery = 'labreq-2de8ad02113b333e0c22ae1f:request'
         gate = 'node-check:deliver_to_lab:lab_request:1:6f9e8d04'
         request = self.projection('lab-request-and-gate.json', [self.observations[key] for key in [delivery, gate]],
@@ -353,7 +372,7 @@ class R8Replay(Builder):
                   f'the host rejected {len(rejected)} malformed build requests. A later build failed while fetching UI assets. '
                   f"After the recipe repair, commit {image['source_commit'][:9]} built image {image['image_id'][7:19]}. "
                   'The image passed --version and the delivery gate checked the retained digests.',
-                  ['build_image', 'deliver_to_lab'], delivery, [*checker_files, image_receipt, image_check, request],
+                  ['build_image', 'deliver_to_lab'], delivery, [image_receipt, image_check, request, *checker_files],
                   refs=[*(obs['obs_id'] for obs in rejected), failed['obs_id'], blocker['obs_id'], f'{IMAGE}:build-result', gate])
 
     def measurements(self):
@@ -391,6 +410,9 @@ class R8Replay(Builder):
                       f'at 512, and {warm_aqb_2048:.1f} s versus {warm_a_2048:.1f} s at 2048. '
                       f"On {look['n']} MMLU zero-shot questions, A scored {look['acc_ref']:.1%} and AQB scored {look['acc_cand']:.1%}.",
                       ['deliver_to_lab'], primary, [report_file], measurement=measurement)
+            self.steps[-1]['presenter_line'] = (
+                f'AQB reached its first token in {warm_aqb_2048:.1f} s versus {warm_a_2048:.1f} s for A '
+                'at 2,048 tokens on a warm server.')
             return
         historical = json.loads(self.baseline_path.read_bytes())
         if sha(self.baseline_path.read_bytes()) != report['baseline']['sha256']:
@@ -459,13 +481,21 @@ class R8Replay(Builder):
         node_ids = {node['node_id'] for node in graph['nodes']}
         if any(node not in node_ids for step in self.steps for node in step['graph_nodes']):
             raise ValueError('Replay references a node missing from the recorded R8 graph')
+        done = sum(node['state'] == 'done' for node in graph['nodes'])
+        outcome = f"{done} of {len(graph['nodes'])} nodes complete · AQB engine image delivered · Lab measured"
         stages = [(), (), (FACTORY,), (FACTORY,), (FACTORY, RUNTIME), (FACTORY, RUNTIME),
                   (FACTORY,), (FACTORY, RUNTIME), (FACTORY,), (RUNTIME,)]
         for step, where in zip(self.steps, stages, strict=True):
             step['stages'] = where
         self.write_json('replay.json', dict(schema=SCHEMA, title=TITLE, order=1, graph_mode='recorded',
                         summary='Ten steps from the owner contract to the delivered image and its lab measurements.',
-                        primary_task=TASK, source_homes=['graph-r8'], node_presentation=RUN1_NODES, steps=self.steps))
+                        primary_task=TASK, source_homes=['graph-r8'], node_presentation=RUN1_NODES, steps=self.steps,
+                        presentation_header=dict(
+                            objective='Build a mixed 2-bit Muse engine, size its prefill batch and benchmark it on Spark.',
+                            outcome=outcome,
+                            image_id=self.image_id),
+                        contract_versions=[dict(version=8, path=f'contracts/{TASK}.json',
+                                                sha256=self.files[f'contracts/{TASK}.json']['sha256'])]))
         for table in ('tasks', *TABLES):
             values = self.data[table] if table != 'artifacts' else [
                 self.artifact_rows[row['artifact_id']] for row in self.artifacts]
@@ -474,11 +504,9 @@ class R8Replay(Builder):
         self.write_json('key_files.json', {str(step['step']): step['key_files'] for step in self.steps})
         self.write_json('provenance.json', dict(files=self.files, source_homes=['graph-r8'],
                         records={str(step['step']): step['records'] for step in self.steps}))
-        self.write_json('MANIFEST.json', {path.relative_to(self.stage).as_posix(): sha(path.read_bytes())
-                        for path in sorted(self.stage.rglob('*')) if path.is_file()})
 
 
-def build(graph, report, baseline, accuracy, out):
+def build(graph, report, baseline, accuracy, out, lab_report_root=None):
     out = out.resolve()
     if out.exists() or out.is_relative_to(graph.resolve()):
         raise ValueError('Output must be a new directory outside the factory graph')
@@ -487,9 +515,15 @@ def build(graph, report, baseline, accuracy, out):
         stage = Path(directory) / 'bundle'
         stage.mkdir()
         try:
-            R8Replay(stage, graph.resolve(), report, baseline, accuracy).build()
+            replay = R8Replay(stage, graph.resolve(), report, baseline, accuracy)
+            replay.build()
         except Omitted as exc:
             raise ValueError(f'Required evidence matched the export secret scanner: {exc}') from exc
+        if lab_report_root:
+            from scripts.spark.build_muse_lab_reports import write_lab_report
+            write_lab_report(stage, lab_report_root, 1)
+        replay.write_json('MANIFEST.json', {path.relative_to(replay.stage).as_posix(): sha(path.read_bytes())
+                        for path in sorted(replay.stage.rglob('*')) if path.is_file()})
         verify(stage)
         stage.rename(out)
     return out
@@ -503,8 +537,9 @@ def main(argv=None):
     parser.add_argument('--baseline', type=Path, default=muse / 'lab/report-abcde.json')
     parser.add_argument('--accuracy', type=Path, default=muse / 'acc/verify-out.json')
     parser.add_argument('--out', type=Path, default=muse / 'r8-final/curated-replay')
+    parser.add_argument('--lab-report-root', type=Path, help='Muse workspace containing retained lab report sources')
     args = parser.parse_args(argv)
-    print(build(args.graph, args.report, args.baseline, args.accuracy, args.out))
+    print(build(args.graph, args.report, args.baseline, args.accuracy, args.out, args.lab_report_root))
 
 
 if __name__ == '__main__':

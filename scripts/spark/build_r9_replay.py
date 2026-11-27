@@ -11,10 +11,18 @@ from jiuwenswarm.factory import corrections, taskgraph
 from jiuwenswarm.factory.controller import TERMINAL
 from jiuwenswarm.factory.export import snapshot, verify
 from scripts.spark.build_demo_replays import Builder, SCHEMA, TABLES, sha, utc
-from scripts.spark.muse_replay_presentation import FACTORY, PREFIX_METHOD, RUNTIME, RUN2_NODES
+from scripts.spark.muse_replay_presentation import FACTORY, PREFIX_METHOD, RUNTIME, RUN2_NODES, argument_diff
 
 
 TASK = 'muse-2bit-demo-r9'
+TITLE = 'Run 2 · Prefix reuse (AQBC)'
+PRESENTER_LINES = {
+    'pin_inputs': 'Verify the delivered AQB image, prefill plan and mixed weights.',
+    'plan_prefix_store': 'Plan reuse of tokens shared by same-document follow-ups.',
+    'build_image': 'Package the configuration with AQB’s unchanged server executable and weights.',
+    'deliver_to_lab': 'Seal the image, configuration and target test requirements for the lab.',
+    'measure_engine': 'The lab measures first requests, same-document follow-ups and answer identity on Spark.',
+}
 NODES = {key: item['title'] for key, item in RUN2_NODES.items()}
 PLACEMENT = ('placement_share_0', 'placement_share_025', 'placement_share_05')
 OWNER_AMENDMENTS = {
@@ -70,6 +78,8 @@ class Replay(Builder):
         contract_raw = contract.read_bytes()
         self.contract_sha = sha(contract_raw)
         self.contract = json.loads(contract_raw)
+        self.contract_dir = contract.resolve().parent
+        self.contract_filename = contract.name
         if self.contract['contract_id'] != self.task['contract_id'] or self.contract_sha != self.task['constraints']['contract_sha256']:
             raise ValueError('The owner contract differs from the native task pin')
         self.graph = taskgraph.from_records(self.data)
@@ -157,6 +167,38 @@ class Replay(Builder):
         self.files[path] = dict(source='record_projection', sources=sources, display_name=label, sha256=sha(raw), size=len(raw))
         return dict(path=path, label=label)
 
+    def contract_versions(self):
+        revisions = sorted((row for row in self.observations if row['kind'] == 'operator_contract_revision'),
+                           key=lambda row: row['values']['contract_version'])
+        versions = []
+        prior = None
+        for row in revisions:
+            data = row['values']
+            previous = (data['previous_version'], data['previous_file'], data['previous_sha256'])
+            current = (data['contract_version'], data['contract_file'], data['contract_sha256'])
+            if prior is None:
+                versions.append(self.contract_version_file(*previous, self.ref(row)))
+            elif prior != previous:
+                raise ValueError('Native Run 2 contract revisions do not form a chain')
+            amendment = data.get('amendment') or Path(current[1]).stem.rsplit('-', 1)[-1]
+            versions.append(self.contract_version_file(*current, self.ref(row),
+                                                       amendment=str(amendment), reason=data['reason']))
+            prior = current
+        if not versions:
+            return [self.contract_version_file(self.contract['version'], self.contract_filename,
+                                               self.contract_sha, self.ref(self.task))]
+        if prior[2] != self.contract_sha:
+            raise ValueError('Native Run 2 contract revision chain does not reach the task pin')
+        return versions
+
+    def contract_version_file(self, version, filename, digest, source, **revision):
+        if Path(filename).name != filename:
+            raise ValueError('Expected a repository contract filename')
+        path = self.copy(self.contract_dir / filename, 'contract-versions/' + filename,
+                         dict(source='task_contract_version', record=source,
+                              display_name=f'Owner contract v{version}'), expected=digest)
+        return dict(version=version, path=path, sha256=digest, **revision)
+
     def step(self, title, node, say, primary, files, *, refs=(), recorded_summary=None, **extra):
         primary_ref = self.ref(primary)
         self.steps.append(dict(
@@ -182,10 +224,11 @@ class Replay(Builder):
         raw = (self.stage / owner_path).read_bytes()
         self.files[owner_path] = dict(source='task_contract_projection', source_sha256=self.contract_sha,
                                       sha256=sha(raw), size=len(raw))
-        self.step('Run 2 · AQBC · + prefix reuse', 'pin_inputs',
+        self.step('The prefix reuse contract', 'pin_inputs',
                   PREFIX_METHOD + ' In this run: cache on per request. The follow-up gain comes from that. '
                   'AQBC uses the AQB mixed pack and unchanged server executable.',
-                  self.task, [dict(path=owner_path, label='Run 2 owner contract')])
+                  self.task, [dict(path=owner_path, label='Run 2 owner contract')],
+                  presenter_line='Build on AQB and measure same-document follow-up reuse without changing the engine binary.')
         finals = [row for row in self.observations if row['kind'] == 'node_contract_final']
         refusals = [row for row in self.observations if row['kind'] == 'node_contract_refusal']
         if finals or refusals:
@@ -197,7 +240,8 @@ class Replay(Builder):
             self.step('Scheduler node contracts', first['values']['node_id'],
                       'Finalize planned nodes with executable checks and evidence requirements. In this run: '
                       f'the graph has {count} finalized node contracts and {len(refusals)} recorded refusal{"" if len(refusals) == 1 else "s"}.',
-                      first, [contracts], refs=finals + refusals)
+                      first, [contracts], refs=finals + refusals,
+                      presenter_line='The scheduler finalizes the work and the evidence each node must produce.')
 
     def amendments(self):
         recorded = [row for row in self.observations if row['kind'] == 'operator_contract_revision']
@@ -300,11 +344,14 @@ class Replay(Builder):
             plan, refs = sealed
             before, after = plan['aqb_launch_config'], plan['launch_config']
             extra['capsule_diff'] = dict(caption='AQB to AQBC · Built-in prompt-cache configuration', before=before, after=after)
+            diff = argument_diff(self, 'projections/prefix-reuse-arguments.diff', before, after, refs,
+                                 'Diff · Prefix-reuse launch and request arguments')
             files.append(self.projection('prefix-plan', 'Factory stage · Verified arguments and budget, with runtime trial inputs',
                                          dict(pick(plan, 'format atlas phase0 phase0b memory aqb_launch_config launch_config '
                                                          'launch_config_sha256 diff'),
                                               evidence_stages=dict(memory='Factory stage', phase0='Runtime stage',
                                                                    phase0b='Runtime stage')), refs))
+            files.append(diff)
             phase = plan['phase0b']
             summary = (
                 'Cache on per request. The follow-up gain comes from that. '
@@ -588,22 +635,40 @@ class Replay(Builder):
                            "to the measured follow-ups and the answer identity check."
                            if verdict['status'] == 'released' else verdict['reason'])
             if primary:
+                if len(files) > 1:
+                    key_index = next((index for index, file in enumerate(files)
+                                      if file['path'] in {
+                                          'projections/pinned-inputs.json', 'projections/prefix-plan.json',
+                                          'projections/factory-stage.json',
+                                          'projections/runtime.json', 'projections/release.json',
+                                      }), 1)
+                    files.insert(0, files.pop(key_index))
                 state = self.nodes[node]['state']
                 summary = summary or f'The graph recorded {len(checks)} checks for this node. The node is {state}.'
                 where = (FACTORY, RUNTIME) if node in {'plan_prefix_store', 'release_gate'} else (
                     RUNTIME if node == 'measure_engine' else FACTORY,)
                 self.step(title, node, RUN2_NODES[node]['method'] + ' In this run: ' + summary,
                           primary, files, refs=[row for row in [*checks, own_request, final] if row],
-                          stages=where, **extra)
+                          stages=where, presenter_line=PRESENTER_LINES.get(node) or (
+                              'Release AQBC after the target speed, reuse and identity checks pass.'
+                              if verdict['status'] == 'released' else verdict['reason']), **extra)
         return verdict['status']
 
     def write_bundle(self):
         self.run_inputs()
         release_status = self.node_steps()
-        self.write_json('replay.json', dict(schema=SCHEMA, title='Run 2 · AQBC · + prefix reuse', order=2,
+        image = self.sealed('build_image', 'factory_stage')
+        outcome = {'released': 'AQBC released.', 'release_refused': 'AQBC release refused.',
+                   'runtime_refused': 'AQBC refused at lab acceptance.',
+                   'pending': 'AQBC release decision pending.'}.get(release_status, f'AQBC {release_status}.')
+        self.write_json('replay.json', dict(schema=SCHEMA, title=TITLE, order=2,
                                            graph_mode='recorded', summary='Run 2 Factory graph and lab evidence.',
                                            primary_task=self.task_id, source_homes=['graph'], release_status=release_status,
-                                           node_presentation=RUN2_NODES, steps=self.steps))
+                                           node_presentation=RUN2_NODES, steps=self.steps,
+                                           presentation_header=dict(
+                                               objective='Configure same-document prefix reuse for AQB and verify speed and answer identity on Spark.',
+                                               outcome=outcome, image_id=image[0]['image_id'] if image else None),
+                                           contract_versions=self.contract_versions()))
         task = pick(self.task, 'task_id objective allowed_effects target budget revision current_decision_rev '
                                'evidence_cursor created contract_id component_cc capability_cc')
         task['constraints'] = pick(self.task['constraints'], 'contract_sha256 contract_immutable contract_revision '
@@ -625,7 +690,7 @@ class Replay(Builder):
         self.write_json('provenance.json', dict(files=self.files, records={str(step['step']): step['records'] for step in self.steps}))
 
 
-def build(home, task_id, contract, result, output, fixture=None):
+def build(home, task_id, contract, result, output, fixture=None, lab_report_root=None):
     home, output = home.resolve(), output.resolve()
     if output.exists() or output.is_relative_to(home):
         raise ValueError('Replay output must be a new directory outside the native Factory home')
@@ -635,6 +700,9 @@ def build(home, task_id, contract, result, output, fixture=None):
         stage.mkdir()
         replay = Replay(home, stage, task_id, contract, result, fixture)
         replay.write_bundle()
+        if lab_report_root:
+            from scripts.spark.build_muse_lab_reports import write_lab_report
+            write_lab_report(stage, lab_report_root, 2)
         replay.write_json('MANIFEST.json', {f.relative_to(stage).as_posix(): sha(f.read_bytes())
                                             for f in stage.rglob('*') if f.is_file()})
         verify(stage)
@@ -647,6 +715,7 @@ if __name__ == '__main__':
         parser.add_argument('--' + name, type=Path, required=True)
     parser.add_argument('--result', type=Path, help='Optional original lab runtime.json to verify against its graph artifact')
     parser.add_argument('--fixture', type=Path, help='Factory CPU fixture summary and adjacent manifest and logs')
+    parser.add_argument('--lab-report-root', type=Path, help='Muse workspace containing retained lab report sources')
     parser.add_argument('--task', default=TASK)
     args = parser.parse_args()
-    build(args.home, args.task, args.contract, args.result, args.output, args.fixture)
+    build(args.home, args.task, args.contract, args.result, args.output, args.fixture, args.lab_report_root)

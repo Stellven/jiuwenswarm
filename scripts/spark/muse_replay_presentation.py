@@ -3,6 +3,11 @@
 Native stage strings rank verifier evidence. A CPU fixture can reach the
 "runtime acceptance" level while still belonging to the Factory stage.
 """
+from difflib import unified_diff
+import hashlib
+import json
+
+
 FACTORY = 'factory'
 RUNTIME = 'runtime'
 MIXED = 'mixed'
@@ -69,3 +74,18 @@ RUN2_NODES = {
     'release_gate': node('Decide release', 'Release only when factory checks and runtime evidence agree for the same delivery.',
                          release=check(FACTORY, 'Verify that the accepted target verdict belongs to the sealed factory delivery.')),
 }
+
+
+def argument_diff(builder, path, before, after, sources, label):
+    """Add a readable diff derived from the recorded argument projection."""
+    def lines(value):
+        return (json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False) + '\n').splitlines(keepends=True)
+
+    raw = ''.join(unified_diff(lines(before), lines(after),
+                               fromfile='before.json', tofile='after.json')).encode()
+    target = builder.stage / path
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(raw)
+    builder.files[path] = dict(source='record_projection', sources=sources, display_name=label,
+                               sha256=hashlib.sha256(raw).hexdigest(), size=len(raw))
+    return dict(path=path, label=label)
