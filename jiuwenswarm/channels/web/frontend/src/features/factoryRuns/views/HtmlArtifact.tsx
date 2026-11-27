@@ -43,10 +43,10 @@ export function artifactHtmlDocument(source: string) {
   const csp = document.createElement('meta');
   csp.httpEquiv = 'Content-Security-Policy';
   csp.content = `default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'`;
-  const bridge = document.createElement('script');
-  bridge.nonce = nonce;
-  bridge.textContent = LINK_HANDLER;
-  return '<!doctype html><html><head>' + csp.outerHTML + bridge.outerHTML + '</head><body>' + template.innerHTML + '</body></html>';
+  // Browsers omit a script's attached nonce when serializing the element.
+  const bridge = `<script nonce="${nonce}">${LINK_HANDLER}</script>`;
+  return '<!doctype html><html><head>' + csp.outerHTML + bridge
+    + '</head><body>' + template.innerHTML + '</body></html>';
 }
 
 export function HtmlArtifact({
