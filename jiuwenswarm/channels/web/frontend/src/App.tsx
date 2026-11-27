@@ -10,7 +10,7 @@ import { AssetPublishHost } from './components/AssetPublishDrawer';
  * 应用主布局，整合所有组件
  */
 
-import { useState, useCallback, useEffect, useRef, Component, ReactNode, useMemo, lazy, Suspense, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
+import { useState, useCallback, useEffect, useRef, Component, ReactNode, useMemo, lazy, Suspense, type ComponentProps, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import { ChatPanel } from './components/ChatPanel';
 import { DesktopTextEditContextMenu } from './components/DesktopTextEditContextMenu';
 import { SessionSidebar } from './components/SessionSidebar';
@@ -375,6 +375,60 @@ async function waitForShareImageJob(
     ));
   }
   return isCurrentMonitor() ? status : null;
+}
+
+function AppShell({ sidebar, children, sessionId }: {
+  sidebar: ComponentProps<typeof SessionSidebar>;
+  children: ReactNode;
+  sessionId?: string;
+}) {
+  return (
+    <div
+      className={`shell shell--icon-rail ${sidebar.activeNav === 'agents' ? 'shell--agent-management' : ''}`}
+      data-testid="app-shell"
+      data-session-id={sessionId}
+    >
+      <SessionSidebar {...sidebar} />
+      {children}
+    </div>
+  );
+}
+
+function FactoryAudience() {
+  const [entry, setEntry] = useState(() => readFactoryEntry(window.location.hash));
+  useEffect(() => {
+    const sync = () => setEntry(readFactoryEntry(window.location.hash));
+    window.addEventListener('hashchange', sync);
+    return () => window.removeEventListener('hashchange', sync);
+  }, []);
+  const activeNav = entry?.view ?? 'factoryRuns';
+  return (
+    <AppShell
+      sidebar={{
+        activeNav,
+        showNewSession: false,
+        hiddenNavItems: ['personalContext'],
+        availableNavItems: ['factoryRuns', 'capabilityCapsules'],
+        onNavigate(nav) {
+          if (nav === 'factoryRuns' || nav === 'capabilityCapsules') {
+            window.location.hash = nav === 'factoryRuns' ? runHref() : capsuleHref();
+          }
+        },
+      }}
+    >
+      <main className="content" data-testid="app-audience-content">
+        {entry?.view === 'capabilityCapsules' ? (
+          <div className="app-section min-h-0" data-testid="app-capability-capsules">
+            <CapsulesPage name={entry.capsule} />
+          </div>
+        ) : (
+          <div className="app-section min-h-0" data-testid="app-factory-runs">
+            <FactoryRunsPage entry={entry} engineViewer />
+          </div>
+        )}
+      </main>
+    </AppShell>
+  );
 }
 
 function AppContent({
@@ -3666,21 +3720,17 @@ const showWorkspaceDivider = effectiveTeamAreaExpanded && !showConversationNotFo
   }, [clearChatPanelResize, showWorkspaceDivider]);
 
   return (
-    <div
-      className={`shell shell--icon-rail ${activeNav === 'agents' ? 'shell--agent-management' : ''}`}
-      data-testid="app-shell"
-      data-session-id={sessionId}
+    <AppShell
+      sessionId={sessionId}
+      sidebar={{
+        activeNav,
+        onNavigate: handleNavigate,
+        onNewSession: handleNewSession,
+        showNewSession: false,
+        hiddenNavItems,
+        applicationPlugins: visibleApplicationPlugins,
+      }}
     >
-      {/* Navigation Sidebar */}
-      <SessionSidebar
-        activeNav={activeNav}
-        onNavigate={handleNavigate}
-        onNewSession={handleNewSession}
-        showNewSession={false}
-        hiddenNavItems={hiddenNavItems}
-        applicationPlugins={visibleApplicationPlugins}
-      />
-
       {modelSetupGuideStep !== null ? (
         <ModelSetupGuide
           step={modelSetupGuideStep}
@@ -4199,17 +4249,26 @@ const showWorkspaceDivider = effectiveTeamAreaExpanded && !showConversationNotFo
 
       {/* 登录弹窗：默认不显示，由 requestLogin() 等事件唤起 */}
       <LoginDialog />
-    </div>
+    </AppShell>
   );
 }
 
 function App({
   settingsPageDefinition,
   resolveSettingsRequest,
+  audience = false,
 }: {
   settingsPageDefinition: SettingsPageDefinition;
   resolveSettingsRequest: (openSourceRequest: SettingsRequest) => SettingsRequest;
+  audience?: boolean;
 }) {
+  if (audience) {
+    return (
+      <ErrorBoundary>
+        <FactoryAudience />
+      </ErrorBoundary>
+    );
+  }
   return (
     <ErrorBoundary>
       <DesktopTextEditContextMenu />

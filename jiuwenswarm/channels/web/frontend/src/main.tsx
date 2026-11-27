@@ -9,6 +9,7 @@ import { openSourceSettingsPageDefinition } from './features/settings/registry/o
 import type { SettingsRequest } from './features/settings/services/settingsContract'
 import { dispatchA2UIAction } from './features/a2ui/actionBridge';
 import { installDesktopLocalFilesBridge } from './features/workspace/localFilePicker';
+import { readFactoryEntry, runHref } from './features/factoryRuns/cc/navigation';
 import './styles/foundation.css'
 import './styles/themes/default/light.css'
 import './index.css'
@@ -46,9 +47,20 @@ const root = ReactDOM.createRoot(document.getElementById('root')!);
 
 if (import.meta.env.VITE_ENGINE_FACTORY === '1') {
   document.documentElement.lang = 'en';
-  document.title = 'Engine Factory';
-  void Promise.all([i18n.changeLanguage('en'), import('./features/factoryRuns/EngineSite')]).then(([, { EngineSite }]) => {
-    root.render(<EngineSite />);
+  document.documentElement.dataset.theme = 'default';
+  document.documentElement.dataset.colorMode = 'light';
+  document.title = 'JiuwenSwarm';
+  if (!readFactoryEntry(window.location.hash)) {
+    window.history.replaceState(window.history.state, '', runHref());
+  }
+  void i18n.changeLanguage('en').then(() => {
+    root.render(
+      <App
+        audience
+        settingsPageDefinition={openSourceSettingsPageDefinition}
+        resolveSettingsRequest={resolveOpenSourceSettingsRequest}
+      />,
+    );
   });
 } else {
   // Install the desktop drop bridge before ChatPanel mounts.
