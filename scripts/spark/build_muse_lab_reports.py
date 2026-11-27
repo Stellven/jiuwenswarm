@@ -21,9 +21,10 @@ ARM_LETTERS = (
     ('B', "Prefill plan CC: prefill batch sizes fitted to the target's device budget"),
     ('C', "Prefix reuse CC: the engine's built-in prompt cache turned on, so a follow-up on the same document reuses it"),
     ('D', 'Batched routed-expert launches CC: stopped before build, because the engine already batches these launches'),
+    ('E', 'Expert cache seeding CC: fills the GPU expert cache at startup from a routing profile'),
 )
 ARM_COMPOSITION = ("An engine's name lists the CCs applied on top of A, in order: AQB = A + Q + B (Run 1), "
-                   "AQBC = AQB + C (Run 2), AQBCD = AQBC + D (Run 3, not built).")
+                   "AQBC = AQB + C (Run 2), AQBCD = AQBC + D (Run 3, not built). AQBCE = AQBC + E (Run 4).")
 TIMING_KEYS = ('ttft_ms', 'decode_tps', 'total_ms')
 CHECKER_METRICS = {
     'ttft_ms': 'derived_ttft_ms',
