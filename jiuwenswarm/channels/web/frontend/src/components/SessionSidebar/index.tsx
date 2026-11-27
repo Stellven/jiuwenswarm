@@ -30,6 +30,7 @@ interface SessionSidebarProps {
   onNewSession?: () => void;
   showNewSession?: boolean;
   hiddenNavItems?: MainNavKey[];
+  availableNavItems?: readonly MainNavKey[];
   applicationPlugins?: ApplicationPluginContribution[];
 }
 
@@ -105,6 +106,7 @@ export function SessionSidebar({
   onNewSession,
   showNewSession = true,
   hiddenNavItems = [],
+  availableNavItems,
   applicationPlugins = [],
 }: SessionSidebarProps) {
   const { t } = useTranslation();
@@ -160,6 +162,7 @@ export function SessionSidebar({
       {visibleMainNavItems.map((item) => (
         <button
           key={item.key}
+          disabled={availableNavItems !== undefined && !availableNavItems.includes(item.key)}
           title={getNavItemLabel(item)}
           aria-label={getNavItemLabel(item)}
           aria-current={isNavItemActive(item) ? 'page' : undefined}
