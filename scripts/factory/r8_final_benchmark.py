@@ -177,7 +177,18 @@ def campaign_image(identity):
         yield Path(directory)
 
 
-def main(execute, diagnostic, diagnostic_file=None):
+def closed_at_owner_boundary(path):
+    if path.name != '5.load.json':
+        return False
+    marker = path.parent/'5.owner-boundary.json'
+    if not marker.is_file():
+        return False
+    close = read(marker)
+    return (close['load_receipt_sha256'] == digest(path) and read(path).get('code') == 'KeyboardInterrupt'
+            and close['server_closed'] is True and close['expected_remaining_cells_dispatched'] == 0)
+
+
+def main(execute, diagnostic, diagnostic_file=None, two_lengths=False):
     from scripts.factory import r8_bench_score
     p, identity, plan = check_inputs()
     prepared = r8_bench_score.prepare(p)
@@ -201,11 +212,26 @@ def main(execute, diagnostic, diagnostic_file=None):
         if path.exists() and read(path) != config:
             raise ValueError('Resume configuration differs from campaign')
         lab.save(path, config)
-        if any(read(f)['status'] != 'complete' for f in OUT.glob('*.load.json')):
+        if any(read(f)['status'] != 'complete' and not (two_lengths and closed_at_owner_boundary(f))
+               for f in OUT.glob('*.load.json')):
             raise RuntimeError('Incomplete load receipt; no automatic repeat')
         with campaign_image(identity) as directory:
+            existing_schedule = OUT/'speed-schedule.json'
+            if existing_schedule.is_file():
+                p['request_plans'].update(read(existing_schedule))
             loads = {leg['id']:leg for leg in p['required_loads']}
             for lid in ORDER:
+                receipt = OUT / f'{lid}.load.json'
+                if receipt.is_file() and (read(receipt)['status'] == 'complete' or
+                                          two_lengths and closed_at_owner_boundary(receipt)):
+                    continue
+                if two_lengths and lid == '6':
+                    p['speed_lengths'] = ['p512', 'p2048']
+                    p['request_plans']['speed_A'] = [c for c in p['request_plans']['speed_A']
+                                                     if c['prompt'] in p['speed_lengths'] and c['n_predict'] == 32]
+                    schedule = r8_bench_cells.speed_schedule(p, loads[lid])
+                    schedule_path = OUT/'6.owner-schedule.json'
+                    lab.save(schedule_path, dict(source='Owner decision: two prompt sizes only', cells=schedule))
                 if lid == '3':
                     if diagnostic_file:
                         if not diagnostic_file.is_file():
@@ -229,5 +255,6 @@ if __name__ == '__main__':
     ap.add_argument('--execute', action='store_true')
     ap.add_argument('--diagnostic-128', action='store_true')
     ap.add_argument('--diagnostic-file', type=Path)
+    ap.add_argument('--two-lengths', action='store_true', help='Apply the owner amendment to remaining speed cells')
     opts = ap.parse_args()
-    main(opts.execute, opts.diagnostic_128, opts.diagnostic_file)
+    main(opts.execute, opts.diagnostic_128, opts.diagnostic_file, opts.two_lengths)

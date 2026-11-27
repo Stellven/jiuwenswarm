@@ -16,7 +16,7 @@ DEVICE_BUFFERS = ('model', 'moe_cache', 'kv', 'compute')
 def read_prompts(proposal):
     """Check the rendered files byte for byte before using their text."""
     prompts = {}
-    for name in PROMPTS:
+    for name in proposal.get('speed_lengths', PROMPTS):
         pin = proposal['speed_prompt_pins'][name]
         data = Path(pin['file']).expanduser().read_bytes()
         if hashlib.sha256(data).hexdigest() != pin['sha256']:
@@ -44,9 +44,12 @@ def tokenize(server, proposal, prompts):
 
 def speed_schedule(proposal, leg):
     cells = proposal['request_plans'][leg['request_plan']]
+    lengths = tuple(proposal.get('speed_lengths', PROMPTS))
+    if lengths not in (PROMPTS, ('p512', 'p2048')):
+        raise ValueError('Unexpected benchmark prompt lengths')
     expected = [
         (prompt, 'cold' if repeat == 0 else 'warm', repeat)
-        for prompt in PROMPTS
+        for prompt in lengths
         for repeat in range(2 if leg['role'] == 'A' and prompt == 'p4096' else 3)
     ]
     regular = []
