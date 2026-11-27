@@ -1,27 +1,62 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { PlannerNode, PlannerPlan } from '../api';
 import { BoundCapsules } from '../cc/BoundCapsules';
 import type { TaskGraphTimelineNode } from './graphModel';
+import { contractObjective, PlannerCapsules } from './PlannerEvidence';
+import { draftChain } from './plannerViewModel';
 import { NodeVerifier } from './TimelineVerifier';
 import './demoTaskChain.css';
 
 const minCardWidth = 164;
+export type DemoGraphMode = 'plan' | 'run';
+
+function ChangeBadge({ node }: { node?: PlannerNode }) {
+  const { t } = useTranslation();
+  if (!node || node.change === 'unchanged') return null;
+  return (
+    <span className="factory-demo-task-change" data-testid="factory-runs-demo-task-change" data-variant={node.change}>
+      {t(`factoryRuns.planner.change.${node.change}`)}
+    </span>
+  );
+}
 
 export function DemoTaskChain({
   nodes,
+  planner,
+  mode,
+  onModeChange,
   selectedNode,
   onOpenNode,
+  onOpenDraft,
+  onOpenPlan,
   onOpenRecord,
 }: {
   nodes: readonly TaskGraphTimelineNode[];
+  planner?: PlannerPlan | null;
+  mode: DemoGraphMode;
+  onModeChange: (mode: DemoGraphMode) => void;
   selectedNode?: string;
   onOpenNode: (id: string) => void;
+  onOpenDraft: (id: string) => void;
+  onOpenPlan: (path: string) => void;
   onOpenRecord: (id: string) => void;
 }) {
   const { t } = useTranslation();
   const list = useRef<HTMLOListElement>(null);
   const [columns, setColumns] = useState(1);
-  const hasNodes = nodes.length > 0;
+  const planning = mode === 'plan';
+  const plannerNodes = new Map(planner?.nodes.map((node) => [node.node_id, node]));
+  const items = planning
+    ? draftChain(planner).map((draft) => ({ id: draft.node_id, draft, run: undefined }))
+    : nodes.map((run) => {
+        const id = run.planId ?? run.id;
+        return { id, draft: plannerNodes.get(id), run };
+      });
+  const shown = new Set(items.map((item) => item.id));
+  const outside =
+    planner?.nodes.filter((node) => !shown.has(node.node_id) && node.change === (planning ? 'added' : 'removed')) ?? [];
+  const hasNodes = items.length > 0;
 
   useLayoutEffect(() => {
     const container = list.current;
@@ -34,59 +69,122 @@ export function DemoTaskChain({
     return () => observer.disconnect();
   }, [hasNodes]);
 
-  if (!hasNodes) {
-    return <p data-testid="factory-runs-demo-task-chain-empty">{t('factoryRuns.demoTaskChain.empty')}</p>;
-  }
-
-  const rows = Math.ceil(nodes.length / columns);
-  const tracks = Math.ceil(nodes.length / rows);
+  const rows = Math.max(1, Math.ceil(items.length / columns));
+  const tracks = Math.ceil(items.length / rows);
   return (
-    <ol
-      ref={list}
-      className="factory-demo-task-chain"
-      dir="ltr"
-      role="list"
-      aria-label={t('factoryRuns.graph')}
-      data-testid="factory-runs-demo-task-chain"
-      style={{ gridTemplateColumns: `repeat(${tracks}, minmax(0, 1fr))` }}
-    >
-      {nodes.map((node, index) => {
-        const id = node.planId ?? node.id;
-        const row = Math.floor(index / tracks);
-        const offset = index % tracks;
-        const forward = row % 2 === 0;
-        const column = forward ? offset + 1 : tracks - offset;
-        const arrow =
-          index === nodes.length - 1 ? undefined : offset + 1 === tracks ? 'down' : forward ? 'right' : 'left';
-        return (
-          <li
-            key={node.id}
-            className="factory-demo-task-card"
-            style={{ gridRow: row + 1, gridColumn: column }}
-            data-arrow={arrow}
-            data-testid="factory-runs-demo-task-card"
-            data-variant={id}
-          >
+    <>
+      <div className="factory-demo-task-mode" data-testid="factory-runs-demo-task-mode" data-variant={mode}>
+        <div role="group" aria-label={t('factoryRuns.graph')}>
+          {(['plan', 'run'] as const).map((value) => (
             <button
+              key={value}
               type="button"
-              className="factory-demo-task-node"
-              data-testid="factory-runs-demo-task-node"
-              data-variant={id}
-              data-graph-state={node.replayState}
-              aria-current={node.replayState === 'current' ? 'step' : undefined}
-              aria-expanded={selectedNode === id}
-              onClick={() => onOpenNode(id)}
+              aria-pressed={mode === value}
+              data-testid="factory-runs-demo-task-mode-option"
+              data-variant={value}
+              onClick={() => onModeChange(value)}
             >
-              <strong>{node.planId ?? node.label}</strong>
-              <span className="factory-demo-task-state" data-testid="factory-runs-demo-task-node-status">
-                {t(`factoryRuns.demoTaskChain.state.${node.replayState}`)}
-              </span>
+              {t(`factoryRuns.planner.${value}`)}
             </button>
-            <BoundCapsules ids={node.boundCCs} results={node.ccVerifiers} compact />
-            <NodeVerifier result={node.nodeVerifier} onOpenRecord={onOpenRecord} compact />
-          </li>
-        );
-      })}
-    </ol>
+          ))}
+        </div>
+        {planning && planner && (
+          <button
+            type="button"
+            data-testid="factory-runs-planner-open-plan"
+            onClick={() => onOpenPlan(planner.artifact.path)}
+          >
+            {t('factoryRuns.planner.openPlan')}
+          </button>
+        )}
+      </div>
+      {!hasNodes ? (
+        <p data-testid="factory-runs-demo-task-chain-empty">
+          {t(planning && !planner ? 'factoryRuns.planner.noPlan' : 'factoryRuns.demoTaskChain.empty')}
+        </p>
+      ) : (
+        <ol
+          ref={list}
+          className="factory-demo-task-chain"
+          dir="ltr"
+          role="list"
+          aria-label={t('factoryRuns.graph')}
+          data-testid="factory-runs-demo-task-chain"
+          data-variant={mode}
+          style={{ gridTemplateColumns: `repeat(${tracks}, minmax(0, 1fr))` }}
+        >
+          {items.map(({ id, draft, run }, index) => {
+            const row = Math.floor(index / tracks);
+            const offset = index % tracks;
+            const forward = row % 2 === 0;
+            const column = forward ? offset + 1 : tracks - offset;
+            const arrow =
+              index === items.length - 1 ? undefined : offset + 1 === tracks ? 'down' : forward ? 'right' : 'left';
+            return (
+              <li
+                key={id}
+                className="factory-demo-task-card"
+                style={{ gridRow: row + 1, gridColumn: column }}
+                data-arrow={arrow}
+                data-testid="factory-runs-demo-task-card"
+                data-variant={id}
+              >
+                <button
+                  type="button"
+                  className="factory-demo-task-node"
+                  data-testid="factory-runs-demo-task-node"
+                  data-variant={id}
+                  data-graph-state={run?.replayState}
+                  aria-current={run?.replayState === 'current' ? 'step' : undefined}
+                  aria-expanded={planning ? undefined : selectedNode === id}
+                  onClick={() => (planning ? onOpenDraft(id) : onOpenNode(id))}
+                >
+                  <strong>{planning ? (draft?.title ?? id) : (run?.planId ?? run?.label)}</strong>
+                  {run && (
+                    <span className="factory-demo-task-state" data-testid="factory-runs-demo-task-node-status">
+                      {t(`factoryRuns.demoTaskChain.state.${run.replayState}`)}
+                    </span>
+                  )}
+                </button>
+                <ChangeBadge node={draft} />
+                {planning && draft && (
+                  <>
+                    <p className="factory-demo-task-draft" data-testid="factory-runs-demo-task-draft">
+                      {draft.draft ? contractObjective(draft.draft) : t('factoryRuns.planner.noDraft')}
+                    </p>
+                    {draft.draft && <PlannerCapsules ids={draft.suggested_ccs} kind="suggested" />}
+                  </>
+                )}
+                {run && (
+                  <>
+                    <BoundCapsules ids={run.boundCCs} results={run.ccVerifiers} compact />
+                    <NodeVerifier result={run.nodeVerifier} onOpenRecord={onOpenRecord} compact />
+                  </>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      )}
+      {outside.length > 0 && (
+        <section className="factory-demo-task-outside" data-testid="factory-runs-demo-task-outside">
+          <h3>{t(planning ? 'factoryRuns.planner.added' : 'factoryRuns.planner.removed')}</h3>
+          <ul role="list">
+            {outside.map((node) => (
+              <li key={node.node_id} data-testid="factory-runs-demo-task-outside-node" data-variant={node.node_id}>
+                <button
+                  type="button"
+                  data-testid="factory-runs-demo-task-open-outside-draft"
+                  onClick={() => onOpenDraft(node.node_id)}
+                >
+                  {node.title ?? node.node_id}
+                </button>
+                <ChangeBadge node={node} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </>
   );
 }

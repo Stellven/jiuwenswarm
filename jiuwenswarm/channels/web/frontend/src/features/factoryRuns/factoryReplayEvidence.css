@@ -54,3 +54,100 @@
 .factory-replay-event-list time {
   color: var(--color-text-secondary);
 }
+
+.factory-planner-comparison,
+.factory-planner-diff dl {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.factory-planner-comparison {
+  container-type: inline-size;
+}
+
+.factory-planner-contract-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.factory-planner-contract-grid > section,
+.factory-planner-diff {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  background: var(--color-surface-card);
+  overflow-wrap: anywhere;
+}
+
+.factory-planner-contract-grid [data-variant='admitted'] {
+  border-color: var(--color-feedback-success-text);
+}
+
+.factory-planner-contract-grid [data-variant='admitted'] h3 {
+  color: var(--color-feedback-success-text);
+}
+
+.factory-planner-capsules {
+  margin: 8px 0;
+  font-size: 12px;
+}
+
+.factory-planner-capsules span,
+.factory-planner-diff dd span {
+  color: var(--color-text-secondary);
+}
+
+.factory-planner-capsules :is(ul, p) {
+  margin: 3px 0 0;
+}
+
+.factory-planner-capsules ul {
+  padding-inline-start: 17px;
+}
+
+.factory-demo-task-card .factory-planner-capsules a {
+  position: relative;
+  text-decoration: underline;
+}
+
+.factory-planner-contract-grid :is(p, details, code, button) {
+  margin: 6px 0;
+}
+
+.factory-planner-diff dd {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 4px 0 0;
+}
+
+.factory-planner-diff dd > div {
+  min-width: 0;
+  padding: 5px 8px;
+  border-inline-start: 3px solid;
+  background: var(--color-surface-muted);
+}
+
+.factory-planner-diff .factory-planner-diff-before {
+  border-color: var(--color-text-danger);
+}
+
+.factory-planner-diff .factory-planner-diff-after {
+  border-color: var(--color-feedback-success-text);
+}
+
+.factory-planner-comparison pre {
+  margin: 4px 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@container (max-width: 38rem) {
+  .factory-planner-contract-grid,
+  .factory-planner-diff dd {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

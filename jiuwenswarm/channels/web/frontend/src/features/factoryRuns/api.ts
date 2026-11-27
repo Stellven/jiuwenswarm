@@ -64,6 +64,7 @@ export type RunDetail = {
   session?: SessionSnapshot | null;
   curated?: CuratedReplay | null;
   published_report?: CuratedReplay['presentation_header'] | null;
+  planner_plan?: PlannerPlan | null;
   /** Per plan node: node contract CCs, verified outputs and their host node_check records. */
   node_checks?: NodeCheckIndex;
   /** Live homes only: what an operator may do now. */
@@ -72,6 +73,42 @@ export type RunDetail = {
   cc_overview?: Record<string, CapsuleOverview[]>;
   scheduler_models?: string[];
   correction_overview?: Record<string, CorrectionCounts>;
+};
+export type PlannerSource = {
+  id?: string;
+  path?: string | null;
+  digest?: string | null;
+  kind?: string | null;
+  created?: number | null;
+  revision?: number | null;
+};
+export type PlannerFinal = PlannerSource & {
+  preliminary_digest?: string | null;
+  preliminary?: JsonRecord | null;
+  preliminary_source?: PlannerSource | null;
+  final?: JsonRecord | null;
+  diff?: JsonRecord[] | null;
+  rationale?: string | null;
+  never_weaker: { status: 'admitted' | 'unverified'; source?: PlannerSource | null };
+};
+export type PlannerNode = {
+  node_id: string;
+  title?: string | null;
+  change: 'added' | 'removed' | 'reordered' | 'unchanged';
+  change_source?: PlannerSource | null;
+  draft: JsonRecord | null;
+  draft_source?: PlannerSource | null;
+  suggested_ccs: string[];
+  finals: PlannerFinal[];
+  refusals: Array<PlannerSource & { problems?: unknown; rationale?: string | null }>;
+};
+export type PlannerPlan = {
+  artifact: EvidenceFile;
+  source: PlannerSource & { planner?: string };
+  plan_order: string[];
+  run_order: string[];
+  read_receipts: JsonRecord[];
+  nodes: PlannerNode[];
 };
 export type RunState = {
   state: string;

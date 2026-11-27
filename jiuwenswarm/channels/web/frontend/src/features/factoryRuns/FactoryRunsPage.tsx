@@ -34,7 +34,7 @@ import { DataViewer } from './views/DataViewer';
 import { evidenceKind } from './views/dataModel';
 import { EvidenceFileBrowser } from './views/EvidenceFiles';
 import { detectGraph, taskGraphTimeline } from './views/graphModel';
-import { DemoTaskChain } from './views/DemoTaskChain';
+import { DemoTaskChain, type DemoGraphMode } from './views/DemoTaskChain';
 import { FactoryRunList } from './views/RunList';
 import { contractDemoRuns } from './views/runListModel';
 import { ReplayContractPanel, ReplayEventsPanel, ReplayNodeContractsPanel } from './FactoryReplayEvidence';
@@ -143,6 +143,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   const [session, setSession] = useState<SessionSnapshot | null>(null);
   const [sessionStale, setSessionStale] = useState(false);
   const [selectedNode, setSelectedNode] = useState(entry?.node);
+  const [demoGraphMode, setDemoGraphMode] = useState<DemoGraphMode>('run');
   const [focusedRecordId, setFocusedRecordId] = useState<string>();
   const nodeEvidenceSection = useRef<HTMLDivElement>(null);
   const [runStatus, setRunStatus] = useState<{ id: string; run_state?: RunStateRecord; controls?: Controls }>();
@@ -524,6 +525,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
     setFocusedDecisionId(undefined);
     setFocusedRecordId(undefined);
     setSelectedNode(undefined);
+    setDemoGraphMode('run');
     setChildSource(undefined);
     setExpectedSha('');
     setFilePath('');
@@ -855,6 +857,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                   selectedNode={selectedNode}
                   onSelectNode={setSelectedNode}
                   onOpenFile={openEvidenceFile}
+                  onOpenRecord={openVerifierRecord}
                 />
               )}
               {panel === 'events' && (contractEvidence || focusedRecordId) && (
@@ -912,8 +915,16 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
               {demoGraph ? (
                 <DemoTaskChain
                   nodes={demoNodes}
+                  planner={detail.planner_plan}
+                  mode={demoGraphMode}
+                  onModeChange={setDemoGraphMode}
                   selectedNode={selectedNode}
                   onOpenNode={setSelectedNode}
+                  onOpenDraft={(id) => {
+                    selectPanel('node-contracts');
+                    setSelectedNode(id);
+                  }}
+                  onOpenPlan={openEvidenceFile}
                   onOpenRecord={openVerifierRecord}
                 />
               ) : panel === 'graph' && (
@@ -936,7 +947,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                   initialMode="graph"
                 />
               )}
-              {panel === 'graph' && nodeEvidence}
+              {panel === 'graph' && (!demoGraph || demoGraphMode === 'run') && nodeEvidence}
               {!contractEvidence && panel === 'contract' && !selectedFile && !focusedNode && (
                 <DataViewer
                   key={selected}
