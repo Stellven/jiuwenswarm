@@ -12,7 +12,7 @@ import { nodeHref, recordHref, runHref } from './navigation';
 export function CapsuleNodeActivity({ capsule }: { capsule: CapsuleDetail }) {
   const { t } = useTranslation();
   const activities = (capsule.evidence?.node_activity ?? []).flatMap((row) => {
-    const [fact] = capsuleFactsAt({ capsules: [row.capsule], closures: [], node_checks: [] });
+    const [fact] = capsuleFactsAt({ capsules: [row.capsule], closures: [], node_checks: [], reached: row.reached });
     return fact ? [{ row, fact }] : [];
   });
   if (!activities.length) return null;

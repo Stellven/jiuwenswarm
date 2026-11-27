@@ -3,7 +3,7 @@ import type { CuratedReplay, ReplayNodePresentation } from './storyModel.ts';
 import { atlasTitle } from '../cc/atlasNames.ts';
 import type { NodeCheckIndex, NodeOperator } from './checkModel.ts';
 import { indexTaskGraphChecks, legacyTimelineActivity } from './taskGraphVerifierModel.ts';
-import { capsuleFactsAt, nodeVerifierAt, reopenBoundary, type CapsuleFacts, type TimelineVerifierResult } from './ccActivityModel.ts';
+import { capsuleFactsAt, nodeVerifierAt, reopenBoundary, type NodeExecutionFacts } from './ccActivityModel.ts';
 
 export type { TimelineVerifierResult } from './ccActivityModel.ts';
 
@@ -58,11 +58,9 @@ export type GraphReplay = {
   operator?: NodeOperator;
 };
 type NodeProgress = { phase: 'upcoming' | 'seen' | 'current'; details?: Fields };
-export type TaskGraphTimelineNode = GraphNode & {
+export type TaskGraphTimelineNode = GraphNode & NodeExecutionFacts & {
   replayState: 'done' | 'current' | 'not-reached' | 'stopped';
   boundCCs: string[];
-  capsuleFacts: CapsuleFacts[];
-  nodeVerifier: TimelineVerifierResult;
 };
 
 function record(value: unknown): Fields | undefined {

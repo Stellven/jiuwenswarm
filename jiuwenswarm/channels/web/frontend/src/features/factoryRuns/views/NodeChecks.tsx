@@ -31,14 +31,17 @@ function OutputCheck({
   files,
   onOpenFile,
   presentation,
+  notReached,
 }: {
   row: OutputSummary;
   files?: readonly EvidenceFile[];
   onOpenFile?: (path: string) => void;
   presentation?: ReplayCheckPresentation;
+  notReached?: boolean;
 }) {
   const { t } = useTranslation();
   const { output, latest } = row;
+  const status = notReached ? 'not-reached' : row.status;
   const older = row.history.slice(0, -1).reverse();
   const evidence = [
     ['review packet', latest?.review?.packet_artifact],
@@ -48,7 +51,7 @@ function OutputCheck({
     .map(([label, id]) => ({ label, file: fileFor(files, id) }))
     .filter((entry, index, all) => entry.file && all.findIndex((other) => other.file?.path === entry.file?.path) === index);
   return (
-    <li className="factory-check-output" data-testid="factory-runs-check-output" data-variant={output.name} data-status={row.status}>
+    <li className="factory-check-output" data-testid="factory-runs-check-output" data-variant={output.name} data-status={status}>
       <div className="factory-check-output-head">
         <strong>{output.name}</strong>
         <small>
@@ -56,8 +59,9 @@ function OutputCheck({
           {output.required ? '' : ' · optional'}
           {output.declared ? '' : ' · no longer declared'}
         </small>
-        <span className="factory-check-pill" data-status={row.status} data-testid="factory-runs-check-status">
-          {row.status === 'unchecked' ? t('factoryRuns.demoTaskChain.verifier.no-node-check') : statusLabel[row.status]}
+        <span className="factory-check-pill" data-status={status} data-testid="factory-runs-check-status">
+          {status === 'not-reached' ? t('factoryRuns.demoTaskChain.verifier.not-reached')
+            : status === 'unchecked' ? t('factoryRuns.demoTaskChain.verifier.no-node-check') : statusLabel[status]}
         </span>
         {row.status === 'stale' && latest && (latest.state == null || latest.state === 'finished') && (
           <span className="factory-check-pill" data-status={latest.passed ? 'passed' : 'failed'}
@@ -281,6 +285,7 @@ export function NodeChecks({
   onOpenFile,
   operator,
   presentation,
+  notReached,
   outputOnly = false,
 }: {
   view?: NodeCheckView;
@@ -289,6 +294,7 @@ export function NodeChecks({
   onOpenFile?: (path: string) => void;
   operator?: NodeOperator;
   presentation?: ReplayNodePresentation;
+  notReached?: boolean;
   outputOnly?: boolean;
 }) {
   const summary = summarizeNode(view, node);
@@ -327,7 +333,7 @@ export function NodeChecks({
             <ul className="factory-check-outputs">
               {summary.outputs.map((row) => (
                 <OutputCheck key={row.output.name} row={row} files={files} onOpenFile={onOpenFile}
-                  presentation={presentation?.checks[row.output.name]} />
+                  presentation={presentation?.checks[row.output.name]} notReached={notReached} />
               ))}
             </ul>
           )}

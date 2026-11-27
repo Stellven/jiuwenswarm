@@ -475,7 +475,7 @@ export function NodeEvidence({
                   )}
                   {card.checkView && (
                     <NodeChecks view={card.checkView} node={node ?? { node_id: nodeId }} {...links}
-                      presentation={presentation} outputOnly />
+                      presentation={presentation} notReached={nodeVerdict?.status === 'not-reached'} outputOnly />
                   )}
                   {card.comparison != null && (
                     <section className="factory-node-comparison" data-testid="factory-runs-node-stock-comparison">

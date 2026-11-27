@@ -64,12 +64,12 @@ test('Demo Task graph shows one responsive chain and keeps node and capsule acti
   const catalog = [{ id: 'engine.kv_reuse_lab', name: 'kv_reuse_lab' }];
   const bindings = ['factory.capped_runner', 'factory.builder', 'factory.lab_manager', 'factory.node_check'];
   const record = { id: 'node-check:plan_prefix_store:plan:1:1234', output: 'plan' };
-  const capsuleFact = (id) => ({
+  const capsuleFact = (id, reached = true) => ({
     id,
-    use: id === 'factory.capped_runner' ? 'used' : 'bound-not-used',
-    verifier: id === 'engine.kv_reuse_lab' ? 'pass' : 'no-cc-verifier-record',
-    uses: id === 'factory.capped_runner' ? [{ id: 'smoke-attempt', created: 1, kind: 'attempt' }] : [],
-    checks: id === 'engine.kv_reuse_lab' ? [{ ...record, created: 1, status: 'pass' }] : [],
+    use: !reached ? 'not-reached' : ['factory.capped_runner', 'engine.kv_reuse_lab'].includes(id) ? 'used' : 'bound-not-used',
+    verifier: !reached ? 'not-reached' : id === 'engine.kv_reuse_lab' ? 'pass' : 'no-cc-verifier-record',
+    uses: !reached ? [] : id === 'factory.capped_runner' ? [{ id: 'smoke-attempt', created: 1, kind: 'attempt' }] : id === 'engine.kv_reuse_lab' ? [{ ...record, created: 1, kind: 'cc-verifier' }] : [],
+    checks: reached && id === 'engine.kv_reuse_lab' ? [{ ...record, created: 1, status: 'pass' }] : [],
   });
   const nodeVerifier = { status: 'fail', records: [record] };
   const nodes = [
@@ -85,8 +85,8 @@ test('Demo Task graph shows one responsive chain and keeps node and capsule acti
     planId,
     replayState,
     boundCCs,
-    capsuleFacts: boundCCs.map(capsuleFact),
-    nodeVerifier: replayState === 'current' ? nodeVerifier : { status: 'no-node-check', records: [] },
+    capsuleFacts: boundCCs.map((id) => capsuleFact(id, replayState === 'current')),
+    nodeVerifier: replayState === 'current' ? nodeVerifier : { status: 'not-reached', records: [] },
   }));
   const opened = [];
   const openedRecords = [];
@@ -109,7 +109,7 @@ test('Demo Task graph shows one responsive chain and keeps node and capsule acti
               }] },
               onOpenActivity: (source) => onOpenRecord(source.id),
             }),
-            detail && createElement(BoundCapsules, { facts: bindings.map(capsuleFact) }),
+            detail && createElement(BoundCapsules, { facts: bindings.map((id) => capsuleFact(id)) }),
             detail && createElement(NodeVerifier, { result: nodeVerifier, onOpenRecord }),
           ),
         ),
@@ -148,6 +148,8 @@ test('Demo Task graph shows one responsive chain and keeps node and capsule acti
     links.map((link) => link.getAttribute('href')),
     ['#capsules/kv_reuse_lab', '#capsules/factory.capped_runner'],
   );
+  assert.equal(cards[2].querySelector('[data-testid="factory-runs-cc-use"]').dataset.variant, 'not-reached');
+  assert.equal(cards[2].querySelector('[data-testid="factory-runs-demo-verifier-status"]').textContent, 'Not reached');
   links[0].click();
   assert.deepEqual(opened, []);
   assert.deepEqual(
@@ -157,7 +159,7 @@ test('Demo Task graph shows one responsive chain and keeps node and capsule acti
   const facts = [...cards[1].querySelectorAll('[data-testid="factory-runs-cc-facts"]')];
   assert.deepEqual(facts.map((row) => [row.querySelector('[data-testid="factory-runs-cc-use"]').dataset.variant,
     row.querySelector('[data-testid="factory-runs-cc-verifier"]').dataset.variant]), [
-    ['bound-not-used', 'pass'], ['used', 'no-cc-verifier-record'],
+    ['used', 'pass'], ['used', 'no-cc-verifier-record'],
   ]);
   const recordLink = cards[1].querySelector('[data-testid="factory-runs-demo-task-node-verifier-link"]');
   assert.equal(recordLink.dataset.variant, record.id);

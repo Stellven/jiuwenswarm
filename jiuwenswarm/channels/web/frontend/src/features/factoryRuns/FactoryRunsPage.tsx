@@ -873,7 +873,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                   onOpenFile={openEvidenceFile}
                   onOpenRecord={openVerifierRecord}
                   onOpenActivity={openActivityRecord}
-                  capsuleFactsFor={(id) => demoNodes.find((item) => item.planId === id)?.capsuleFacts}
+                  executionFor={(id) => demoNodes.find((item) => item.planId === id)}
                 />
               )}
               {panel === 'events' && (contractEvidence || focusedRecordId) && (
@@ -892,8 +892,9 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                   onSeek={seek}
                   onOpenFile={openEvidenceFile}
                   nodeEvidence={nodeEvidence}
-                  stepCapsuleFacts={demoNodes.find((item) => item.planId === (curatedStep?.node_id ?? cursor?.node_id))?.capsuleFacts}
+                  stepExecution={demoNodes.find((item) => item.planId === (curatedStep?.node_id ?? cursor?.node_id))}
                   onOpenActivity={openActivityRecord}
+                  onOpenRecord={openVerifierRecord}
                 />
               )}
               {panel === 'overview' && (!detail.curated || detail.curated.native) && (
