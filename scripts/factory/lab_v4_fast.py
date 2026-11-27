@@ -117,8 +117,8 @@ def server_peak_rss(pid, proc_root=Path('/proc')):
     return None
 
 
-def request(server, prompt, n_predict, *, benchmark=False):
-    body = dict(prompt=prompt, n_predict=n_predict, temperature=0, seed=1, cache_prompt=False, stream=True)
+def request(server, prompt, n_predict, *, benchmark=False, cache_prompt=False):
+    body = dict(prompt=prompt, n_predict=n_predict, temperature=0, seed=1, cache_prompt=cache_prompt, stream=True)
     if benchmark:
         body.update(ignore_eos=True, return_progress=True, return_tokens=True)
     t0 = time.monotonic()
