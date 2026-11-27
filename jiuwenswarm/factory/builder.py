@@ -123,14 +123,21 @@ class Builder:
         if not isinstance(idem_key, str) or not idem_key.strip():
             raise ValueError('idem_key must be nonempty')
         constraints = task.get('constraints', {})
-        if isinstance(constraints, dict) and constraints.get('local_commits'):
+        config_only = 'config_image' in request
+        if config_only:
+            if node_id != 'build_image':
+                raise ValueError('Config image builds require the graph build_image node')
+            from .image_config_build import normalize
+            request = normalize(request, constraints.get('config_image'))
+        elif isinstance(constraints, dict) and constraints.get('local_commits'):
             owned = (self.store.home / 'agent-workspace' / task['source']['subpath']).resolve()
             if Path(request['source']['path']).resolve() != owned:
                 raise ValueError('Build source is outside the task-owned checkout')
             pinned_dep = constraints.get('build_request', {}).get('dependency')
             if pinned_dep is not None and request.get('dependency') != pinned_dep:
                 raise ValueError('Build dependency differs from operator input')
-        request = self._request(request)
+        if not config_only:
+            request = self._request(request)
         binding = constraints.get('execution_binding')
         if binding:
             request['execution_binding_id'] = binding['binding_id']

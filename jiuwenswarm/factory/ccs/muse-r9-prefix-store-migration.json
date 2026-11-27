@@ -1,0 +1,22 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "kv_reuse_lab/cc.yaml",
+      "from_version": "1.0.1",
+      "from_release": "94a7a37071c7c67ed287cdc3eeccfcee3dc91c09b2d90c32686b6c9fe3832d09",
+      "from_commit": "d0d55e0b5a90db325e3e9a19ea4fe180acb7103c",
+      "to_version": "1.1.0",
+      "to_release": "bb2e50097a9a3f66825b34e690bea9471308d60c2bc0cdd511519618bd86b048",
+      "changed_files": [
+        "METHOD.md",
+        "cc.yaml",
+        "prefix_store.py",
+        "roles.json",
+        "run.py"
+      ],
+      "unrecorded_versions": [],
+      "reason": "Add deterministic Muse Run 2 prefix-store planning and staged verification"
+    }
+  ]
+}

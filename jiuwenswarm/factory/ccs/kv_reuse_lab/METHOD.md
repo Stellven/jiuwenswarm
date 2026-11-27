@@ -7,3 +7,25 @@
 `estimate(spec)` requires layout `mha` with layers,tokens,bits,kv_heads,head_dim, or layout `mla` with layers,tokens,bits,latent_dim,rope_dim; optional batch,group_size,scale_bytes. MHA/GQA stores K and V per KV head; compressed MLA here stores one latent plus positional key. Verify the actual backend layout: expanded MLA, DeepSeek v4 compressed/windowed/indexer state, padding and quantization layouts may differ and require another formula. Never substitute a generic two-KV-head MHA estimate for MLA. Quantized estimates include group scale bytes and are explicitly approximate; they grant no admission or exact quality claim.
 
 GB10 has unified memory: count its shared pool once. Use operator-supplied actual capacity (including a 64 GB target if configured), measured residency, OS/model/workspace allocations and reserve; do not add CPU RAM to GPU VRAM. ARM64, CUDA capability and model-specific DeepSeek v4.1 support remain unverified. Evaluate exact token equality separately from speed, hit rate and resident bytes. Compare cold/warm shared-prefix and no-prefix workloads, release/COW pressure, tenant isolation and changed revision invalidation. Retain actual runtime traces before a performance or engagement claim.
+
+## Muse Run 2 prefix-store image
+
+`verify_pins` reads the frozen AQB lab receipts, image check, prefill plan,
+packed-model manifest, and the retained Phase 0 and Phase 0b evidence. Pack
+verification uses the recorded manifest SHA-256, each shard's size and GGUF
+magic. It reads no tensor payloads. `plan` records the placement refusal,
+ties prefix reuse to the first cache count for the follow-up request, and
+records the Phase 0b quiet exclusions separately from engagement.
+
+The plan carries forward AQB's effective launch configuration and adds
+`--swa-full --ctx-checkpoints 32` and request `cache_prompt=true`. On GB10,
+the device budget counts the recorded model, KV, expert cache, compute and
+host compute allocations once. The capped runner separately enforces the
+96 GiB cgroup cap, zero swap, and live fit margin.
+
+Pass the plan's `build_request` to `factory.builder.submit` from the graph's
+`build_image` node. After the durable attempt succeeds, pass the exact Builder
+`build-record` artifact and prefix plan to `verify_factory_stage`. The checker
+verifies the unchanged root filesystem, executable and pack, and compares the
+sealed image launch configuration against the plan. Lab delivery requires this
+check. Runtime evidence determines release.
