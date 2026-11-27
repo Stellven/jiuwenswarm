@@ -280,6 +280,10 @@ def _route(store, task_id, capability, packet, inputs):
         if 'expected_rev' in record and 'expected_rev' in inputs and record['expected_rev'] != inputs['expected_rev']:
             raise ValueError('Conflicting expected_rev values')
         expected_rev = record.pop('expected_rev', inputs.get('expected_rev'))
+        checkpoint = (store.get_task(task_id).get('constraints') or {}).get('dispatch_checkpoint')
+        if checkpoint:
+            from .dispatch_gate import validate_terminal
+            validate_terminal(store, task_id, checkpoint, record)
         if record.get('action', {}).get('type') == 'accept':
             from .acceptance import validate as validate_acceptance
             accepted = validate_acceptance(store, task_id)

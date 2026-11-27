@@ -1,0 +1,74 @@
+{
+  "task_id": "muse-2bit-demo-r10",
+  "contract_id": "muse-2bit-demo-r10",
+  "objective": "Evaluate batched routed-expert kernel launches on the released AQBC engine. Stop before a candidate build if the current backend already batches the eligible decode shapes or no eligible shape is proven.",
+  "allowed_effects": [
+    "process.exec"
+  ],
+  "target": "spark-gb10",
+  "budget": {
+    "max_turns": 72,
+    "wall_clock_s": 14400
+  },
+  "initial_run_config": {
+    "env": {}
+  },
+  "component_cc": "engine.gpu_kernel_lab",
+  "source": {
+    "subpath": "work",
+    "pre_integration_commit": "17e4594f0bfb7eacd3ce5d2d0dd16fb61ba9f817"
+  },
+  "constraints": {
+    "contract_immutable": true,
+    "contract_revision": "muse-2bit-demo-r10",
+    "contract_sha256": "e7f1b7928cd8cc8a3d1d86755850f0d51ec89413eda1ed7dcb798d8cbada9ae7",
+    "model_runs": false,
+    "approved_capped_recipes": {},
+    "local_commits": false,
+    "push_or_publish": false,
+    "finalize_ahead_of_dependencies": true,
+    "dispatch_checkpoint": {
+      "node_id": "trace_dispatch",
+      "output": "dispatch_trace",
+      "protected_nodes": [
+        "verify_fixtures",
+        "build_image",
+        "deliver_to_lab"
+      ],
+      "build_node": "build_image"
+    }
+  },
+  "operator_labels": {
+    "run": "Run 3 (AQBCD), owner 018 candidate 1.",
+    "safety": "No Muse loads in the factory. Close a negative trace with stop_missing_prerequisite citing the actual passed trace check. Keep AQBC released."
+  },
+  "resources": {
+    "capsules": [
+      "engine.gpu_kernel_lab",
+      "factory.builder",
+      "factory.lab_manager",
+      "factory.node_check"
+    ],
+    "read_roots": [
+      "${FACTORY_MUSE_DEMO}/r10/parent-reference.json",
+      "${FACTORY_MUSE_DEMO}/r9/curated-replay",
+      "${FACTORY_MUSE_DEMO}/graph-r8/agent-workspace/llama.cpp-muse",
+      "${FACTORY_MUSE_DEMO}/graph-r8/builds/da567de7ffcc4dd4bf537ee2169aa63d/engine/frozen-source",
+      "${FACTORY_MUSE_DEMO}/lab/r10-aqbcd/dispatch",
+      "${FACTORY_MUSE_DEMO}/graph-r8/builds/da567de7ffcc4dd4bf537ee2169aa63d/engine",
+      "${FACTORY_MUSE_DEMO}/graph-v4/packs/muse-2bit-v4",
+      "${FACTORY_MUSE_DEMO}/lab/r9-aqbc/measure-engine"
+    ],
+    "operator_inputs": {
+      "aqbc_parent": {
+        "path": "${FACTORY_MUSE_DEMO}/r10/parent-reference.json",
+        "how": "Digest-pinned provenance for the released AQBC parent image, native release, load, source, pack, launch config and prefill plan."
+      },
+      "dispatch_fixture_diff": {
+        "path": "${FACTORY_MUSE_DEMO}/lab/r10-aqbcd/dispatch/fixture-instrumentation.diff",
+        "how": "Actual instrumentation used for bounded dispatch-only fixtures. This is not a D engine change."
+      }
+    }
+  },
+  "plan": "muse-2bit-demo-r10.plan.json"
+}

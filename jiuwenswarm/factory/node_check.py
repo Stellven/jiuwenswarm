@@ -559,7 +559,8 @@ class NodeChecks:
         entry = self._entry(task, node, output)
         document, staged = _staged_document(task)
         port = f'{node.get("node_contract")}.{entry["name"]}'
-        if staged:
+        checkpoint = (task.get('constraints') or {}).get('dispatch_checkpoint')
+        if staged or checkpoint:
             from .scheduler import effective_contract
             from .taskgraph import dispatch_precondition
             host = getattr(self.store, '_store', self.store)
@@ -580,7 +581,7 @@ class NodeChecks:
         if verifier_inputs and not entry.get('verifier'):
             raise CheckError(f'Output {entry["name"]} has no capsule verifier to take verifier_inputs')
         verifier_inputs = pin_inputs(entry, verifier_inputs)
-        if staged and verifier_inputs:
+        if (staged or checkpoint) and verifier_inputs:
             from .config import expand_sources
             verifier_inputs = expand_sources(verifier_inputs)
         if entry['kind'] != 'diff':

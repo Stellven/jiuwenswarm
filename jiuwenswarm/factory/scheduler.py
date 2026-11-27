@@ -250,6 +250,9 @@ def admitted(store, task_id, capability, inputs):
             raise ValueError('The task admits model loads only through its approved capped recipe')
         if capability == 'capped_runner.start' and (not node_id or inputs.get('recipe') not in recipes.get(node_id, [])):
             raise ValueError('The task admits this capped recipe only for its approved graph node')
+    checkpoint = constraints.get('dispatch_checkpoint')
+    if checkpoint and capability == 'builder.submit' and node_id != checkpoint['build_node']:
+        raise ValueError('The dispatch checkpoint only admits candidate builds on its contracted build node')
     build_nodes = constraints.get('approved_build_nodes')
     if build_nodes is not None and capability == 'builder.submit':
         if node_id not in build_nodes or (inputs.get('request') or {}).get('config_image') != constraints.get('config_image'):
@@ -317,6 +320,9 @@ def next_work(host, task_id):
     graph = _graph(host, task_id)
     contracts = _contracts(host, task)
     nodes = {n['node_id']: n for n in graph['nodes']}
+    constraints = task.get('constraints') or {}
+    checkpoint = constraints.get('dispatch_checkpoint')
+    finalize_ahead = constraints.get('finalize_ahead_of_dependencies')
     runnable, waiting, done, to_finalize = [], {}, [], []
     for node in graph['nodes']:  # planner order
         key = node['node_id']
@@ -329,15 +335,22 @@ def next_work(host, task_id):
             waiting[key] = 'held by operator: ' + node['hold']
             continue
         unfinished = [d for d in node['depends_on'] if nodes[d]['state'] != 'done']
-        if unfinished:
-            waiting[key] = 'waiting for ' + ', '.join(unfinished)
-            continue
         contract_node, needs_final = effective_contract(host, task_id, node, contracts)
-        if needs_final and node['state'] != 'failed':
+        if needs_final and node['state'] != 'failed' and (not unfinished or finalize_ahead):
             waiting[key] = 'waiting for the scheduler to finalize its node contract'
             to_finalize.append(dict(node_id=key, node_contract=node['node_contract'], objective=contract_node['objective'],
                                     slots=[s['id'] for s in contract_node.get('slots', [])]))
             continue
+        if unfinished:
+            waiting[key] = 'waiting for ' + ', '.join(unfinished)
+            continue
+        if checkpoint and key in checkpoint['protected_nodes']:
+            from .dispatch_gate import require_eligible
+            try:
+                require_eligible(host, task_id, checkpoint, nodes)
+            except ValueError as exc:
+                waiting[key] = str(exc)
+                continue
         spec = effective_spec(task, node)
         item = dict(node_id=key, kind=node['kind'], state=node['state'], title=node['title'],
                     objective=(contract_node or {}).get('objective', node['title']),
@@ -519,7 +532,7 @@ def finalize(store, task_id, node_id, final, rationale, by='scheduler-agent'):
         if node['state'] not in {'proposed', 'ready'}:
             raise ValueError(f'Node {node_id} is {node["state"]}; only a node about to run is finalized')
         unfinished = [d for d in node['depends_on'] if nodes[d]['state'] != 'done']
-        if unfinished:
+        if unfinished and not (task.get('constraints') or {}).get('finalize_ahead_of_dependencies'):
             raise ValueError('Finalize a node when it can run; waiting for ' + ', '.join(unfinished))
         known = catalog()
         found = proposal_problems(load_for_task(task, task['contract_id']), contracts, prelim, final, known)

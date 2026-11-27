@@ -416,6 +416,11 @@ def dispatch_precondition(store, task_id, node_id):
     unfinished = [f"{dep} is {nodes[dep]['state']}" for dep in node['depends_on'] if nodes[dep]['state'] != 'done']
     if unfinished:
         raise ValueError('Dispatch dependencies not done: ' + ', '.join(unfinished))
+    host = _host(store, task_id)
+    checkpoint = (host.get_task(task_id).get('constraints') or {}).get('dispatch_checkpoint')
+    if checkpoint and node_id in checkpoint['protected_nodes']:
+        from .dispatch_gate import require_eligible
+        require_eligible(host, task_id, checkpoint, nodes)
 
 
 def _apply_patch(host, task_id, patch, expected_graph_rev, decision_rev, *, readable=(), seed=False, planner=None, operator=False,

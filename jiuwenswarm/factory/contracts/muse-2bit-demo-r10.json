@@ -1,0 +1,706 @@
+{
+  "schema": "factory.contract/2",
+  "contract_id": "muse-2bit-demo-r10",
+  "version": 10,
+  "title": "Run 3 · Batched routed-expert launches (AQBCD)",
+  "purpose": "Evaluate batched routed-expert kernel launches on the released AQBC engine. Stop before a candidate build if the current backend already batches the eligible decode shapes or no eligible shape is proven.",
+  "scope": {
+    "covers": [
+      "Pinned AQBC source, image and mixed pack",
+      "Dispatch eligibility before any candidate work",
+      "Conditional gated patch, deterministic fixtures, build and lab delivery"
+    ],
+    "excludes": [
+      "A replacement for candidate 1",
+      "Weight, routing, gate, prefill or prompt-policy changes",
+      "A candidate build without positive dispatch evidence",
+      "Any Muse load in the factory stage"
+    ]
+  },
+  "target": {
+    "profile": "spark-gb10",
+    "requires": {
+      "machine": "DGX Spark GB10",
+      "cuda": "13",
+      "sm": "121",
+      "arch": "arm64",
+      "memory_gb": 128
+    }
+  },
+  "subject": {
+    "engine": {
+      "name": "llama.cpp",
+      "source": "https://github.com/ggml-org/llama.cpp",
+      "revision": "17e4594f0bfb7eacd3ce5d2d0dd16fb61ba9f817"
+    },
+    "model": {
+      "name": "Muse Spark Open mixed 2-bit pack",
+      "files": [
+        {
+          "name": "mixed-pack.json",
+          "size": 2241,
+          "sha256": "806c5d5e4f34450aed6019dba7216841ad16cb0b66759b57ed3f5fe16502a905"
+        }
+      ]
+    }
+  },
+  "inputs": {
+    "prompt_512": {
+      "media_type": "text/plain",
+      "sha256": "980524e65ec3e2de160ada7210bbcb8b4af6cf2218a8eb4f09c2f4876012c575",
+      "size": 1983,
+      "description": "Fixed text that renders to 512 tokens with the Muse no-thinking chat template.",
+      "repo_path": "ops/spark/prompts/muse/512.txt"
+    },
+    "prompt_2048": {
+      "media_type": "text/plain",
+      "sha256": "cdd5010713af776ea7711a30a490479b33781335a1c63672aa8547a096b2833d",
+      "size": 10234,
+      "description": "Fixed text that renders to 2048 tokens with the Muse no-thinking chat template.",
+      "repo_path": "ops/spark/prompts/muse/2048.txt"
+    }
+  },
+  "workload": {
+    "tool": "llama-server",
+    "argv": [
+      "-m",
+      "{model}",
+      "-lm",
+      "mmap",
+      "--cpu-moe",
+      "--moe-cache-cpu-share",
+      "0",
+      "-fit",
+      "on",
+      "-lv",
+      "4",
+      "-c",
+      "8192",
+      "-np",
+      "1",
+      "-b",
+      "2048",
+      "-ub",
+      "2048",
+      "--moe-cache-mib",
+      "62464",
+      "--swa-full",
+      "--ctx-checkpoints",
+      "32"
+    ],
+    "env": {},
+    "requests": [
+      {
+        "id": "p512",
+        "input": "prompt_512",
+        "params": {
+          "n_predict": 32,
+          "temperature": 0,
+          "seed": 1,
+          "cache_prompt": false,
+          "chat_template_kwargs": {
+            "reasoning_effort": "low",
+            "current_date": "2026-11-30"
+          }
+        },
+        "expect": {
+          "rendered_prompt_tokens": 512
+        }
+      },
+      {
+        "id": "p2048",
+        "input": "prompt_2048",
+        "params": {
+          "n_predict": 32,
+          "temperature": 0,
+          "seed": 1,
+          "cache_prompt": false,
+          "chat_template_kwargs": {
+            "reasoning_effort": "low",
+            "current_date": "2026-11-30"
+          }
+        },
+        "expect": {
+          "rendered_prompt_tokens": 2048
+        }
+      },
+      {
+        "id": "p512_followup",
+        "input": "prompt_512",
+        "params": {
+          "n_predict": 32,
+          "temperature": 0,
+          "seed": 1,
+          "cache_prompt": true,
+          "chat_template_kwargs": {
+            "reasoning_effort": "low",
+            "current_date": "2026-11-30"
+          }
+        },
+        "expect": {
+          "rendered_prompt_tokens": 512
+        }
+      },
+      {
+        "id": "p2048_followup",
+        "input": "prompt_2048",
+        "params": {
+          "n_predict": 32,
+          "temperature": 0,
+          "seed": 1,
+          "cache_prompt": true,
+          "chat_template_kwargs": {
+            "reasoning_effort": "low",
+            "current_date": "2026-11-30"
+          }
+        },
+        "expect": {
+          "rendered_prompt_tokens": 2048
+        }
+      }
+    ]
+  },
+  "arms": [
+    {
+      "id": "AQBC",
+      "role": "baseline",
+      "summary": "Released AQBC with pinned mixed pack, prefill plan and prompt reuse."
+    },
+    {
+      "id": "AQBCD",
+      "role": "candidate",
+      "from": "AQBC",
+      "summary": "AQBC plus default-off gated batching of compatible routed-expert launches."
+    }
+  ],
+  "measurement": {
+    "primary": "decode_tokens_per_second",
+    "metrics": {
+      "decode_tokens_per_second": {
+        "unit": "tokens/s",
+        "better": "higher",
+        "how": "Generated tokens after the first, over the time they took, from the server's timings."
+      },
+      "client_ttft_ms": {
+        "unit": "ms",
+        "better": "lower",
+        "how": "Client clock from sending the request to the first streamed token."
+      },
+      "request_total_ms": {
+        "unit": "ms",
+        "better": "lower",
+        "how": "Client clock from sending the request to the last streamed token (32 generated tokens)."
+      },
+      "sampled_peak_memory_bytes": {
+        "unit": "bytes",
+        "better": "lower",
+        "how": "Highest sampled resident memory of the engine process group under the cap."
+      },
+      "device_peak_mib": {
+        "unit": "MiB",
+        "better": "lower",
+        "how": "Peak of the comparable device-budget accounting categories for the full run."
+      }
+    },
+    "protocol": {
+      "repeats": 3,
+      "order": "sequential",
+      "discard_first_request": false,
+      "cold_load": "included",
+      "notes": "Repeat seeded 512/2048 first requests and same-document follow-up pairs, comparing AQBC to AQBCD on the same target. Record startup separately and retain background activity. Within three serial capped loads total, use the third only for the off-switch control if necessary."
+    }
+  },
+  "correctness": {
+    "equivalence": "bit_exact_tokens",
+    "reference": {
+      "arm": "AQBC"
+    },
+    "checks": [
+      {
+        "id": "token_identity",
+        "does": "Same deterministic generated tokens in AQBC, AQBCD with batching on and AQBCD with batching off.",
+        "applies_to": [
+          "AQBC",
+          "AQBCD"
+        ]
+      },
+      {
+        "id": "prefix_reuse",
+        "does": "Record comparable restored token counts for both same-document lengths with reuse enabled.",
+        "applies_to": [
+          "AQBC",
+          "AQBCD"
+        ]
+      },
+      {
+        "id": "dispatch_off_switch",
+        "does": "Show the off switch reaches the original implementation and agrees with AQBC under the same workload.",
+        "applies_to": [
+          "AQBCD"
+        ]
+      }
+    ]
+  },
+  "acceptance": {
+    "rules": [
+      "If the pinned AQBC backend already batches eligible shapes or no eligible shape is proven, halt before any candidate build, retain the native trace and leave AQBC released.",
+      "On the same target and seeded workloads, require repeatable AQBCD decode improvement beyond repeat variation, identical generated tokens, unchanged prefix reuse, at most 10% first-token and total latency regression, and compliance with both memory caps.",
+      "By Nov 29 18:00 ET, publish the lab verdict if the candidate qualified and was delivered; absent acceptance leave AQBC released."
+    ]
+  },
+  "limits": {
+    "memory_bytes": 103079215104,
+    "cpus": 16,
+    "start_available_bytes": 107374182400,
+    "watchdog_available_bytes": 8589934592
+  },
+  "execution": {
+    "by": "factory_lab",
+    "lab_profile": "spark-gb10",
+    "notes": "Factory stage never loads Muse. Only the independent lab after an accepted delivery may run up to three serial owner-gated capped loads under 96 GiB with no swap; 110000 MiB device budget and one model at a time."
+  },
+  "revisions": [],
+  "provenance": {
+    "notes": [
+      "Owner 018 selects candidate 1 and supersedes withdrawn 012.",
+      "The released AQBC image and the native release receipt are pinned by the operator parent reference."
+    ]
+  },
+  "extensions": {
+    "factory.node-contracts": {
+      "format": "factory.node-contracts/1",
+      "nodes": [
+        {
+          "node_id": "pin_inputs",
+          "kind": "inspect",
+          "objective": "Record the verified released AQBC image, engine source, mixed pack, prefill and launch configuration.",
+          "requirement_ids": [],
+          "predecessors": [],
+          "inputs": [],
+          "outputs": [
+            {
+              "name": "pinned_inputs",
+              "kind": "evidence",
+              "criteria": [
+                "Cite the host-imported, SHA-256-verified AQBC parent reference."
+              ]
+            }
+          ],
+          "evidence_obligations": [
+            "captured_input_and_output",
+            "invocation_observation"
+          ],
+          "node_limits": {
+            "turns": 15,
+            "build_attempts": 0,
+            "gpu_launches": 0,
+            "time_s": 3600
+          },
+          "authority_ceiling": {
+            "effects": [
+              "process.exec"
+            ],
+            "workspace": "none"
+          },
+          "work": {
+            "helpful_ccs": [
+              "engine.gpu_kernel_lab"
+            ],
+            "eligible_ccs": [
+              "engine.gpu_kernel_lab"
+            ]
+          },
+          "verifiers": [
+            {
+              "output": "pinned_inputs"
+            }
+          ],
+          "hands_to": "trace_dispatch",
+          "stage": "preliminary",
+          "slots": [
+            {
+              "id": "bind",
+              "at": "work.bound_ccs",
+              "kind": "ccs",
+              "from": "Bind every named capsule needed for this node."
+            }
+          ],
+          "briefing": {
+            "summary": "Record the verified released AQBC image, engine source, mixed pack, prefill and launch configuration.",
+            "how_to_fill": [
+              "Bind engine.gpu_kernel_lab. Check pinned_inputs with refs.evidence_ids listing the prior-aqbc_parent artifact or its operator_input observation. Read no model weights."
+            ]
+          }
+        },
+        {
+          "node_id": "trace_dispatch",
+          "kind": "inspect",
+          "objective": "Trace the actual AQBC CUDA routed-expert dispatch for common decode shapes and determine whether an eligible unbatched shape exists.",
+          "requirement_ids": [],
+          "predecessors": [
+            "pin_inputs"
+          ],
+          "inputs": [],
+          "outputs": [
+            {
+              "name": "dispatch_trace",
+              "kind": "evidence",
+              "criteria": [
+                "Trace the pinned compiled backend and visited routing paths for both AQBC quantized expert formats. Seal eligibility and may_build. A confirmed already-batched or no-eligible-shape result satisfies this check and stops the project before candidate work."
+              ]
+            }
+          ],
+          "evidence_obligations": [
+            "captured_input_and_output",
+            "invocation_observation"
+          ],
+          "node_limits": {
+            "turns": 15,
+            "build_attempts": 0,
+            "gpu_launches": 0,
+            "time_s": 3600
+          },
+          "authority_ceiling": {
+            "effects": [
+              "process.exec"
+            ],
+            "workspace": "none"
+          },
+          "work": {
+            "helpful_ccs": [
+              "engine.gpu_kernel_lab"
+            ],
+            "eligible_ccs": [
+              "engine.gpu_kernel_lab"
+            ]
+          },
+          "verifiers": [
+            {
+              "output": "dispatch_trace",
+              "verifier": "engine.gpu_kernel_lab.trace_dispatch",
+              "stage": "native CC execution",
+              "review": false,
+              "seal": "dispatch_trace",
+              "inputs": {
+                "request": {
+                  "parent": {
+                    "path": "${FACTORY_MUSE_DEMO}/r10/parent-reference.json",
+                    "sha256": "cc7332b247770208f3c6e3808d062b11a6c7686c0c7e7c82d99345902f9c69c0"
+                  },
+                  "source_root": "${FACTORY_MUSE_DEMO}/graph-r8/agent-workspace/llama.cpp-muse"
+                }
+              }
+            }
+          ],
+          "hands_to": "verify_fixtures",
+          "stage": "preliminary",
+          "slots": [
+            {
+              "id": "bind",
+              "at": "work.bound_ccs",
+              "kind": "ccs",
+              "from": "Bind every named capsule needed for this node."
+            }
+          ],
+          "briefing": {
+            "summary": "Trace the actual AQBC CUDA routed-expert dispatch for common decode shapes and determine whether an eligible unbatched shape exists.",
+            "how_to_fill": [
+              "Bind engine.gpu_kernel_lab. Invoke factory.node_check.start for dispatch_trace with refs.evidence_ids citing the accepted pinned_inputs check. Omit verifier_inputs; the host pins this request.",
+              "After the check passes read its sealed dispatch_trace, mark the node done citing the accepted node_check. With may_build false, do not patch, build, deliver or load. Publish native stop_missing_prerequisite citing the accepted trace_dispatch node_check observation ID and give the exact eligibility as action.eligibility. Explain the observed stop reason in action.reason."
+            ]
+          }
+        },
+        {
+          "node_id": "verify_fixtures",
+          "kind": "integrate",
+          "objective": "Only after positive dispatch eligibility, create and verify a gateable D patch against original quantized paths.",
+          "requirement_ids": [],
+          "predecessors": [
+            "trace_dispatch"
+          ],
+          "inputs": [
+            {
+              "name": "dispatch_trace",
+              "from": "trace_dispatch.dispatch_trace"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "candidate_patch",
+              "kind": "diff",
+              "criteria": [
+                "Keep routes, quantized dot and accumulation order, gate weights and existing fallback unchanged. Default off."
+              ]
+            },
+            {
+              "name": "fixture_evidence",
+              "kind": "evidence",
+              "criteria": [
+                "Check repeated experts, unequal gates, partial tiles, both AQBC formats, all routes exactly once, independent original-path output and off-switch behavior using small fixtures without Muse."
+              ]
+            }
+          ],
+          "evidence_obligations": [
+            "captured_input_and_output",
+            "invocation_observation"
+          ],
+          "node_limits": {
+            "turns": 15,
+            "build_attempts": 0,
+            "gpu_launches": 0,
+            "time_s": 3600
+          },
+          "authority_ceiling": {
+            "effects": [
+              "process.exec"
+            ],
+            "workspace": "none"
+          },
+          "work": {
+            "helpful_ccs": [
+              "engine.gpu_kernel_lab"
+            ],
+            "eligible_ccs": [
+              "engine.gpu_kernel_lab"
+            ]
+          },
+          "verifiers": [
+            {
+              "output": "candidate_patch",
+              "review": true
+            },
+            {
+              "output": "fixture_evidence",
+              "verifier": "engine.gpu_kernel_lab.verify_candidate",
+              "stage": "native CC execution",
+              "review": false,
+              "seal": "fixture_evidence"
+            }
+          ],
+          "hands_to": "build_image",
+          "stage": "preliminary",
+          "slots": [
+            {
+              "id": "bind",
+              "at": "work.bound_ccs",
+              "kind": "ccs",
+              "from": "Bind every named capsule needed for this node."
+            }
+          ],
+          "briefing": {
+            "summary": "Only after positive dispatch eligibility, create and verify a gateable D patch against original quantized paths.",
+            "how_to_fill": [
+              "Bind engine.gpu_kernel_lab. This node is conditional: no work unless the accepted trace seals may_build true.",
+              "Use the gated implementation and compare with the original quantized path using small fixtures. Record patch and fixture digests."
+            ]
+          }
+        },
+        {
+          "node_id": "build_image",
+          "kind": "build",
+          "objective": "Build one reproducible candidate from the accepted D source and preserve the AQBC launch config and pack.",
+          "requirement_ids": [],
+          "predecessors": [
+            "verify_fixtures"
+          ],
+          "inputs": [
+            {
+              "name": "fixture_evidence",
+              "from": "verify_fixtures.fixture_evidence"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "image",
+              "kind": "image",
+              "criteria": [
+                "The native builder receipt binds the successful image to the admitted D source revision and its patch digest."
+              ]
+            }
+          ],
+          "evidence_obligations": [
+            "captured_input_and_output",
+            "invocation_observation"
+          ],
+          "node_limits": {
+            "turns": 15,
+            "build_attempts": 1,
+            "gpu_launches": 0,
+            "time_s": 3600
+          },
+          "authority_ceiling": {
+            "effects": [
+              "process.exec"
+            ],
+            "workspace": "none"
+          },
+          "work": {
+            "helpful_ccs": [
+              "factory.builder",
+              "engine.gpu_kernel_lab"
+            ],
+            "eligible_ccs": [
+              "factory.builder",
+              "engine.gpu_kernel_lab"
+            ]
+          },
+          "verifiers": [
+            {
+              "output": "image"
+            }
+          ],
+          "hands_to": "deliver_to_lab",
+          "stage": "preliminary",
+          "slots": [
+            {
+              "id": "bind",
+              "at": "work.bound_ccs",
+              "kind": "ccs",
+              "from": "Bind every named capsule needed for this node."
+            }
+          ],
+          "briefing": {
+            "summary": "Build one reproducible candidate from the accepted D source and preserve the AQBC launch config and pack.",
+            "how_to_fill": [
+              "Bind factory.builder and engine.gpu_kernel_lab. Perform only the approved build after the accepted patch and fixture evidence; no Muse load."
+            ]
+          }
+        },
+        {
+          "node_id": "deliver_to_lab",
+          "kind": "deliver",
+          "objective": "Deliver the checked candidate image with its test requirements; the target lab supplies independent acceptance.",
+          "requirement_ids": [
+            "AQBC",
+            "AQBCD",
+            "token_identity",
+            "prefix_reuse",
+            "dispatch_off_switch",
+            "decode_tokens_per_second",
+            "client_ttft_ms",
+            "request_total_ms",
+            "sampled_peak_memory_bytes",
+            "device_peak_mib"
+          ],
+          "predecessors": [
+            "build_image"
+          ],
+          "inputs": [
+            {
+              "name": "image",
+              "from": "build_image.image"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "lab_package",
+              "kind": "lab_request",
+              "criteria": [
+                "Seal the exact AQBC control and checked AQBCD candidate images, unchanged workload, and every declared check and metric."
+              ]
+            }
+          ],
+          "evidence_obligations": [
+            "captured_input_and_output",
+            "invocation_observation"
+          ],
+          "node_limits": {
+            "turns": 15,
+            "build_attempts": 0,
+            "gpu_launches": 0,
+            "time_s": 3600
+          },
+          "authority_ceiling": {
+            "effects": [
+              "process.exec"
+            ],
+            "workspace": "none"
+          },
+          "work": {
+            "helpful_ccs": [
+              "factory.lab_manager"
+            ],
+            "eligible_ccs": [
+              "factory.lab_manager"
+            ]
+          },
+          "verifiers": [
+            {
+              "output": "lab_package"
+            }
+          ],
+          "hands_to": "lab_manager",
+          "stage": "preliminary",
+          "slots": [
+            {
+              "id": "bind",
+              "at": "work.bound_ccs",
+              "kind": "ccs",
+              "from": "Bind every named capsule needed for this node."
+            }
+          ],
+          "briefing": {
+            "summary": "Deliver the checked candidate image with its test requirements; the target lab supplies independent acceptance.",
+            "how_to_fill": [
+              "Bind factory.lab_manager. Attach verified dispatch, patch, fixture and build evidence. Seal the original AQBC and candidate arm subjects and the exact frozen tests.",
+              "Use the mailbox route. Sending this package cannot authorize a capped model load. The lab agent runs the acceptance independently."
+            ]
+          }
+        }
+      ]
+    },
+    "muse.r10-dispatch": {
+      "baseline": {
+        "image_id": "sha256:cf1a657366c6884b76d15e117b14ee579ff6c444d08eb387b01fbb17702724fe",
+        "binary_sha256": "b5eb66eb77626bf1af51eca6f7bcb1a523844dc970339fd72fbb2356b9f2a406",
+        "engine_source": {
+          "commit": "17e4594f0bfb7eacd3ce5d2d0dd16fb61ba9f817",
+          "tree": "ea462e577e1054d4752504065d4eefa3941e8fa5"
+        },
+        "pack_manifest_sha256": "806c5d5e4f34450aed6019dba7216841ad16cb0b66759b57ed3f5fe16502a905",
+        "prefill_plan_sha256": "63d81c1fb74c2ebe24caaf9878c8e6679527d0a0f391aa009a8733812520dff2",
+        "launch_config": {
+          "args": [
+            "-lm",
+            "mmap",
+            "--cpu-moe",
+            "--moe-cache-cpu-share",
+            "0",
+            "-fit",
+            "on",
+            "-lv",
+            "4",
+            "-c",
+            "8192",
+            "-np",
+            "1",
+            "-b",
+            "2048",
+            "-ub",
+            "2048",
+            "--moe-cache-mib",
+            "62464",
+            "--swa-full",
+            "--ctx-checkpoints",
+            "32"
+          ],
+          "format": "factory.r9-launch/1",
+          "request": {
+            "cache_prompt": true
+          }
+        },
+        "launch_config_sha256": "a98b2b862c1d676f4e225f5d0a27e87848f9648ffa0ec8e152a4e3ba9142b15d"
+      },
+      "parent_reference": {
+        "path": "${FACTORY_MUSE_DEMO}/r10/parent-reference.json",
+        "sha256": "cc7332b247770208f3c6e3808d062b11a6c7686c0c7e7c82d99345902f9c69c0"
+      },
+      "target_deadline": "2026-11-29T18:00:00-05:00",
+      "max_serial_muse_loads": 3,
+      "device_budget_mib": 110000,
+      "memory_cap": "96G",
+      "swap_cap": 0,
+      "latency_regression_fraction": 0.1
+    }
+  }
+}
