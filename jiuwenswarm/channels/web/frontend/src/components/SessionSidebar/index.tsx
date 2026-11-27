@@ -31,6 +31,7 @@ interface SessionSidebarProps {
   showNewSession?: boolean;
   hiddenNavItems?: MainNavKey[];
   availableNavItems?: readonly MainNavKey[];
+  hideUnavailableNavItems?: boolean;
   applicationPlugins?: ApplicationPluginContribution[];
 }
 
@@ -107,6 +108,7 @@ export function SessionSidebar({
   showNewSession = true,
   hiddenNavItems = [],
   availableNavItems,
+  hideUnavailableNavItems = false,
   applicationPlugins = [],
 }: SessionSidebarProps) {
   const { t } = useTranslation();
@@ -134,7 +136,8 @@ export function SessionSidebar({
       icon: <PluginIcon aria-hidden />,
     }));
   const visibleMainNavItems = [...mainNavItems, ...applicationPluginItems]
-    .filter((item) => !hiddenNavItems.includes(item.key));
+    .filter((item) => !hiddenNavItems.includes(item.key))
+    .filter((item) => !hideUnavailableNavItems || !availableNavItems || availableNavItems.includes(item.key));
   // 定时任务（cron）是"任务"区内与会话同级的视图，没有独立的导航图标，
   // 因此进入定时任务时"任务"导航项也应保持选中态
   const isNavItemActive = (item: NavItem) =>

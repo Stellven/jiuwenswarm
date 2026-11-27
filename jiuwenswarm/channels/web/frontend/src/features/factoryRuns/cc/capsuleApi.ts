@@ -1,4 +1,5 @@
 import { getApiBase } from '../../../utils/env';
+import { staticBuild, staticJson } from '../staticData';
 import type { CapsuleActivity, EvidenceFile, NodeCapsuleActivity } from '../api';
 
 export type CapsuleCard = {
@@ -156,7 +157,9 @@ export type CapsuleCatalog = {
 export type CapsuleFile = EvidenceFile & { content: string; parsed: unknown; truncated: boolean };
 
 async function request<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(`${getApiBase()}/api/factory/capsules${path}`, { signal });
+  const endpoint = `/api/factory/capsules${path}`;
+  if (staticBuild) return staticJson<T>(endpoint, { signal });
+  const response = await fetch(getApiBase() + endpoint, { signal });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw new Error(typeof body.detail === 'string' ? body.detail : String(response.status));

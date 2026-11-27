@@ -16,6 +16,7 @@ import { type CopyKey, useCapsuleCopy } from './copy';
 import { capsuleHref } from './navigation';
 import { demoCapsuleIds, inferenceCapsules, prefixReuseId } from './inferenceCapsuleCopy';
 import { PrefixReuseEvidence } from './PrefixReuseEvidence';
+import { staticBuild } from '../staticData';
 import { useCapsuleResource } from './useCapsuleResource';
 import './capsules.css';
 
@@ -665,7 +666,7 @@ export function CapsulesPage({ name }: { name?: string }) {
   const detail = useCapsuleResource(name, capsuleApi.detail, refresh);
   const watchingLive = detail.data?.evidence?.node_activity?.some((row) => row.live);
   useEffect(() => {
-    if (!watchingLive || !name) return;
+    if (staticBuild || !watchingLive || !name) return;
     const timer = window.setInterval(() => setRefresh((value) => value + 1), 5000);
     return () => window.clearInterval(timer);
   }, [watchingLive, name]);

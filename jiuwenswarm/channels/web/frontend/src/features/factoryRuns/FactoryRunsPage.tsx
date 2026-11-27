@@ -48,6 +48,7 @@ import { capsuleApi, type CapsuleCard } from './cc/capsuleApi';
 import { useCapsuleCopy } from './cc/copy';
 import { capsuleHref, runFilesHref, runHref, type FactoryEntry } from './cc/navigation';
 import { useCapsuleResource } from './cc/useCapsuleResource';
+import { hasStaticRun, staticBuild } from './staticData';
 import './factoryRuns.css';
 
 const catalogRequest = (_key: string, signal: AbortSignal) => capsuleApi.catalog(signal, false);
@@ -169,7 +170,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
     void refresh();
   }, [refresh]);
   useEffect(() => {
-    if (!listing.live_demos_enabled) return;
+    if (staticBuild || !listing.live_demos_enabled) return;
     let stopped = false;
     let timer: number;
     const poll = async () => {
@@ -203,7 +204,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
           liveDemoEvents.current = result.events;
           // A curated replay is a stepper: open on step 1, not on the end.
           setPosition(result.curated ? Math.min(1, result.events.length) : result.events.length);
-          if (result.run.featured && result.controls?.running && !result.curated) setLive(true);
+          if (!staticBuild && result.run.featured && result.controls?.running && !result.curated) setLive(true);
           if (result.session) setSession(result.session);
         }
       })
@@ -217,7 +218,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
       active = false;
     };
   }, [selected, refreshVersion]);
-  const isLiveHome = detail?.run.id === selected && detail.run.kind === 'live' && !detail.run.read_only && !detail.curated;
+  const isLiveHome = !staticBuild && detail?.run.id === selected && detail.run.kind === 'live' && !detail.run.read_only && !detail.curated;
   const controls = detail && runStatus?.id === selected ? runStatus.controls : detail?.controls;
   const status = detail && runStatus?.id === selected ? runStatus.run_state : detail?.run_state;
   const presentation = detail?.curated?.presentation_header;
@@ -228,7 +229,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   const contractEvidence = Boolean(presentation || liveDemo);
   const listedLiveDemo = listing.runs.some((run) => run.id === selected && run.live_demo);
   useEffect(() => {
-    if (loading || publishedReport || (!liveDemo && !listedLiveDemo)) return;
+    if (staticBuild || loading || publishedReport || (!liveDemo && !listedLiveDemo)) return;
     const controller = new AbortController();
     let timer: number;
     const poll = async () => {
@@ -517,7 +518,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
     setFocusedRecordId(id);
   };
   const selectRun = (id: string) => {
-    if (id === selected) return;
+    if (id === selected || (staticBuild && !hasStaticRun(id))) return;
     window.history.replaceState(window.history.state, '', runHref(id));
     selectedRef.current = id;
     setSelected(id);
@@ -533,6 +534,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
     setFilePath('');
   };
   const openIterationChild = (id: string, panel: Panel, sourceId?: string, sha256?: string) => {
+    if (staticBuild && !hasStaticRun(id)) return;
     selectRun(id);
     setPanel(panel);
     setChildSource(sourceId ? { id: sourceId, sha256 } : undefined);
@@ -551,6 +553,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
     selectPanel(/(?:^|\/)report[^/]*\.md$/i.test(path) ? 'report' : 'artifacts', path);
   const openActivityRecord: ActivityLink = (source) => {
     if (source.path && source.source_run_id && source.source_run_id !== selected) {
+      if (staticBuild && !hasStaticRun(source.source_run_id)) return;
       window.location.hash = runHref(source.source_run_id, source.path);
     } else if (source.path && (transcriptActivity(source) || !eventRefs.has(source.id))) {
       openEvidenceFile(source.path);
@@ -633,7 +636,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
       <aside className="factory-rail" data-testid="factory-runs-rail">
         <div className="factory-heading">
           <h1 data-testid="factory-runs-title">{t('factoryRuns.title')}</h1>
-          <button
+          {!staticBuild && <button
             className="factory-story-icon-button"
             type="button"
             data-testid="factory-runs-refresh"
@@ -646,9 +649,9 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
             }}
           >
             <RefreshCw aria-hidden size={16} />
-          </button>
+          </button>}
         </div>
-        {(!engineViewer || listing.runs.some((run) => run.contract_demo)) && <button
+        {!staticBuild && (!engineViewer || listing.runs.some((run) => run.contract_demo)) && <button
           className="factory-story-launch-button"
           type="button"
           data-testid="factory-runs-launch-button"
@@ -1034,7 +1037,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                   onOpenReport={(runId, reportId, sha256) => openIterationChild(runId, 'report', reportId, sha256)}
                 />
               )}
-              {panel === 'artifacts' && (detail.run.original_run_id || detail.run.demo_replay_id) && (
+              {!staticBuild && panel === 'artifacts' && (detail.run.original_run_id || detail.run.demo_replay_id) && (
                 <div className="factory-original-files" data-testid="factory-runs-source-files">
                   {detail.run.original_run_id ? (
                     <a href={runFilesHref(detail.run.original_run_id)} data-testid="factory-runs-open-original-files">

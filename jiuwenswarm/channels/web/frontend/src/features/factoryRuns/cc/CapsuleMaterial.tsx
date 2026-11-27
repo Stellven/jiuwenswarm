@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { factoryApi, type EvidenceFile } from '../api';
+import { staticBuild } from '../staticData';
 import { AnalysisData } from './AnalysisData';
 import { capsuleApi, type CapsuleFile } from './capsuleApi';
 import { isRecord, localMaterial, numericColumns, readableName, tableData } from './capsuleModel';
@@ -70,7 +71,7 @@ export function SafeMarkdown({
                   {children}
                 </button>
               );
-            if (href?.startsWith('https://'))
+            if (!staticBuild && href?.startsWith('https://'))
               return (
                 <a href={href} target="_blank" rel="noreferrer" data-testid="factory-runs-capsule-external-link">
                   {children}
