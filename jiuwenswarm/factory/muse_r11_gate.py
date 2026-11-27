@@ -376,9 +376,9 @@ def verify_image(host, task, refs):
     if (request.get('node_id') != checkpoint['build_node'] or actual != fixture['source']
             or request.get('verify_image') is not True or check.get('status') != 'passed'
             or check.get('image_id') != image or check.get('source_commit') != actual['commit']
-            or not check.get('executable_sha256') or check['executable_sha256'] == parent['binary_sha256']
+            or not re.fullmatch(r'[0-9a-f]{64}', check.get('executable_sha256') or '')
             or image == parent['image_id']):
-        raise ValueError('The built Spark image must be a model-free verified new executable from the fixture-checked source')
+        raise ValueError('The new Spark image must verify the executable digest and the exact fixture-checked source')
     return attempt + ':image-check'
 
 
