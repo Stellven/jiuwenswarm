@@ -18,8 +18,8 @@ const nodeTitles: Record<string, string> = {
   build_image: 'Build image', deliver_to_lab: 'Deliver to lab',
 };
 const featured: Record<string, string> = {
-  'weights.build_weight_pack_compiler': 'The mixed pack occupies 267.2 GB, down from 528.9 GB.',
-  'engine.size_prefill_batch': 'The plan raised the mixed-pack microbatch from 512 to 2048. NVFP4 kept its defaults.',
+  'weights.build_weight_pack_compiler': 'Quantization CC Q compiled the 267.2 GB mixed pack from the 528.9 GB NVFP4 pack.',
+  'engine.size_prefill_batch': 'Prefill CC B raised the mixed-pack microbatch from 512 to 2048. NVFP4 kept its defaults.',
 };
 
 function CapsuleNode({ detail, node, capsule }: { detail: RunDetail; node: string; capsule: string }) {

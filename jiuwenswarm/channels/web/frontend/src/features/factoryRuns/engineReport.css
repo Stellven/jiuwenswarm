@@ -154,10 +154,7 @@
 .engine-series[data-arm='A'] {
   color: #1858a0;
 }
-.engine-series[data-arm='B'] {
-  color: #9b4a16;
-}
-.engine-series[data-arm='P'] {
+.engine-series[data-arm='AQB'] {
   color: #087668;
 }
 
