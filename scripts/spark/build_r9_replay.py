@@ -161,12 +161,12 @@ class Replay(Builder):
         self.files[path] = dict(source='record_projection', sources=sources, display_name=label, sha256=sha(raw), size=len(raw))
         return dict(path=path, label=label)
 
-    def step(self, title, node, say, primary, files, *, refs=(), **extra):
+    def step(self, title, node, say, primary, files, *, refs=(), recorded_summary=None, **extra):
         primary_ref = self.ref(primary)
         self.steps.append(dict(
             step=len(self.steps) + 1, presentation_title=title, node_id=node, graph_nodes=[node],
             say=say, original_kind=primary.get('kind', primary_ref['table'].rstrip('s')),
-            original_summary=primary.get('values', {}).get('reason') or say,
+            original_summary=recorded_summary or primary.get('values', {}).get('reason') or say,
             created=primary['created'], created_utc=utc(primary['created']),
             primary_record=primary_ref['id'], records=[primary_ref, *(self.ref(row) for row in refs if row != primary)],
             key_files=files, files=[item['path'] for item in files], **extra,
@@ -314,9 +314,8 @@ class Replay(Builder):
         if not check:
             return None
         review = check['values'].get('review') or {}
-        findings = [finding for finding in review.get('findings', [])
-                    if 'null' in finding.get('problem', '').lower()]
-        if not review.get('advisory') or not findings:
+        findings = review.get('findings', [])
+        if not review.get('advisory') or not any('null' in finding.get('problem', '').lower() for finding in findings):
             return None
         name = 'p2048-followup-follow-up-0-aqbc.json'
         identity = f"run-{run['values']['attempt_id'][:12]}-{name}"
@@ -336,9 +335,11 @@ class Replay(Builder):
         facts = dict(source=source, bytes=self.registry[identity]['size'], null_sha256=sha(b'null'),
                      cached_tokens=measured['reuse']['cached_tokens'], ttft_ms=measured['derived_ttft_ms'],
                      quiet_samples=len(measured['quiet']['samples']))
-        return self.projection('runtime-advisory-review', 'Advisory finding, operator note and retained follow-up evidence',
-                               dict(check_id=check['obs_id'], findings=findings, operator_note=note, evidence=facts),
+        link = self.projection('runtime-advisory-review', 'Read the original advisory review and operator response',
+                               dict(check_id=check['obs_id'], review=review, findings=findings,
+                                    operator_note=note, evidence=facts),
                                [self.ref(check), note_ref, self.ref(run), source])
+        return link, facts
 
     def runtime(self, files, run, check):
         if not run:
@@ -413,9 +414,6 @@ class Replay(Builder):
                     )
                 shown['mmlu_identity'] = accuracy
         files.append(self.projection('runtime', 'Same-load speed, follow-up reuse and MMLU identity', shown, refs))
-        note = self.review_note(run, check, manifest)
-        if note:
-            files.append(note)
         if check and check['values']['passed'] is True:
             return 'The host runtime check passed.' + comparisons
         if check:
@@ -499,6 +497,19 @@ class Replay(Builder):
                 if amendments:
                     files.append(amendments)
                 summary = self.runtime(files, run, measured)
+                advisory = self.review_note(run, measured, run['values']['result']) if run and measured else None
+                if advisory:
+                    link, facts = advisory
+                    files.append(link)
+                    if verdict['status'] == 'released' and len(measured['values']['review']['findings']) == 2:
+                        extra['recorded_summary'] = (
+                            "The advisory reviewer raised two concerns. It mistook the follow-up file’s SHA-256 "
+                            f"({facts['source']['sha256'][:8]}…) for the hash of null ({facts['null_sha256'][:8]}…) "
+                            "and asked whether activity on the shared machine had been recorded. "
+                            f"The operator checked the file and found {facts['cached_tokens']:,} cached tokens, "
+                            f"{facts['ttft_ms'] / 1000:.1f} seconds to first token and {facts['quiet_samples']} activity samples. "
+                            "The runtime checker passed, and the release gate accepted the engine."
+                        )
             if node == 'release_gate':
                 files.append(self.projection('release', 'Release status and native decision', verdict,
                                              [self.ref(row) for row in (release, measured, decision) if row]))
