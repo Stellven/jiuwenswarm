@@ -39,8 +39,8 @@ import uuid
 from . import capped_replay
 from .store import ScopeDenied, Store
 
-RECIPES = ('build', 'convert', 'quantize', 'serve', 'accuracy', 'manifest')
-MODEL_LOADS = {'convert', 'quantize', 'serve', 'accuracy'}
+RECIPES = ('build', 'convert', 'quantize', 'serve', 'accuracy', 'manifest', 'muse_r9_measure')
+MODEL_LOADS = {'convert', 'quantize', 'serve', 'accuracy', 'muse_r9_measure'}
 # attempt kind: build counts against build_attempts, model_run against gpu_launches; manifest (hashing files) neither
 KIND = {'build': 'build', 'manifest': 'manifest'}
 REPLAY_KIND = 'pack_replay'
@@ -225,12 +225,15 @@ def _prompts(store, task, values):
     return out
 
 
-def validate(store, task_id, recipe, args):
+def validate(store, task_id, recipe, args, *, node_id=None):
     """The full, checked request a job runs; raises on anything a recipe does not allow."""
     task = _task(store, task_id)
     home = _home(store)
     if recipe not in RECIPES:
         raise ValueError(f'recipe is one of {RECIPES}')
+    if recipe == 'muse_r9_measure':
+        from .muse_r9_measure import admit
+        return admit(getattr(store, '_store', store), task_id, args, node_id)
     if isinstance(args, dict) and 'replay' in args:
         return _validate_replay(store, task, recipe, args)
     req = dict(recipe=recipe)
@@ -349,7 +352,7 @@ def dispatch(store, task_id, operation, inputs):
         replaying = isinstance(inputs['args'], dict) and 'replay' in inputs['args']
         if not replaying and inputs['recipe'] in MODEL_LOADS and not (task.get('constraints') or {}).get('model_runs'):
             raise ScopeDenied('This task does not allow model runs (constraints.model_runs)')
-        req = validate(store, task_id, inputs['recipe'], inputs['args'])
+        req = validate(store, task_id, inputs['recipe'], inputs['args'], node_id=inputs.get('node_id'))
         kind = REPLAY_KIND if replaying else KIND.get(req['recipe'], 'model_run')
         if inputs.get('node_id'):
             req['node_id'] = inputs['node_id']
@@ -773,9 +776,9 @@ def server_error(log, tail_bytes=200_000):
 
 
 class Server:
-    def __init__(self, run, server, model, server_args, env, log_name):
+    def __init__(self, run, server, model, server_args, env, log_name, *, log_path=None):
         self.run, self.port = run, _free_port()
-        self.log = run.dir / log_name
+        self.log = Path(log_path) if log_path is not None else run.dir / log_name
         run.files[log_name] = self.log
         bindir = str(Path(server).parent)
         server_args, self.placement = placement_args(server_args, run.task)
@@ -1010,6 +1013,11 @@ def _run_replay(run):
     run.files['pack-manifest.json'] = copy
     run.log('replay verified', result['bytes'], 'bytes and', result['tensors'], 'tensors')
     return dict(result, replayed_from=source, seconds=round(time.monotonic() - started, 1))
+
+
+def recipe_muse_r9_measure(run):
+    from .muse_r9_measure import execute
+    return execute(run)
 
 
 def recipe_wire_fixture(run):
