@@ -127,7 +127,7 @@ class Replay(Builder):
         native = [row for row in self.observations if row['kind'] == 'taskgraph_patch'
                   and any(change.get('node_id') == node for changes in row['values']['patch'].values()
                           if isinstance(changes, list) for change in changes if isinstance(change, dict))]
-        return [self.projection(node, 'Node state and Factory checks',
+        return [self.projection(node, 'Node state and recorded verification',
                                 dict(node=self.nodes[node], checks=[self.observation(row) for row in self.checks(node)]),
                                 [self.ref(row) for row in [*native, *self.checks(node)]])]
 
@@ -604,7 +604,7 @@ class Replay(Builder):
                     stage, refs = sealed
                     summary = (f"The factory built image {stage['image_id'].split(':')[-1][:12]} with the prefix reuse configuration. "
                                "It verified that the image retained the original server binary and mixed pack.")
-                    files.append(self.projection('factory-stage', 'Factory stage · Checked image, unchanged inputs and launch configuration',
+                    files.append(self.projection('factory-stage', 'Factory stage · Node verifier · Image and pinned inputs',
                                                  pick(stage, 'format status image_id base_image_id executable_sha256 '
                                                              'launch_config launch_config_sha256 checks'), refs))
             if node == 'deliver_to_lab':
@@ -702,7 +702,9 @@ def build(home, task_id, contract, result, output, fixture=None, lab_report_root
         replay.write_bundle()
         if lab_report_root:
             from scripts.spark.build_muse_lab_reports import write_lab_report
-            write_lab_report(stage, lab_report_root, 2)
+            from scripts.spark.muse_report_checks import snapshot_activity
+            activity = snapshot_activity(replay.data, replay.home, replay.contract)
+            write_lab_report(stage, lab_report_root, 2, activity=activity)
         replay.write_json('MANIFEST.json', {f.relative_to(stage).as_posix(): sha(f.read_bytes())
                                             for f in stage.rglob('*') if f.is_file()})
         verify(stage)

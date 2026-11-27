@@ -209,12 +209,13 @@ def clock(line):
 
 
 class Report:
-    def __init__(self, stage, root, run):
+    def __init__(self, stage, root, run, *, activity=None):
         self.output = stage / 'reports'
         self.output.mkdir()
         (self.output / 'evidence').mkdir()
         self.root = root.resolve()
         self.run = run
+        self.activity = activity
         self.records = {}
 
     def payload(self, source):
@@ -463,6 +464,8 @@ class Report:
                 + '<p>Raw request rows: ' + ' · '.join(picks) + '</p></details>')
 
     def html(self):
+        from scripts.spark.muse_report_checks import render_factory_checks, render_lab_checks
+
         title = f'Run {self.run} lab report'
         timing = ('Engine', 'Prompt target', 'Request state', 'First token (s)', 'Decode (tok/s)', 'Total (s)', 'Raw rows')
         previous = self.timing_table(timing, self.original_r8,
@@ -473,10 +476,19 @@ class Report:
                          f'and AQB answered {acc["both_right"] + acc["cand_only"]}/{acc["n"]} correctly. '
                          f'The paired comparison was inconclusive at the {acc["margin_pts"]}-point margin.')
                        + '<p>' + a(self.source('r8-final/report.json', '/accuracy', 'r8-accuracy'), 'Paired accuracy evidence') + '</p>')
+        lab_checks = ''
         if self.run == 1:
             load, = (row for row in self.rows if row['arm'] == 'AQB' and row['kind'] == 'load')
             image = load['engine']['image']
             subtitle = 'AQB delivered · Original lab report partial'
+            record_path = self.output.parent / 'records/observations.json'
+            if record_path.is_file():
+                reports = [row for row in json.loads(record_path.read_bytes())
+                           if row['kind'] == 'lab_report' and row['values'].get('valid') is True]
+                if len(reports) == 1:
+                    original = reports[0]['values']
+                    lab_checks = render_lab_checks(original['checks'], original['not_run'],
+                        heading='Original target lab checks', source=lambda _: '../records/observations.json', prior=True)
             body = (p('The factory delivered the mixed 2-bit image and its test requirements. The corrected original lab report was accepted as a partial result. The target follow-up campaign measured capped, single-slot completions against A, the NVFP4 baseline.')
                     + '<p>' + a('../projections/lab-request-and-gate.json', 'Original lab handoff')
                     + ' · ' + a('../records/decisions.json', 'Factory closure decision 39') + '</p>'
@@ -492,6 +504,9 @@ class Report:
                 if manifest['files'][file] != file_sha(self.payload(f'lab/r9-aqbc/measure-engine/{file}')[0]):
                     raise ValueError(f'Measurement source changed: {file}')
             image = manifest['identity']['image_id']
+            sources = {id(row): self.source(name, f'/checks/{index}', f'r9-acceptance-check-{index}')
+                       for index, row in enumerate(verdict['checks'])}
+            lab_checks = render_lab_checks(verdict['checks'], source=lambda row: sources[id(row)])
             subtitle = 'AQBC released · Lab acceptance passed' if verdict['done'] else 'Lab acceptance refused'
             summary = verdict['summary']
             warm_ratios = [ratio for row in summary['standard'] if row['judged']
@@ -537,13 +552,14 @@ class Report:
                 f'<meta name="viewport" content="width=device-width, initial-scale=1"><title>{title}</title>'
                 f'<style>{STYLE}{LAB_STYLE}</style></head><body><main><h1>{title}</h1>'
                 f'<p class="verdict"><strong>{escape(subtitle)}</strong><br>Engine image <code>{escape(image)}</code></p>'
-                + arm_names_box() + body + self.memory() + self.warmup() + self.method() + '</main></body></html>\n')
+                + arm_names_box() + body + self.memory() + self.warmup() + lab_checks
+                + render_factory_checks(self.activity, stage=self.output.parent) + self.method() + '</main></body></html>\n')
 
 
-def write_lab_report(stage, muse_root, run):
+def write_lab_report(stage, muse_root, run, *, activity=None):
     if run not in (1, 2):
         raise ValueError('Select a recorded run: 1 or 2')
-    report = Report(stage, muse_root, run)
+    report = Report(stage, muse_root, run, activity=activity)
     target = stage / REPORT_PATH
     target.write_text(report.html(), encoding='utf-8')
     return target

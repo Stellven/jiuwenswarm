@@ -192,7 +192,7 @@ class R8Replay(Builder):
         converter_diff = self.artifact('node-check-b111d7385af11506b28e246e-diff', 'converter.diff',
                                        'Converter code diff', 'JiuwenSwarm’s retained stacked-NVFP4 source patch.')
         converter_checks = self.projection('converter-verifier.json', self.obs(converter)['verifier'],
-                                           'Factory stage · Converter verifier', 'The tiny conversion compares the packed blocks bit for bit.',
+                                           'Factory stage · CC verifier · Checkpoint converter', 'The tiny conversion compares the packed blocks bit for bit.',
                                            [self.record(converter)])
         before = 'node-check:ingest_nvfp4:converter:2:f9ff60e9'
         trail = self.projection('converter-corrections.json', [self.observations[key] for key in [before, converter]],
@@ -207,7 +207,7 @@ class R8Replay(Builder):
         wiring_diff = self.artifact('node-check-e9721ac43159b081a8ae4bc6-diff', 'expert-scale-wiring.diff',
                                     'Expert scale wiring diff', 'Retained changes to expert projection scale arguments.')
         fixture = self.artifact('run-999cc53e8979-result.json', 'expert-scale-fixture.json',
-                                    'Factory stage · Small-fixture verifier', 'Stock and wired KLD, slice limits and scale-free output comparison.')
+                                    'Factory stage · CC verifier fixture · Expert scale wiring', 'Stock and wired KLD, slice limits and scale-free output comparison.')
         fixture_checks = {check['name']: check['detail'] for check in self.obs(wiring)['verifier']['checks']}
         kld, kld_limit = re.search(r'mean KLD ([\d.]+).*limit ([\d.]+)', fixture_checks['nvfp4_kld']).groups()
         error, tolerance = re.search(r'worst max\|d\|/max\|ref\| ([\d.]+) \(tol ([\d.]+)',
@@ -217,13 +217,13 @@ class R8Replay(Builder):
                   f'the fixture recorded stock NaN and wired KLD {kld} (limit {kld_limit}), with worst slice '
                   f'{error} (limit {tolerance}) and byte-identical scale-free output.',
                   ['wire_expert_scales'], wiring, [wiring_diff, fixture], refs=['156a50a3480d41f0bf02c7d43111be96'])
-        build = self.artifact('run-b9a0873d31b3-result.json', 'e0-build.json', 'Factory stage · E0 compile receipt',
+        build = self.artifact('run-b9a0873d31b3-result.json', 'e0-build.json', 'Factory stage · Capped runner · E0 compile receipt',
                               'The source commit and executable from the capped build.')
         smoke = self.artifact('run-14b78261ad4b-rows.json', 'e0-nvfp4-smoke.json',
                               'Runtime stage · E0 NVFP4 smoke · First request after start',
                               'The recorded request, generated text and timings.')
         smoke_receipt = self.artifact('run-14b78261ad4b-result.json', 'e0-nvfp4-smoke-receipt.json',
-                                      'Runtime stage · Capped smoke receipt', 'Recorded 96 GiB cgroup limit and smoke outcome.')
+                                      'Runtime stage · Capped runner · Smoke receipt', 'Recorded 96 GiB cgroup limit and smoke outcome.')
         self.step('Base engine E0 compiled and smoke-tested',
                   'Build the pinned source and check a real-model response on the target. In this run: '
                   f"E0 compiled from the agent’s commit. One NVFP4 smoke request under the "
@@ -245,7 +245,7 @@ class R8Replay(Builder):
         experts = replay_result['census']['routed_expert']
         source_bytes = self.obs(source_census)['manifest']['bytes']
         census = self.projection('mixed-pack-census.json', dict(census=replay_result['census'], **self.obs(pack)),
-                                 'Factory stage · Mixed pack census and verifier',
+                                 'Factory stage · Mixed pack census and CC verifier',
                                  'Native header census, scale preservation and size.',
                                  [self.record(pack), self.record(source_census), self.record(replay_id)])
         receipt = self.artifact('run-d14d2adce4a5-result.json', 'mixed-pack-replay.json', 'Read-only replay receipt',
@@ -318,7 +318,7 @@ class R8Replay(Builder):
         verify_file = self.projection('prefill-verifier.json', dict(check=self.observations[check],
                                       paired_runtime=self.observations[paired],
                                       advisory_followups=[self.observations[key] for key in followups]),
-                                      'Factory and Runtime stages · Prefill verifier and advisory follow-ups',
+                                      'Prefill plan · CC verifier, paired runtime evidence and reviewer follow-ups',
                                       'The capsule pass, the reviewer’s four-token tail and the paired output evidence.',
                                       [self.record(key) for key in [check, paired, *followups]])
         load_log = self.artifact('run-e5b36273f07c-server.log', 'prefill-load.log', 'Runtime stage · Planned capped load log',
@@ -347,14 +347,14 @@ class R8Replay(Builder):
         step['key_files'].append(diff)
         image_receipt = self.artifact(f'{IMAGE}:receipt', 'image-build-receipt.json', 'Image build receipt',
                                       'The accepted image id and build source commit.')
-        image_check = self.artifact(f'{IMAGE}:image-check', 'image-version-check.json', 'Factory stage · Image version check',
+        image_check = self.artifact(f'{IMAGE}:image-check', 'image-version-check.json', 'Factory stage · Builder’s image version receipt',
                                     'The image ran llama-server --version without a model mount or GPU.')
         image = json.loads((self.stage / image_check['path']).read_bytes())
         self.image_id = image['image_id']
         delivery = 'labreq-2de8ad02113b333e0c22ae1f:request'
         gate = 'node-check:deliver_to_lab:lab_request:1:6f9e8d04'
         request = self.projection('lab-request-and-gate.json', [self.observations[key] for key in [delivery, gate]],
-                                  'Factory stage · Lab request and delivery gate', 'The host gate’s cited image, config and pack digests.',
+                                  'Factory stage · Lab manager request and node verifier', 'The host gate’s cited image, config and pack digests.',
                                   [self.record(delivery), self.record(gate)])
         rejected = [obs for obs in self.observations.values() if obs['kind'] == 'build_image_request_validation']
         failed = self.observations['107c03b2666d44ac9e6572812a57e360:build-result']
@@ -521,7 +521,10 @@ def build(graph, report, baseline, accuracy, out, lab_report_root=None):
             raise ValueError(f'Required evidence matched the export secret scanner: {exc}') from exc
         if lab_report_root:
             from scripts.spark.build_muse_lab_reports import write_lab_report
-            write_lab_report(stage, lab_report_root, 1)
+            from scripts.spark.muse_report_checks import snapshot_activity
+            recorded_contract = json.loads((stage / f'contracts/{TASK}.json').read_bytes())
+            activity = snapshot_activity(replay.data, replay.graph_home, recorded_contract)
+            write_lab_report(stage, lab_report_root, 1, activity=activity)
         replay.write_json('MANIFEST.json', {path.relative_to(replay.stage).as_posix(): sha(path.read_bytes())
                         for path in sorted(replay.stage.rglob('*')) if path.is_file()})
         verify(stage)

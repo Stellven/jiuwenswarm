@@ -16,9 +16,15 @@ from scripts.spark.build_demo_replays import Builder, SCHEMA, TABLES, sha, utc
 from scripts.spark.build_muse_lab_reports import LAB_STYLE, REPORT_PATH, STYLE, a, arm_names_box, p
 from scripts.spark.build_r9_replay import OBSERVATION_FIELDS, pick, public
 from scripts.spark.muse_r11_report import ARMS, render_lab
+from scripts.spark.muse_report_checks import node_check_label, render_factory_checks, snapshot_activity
 
 TASK = 'muse-2bit-demo-r11'
 TITLE = 'Run 4 · Expert cache profile seeding (AQBCE)'
+CALIBRATION_AMENDMENT = 'muse.r11-calibration-amendment'
+CALIBRATION_METHOD = (
+    'Version 12 (owner amendment 032) accepts the two disjoint notebooks recorded by the profile, '
+    'replacing the original revision 11 calibration input after post-profile review.'
+)
 MAX_FILE = 16 * 1024 * 1024
 FILE_NAME = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$')
 PUBLIC_OBSERVATIONS = OBSERVATION_FIELDS | {
@@ -43,16 +49,45 @@ class Replay(Builder):
         raw = contract_path.read_bytes()
         self.contract_sha = sha(raw)
         self.contract = json.loads(raw)
-        if (self.contract.get('version') != 11 or self.contract.get('contract_id') != TASK
+        self.version = self.contract.get('version')
+        marker = (self.contract.get('extensions') or {}).get(CALIBRATION_AMENDMENT) or {}
+        self.owner_amendment = (self.version == 12 and marker.get('amendment') == '032'
+                                and marker.get('by') == 'owner' and marker.get('previous_version') == 11)
+        if ((self.version != 11 and not self.owner_amendment) or self.contract.get('contract_id') != TASK
                 or self.task.get('contract_id') != TASK
                 or self.task['constraints'].get('contract_sha256') != self.contract_sha):
-            raise ValueError('Revision 11 contract differs from the admitted task pin')
+            raise ValueError('The Run 4 contract differs from the admitted task revision')
         self.contract_file = self.copy(
             contract_path, f'contracts/{TASK}.json',
-            {'source': 'task_contract', 'display_name': 'Owner contract · revision 11'}, expected=self.contract_sha,
+            {'source': 'task_contract', 'display_name': f'Owner contract · revision {self.version}'},
+            expected=self.contract_sha,
         )
+        self.contract_versions = self.versions(contract_path, marker)
         self.registry = {row['artifact_id']: row for row in self.data['artifacts']}
         self.exported = {}
+
+    def versions(self, contract_path, marker):
+        current = dict(version=self.version, path=self.contract_file, sha256=self.contract_sha)
+        if not self.owner_amendment:
+            return [current]
+        revisions = [row['values'] for row in self.data['observations'] if row['kind'] == 'operator_contract_revision'
+                     and str(row['values'].get('amendment')).zfill(3) == '032'
+                     and row['values'].get('contract_sha256') == self.contract_sha]
+        if len(revisions) != 1:
+            raise ValueError('Revision 12 needs its recorded owner amendment')
+        receipt, = revisions
+        if (receipt.get('previous_file') != f'{TASK}.json'
+                or not re.fullmatch(r'[0-9a-f]{64}', receipt.get('previous_sha256', ''))):
+            raise ValueError('Owner amendment 032 must retain its revision 11 pin')
+        parent = contract_path.with_name(receipt['previous_file'])
+        original = json.loads(parent.read_bytes())
+        if original.get('contract_id') != TASK or original.get('version') != 11:
+            raise ValueError('Owner amendment 032 has an invalid predecessor contract')
+        path = self.copy(parent, 'contract-versions/' + parent.name,
+                         {'source': 'task_contract', 'display_name': 'Owner contract · revision 11'},
+                         expected=receipt['previous_sha256'])
+        return [dict(version=11, path=path, sha256=receipt['previous_sha256']),
+                dict(current, amendment='032', reason=marker.get('method_note') or CALIBRATION_METHOD)]
 
     def artifact(self, artifact_id, label, *, expected=None):
         row = self.registry.get(artifact_id)
@@ -178,7 +213,7 @@ class Replay(Builder):
                 continue
             artifact_id = (row['values'].get('verifier') or {}).get('sealed_artifact')
             if artifact_id and artifact_id in row.get('source_artifacts', []):
-                self.artifact(artifact_id, row['values']['output'] + ' verifier evidence')
+                self.artifact(artifact_id, node_check_label(row['values']))
 
         body = ('<p class="verdict"><strong>' + escape(outcome) + '</strong></p>' + arm_names_box()
                 + '<h2>Native terminal decision</h2>' + p(terminal['reason_for_change'])
@@ -186,7 +221,8 @@ class Replay(Builder):
         if lab:
             values, _, sources, (package_path, message_path) = lab
             body += '<p>Delivered image <code>' + escape(image) + '</code></p>'
-            body += render_lab(values, sources, historical_load=self.historical_load(historical))
+            body += render_lab(values, sources, historical_load=self.historical_load(historical),
+                               report_source='../' + message_path)
             body += '<p>' + a('../' + package_path, 'Sealed target test requirements') + ' · '
             body += a('../' + message_path, 'Recorded target lab verdict') + '</p>'
         else:
@@ -194,13 +230,18 @@ class Replay(Builder):
             if not has_build:
                 body += p('No candidate image is recorded for Run 4.')
             body += p('The terminal decision cites no imported target lab report.')
-        body += '<h2>Evidence</h2><ul><li>' + a('../' + self.contract_file, 'Pinned revision 11 contract') + '</li>'
+        if self.owner_amendment:
+            body += '<h2>Method</h2>' + p(CALIBRATION_METHOD)
+        body += '<h2>Evidence</h2><ul>'
+        body += ''.join('<li>' + a('../' + item['path'], f'Pinned revision {item["version"]} contract') + '</li>'
+                        for item in self.contract_versions)
         body += ''.join('<li>' + a('../' + path, description['display_name']) + '</li>'
                         for path, description in self.files.items() if path.startswith('evidence/'))
         body += '</ul>'
         title = 'Run 4 · ' + ('Lab report' if lab else 'Run report')
         target = self.stage / REPORT_PATH
         target.parent.mkdir()
+        body += render_factory_checks(snapshot_activity(self.data, self.home, self.contract), stage=self.stage)
         target.write_text('<!doctype html><html lang="en"><head><meta charset="utf-8">'
                           '<meta name="viewport" content="width=device-width, initial-scale=1">'
                           f'<title>{title}</title><style>{STYLE}{LAB_STYLE if lab else ""}</style>'
@@ -219,14 +260,17 @@ class Replay(Builder):
         files = [{'path': REPORT_PATH, 'label': 'Attached report'},
                  {'path': 'projections/terminal-decision.json', 'label': 'Native terminal decision'}]
         records = [(task, 'tasks', task['task_id'], 'task', task['objective'], None, [
-            {'path': self.contract_file, 'label': 'Pinned revision 11 contract'},
+            {'path': item['path'], 'label': f'Pinned revision {item["version"]} contract'}
+            for item in self.contract_versions
         ])]
         for row in observations:
             values = row['values']
-            if row['kind'] in {'node_check', 'taskgraph_patch', 'lab_report', 'node_contract_final', 'node_contract_refusal'}:
+            if row['kind'] in {'node_check', 'taskgraph_patch', 'lab_report', 'node_contract_final',
+                               'node_contract_refusal', 'operator_contract_revision'}:
                 summary = values.get('summary') or values.get('reason') or values.get('output') or row['kind']
                 records.append((row, 'observations', row['obs_id'], row['kind'], summary, values.get('node_id'), [
-                    {'path': self.exported[aid]['exported_path'], 'label': aid}
+                    {'path': self.exported[aid]['exported_path'],
+                     'label': self.files[self.exported[aid]['exported_path']]['display_name']}
                     for aid in row.get('source_artifacts', []) if aid in self.exported
                 ]))
         records.sort(key=lambda event: event[0]['created'])
@@ -243,7 +287,7 @@ class Replay(Builder):
             schema=SCHEMA, title=TITLE, order=4, graph_mode='recorded', primary_task=TASK,
             source_homes=[self.home.name], summary=outcome, steps=steps,
             presentation_header=dict(objective=task['objective'], outcome=outcome, report_kind=kind, image_id=image),
-            contract_versions=[dict(version=11, path=self.contract_file, sha256=self.contract_sha)],
+            contract_versions=self.contract_versions,
         )))
         tables = dict(tasks=[task], observations=observations,
                       decisions=[recorded_decision(row) for row in self.data['decisions']],

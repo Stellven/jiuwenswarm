@@ -15,6 +15,7 @@ from scripts.spark.build_demo_replays import Builder, SCHEMA, TABLES, sha, utc
 from scripts.spark.build_muse_lab_reports import REPORT_PATH, STYLE, a, arm_names_box, p, table
 from scripts.spark.build_r9_replay import OBSERVATION_FIELDS, pick, public
 from scripts.spark.muse_replay_presentation import FACTORY, RUNTIME, check, node
+from scripts.spark.muse_report_checks import render_factory_checks, snapshot_activity
 
 TASK = 'muse-2bit-demo-r10'
 TITLE = 'Run 3 · Batched routed-expert launches (AQBCD)'
@@ -276,6 +277,7 @@ class Replay(Builder):
             body += p('The links below retain the native delivery and available lab evidence for the identified candidate.')
         else:
             body += p('No target lab verdict was recorded for this candidate.')
+        body += render_factory_checks(snapshot_activity(self.data, self.home, self.contract), stage=self.stage)
         body += '<h2>Method</h2>' + p(METHOD)
         body += p('Trace the pinned backend and check eligibility before changing source. When a change is eligible, the factory checks the fixtures and fallback before delivering the image and test requirements to the lab.')
         body += '<h2>Evidence</h2><ul>' + links + '</ul>'
@@ -292,7 +294,8 @@ class Replay(Builder):
         action = (terminal or {}).get('action', {}).get('type')
         if action not in TERMINAL:
             raise ValueError('The native Factory run has no terminal decision')
-        trace_row, trace_file, trace = self.sealed('trace_dispatch', 'dispatch_trace', 'Dispatch trace and eligibility')
+        trace_row, trace_file, trace = self.sealed(
+            'trace_dispatch', 'dispatch_trace', 'CC verifier · Sealed dispatch trace and eligibility')
         eligibility = trace['eligibility']
         if eligibility not in {*STOP_REASONS, 'eligible'} or trace.get('may_build') is not (eligibility == 'eligible'):
             raise ValueError('Dispatch eligibility and build permission disagree')
@@ -371,7 +374,7 @@ class Replay(Builder):
             if node_id == 'build_image' and diff_file:
                 artifact_files.insert(0, diff_file)
             projection = self.projection(f'projections/{node_id}.json', [self.observation(row) for row in rows],
-                                         NODES[node_id]['title'] + ' checks', rows)
+                                         NODES[node_id]['title'] + ' · Node verification records', rows)
             self.step(NODES[node_id]['title'], node_id, NODES[node_id]['method'],
                       f'The factory recorded {len(rows)} checks.', rows, [*artifact_files, projection])
             evidence.extend([*artifact_files, projection])

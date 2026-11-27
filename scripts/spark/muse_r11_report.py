@@ -4,6 +4,7 @@ from math import isfinite
 from statistics import median
 
 from scripts.spark.build_muse_lab_reports import a, comparison, comparison_lines, metric_chart, p, table
+from scripts.spark.muse_report_checks import render_lab_checks
 from scripts.spark.muse_report_memory import memory_section
 
 ARMS = {'AQBC': 'control', 'AQBCE': 'seeded'}
@@ -55,7 +56,7 @@ def linked_value(measurement, unit, reference=None):
     return result
 
 
-def render_lab(values, json_files, *, historical_load=None):
+def render_lab(values, json_files, *, historical_load=None, report_source=None):
     """json_files maps verified mailbox file names to (decoded data, report URL)."""
     loads = {'A': historical_load} if historical_load else {}
     for arm, label in ARMS.items():
@@ -133,10 +134,5 @@ def render_lab(values, json_files, *, historical_load=None):
         ['Measurement', 'AQBC', 'AQBCE'], startup_rows, 'Recorded launch and startup-fill receipts.')
     body += memory_section(loads)
 
-    checks = [(escape(check['check']), escape(check.get('arm', 'Both')),
-               escape(check['verdict']), escape(check.get('detail', ''))) for check in values.get('checks', [])]
-    checks.extend((escape(check['test_id']), '', 'not run', escape(check['reason'])) for check in values.get('not_run', []))
-    if checks:
-        body += '<h2>Lab checks</h2>' + table(['Check', 'Arm', 'Verdict', 'Detail'], checks,
-                                           'Independent native lab findings.')
-    return body
+    return body + render_lab_checks(values.get('checks', []), values.get('not_run', []),
+                                    source=(lambda _: report_source) if report_source else None)

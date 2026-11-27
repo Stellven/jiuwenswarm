@@ -3,6 +3,7 @@
 from scripts.spark.build_muse_lab_reports import (
     AFTER_PAGE_DROP, FIRST_AFTER_START, FOLLOW_UP, WARM_SERVER, Report, TimingRow, gain, metric_chart,
 )
+from scripts.spark.muse_report_checks import FACTORY_EVIDENCE, render_factory_checks, render_lab_checks
 
 
 def test_time_rate_and_accuracy_gains_use_their_own_units():
@@ -67,3 +68,38 @@ def test_accuracy_highlights_only_a_recorded_or_inherited_score(tmp_path):
     assert '−2.4 points' in passed
     refused = report.accuracy_chart(paired, identity={'status': 'refused'})
     assert 'data-arm="AQBC"' not in refused
+
+
+def test_report_separates_capsule_use_verifier_result_and_node_closure(tmp_path):
+    old = {'id': 'old-failed-check', 'created': 1, 'output': 'smoke', 'status': 'fail'}
+    activity = {'compile_engine': {
+        'capsules': [
+            {'id': 'factory.capped_runner', 'uses': [{'id': 'native-worker-call', 'created': 4}],
+             'verifier_declaration': 'none', 'verifier_records': []},
+            {'id': 'weights.build_muse_nvfp4_reader', 'uses': [], 'verifier_declaration': 'declared',
+             'verifier_records': []},
+        ],
+        'node_checks': [old],
+        'closures': [{'id': 'reopen', 'created': 2, 'state': 'reopened'},
+                     {'id': 'patch-12', 'created': 5, 'state': 'done', 'decision_id': 'decision-12'}],
+    }}
+    report = render_factory_checks({'schema': 'factory.muse-cc-activity/1', 'nodes': activity}, stage=tmp_path)
+    assert f'href="../{FACTORY_EVIDENCE}" title="native-worker-call">Used</a>' in report
+    assert 'No verifier declared' in report and 'No CC verifier record' in report
+    assert 'Bound, not used' in report
+    assert 'href="../records/decisions.json" title="patch-12">decision-12</a>' in report
+    assert ', no node check recorded' in report and 'old-failed-check' not in report
+    assert (tmp_path / FACTORY_EVIDENCE).is_file()
+
+
+def test_lab_checks_use_recorded_verdict_and_identify_factory_proof():
+    report = render_lab_checks([
+        {'check': 'image_starts', 'verdict': 'pass', 'arm': 'B', 'detail': 'Reused image verification.'},
+        {'check': 'cold_smoke', 'verdict': 'not_run', 'arm': 'B', 'detail': 'Requests completed.'},
+    ], [{'test_id': 'measure', 'reason': 'Timing eligibility was partial.'}],
+        source=lambda _: '../records/observations.json', prior=True)
+    assert 'Target lab · cites the model-free image receipt' in report
+    assert 'href="../records/observations.json">Pass</a>' in report
+    assert 'No lab verdict recorded' in report and 'No complete lab verdict recorded' in report
+    assert 'Requests completed.' in report and 'Timing eligibility was partial.' in report
+    assert 'Not run' not in report

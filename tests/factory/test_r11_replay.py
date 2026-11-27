@@ -61,6 +61,33 @@ def test_export_requires_a_terminal_decision_and_release_cites_lab(tmp_path):
     assert not out.exists()
 
 
+def test_owner_032_renders_only_its_pinned_method_note_and_retains_revision_11(tmp_path):
+    home = tmp_path / 'graph'
+    original = tmp_path / f'{TASK}.json'
+    revised = tmp_path / f'{TASK}-amendment-032.json'
+    original.write_text(json.dumps({'contract_id': TASK, 'version': 11}))
+    revised.write_text(json.dumps({'contract_id': TASK, 'version': 12, 'extensions': {
+        'muse.r11-calibration-amendment': {
+            'amendment': '032', 'by': 'owner', 'previous_version': 11, 'method_note': 'Recorded notebook calibration.',
+        },
+    }}))
+    before, after = sha(original.read_bytes()), sha(revised.read_bytes())
+    with Store(home) as store:
+        store.create_task(dict(task_id=TASK, contract_id=TASK, objective='Check the recorded treatment',
+                               constraints={'contract_sha256': after}))
+        amendment = store.append_observation(TASK, dict(kind='operator_contract_revision', values=dict(
+            amendment='032', previous_file=original.name, previous_sha256=before, contract_sha256=after)))
+        store.advance_decision(TASK, 0, dict(action={'type': 'report_inconclusive'},
+                                            evidence_ids=[amendment['obs_id']], reason_for_change='No target verdict.'))
+    out = build(home, revised, tmp_path / 'archive')
+    report = (out / 'reports/lab-report.html').read_text()
+    assert 'Version 12 (owner amendment 032) accepts the two disjoint notebooks' in report
+    assert (out / 'contract-versions' / original.name).read_bytes() == original.read_bytes()
+    metadata = json.loads((out / 'replay.json').read_text())
+    assert [row['sha256'] for row in metadata['contract_versions']] == [before, after]
+    assert metadata['contract_versions'][1]['amendment'] == '032'
+
+
 def test_lab_render_uses_only_measured_pairs_and_measured_memory():
     output = render_lab({'summary': 'Recorded target verdict'}, {
         'control-load.json': ({'load_seconds': 25, 'peak_process_rss_bytes': 12 * 1024**2}, '../aqbc-load'),
