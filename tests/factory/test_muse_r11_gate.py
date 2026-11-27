@@ -150,3 +150,19 @@ def test_rendered_calibration_compares_each_request(tmp_path, monkeypatch):
                          ('cache_prompt', True), ('token_ids_sha256', 'b' * 64)]:
         with pytest.raises(ValueError, match='differs|differ'):
             gate.verify_calibration_binding(contract, {'requests': [{**row, field: other}]})
+
+
+def test_owner_032_preserves_all_other_contract_inputs_and_requirements():
+    original = load(TASK)
+    amended = load(TASK + '-amendment-032')
+    expected = json.loads(json.dumps(original))
+    evidence = amended['extensions']['muse.r11-calibration-amendment']
+    expected['version'] = 12
+    expected['inputs']['calibration_prompts'] = amended['inputs']['calibration_prompts']
+    expected['extensions']['muse.r11-calibration-amendment'] = evidence
+    assert amended == expected
+    assert evidence['previous_calibration'] == original['inputs']['calibration_prompts']
+    assert evidence['previous_contract_sha256'] == gate.digest(original.path.read_bytes())
+    rows = gate.calibration_requests(amended)
+    assert len(rows) == 2
+    assert [gate.digest(row['rendered_prompt'].encode()) for row in rows] == evidence['request_sha256']
