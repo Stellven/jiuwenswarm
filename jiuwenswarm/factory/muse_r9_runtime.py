@@ -281,7 +281,7 @@ def verify_runtime_stage(manifest):
         summary['accuracy'] = accuracy
         check('paired_mmlu_coverage', accuracy['question_count'] == 250,
               'Compared all 250 independent scores with R8 AQB, with timing eligibility reported separately.')
-    except (OSError, ValueError, KeyError, TypeError, IndexError, AttributeError, OverflowError) as error:
+    except (OSError, ValueError, KeyError, TypeError, IndexError, AttributeError, OverflowError, StopIteration) as error:
         check('runtime_evidence', False, str(error))
     done = bool(checks) and all(check['status'] == 'pass' for check in checks)
     return dict(done=done, decision='passed' if done else 'refused', checks=checks, summary=summary,

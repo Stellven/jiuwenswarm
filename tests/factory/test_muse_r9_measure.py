@@ -139,3 +139,53 @@ def test_incomplete_measurement_refuses_release():
     assert result['decision'] == 'refused'
     assert result['done'] is False
     assert result['checks'][0]['status'] == 'fail'
+
+def test_all_250_scores_are_rechecked_from_one_slots_raw_log(tmp_path, monkeypatch):
+    server_log = tmp_path / 'server.log'
+    server_log.touch()
+    questions = [dict(id=f'q{idx}', prompt=f'Prompt {idx}', answer='A') for idx in range(250)]
+    ids = [q['id'] for q in questions]
+    top = [{'token': ' A' if idx == 0 else f'token{idx}', 'logprob': -idx - 0.1} for idx in range(20)]
+    batches = [32] * 7 + [26]
+    prepared = r8_bench_score.Prepared(
+        dict(request_plans={'mmlu250': {'request_batches': batches}}), questions,
+        dict(question_ids_in_order=ids))
+    offset = 0
+
+    def post(body):
+        nonlocal offset
+        assert {key: body[key] for key in r8_bench_score.REQUEST} == r8_bench_score.REQUEST
+        prompts = body['prompt']
+        assert prompts == [q['prompt'] for q in questions[offset:offset + len(prompts)]]
+        result = []
+        with server_log.open('ab') as handle:
+            for index, _ in enumerate(prompts):
+                count = 29 + offset % 7
+                handle.write(log_task(offset + 1, count, 0))
+                result.append(dict(index=index, id_slot=0, stop=True, truncated=False, tokens_evaluated=count,
+                                   tokens_predicted=1, completion_probabilities=[dict(top_logprobs=top)]))
+                offset += 1
+        return result
+
+    limits = runtime.quiet.policy(runtime.quiet.EMPTY)
+    server = SimpleNamespace(post=post, log=server_log, run=SimpleNamespace(log=lambda *_: None))
+    chunks = [ids[idx:idx + 32] for idx in range(0, len(ids), 32)]
+    reference = dict(rows={q['id']: dict(correct=True, answer='A', probs=dict(A=0.904837, B=0, C=0, D=0))
+                           for q in questions}, server=dict(slots=32),
+                     batches=[dict(question_ids=chunk, quiet=dict(status='accepted' if idx != 2 else 'excluded'))
+                              for idx, chunk in enumerate(chunks)])
+    settings = dict(n_seq_max=1)
+    timing = dict(settings, mode='sequential_on_one_slot', requests='ordered batches queued on one slot')
+    monkeypatch.setattr(measure, 'quiet_request',
+                        lambda monitor, call: (call(), dict(status='accepted', reasons=[], samples=[]), None))
+    monkeypatch.setattr(runtime.quiet, 'evidence_issues', lambda *_: [])
+    report = measure.score(server, SimpleNamespace(limits=limits), prepared, reference, tmp_path, timing)
+    comparison = runtime._accuracy(report, server_log.read_bytes(), 0, prepared, reference, dict(observed=settings))
+    assert comparison['question_count'] == 250
+    assert comparison['reference_timing_eligible'] == 218
+    assert comparison['candidate_timing_eligible'] == 250
+    assert comparison['paired']['decision'] == 'pass'
+
+    report['rows']['q249']['prompt_sha256'] = 'changed'
+    with pytest.raises(ValueError, match='inconsistent scoring'):
+        runtime._accuracy(report, server_log.read_bytes(), 0, prepared, reference, dict(observed=settings))
