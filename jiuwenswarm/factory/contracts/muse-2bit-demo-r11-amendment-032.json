@@ -1,0 +1,955 @@
+{
+  "schema": "factory.contract/2",
+  "contract_id": "muse-2bit-demo-r11",
+  "version": 12,
+  "title": "Run 4 · AQBCE expert cache profile seeding",
+  "purpose": "Determine whether a disjoint routing profile can seed AQBC’s existing GPU expert cache at startup and reduce latency with unchanged greedy output, prompt reuse, placement and caps.",
+  "scope": {
+    "covers": [
+      "Released AQBC source, mixed pack, prefill plan and request reuse policy.",
+      "A startup-only opt-in that fills evictable slots in the existing GPU expert cache.",
+      "Independent target comparison of switch-off and switch-on arms using the candidate image."
+    ],
+    "excludes": [
+      "New cache banks, routing or math changes, prediction, prefetch and repacking.",
+      "Any load in the factory or use of measured prompts as calibration."
+    ]
+  },
+  "target": {
+    "profile": "spark-gb10",
+    "requires": {
+      "machine": "DGX Spark GB10",
+      "cuda": "13",
+      "sm": "121",
+      "arch": "arm64",
+      "memory_gb": 128
+    }
+  },
+  "subject": {
+    "engine": {
+      "name": "llama.cpp",
+      "source": "https://github.com/ggml-org/llama.cpp",
+      "revision": "17e4594f0bfb7eacd3ce5d2d0dd16fb61ba9f817"
+    },
+    "model": {
+      "name": "Muse Spark Open mixed 2-bit pack",
+      "files": [
+        {
+          "name": "mixed-pack.json",
+          "size": 2241,
+          "sha256": "806c5d5e4f34450aed6019dba7216841ad16cb0b66759b57ed3f5fe16502a905"
+        }
+      ]
+    }
+  },
+  "inputs": {
+    "prompt_512": {
+      "media_type": "text/plain",
+      "sha256": "980524e65ec3e2de160ada7210bbcb8b4af6cf2218a8eb4f09c2f4876012c575",
+      "size": 1983,
+      "description": "Fixed text that renders to 512 tokens with the Muse no-thinking chat template.",
+      "repo_path": "ops/spark/prompts/muse/512.txt"
+    },
+    "prompt_2048": {
+      "media_type": "text/plain",
+      "sha256": "cdd5010713af776ea7711a30a490479b33781335a1c63672aa8547a096b2833d",
+      "size": 10234,
+      "description": "Fixed text that renders to 2048 tokens with the Muse no-thinking chat template.",
+      "repo_path": "ops/spark/prompts/muse/2048.txt"
+    },
+    "calibration_prompts": {
+      "media_type": "application/jsonl",
+      "sha256": "c1c0c6eb3f10e9376c6bccda3d870b572315f49b100ea3308da776dc56564366",
+      "size": 15089,
+      "description": "Two rendered notebooks recorded by the AQBC profiling load, disjoint from the measured prompts.",
+      "repo_path": "ops/spark/prompts/muse/r11-calibration-as-run.jsonl"
+    }
+  },
+  "workload": {
+    "tool": "llama-server",
+    "argv": [
+      "-m",
+      "{model}",
+      "-lm",
+      "mmap",
+      "--cpu-moe",
+      "--moe-cache-cpu-share",
+      "0",
+      "-fit",
+      "on",
+      "-lv",
+      "4",
+      "-c",
+      "8192",
+      "-np",
+      "1",
+      "-b",
+      "2048",
+      "-ub",
+      "2048",
+      "--moe-cache-mib",
+      "62464",
+      "--swa-full",
+      "--ctx-checkpoints",
+      "32"
+    ],
+    "env": {},
+    "requests": [
+      {
+        "id": "first_after_start",
+        "input": "prompt_512",
+        "params": {
+          "n_predict": 32,
+          "temperature": 0,
+          "seed": 1,
+          "cache_prompt": false,
+          "chat_template_kwargs": {
+            "reasoning_effort": "low",
+            "current_date": "2026-11-30"
+          }
+        },
+        "expect": {
+          "rendered_prompt_tokens": 512
+        }
+      },
+      {
+        "id": "p512",
+        "input": "prompt_512",
+        "params": {
+          "n_predict": 32,
+          "temperature": 0,
+          "seed": 1,
+          "cache_prompt": false,
+          "chat_template_kwargs": {
+            "reasoning_effort": "low",
+            "current_date": "2026-11-30"
+          }
+        },
+        "expect": {
+          "rendered_prompt_tokens": 512
+        }
+      },
+      {
+        "id": "p2048",
+        "input": "prompt_2048",
+        "params": {
+          "n_predict": 32,
+          "temperature": 0,
+          "seed": 1,
+          "cache_prompt": false,
+          "chat_template_kwargs": {
+            "reasoning_effort": "low",
+            "current_date": "2026-11-30"
+          }
+        },
+        "expect": {
+          "rendered_prompt_tokens": 2048
+        }
+      },
+      {
+        "id": "p512_followup",
+        "input": "prompt_512",
+        "params": {
+          "n_predict": 32,
+          "temperature": 0,
+          "seed": 1,
+          "cache_prompt": true,
+          "chat_template_kwargs": {
+            "reasoning_effort": "low",
+            "current_date": "2026-11-30"
+          }
+        },
+        "expect": {
+          "rendered_prompt_tokens": 512
+        }
+      },
+      {
+        "id": "p2048_followup",
+        "input": "prompt_2048",
+        "params": {
+          "n_predict": 32,
+          "temperature": 0,
+          "seed": 1,
+          "cache_prompt": true,
+          "chat_template_kwargs": {
+            "reasoning_effort": "low",
+            "current_date": "2026-11-30"
+          }
+        },
+        "expect": {
+          "rendered_prompt_tokens": 2048
+        }
+      }
+    ]
+  },
+  "arms": [
+    {
+      "id": "AQBC",
+      "role": "baseline",
+      "summary": "The delivered image with E unset; original AQBC demand-fill behavior."
+    },
+    {
+      "id": "AQBCE",
+      "role": "candidate",
+      "from": "AQBC",
+      "summary": "The same image with E enabled using the sealed profile."
+    }
+  ],
+  "measurement": {
+    "primary": "client_ttft_ms",
+    "metrics": {
+      "decode_tokens_per_second": {
+        "unit": "tokens/s",
+        "better": "higher",
+        "how": "Generated tokens after the first, over the time they took, from the server's timings."
+      },
+      "client_ttft_ms": {
+        "unit": "ms",
+        "better": "lower",
+        "how": "Client clock from sending the request to the first streamed token."
+      },
+      "request_total_ms": {
+        "unit": "ms",
+        "better": "lower",
+        "how": "Client clock from sending the request to the last streamed token (32 generated tokens)."
+      },
+      "sampled_peak_memory_bytes": {
+        "unit": "bytes",
+        "better": "lower",
+        "how": "Highest sampled resident memory of the engine process group under the cap."
+      },
+      "device_peak_mib": {
+        "unit": "MiB",
+        "better": "lower",
+        "how": "Peak of the comparable device-budget accounting categories for the full run."
+      },
+      "cache_hit_rate": {
+        "unit": "ratio",
+        "better": "higher",
+        "how": "Selected-expert hits divided by observed request lookups from native counters, split between bulk prefill and decode. Startup fill is not a hit."
+      },
+      "ready_seconds": {
+        "unit": "s",
+        "better": "lower",
+        "how": "Process start to health ready; include startup fills."
+      },
+      "pack_bytes": {
+        "unit": "bytes",
+        "better": "none",
+        "how": "Disk bytes of the digest-verified pack."
+      },
+      "available_memory_floor_bytes": {
+        "unit": "bytes",
+        "better": "higher",
+        "how": "Lowest observed MemAvailable during the load."
+      },
+      "device_model_mib": {
+        "unit": "MiB",
+        "better": "none",
+        "how": "Recorded model component from the device-budget accounting."
+      },
+      "gpu_expert_cache_mib": {
+        "unit": "MiB",
+        "better": "none",
+        "how": "Actual GPU expert cache allocation from the load log."
+      },
+      "device_kv_mib": {
+        "unit": "MiB",
+        "better": "none",
+        "how": "Recorded KV component from the load log."
+      },
+      "device_compute_mib": {
+        "unit": "MiB",
+        "better": "none",
+        "how": "Recorded device compute category from the load log."
+      },
+      "host_compute_mib": {
+        "unit": "MiB",
+        "better": "none",
+        "how": "Recorded host compute category from the load log."
+      },
+      "device_accounted_mib": {
+        "unit": "MiB",
+        "better": "none",
+        "how": "Total from the comparable recorded budget categories."
+      },
+      "device_headroom_mib": {
+        "unit": "MiB",
+        "better": "higher",
+        "how": "Recorded remaining headroom versus the 110000 MiB budget."
+      },
+      "fit_margin_mib": {
+        "unit": "MiB",
+        "better": "higher",
+        "how": "Fit margin as recorded by the engine."
+      },
+      "seed_fill_seconds": {
+        "unit": "s",
+        "better": "none",
+        "how": "Startup seed fill elapsed time with source receipt; explicit zero only if observed."
+      },
+      "seed_fill_slots": {
+        "unit": "slots",
+        "better": "none",
+        "how": "Complete startup cache slots published, excluding demand fill."
+      },
+      "seed_fill_bytes": {
+        "unit": "bytes",
+        "better": "none",
+        "how": "Actual charged and uploaded startup bytes in the seed receipt."
+      }
+    },
+    "protocol": {
+      "repeats": 3,
+      "order": "sequential",
+      "discard_first_request": false,
+      "cold_load": "separate",
+      "quiet": {
+        "no_builds": true
+      },
+      "notes": "Record the first 512-token request before W2. After W2 repeat matched warm-first and warmed same-document follow-up cells at 512 and 2048. Retain readiness, native cache lookups, actual output identities and complete load receipts. This is a shared machine; record background activity without filtering samples. Before admission stop our own builds, tests and helpers; defer only while another user’s process is using more than two CPU cores, in addition to the machine safety gate."
+    }
+  },
+  "correctness": {
+    "equivalence": "bit_exact_tokens",
+    "reference": {
+      "arm": "AQBC"
+    },
+    "checks": [
+      {
+        "id": "token_identity",
+        "does": "Greedy generated token IDs agree across on/off first, warm and follow-up requests. Retain the tokens and hashes.",
+        "applies_to": [
+          "AQBC",
+          "AQBCE"
+        ]
+      },
+      {
+        "id": "prefix_reuse",
+        "does": "Use the AQBC prompt policy and retain restored token counts at both follow-up lengths.",
+        "applies_to": [
+          "AQBC",
+          "AQBCE"
+        ]
+      },
+      {
+        "id": "same_image_and_profile",
+        "does": "Use the same image and binary with unchanged pack, prefill, prompt and runtime settings. Verify the attached profile digest and disjoint calibration prompt identities. Off never fills at startup; on publishes actual complete startup slots.",
+        "applies_to": [
+          "AQBC",
+          "AQBCE"
+        ]
+      },
+      {
+        "id": "warmup_w2",
+        "does": "After the separately measured first request and before the warm cells, send untimed fresh documents disjoint from measured and calibration documents. Stop at two consecutive decode rates within 10% or six requests. Preserve each request identity, TTFT, decode speed, total latency and stop reason.",
+        "applies_to": [
+          "AQBC",
+          "AQBCE"
+        ]
+      },
+      {
+        "id": "memory_gate",
+        "does": "Retain each capped-run and load source: pack bytes and digest, peak server RSS and MemAvailable floor, GPU cache allocation, model/KV/compute/host-compute categories, total versus 110000 MiB and headroom, and recorded fit margin. Enforce 96 GiB, zero swap, one model at a time, and no automatic retries.",
+        "applies_to": [
+          "AQBC",
+          "AQBCE"
+        ]
+      },
+      {
+        "id": "startup_cache_fill",
+        "does": "Record process start to ready, seed duration, admitted and populated slots, charged/uploaded bytes, bytes by layer group, and startup versus demand hits and evictions. Attach source receipts for both arms; zero only when observed.",
+        "applies_to": [
+          "AQBC",
+          "AQBCE"
+        ]
+      },
+      {
+        "id": "independent_acceptance",
+        "does": "The target lab applies these acceptance rules to the raw, same-image comparison and explicitly passes or fails E. The factory’s estimate is not a performance result.",
+        "applies_to": [
+          "AQBCE"
+        ]
+      }
+    ]
+  },
+  "acceptance": {
+    "rules": [
+      "A missing, invalid, unrepresentative or low-headroom sealed trace cannot authorize candidate editing, building or delivery.",
+      "Require at least 5% lower median TTFT in one warm 512- or 2048-token cell, every candidate sample in that cell below its control median, and higher measured native cache hit rate in the same cell.",
+      "Require bit-exact greedy tokens and unchanged prompt reuse. No comparable TTFT, total latency or decode-rate cell may regress by more than 10%. Report added readiness time separately and require at most 120 seconds.",
+      "Record background activity without excluding any rows. Follow the admission gate, all machine caps, complete source-linked receipts and the independent verdict by 2026-11-29T18:00:00-05:00. Otherwise retain the actual stop or refusal and leave AQBC released."
+    ]
+  },
+  "limits": {
+    "memory_bytes": 103079215104,
+    "cpus": 16,
+    "start_available_bytes": 107374182400,
+    "watchdog_available_bytes": 8589934592
+  },
+  "execution": {
+    "by": "factory_lab",
+    "lab_profile": "spark-gb10",
+    "notes": "Factory checks and builds never load Muse. Only the independent operator can acquire the optional trace-only AQBC profile and then run one switch-off and one switch-on load after verified delivery. Maximum three serial capped loads, no automatic retries."
+  },
+  "revisions": [],
+  "provenance": {
+    "notes": [
+      "The prior v1.3 DeepSeek result motivates the Muse hypothesis; it is not Muse performance evidence."
+    ]
+  },
+  "extensions": {
+    "factory.node-contracts": {
+      "format": "factory.node-contracts/1",
+      "nodes": [
+        {
+          "node_id": "pin_inputs",
+          "kind": "inspect",
+          "stage": "preliminary",
+          "objective": "Pin the released AQBC inputs.",
+          "predecessors": [],
+          "inputs": [],
+          "outputs": [
+            {
+              "name": "pinned_inputs",
+              "kind": "evidence",
+              "criteria": [
+                "Cite the operator-imported reference to exact AQBC image, executable, source, pack, prefill and prompt policy."
+              ]
+            }
+          ],
+          "verifiers": [
+            {
+              "output": "pinned_inputs"
+            }
+          ],
+          "requirement_ids": [],
+          "hands_to": "check_seeding_premise",
+          "evidence_obligations": [
+            "captured_input_and_output",
+            "invocation_observation"
+          ],
+          "work": {
+            "eligible_ccs": [
+              "engine.build_expert_weight_cache"
+            ],
+            "helpful_ccs": [
+              "engine.build_expert_weight_cache"
+            ]
+          },
+          "slots": [
+            {
+              "id": "bind",
+              "kind": "ccs",
+              "at": "work.bound_ccs",
+              "from": "Bind all named capsules used by this node."
+            }
+          ],
+          "authority_ceiling": {
+            "effects": [
+              "process.exec"
+            ],
+            "workspace": "none"
+          },
+          "node_limits": {
+            "build_attempts": 0,
+            "gpu_launches": 0,
+            "time_s": 5400,
+            "turns": 30
+          },
+          "briefing": {
+            "summary": "Pin the released AQBC inputs.",
+            "how_to_fill": [
+              "Call factory.node_check.start for pinned_inputs with refs.evidence_ids citing aqbc_parent. Read no model weights."
+            ]
+          }
+        },
+        {
+          "node_id": "check_seeding_premise",
+          "kind": "inspect",
+          "stage": "preliminary",
+          "objective": "Test whether startup seeding has evidenced cache headroom.",
+          "predecessors": [
+            "pin_inputs"
+          ],
+          "inputs": [
+            {
+              "name": "pinned_inputs",
+              "from": "pin_inputs.pinned_inputs"
+            },
+            {
+              "name": "calibration",
+              "from": "contract:calibration_prompts"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "premise",
+              "kind": "evidence",
+              "criteria": [
+                "Use a digest-bound AQBC trace and calibration disjoint from measured traffic; no guess or manufactured row can authorize construction."
+              ]
+            }
+          ],
+          "verifiers": [
+            {
+              "output": "premise",
+              "verifier": "engine.build_expert_weight_cache.check_seeding_premise",
+              "stage": "native CC execution",
+              "review": false,
+              "seal": "premise"
+            }
+          ],
+          "requirement_ids": [],
+          "hands_to": "implement_seeding",
+          "evidence_obligations": [
+            "captured_input_and_output",
+            "invocation_observation"
+          ],
+          "work": {
+            "eligible_ccs": [
+              "engine.build_expert_weight_cache"
+            ],
+            "helpful_ccs": [
+              "engine.build_expert_weight_cache"
+            ]
+          },
+          "slots": [
+            {
+              "id": "bind",
+              "kind": "ccs",
+              "at": "work.bound_ccs",
+              "from": "Bind all named capsules used by this node."
+            }
+          ],
+          "authority_ceiling": {
+            "effects": [
+              "process.exec"
+            ],
+            "workspace": "none"
+          },
+          "node_limits": {
+            "build_attempts": 0,
+            "gpu_launches": 0,
+            "time_s": 5400,
+            "turns": 30
+          },
+          "briefing": {
+            "summary": "Test whether startup seeding has evidenced cache headroom.",
+            "how_to_fill": [
+              "Call factory.node_check.start with refs.evidence_ids citing the passing AQBC pin and operator inputs seeding_trace and seeding_trace_manifest. Omit verifier_inputs.",
+              "Wait for the independent operator if no trace is available. Do not start a load.",
+              "Close this node using the accepted sealed result. If may_build is false, issue stop_missing_prerequisite with the exact result reason and evidence check. Keep AQBC released. If the verifier rejects incomplete or invalid inputs, cite the actual failed premise check instead of closing the node as done."
+            ]
+          }
+        },
+        {
+          "node_id": "implement_seeding",
+          "kind": "integrate",
+          "stage": "preliminary",
+          "objective": "Add default-off startup fills to AQBC’s existing bank.",
+          "predecessors": [
+            "check_seeding_premise"
+          ],
+          "inputs": [
+            {
+              "name": "premise",
+              "from": "check_seeding_premise.premise"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "candidate_patch",
+              "kind": "diff",
+              "criteria": [
+                "Validate the complete frozen profile and actual cache geometry before writes. Admit only complete evictable slots while reserving demand capacity; publish after all projections complete. Preserve AQBC stock path and selected expert IDs and arithmetic."
+              ]
+            }
+          ],
+          "verifiers": [
+            {
+              "output": "candidate_patch",
+              "verifier": "engine.build_expert_weight_cache.verify",
+              "stage": "native CC execution",
+              "review": true,
+              "inputs": {
+                "env_gate": "LLAMA_EXPERT_CACHE_NATIVE_PROFILE"
+              }
+            }
+          ],
+          "requirement_ids": [],
+          "hands_to": "verify_fixtures",
+          "evidence_obligations": [
+            "captured_input_and_output",
+            "invocation_observation"
+          ],
+          "work": {
+            "eligible_ccs": [
+              "engine.build_expert_weight_cache",
+              "factory.source_workbench"
+            ],
+            "helpful_ccs": [
+              "engine.build_expert_weight_cache",
+              "factory.source_workbench"
+            ]
+          },
+          "slots": [
+            {
+              "id": "bind",
+              "kind": "ccs",
+              "at": "work.bound_ccs",
+              "from": "Bind all named capsules used by this node."
+            }
+          ],
+          "authority_ceiling": {
+            "effects": [
+              "process.exec",
+              "workspace.read",
+              "workspace.write"
+            ],
+            "workspace": "write"
+          },
+          "node_limits": {
+            "build_attempts": 0,
+            "gpu_launches": 0,
+            "time_s": 5400,
+            "turns": 30
+          },
+          "briefing": {
+            "summary": "Add default-off startup fills to AQBC’s existing bank.",
+            "how_to_fill": [
+              "Use the expert_weight_cache native_profile method and source_workbench on the isolated AQBC checkout. Use LLAMA_EXPERT_CACHE_NATIVE_PROFILE=1 and LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH. Keep the original default-off path and report startup versus demand separately.",
+              "Implement the factory fixture interface in src/llama-expert-cache-profile.h on the actual runtime path: bool llama_expert_cache_profile_enabled(const char *); bool llama_expert_cache_profile_parse(const char *, std::vector<std::pair<int, std::vector<int>>> &); std::vector<int> llama_expert_cache_profile_admit(const std::vector<int> &, std::size_t slots, std::size_t demand_reserve). The parser rejects invalid/duplicate schema, layer and expert IDs; the runtime additionally validates actual layout and per-group charge. Verify the working diff with factory.node_check.start, no custom verifier inputs. Once it passes, source_workbench.localcommit exactly the verified change against the AQBC HEAD; cite the check to close."
+            ]
+          }
+        },
+        {
+          "node_id": "verify_fixtures",
+          "kind": "inspect",
+          "stage": "preliminary",
+          "objective": "Exercise the committed profile parser and admission policy without a model.",
+          "predecessors": [
+            "implement_seeding"
+          ],
+          "inputs": [
+            {
+              "name": "candidate_patch",
+              "from": "implement_seeding.candidate_patch"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "fixture_evidence",
+              "kind": "evidence",
+              "criteria": [
+                "The factory must run the pinned CPU fixture on the exact verified revision. Validate the gate, real sealed profile parsing, malformed and duplicate input refusal, bounded deterministic admission, and demand reserve."
+              ]
+            }
+          ],
+          "verifiers": [
+            {
+              "output": "fixture_evidence"
+            }
+          ],
+          "requirement_ids": [],
+          "hands_to": "build_image",
+          "evidence_obligations": [
+            "captured_input_and_output",
+            "invocation_observation"
+          ],
+          "work": {
+            "eligible_ccs": [
+              "engine.build_expert_weight_cache"
+            ],
+            "helpful_ccs": [
+              "engine.build_expert_weight_cache"
+            ]
+          },
+          "slots": [
+            {
+              "id": "bind",
+              "kind": "ccs",
+              "at": "work.bound_ccs",
+              "from": "Bind all named capsules used by this node."
+            }
+          ],
+          "authority_ceiling": {
+            "effects": [
+              "process.exec"
+            ],
+            "workspace": "none"
+          },
+          "node_limits": {
+            "build_attempts": 0,
+            "gpu_launches": 0,
+            "time_s": 5400,
+            "turns": 30
+          },
+          "briefing": {
+            "summary": "Exercise the committed profile parser and admission policy without a model.",
+            "how_to_fill": [
+              "Call factory.node_check.start for fixture_evidence citing the accepted candidate_patch check. The host runs the fixed fixture against this source and seals its result. Do not start a server or load a model."
+            ]
+          }
+        },
+        {
+          "node_id": "build_image",
+          "kind": "build",
+          "stage": "preliminary",
+          "objective": "Build the checked candidate as a native Spark llama-server image.",
+          "predecessors": [
+            "verify_fixtures"
+          ],
+          "inputs": [
+            {
+              "name": "fixture_evidence",
+              "from": "verify_fixtures.fixture_evidence"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "image",
+              "kind": "image",
+              "criteria": [
+                "Build the exact clean fixture-checked commit with embedded ggml and verify executable digest and model-free --version in the image."
+              ]
+            }
+          ],
+          "verifiers": [
+            {
+              "output": "image"
+            }
+          ],
+          "requirement_ids": [],
+          "hands_to": "deliver_to_lab",
+          "evidence_obligations": [
+            "captured_input_and_output",
+            "invocation_observation"
+          ],
+          "work": {
+            "eligible_ccs": [
+              "factory.builder"
+            ],
+            "helpful_ccs": [
+              "factory.builder"
+            ]
+          },
+          "slots": [
+            {
+              "id": "bind",
+              "kind": "ccs",
+              "at": "work.bound_ccs",
+              "from": "Bind all named capsules used by this node."
+            }
+          ],
+          "authority_ceiling": {
+            "effects": [
+              "process.exec"
+            ],
+            "workspace": "none"
+          },
+          "node_limits": {
+            "build_attempts": 1,
+            "gpu_launches": 0,
+            "time_s": 5400,
+            "turns": 30
+          },
+          "briefing": {
+            "summary": "Build the checked candidate as a native Spark llama-server image.",
+            "how_to_fill": [
+              "Use factory.builder.submit on build_image with the exact same task-owned revision for source and dependency: target spark-gb10, build_target llama-server, delivery image, verify_image true, no custom env or patch. Use a stable idempotency key.",
+              "Check image using build_attempt_id and image_id; no automatic retries."
+            ]
+          }
+        },
+        {
+          "node_id": "deliver_to_lab",
+          "kind": "deliver",
+          "stage": "preliminary",
+          "objective": "Deliver the checked image and frozen requirements for an independent on/off target comparison.",
+          "predecessors": [
+            "build_image"
+          ],
+          "inputs": [
+            {
+              "name": "image",
+              "from": "build_image.image"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "lab_package",
+              "kind": "lab_request",
+              "criteria": [
+                "Both arms point to the same checked image and use the immutable profile and frozen requirements. Match build, pack, prefill and prompts. Preserve all required measurements and secure the independent lab verdict before any acceptance."
+              ]
+            }
+          ],
+          "verifiers": [
+            {
+              "output": "lab_package"
+            }
+          ],
+          "requirement_ids": [
+            "AQBC",
+            "AQBCE",
+            "token_identity",
+            "prefix_reuse",
+            "same_image_and_profile",
+            "warmup_w2",
+            "memory_gate",
+            "startup_cache_fill",
+            "independent_acceptance",
+            "decode_tokens_per_second",
+            "client_ttft_ms",
+            "request_total_ms",
+            "sampled_peak_memory_bytes",
+            "device_peak_mib",
+            "cache_hit_rate",
+            "ready_seconds",
+            "pack_bytes",
+            "available_memory_floor_bytes",
+            "device_model_mib",
+            "gpu_expert_cache_mib",
+            "device_kv_mib",
+            "device_compute_mib",
+            "host_compute_mib",
+            "device_accounted_mib",
+            "device_headroom_mib",
+            "fit_margin_mib",
+            "seed_fill_seconds",
+            "seed_fill_slots",
+            "seed_fill_bytes"
+          ],
+          "hands_to": "lab_manager",
+          "evidence_obligations": [
+            "captured_input_and_output",
+            "invocation_observation"
+          ],
+          "work": {
+            "eligible_ccs": [
+              "factory.lab_manager"
+            ],
+            "helpful_ccs": [
+              "factory.lab_manager"
+            ]
+          },
+          "slots": [
+            {
+              "id": "bind",
+              "kind": "ccs",
+              "at": "work.bound_ccs",
+              "from": "Bind all named capsules used by this node."
+            }
+          ],
+          "authority_ceiling": {
+            "effects": [
+              "process.exec"
+            ],
+            "workspace": "none"
+          },
+          "node_limits": {
+            "build_attempts": 0,
+            "gpu_launches": 0,
+            "time_s": 5400,
+            "turns": 30
+          },
+          "briefing": {
+            "summary": "Deliver the checked image and frozen requirements for an independent on/off target comparison.",
+            "how_to_fill": [
+              "Use factory.lab_manager to draft, compose and send from deliver_to_lab. Both arms name the same image subject with its checked build_attempt_id. Attach the verifier-sealed seeding_profile artifact as an artifact subject of that name.",
+              "AQBC uses no seeding variables; AQBCE uses {'LLAMA_EXPERT_CACHE_NATIVE_PROFILE': '1', 'LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH': '/opt/factory/r11/seeding-profile.json'}. Neither arm adds arguments. Keep the draft’s load-receipts.json, warmup-receipts.json, startup-fill-receipts.json and request-receipts.json deliverables. Use the exact contract workload.",
+              "Check lab_package using request_id. Only the independent lab runs the target and returns a verdict. Cite the imported lab report and accepted delivery check in the native decision."
+            ]
+          }
+        }
+      ]
+    },
+    "muse.r11-seeding": {
+      "parent_reference": {
+        "path": "${FACTORY_MUSE_DEMO}/r10/parent-reference.json",
+        "sha256": "cc7332b247770208f3c6e3808d062b11a6c7686c0c7e7c82d99345902f9c69c0"
+      },
+      "baseline": {
+        "image_id": "sha256:cf1a657366c6884b76d15e117b14ee579ff6c444d08eb387b01fbb17702724fe",
+        "binary_sha256": "b5eb66eb77626bf1af51eca6f7bcb1a523844dc970339fd72fbb2356b9f2a406",
+        "engine_source": {
+          "commit": "17e4594f0bfb7eacd3ce5d2d0dd16fb61ba9f817",
+          "tree": "ea462e577e1054d4752504065d4eefa3941e8fa5"
+        },
+        "pack_manifest_sha256": "806c5d5e4f34450aed6019dba7216841ad16cb0b66759b57ed3f5fe16502a905",
+        "prefill_plan_sha256": "63d81c1fb74c2ebe24caaf9878c8e6679527d0a0f391aa009a8733812520dff2",
+        "launch_config": {
+          "args": [
+            "-lm",
+            "mmap",
+            "--cpu-moe",
+            "--moe-cache-cpu-share",
+            "0",
+            "-fit",
+            "on",
+            "-lv",
+            "4",
+            "-c",
+            "8192",
+            "-np",
+            "1",
+            "-b",
+            "2048",
+            "-ub",
+            "2048",
+            "--moe-cache-mib",
+            "62464",
+            "--swa-full",
+            "--ctx-checkpoints",
+            "32"
+          ],
+          "format": "factory.r9-launch/1",
+          "request": {
+            "cache_prompt": true
+          }
+        },
+        "launch_config_sha256": "a98b2b862c1d676f4e225f5d0a27e87848f9648ffa0ec8e152a4e3ba9142b15d"
+      },
+      "source_root": "${FACTORY_MUSE_DEMO}/graph-r8/agent-workspace/llama.cpp-muse",
+      "profile_directory": "${FACTORY_MUSE_DEMO}/lab/r11-aqbce/profile",
+      "profile_env": {
+        "LLAMA_EXPERT_CACHE_NATIVE_PROFILE": "1",
+        "LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH": "/opt/factory/r11/seeding-profile.json"
+      },
+      "target_deadline": "2026-11-29T18:00:00-05:00",
+      "max_serial_muse_loads": 3,
+      "memory_cap": "96G",
+      "swap_cap": 0,
+      "device_budget_mib": 110000,
+      "minimum_warm_ttft_gain_fraction": 0.05,
+      "latency_regression_fraction": 0.1,
+      "max_added_ready_seconds": 120,
+      "prior_component": {
+        "capsule": "expert_weight_cache",
+        "revision": "ad2130b0",
+        "stock": "9048bad8"
+      }
+    },
+    "muse.r11-calibration-amendment": {
+      "amendment": "032",
+      "by": "owner",
+      "previous_version": 11,
+      "previous_contract_sha256": "6204dcd0243948da3765d453a16b18b0fa9eac30f9cb8b896f6b44dc60092b17",
+      "previous_calibration": {
+        "media_type": "application/jsonl",
+        "sha256": "713de85b047440f346faaeb3212e61622202308710ec7e79f08be2daa74d389a",
+        "size": 1667,
+        "description": "Calibration requests for the routing profile; disjoint from the lab prompts.",
+        "repo_path": "ops/spark/prompts/muse/calibration.jsonl"
+      },
+      "as_run_source": "r11/instrumentation/calibration-as-run.jsonl",
+      "request_sha256": [
+        "ab125d260f98a01205173f6e2f7b6f7483a604cc1c79352f11ced01381a64b43",
+        "0c2c6c73d6fcd8bbb2f592e63f56de93df98476a8fc39a3229a15b4ab864ccb2"
+      ],
+      "trace_sha256": "db7f29e151de51b948c26fdf6262792997c988a25c6cd8c9f38c3e1c25d1e970",
+      "method_note": "Post-profile review found that the premise used two disjoint notebooks. The owner accepted those recorded prompts in contract version 12."
+    }
+  }
+}
