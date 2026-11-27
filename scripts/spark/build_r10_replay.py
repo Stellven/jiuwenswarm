@@ -12,7 +12,7 @@ from jiuwenswarm.factory.controller import TERMINAL
 from jiuwenswarm.factory.export import snapshot, verify
 from jiuwenswarm.factory.redact import sanitize, scrub_bytes
 from scripts.spark.build_demo_replays import Builder, SCHEMA, TABLES, sha, utc
-from scripts.spark.build_muse_lab_reports import REPORT_PATH, STYLE, a, p, table
+from scripts.spark.build_muse_lab_reports import REPORT_PATH, STYLE, a, arm_names_box, p, table
 from scripts.spark.build_r9_replay import OBSERVATION_FIELDS, pick, public
 from scripts.spark.muse_replay_presentation import FACTORY, RUNTIME, check, node
 
@@ -246,6 +246,7 @@ class Replay(Builder):
         body = f'<p class="verdict"><strong>{escape(outcome)}</strong></p>'
         if not trace['may_build']:
             body += p(f"The node verifier passed the dispatch trace with may_build false. The final decision (rev {terminal['rev']}) stopped the graph.")
+        body += arm_names_box()
         body += '<h2>Starting engine</h2>' + p('AQBC is the released baseline.') + '<p>Image <code>'
         body += escape(self.baseline['image_id']) + '</code></p>'
         body += '<h2>Dispatch eligibility</h2>' + p(STOP_REASONS.get(trace['eligibility'], 'The trace established an eligible decode shape.'))

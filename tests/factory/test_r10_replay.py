@@ -49,6 +49,8 @@ def test_prebuild_stop_is_a_native_demo_with_source_and_report(tmp_path):
     report = (out / 'reports/lab-report.html').read_text()
     assert '<h1>Run 3 · Run report</h1>' in report
     assert 'The node verifier passed the dispatch trace with may_build false. The final decision (rev 1) stopped the graph.' in report
+    assert report.index('The final decision (rev 1)') < report.index('What the names mean') < report.index('Starting engine')
+    assert 'AQBCD = AQBC + D (Run 3, not built).' in report
     assert 'already batches' in report
     assert 'No candidate image was built.' in report
     service = FactoryHttpService(roots=[out])

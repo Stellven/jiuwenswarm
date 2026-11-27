@@ -14,6 +14,15 @@ from statistics import median
 REPORT_PATH = 'reports/lab-report.html'
 ARM_NAMES = {'A': 'A · NVFP4 baseline', 'AQB': 'AQB · mixed 2-bit + batch tuning',
              'AQBC': 'AQBC · + prefix reuse'}
+ARM_LETTERS = (
+    ('A', 'Baseline: stock llama.cpp settings with the official NVFP4 weights (529 GB) on the Spark'),
+    ('Q', 'Quantization CC: routed experts requantized to a mixed 2-bit pack (IQ2_XXS gate/up, Q2_K down), 267 GB'),
+    ('B', "Prefill plan CC: prefill batch sizes fitted to the target's device budget"),
+    ('C', "Prefix reuse CC: the engine's built-in prompt cache turned on, so a follow-up on the same document reuses it"),
+    ('D', 'Batched routed-expert launches CC: stopped before build, because the engine already batches these launches'),
+)
+ARM_COMPOSITION = ("An engine's name lists the CCs applied on top of A, in order: AQB = A + Q + B (Run 1), "
+                   "AQBC = AQB + C (Run 2), AQBCD = AQBC + D (Run 3, not built).")
 TIMING_KEYS = ('ttft_ms', 'decode_tps', 'total_ms')
 TIMING_UNITS = ('s', 'tok/s', 's')
 START = 'warming up the model with an empty run'
@@ -36,6 +45,10 @@ th { white-space: nowrap; background: #f0f4f9 }
 td a { white-space: nowrap }
 details { margin: .5rem 0 }
 summary { cursor: pointer }
+.arm-names { margin: 1rem 0; padding: .75rem 1rem; border: 1px solid #c9d3df; border-radius: .45rem }
+.arm-names h2 { margin: 0 0 .4rem; font-size: 1.1rem }
+.arm-names td, .arm-names th { padding: .28rem .5rem; vertical-align: top }
+.arm-names p { margin: .55rem 0 0 }
 """
 
 
@@ -58,6 +71,15 @@ def table(columns, rows, caption):
     )
     return (f'<div class="table"><table><caption>{escape(caption)}</caption>'
             f'<thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>')
+
+
+def arm_names_box():
+    rows = ''.join(f'<tr><th scope="row">{letter}</th><td>{escape(meaning)}</td></tr>'
+                   for letter, meaning in ARM_LETTERS)
+    return ('<section class="arm-names" aria-labelledby="arm-names-title">'
+            '<h2 id="arm-names-title">What the names mean</h2>'
+            '<table><thead><tr><th scope="col">Letter</th><th scope="col">Meaning</th></tr></thead>'
+            f'<tbody>{rows}</tbody></table>' + p(ARM_COMPOSITION) + '</section>')
 
 
 def req_label(row):
@@ -283,7 +305,7 @@ class Report:
                 f'<meta name="viewport" content="width=device-width, initial-scale=1"><title>{title}</title>'
                 f'<style>{STYLE}</style></head><body><main><h1>{title}</h1>'
                 f'<p class="verdict"><strong>{escape(subtitle)}</strong><br>Engine image <code>{escape(image)}</code></p>'
-                + body + self.warmup() + self.method() + '</main></body></html>\n')
+                + arm_names_box() + body + self.warmup() + self.method() + '</main></body></html>\n')
 
 
 def write_lab_report(stage, muse_root, run):
