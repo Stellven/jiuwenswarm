@@ -28,6 +28,17 @@ export function artifactHtmlDocument(source: string) {
   // Resource loading and navigation are disabled even when an artifact contains active markup.
   template.content.querySelectorAll('base, script, iframe, frame, object, embed, portal, link, area, meta[http-equiv]')
     .forEach((element) => element.remove());
+  template.content.querySelectorAll('*').forEach((element) => {
+    for (const attr of Array.from(element.attributes)) {
+      const name = attr.name.toLowerCase();
+      const embedded = /^(?:data:|#)/i.test(attr.value);
+      const resource = ['src', 'poster', 'background', 'xlink:href'].includes(name)
+        || (name === 'href' && element.localName !== 'a');
+      if (name.startsWith('on') || name === 'srcset' || (resource && !embedded)) {
+        element.removeAttributeNode(attr);
+      }
+    }
+  });
   template.content.querySelectorAll('a').forEach((anchor) => {
     const href = anchor.getAttribute('href');
     anchor.removeAttribute('target');
