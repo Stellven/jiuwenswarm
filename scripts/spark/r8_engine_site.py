@@ -28,7 +28,7 @@ NODE = rf'{RUN}/nodes/{IDENTIFIER}'
 CAPSULE = rf'/api/factory/capsules(?:/{IDENTIFIER}(?:/file)?)?'
 PREFIX_FIXTURE = r'/api/factory/capsules/kv_reuse_lab/fixture(?:/(?:summary|stock|configured))?'
 FACTORY_READ = re.compile(
-    rf'(?:/api/factory/(?:runs|engine-bench(?:/(?:readme|method-history))?)'
+    rf'(?:/api/factory/(?:runs|headlines|engine-bench(?:/(?:readme|method-history))?)'
     rf'|{RUN}(?:/(?:state|session|story|file))?|{NODE}(?:/(?:diff|material))?|{CAPSULE}|{PREFIX_FIXTURE})'
 )
 STATIC_READ = re.compile(r'/(?:index\.html|logo\.(?:svg|ico)|favicon\.ico|assets/[A-Za-z0-9_.-]+)?')

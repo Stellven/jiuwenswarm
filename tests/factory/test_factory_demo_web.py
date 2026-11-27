@@ -129,6 +129,7 @@ def test_engine_viewer_uses_only_public_reads(tmp_path, monkeypatch):
         assert api.get('/', headers={'Host': TAILSCALE_DNS}).status_code == 200
         assert api.get('/', headers={'Host': 'elsewhere.ts.net'}).status_code == 400
         assert api.get('/api/factory/capsules?usage=false').status_code == 200
+        assert api.get('/api/factory/headlines').status_code == 200
         assert api.post('/api/factory/capsules', headers=forwarded).status_code == 403
         for path in ('/file-api/raw-file', '/openapi.json', '/api/tasks'):
             assert api.get(path, headers=forwarded).status_code == 403
