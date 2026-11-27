@@ -4803,6 +4803,17 @@
   },
   "factoryRuns": {
     "iterations": "迭代",
+    "demoTaskChain": {
+      "empty": "没有可用的任务图节点。",
+      "ccCount": "能力胶囊：{{count}}",
+      "noCC": "无能力胶囊",
+      "state": {
+        "done": "已完成",
+        "current": "当前",
+        "not-reached": "尚未到达",
+        "stopped": "已停止"
+      }
+    },
     "story": {
       "engineComparison": "引擎对比",
       "runOverview": "运行概览",
