@@ -360,8 +360,10 @@ def _measurements(task, observations, capsule_id, task_owns_capsule, starred, so
 def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False, analysis=False):
     """Read native run sources, preserving replay links and integrity state."""
     from .factory_http import MAX_FILE, _inside, _json
+    from jiuwenswarm.factory import taskgraph
 
     related_runs, artifacts, measurements, receipts, analyses, builder_summaries = [], [], [], [], [], []
+    node_activity = []
     seen_artifacts, seen_measurements, seen_analyses = set(), set(), set()
     catalog = sorted(service.catalog(), key=lambda entry: (entry[0]['kind'] != 'live', -entry[0]['updated']))
     for run, root in catalog:
@@ -377,6 +379,16 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
             continue
 
         source = dict(run_id=run['id'], run_name=run['name'])
+        if run.get('demo') and not run.get('demo_replay_id'):
+            try:
+                plan = taskgraph.from_records(data)
+                activity, _, _ = service.capsule_activity(run, root, data, plan, catalog)
+                for node, facts in activity.items():
+                    node_activity.extend(source | dict(node_id=node, capsule=cc, live=bool(run.get('live_demo')
+                                         and run.get('status') == 'live')) for cc in facts['capsules']
+                                         if cc['id'] == capsule_id)
+            except (OSError, ValueError, KeyError):
+                pass
         owns_capsule = (task.get('component_cc') or task.get('capability_cc')) == capsule_id
         observations = [row for row in _records(data.get('observations')) if row.get('task_id', task_id) == task_id]
         relevant = [r for r in observations if capsule_id in _capsules(_object(r.get('values'))) or
@@ -567,6 +579,7 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
         artifacts=sorted(artifacts, key=lambda row: row['created'] or 0, reverse=True),
         measurements=measurements, analyses=sorted(analyses, key=lambda row: row['created'] or 0, reverse=True),
         runs=related_runs,
+        node_activity=node_activity,
         latest_builder_run=_latest_builder_evidence(builder_summaries),
     ))
 

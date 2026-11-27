@@ -35,7 +35,7 @@ from jiuwenswarm.factory.contract import CONTRACTS
 from jiuwenswarm.factory.redact import sanitize, scrub_bytes
 from jiuwenswarm.factory.run_pause import current_in
 from jiuwenswarm.factory.store import FactoryError
-from . import factory_nodes, factory_planner, factory_planner_story
+from . import factory_cc_activity, factory_nodes, factory_planner, factory_planner_story
 from .capsule_catalog import CapsuleCatalog, _parse as parse_material
 from .capsule_evidence import capsule_usage, collect_capsule_evidence
 from .engine_bench import read_engine_bench, read_engine_bench_document
@@ -796,11 +796,13 @@ class FactoryHttpService:
             trace_path = _inside(path, 'telemetry.jsonl')
             trace = [json.loads(line) for line in trace_path.read_text().splitlines() if line.strip()] if trace_path.is_file() else []
         checks = node_check_view(data, plan)
+        cc_activity, _, _ = self.capsule_activity(item, path, data, plan)
         return sanitize(dict(run=item, records=data, contract=data.get('_contract', {}),
                              graph=curated_graph(bundled, item['task_id'])
                              if bundled and bundled.get('graph_mode') != 'recorded' else plan,
                              recorded_plan=plan if bundled else None, node_checks=checks, planner_plan=planner_plan,
                              cc_overview=factory_nodes.overview(data, plan, checks, self.capsule_catalog),
+                             cc_activity=cc_activity,
                              scheduler_models=self._scheduler_models(path, item['task_id']),
                              correction_overview={n['node_id']: trails.get(n['node_id'], {}).get('counts',
                                  dict(findings=0, notes=0, repairs=0)) for n in plan['nodes']},
@@ -886,27 +888,85 @@ class FactoryHttpService:
             raise HTTPException(404, 'Factory node not found')
         return item, path, data, node, node_check_view(data, plan, limit=None, only_node=node_id).get(node_id, {})
 
+    def _worker_transcript(self, path):
+        if not path.is_file():
+            return []
+        key = _identity(path)
+        cached = self._worker_calls.get(path)
+        if cached is None or cached[0] != key:
+            cached = key, factory_nodes.worker_calls(path)
+            self._worker_calls[path] = cached
+        return cached[1]
+
+    def capsule_activity(self, item, path, data, plan, catalog=None):
+        tid = item['task_id']
+        releases = factory_nodes.sealed_releases(_inside(path, 'ccstore/releases'))
+        paths = {}
+        call_run_id = item['id']
+        cutoff = None
+        portable = None
+        if item['kind'] == 'live':
+            transcript = _inside(path, f'sessions/{tid}.jsonl')
+            if not item.get('live_demo'):
+                paths['transcript'] = f'sessions/{tid}.jsonl'
+        else:
+            def verified(relative):
+                expected = manifest.get(relative)
+                target = _inside(path, relative)
+                return expected and target.is_file() and self.cached_hash(target) == expected
+
+            manifest = self.expected(item, path, data)
+            if verified(factory_cc_activity.PORTABLE_PATH):
+                try:
+                    portable = _json(_inside(path, factory_cc_activity.PORTABLE_PATH))
+                except (OSError, ValueError):
+                    pass
+            paths.update({key: name for key, name in (('observations', 'records/observations.json'),
+                                                       ('attempts', 'records/attempts.json'))
+                          if verified(name)})
+            archived = _inside(path, 'session.jsonl')
+            transcript = archived if verified('session.jsonl') else None
+            if transcript:
+                paths['transcript'] = 'session.jsonl'
+            if origin_id := item.get('original_run_id'):
+                created = data['tasks'][0].get('created')
+                if type(created) in (int, float) and isfinite(created) and created > 0:
+                    origin = next(((native, root) for native, root in (catalog if catalog is not None else self.catalog())
+                                   if native['id'] == origin_id and native['kind'] == 'live'
+                                   and native['task_id'] == tid and native.get('created') == created), None)
+                    if origin:
+                        native, root = origin
+                        retained = factory_nodes.sealed_releases(_inside(root, 'ccstore/releases'))
+                        releases = retained | releases
+                        if not archived.exists():
+                            transcript = _inside(root, f'sessions/{tid}.jsonl')
+                            call_run_id = native['id']
+                            cutoff = factory_cc_activity.archive_cutoff(data)
+        calls = self._worker_transcript(transcript) if transcript is not None else []
+        if cutoff is not None:
+            calls = factory_cc_activity.calls_as_of(calls, cutoff)
+        activity = factory_cc_activity.project(data, plan, calls, releases, paths, call_run_id)
+        if portable is not None:
+            activity = factory_cc_activity.merge_portable(activity, portable, data, plan, item.get('original_run_id'))
+        return activity, calls, releases
+
     def node(self, run_id, node_id):
         item, path, data, node, checks = self._node(run_id, node_id)
         tid = item['task_id']
-        briefs, calls = [], []
+        briefs = []
         if item['kind'] == 'live':
             scheduler = _inside(path, f'sessions/{tid}.scheduler.jsonl')
             if scheduler.is_file():
                 briefs = demo_board.read_briefs(path, tid)
-        transcript = _inside(path, f'sessions/{tid}.jsonl' if item['kind'] == 'live' else 'session.jsonl')
-        if transcript.is_file():
-            key = _identity(transcript)
-            cached = self._worker_calls.get(transcript)
-            if cached is None or cached[0] != key:
-                cached = key, factory_nodes.worker_calls(transcript)
-                self._worker_calls[transcript] = cached
-            calls = cached[1]
-        releases = factory_nodes.sealed_releases(_inside(path, 'ccstore/releases')) if item['kind'] == 'live' else {}
+        activity, calls, releases = self.capsule_activity(item, path, data, taskgraph.from_records(data))
+        node_activity = activity[node_id]
+        call_ids = {source['id'] for capsule in node_activity['capsules'] for source in capsule['uses']
+                    if source['kind'] == 'worker-call'}
+        calls = [dict(call, node_id=node_id) for call in calls if call['id'] in call_ids]
         trail = corrections.project(data).get(node_id, dict(counts=dict(findings=0, notes=0, repairs=0), events=[]))
         return sanitize(factory_nodes.node_detail(data, node, checks, self.capsule_catalog, briefs, calls, releases,
                                                  lambda artifact: self.node_artifact(item, path, artifact))
-                        | dict(corrections=trail))
+                        | dict(corrections=trail, cc_activity=node_activity))
 
     def node_artifact(self, item, path, artifact):
         relative = artifact.get('location') if item['kind'] == 'live' else artifact.get('exported_path')
