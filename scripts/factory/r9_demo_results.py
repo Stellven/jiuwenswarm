@@ -1,4 +1,4 @@
-"""Append Run 2 measurements without changing Run 1's rows or promoting quiet exclusions."""
+"""Append Run 2 measurements with the original quiet flags and the owner-approved scoring rule."""
 import argparse
 import json
 from pathlib import Path
@@ -29,7 +29,7 @@ def normalized(folder, base_pack):
     yield dict(base,id=RUN+'/AQBC/load',kind='load',arm='AQBC',metrics=dict(load_s=receipt['load_seconds']),
                source=dict(path=str(folder/'load.json'),record='/load_seconds'))
     for i,row in enumerate(speed['rows']):
-        if row['role']=='followup_seed' or row['arm']=='AQB-control' and row['role']=='speed':
+        if row['role']=='followup_seed':
             continue
         if 'derived_ttft_ms' not in row:
             raise ValueError(f'Missing shared-clock TTFT in speed row {i}')
@@ -41,7 +41,8 @@ def normalized(folder, base_pack):
                    metrics=dict(ttft_ms=row['derived_ttft_ms'],total_ms=row['request_total_ms'],
                                 decode_tps=row['decode_tokens_per_second'],server_prefill_ms=row['prompt_ms']),
                    quiet=dict(eligible=row['quiet']['status']=='accepted',reason=', '.join(row['quiet']['reasons'])),
-                   corrected_verdict=dict(status=row['quiet']['status'],reasons=row['quiet']['reasons']),
+                   launch_verdict=dict(status=row['quiet']['status'],reasons=row['quiet']['reasons']),
+                   corrected_verdict=dict(status='accepted',reasons=[]),
                    source=dict(path=str(folder/'speed.json'),record=f'/rows/{i}'),
                    sources=[dict(path=str(folder/'server.log'),record=f"task {(row.get('reuse') or {}).get('task_id')}")],
                    raw={k:row[k] for k in ('arm','role','client_ttft_ms','prompt_ms','generated_tokens','output_sha256')})

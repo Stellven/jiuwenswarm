@@ -25,6 +25,7 @@ import './story.css';
 import './engineReport.css';
 
 const runs: Record<string, string> = {
+  'r9-aqbc': 'Run 2 same-server benchmark',
   'r8-final-bench': 'R8 engine benchmark',
   'r8-lab': 'Nov 26 · R8 delivery lab',
   'nov25-lab-abcde': 'Nov 25 · E0 NVFP4 baseline',
@@ -233,7 +234,7 @@ function SourceDialog({ rows, close }: { rows: EngineRow[]; close: () => void })
             facts={[
               ['Test', value(row.test)],
               ['Sample size', value(row.n)],
-              ['AQB · Mixed 2-bit', numeric(row.acc) ? `${(row.acc * 100).toFixed(1)}%` : null],
+              [row.arm === 'AQBC' ? 'AQBC · inherited from AQB' : 'AQB · Mixed 2-bit', numeric(row.acc) ? `${(row.acc * 100).toFixed(1)}%` : null],
               ['A · NVFP4', numeric(row.reference_acc) ? `${(row.reference_acc * 100).toFixed(1)}%` : null],
             ]}
           />
@@ -384,6 +385,33 @@ function ReportTable({ rows, speed, inspect }: { rows: EngineRow[]; speed: Ratio
   );
 }
 
+function ControlTable({ rows, inspect }: { rows: EngineRow[]; inspect: Inspect }) {
+  const standard = rows.filter((row) => row.run === 'r9-aqbc' &&
+    (row.request?.state === 'warm' || row.request?.state === 'cold'));
+  if (!standard.length) return null;
+  return (
+    <details className="engine-method">
+      <summary>Run 2 first requests on the same server</summary>
+      <table>
+        <thead><tr><th>Document</th><th>Request</th><th>Arm</th><th>First token (s)</th><th>Decode (tok/s)</th><th>Total (s)</th></tr></thead>
+        <tbody>{[...groupBy(standard, (row) => [row.request?.name, row.request?.state, row.arm].join('/'))]
+          .sort(([left], [right]) => left.localeCompare(right, undefined, { numeric: true }))
+          .map(([key, samples]) => {
+            const first = samples[0];
+            return <tr key={key}><th>{first.request?.name?.slice(1)}</th><td>{first.request?.state}</td>
+              <td>{first.arm === 'AQB' ? 'AQB control' : first.arm}</td>
+              {(['ttft_ms', 'decode_tps', 'total_ms'] as const).map((metric) => {
+                const values = samples.map((row) => row.metrics?.[metric]).filter(numeric);
+                return <td key={metric}><RowValue row={first} related={samples} inspect={inspect}>
+                  {fmt(median(values) / (metric === 'decode_tps' ? 1 : 1000), 2)}
+                </RowValue></td>;
+              })}</tr>;
+          })}</tbody>
+      </table>
+    </details>
+  );
+}
+
 function FollowupTable({ rows, inspect }: { rows: EngineRow[]; inspect: Inspect }) {
   const followups = rows.filter((row) => row.run === 'r9-aqbc' && row.request?.state === 'follow-up');
   if (!followups.length) return null;
@@ -478,6 +506,7 @@ export function EngineReport() {
           <>
             <ReportTable rows={arms} speed={speed} inspect={inspect} />
             <FollowupTable rows={observations} inspect={inspect} />
+            <ControlTable rows={observations} inspect={inspect} />
             <div className="engine-report-grid">
               <Panel id="ttft" title="Time to first token">
                 <LengthPlot rows={requests} metric="ttft_ms" unit="s" scale={1000} inspect={inspect} />
@@ -504,8 +533,7 @@ export function EngineReport() {
               <p>
                 A and AQB used the R8 image. {arms.some((row) => row.arm === 'AQBC') && 'AQBC used the Run 2 image with the same server binary and a prefix-store configuration. '}Each speed request generated 32 tokens. We estimated time to first token
                 from the server’s first sampled token, aligned to the client clock
-                {clockDifferences.length > 0 && ` (median difference from direct NVFP4 timing: ${fmt(median(clockDifferences))} ms)`}. Timing began on a quiet machine and
-                warm results are medians. The NVFP4 accuracy reference used the same 250 questions on Nov 25 with engine build 9048bad8d.
+                {clockDifferences.length > 0 && ` (median difference from direct NVFP4 timing: ${fmt(median(clockDifferences))} ms)`}. Warm results are medians. {arms.some((row) => row.arm === 'AQBC') && 'Run 2 was measured on a shared machine; background activity recorded, not filtered. The first-request check uses warm pairs because the first cold request also read the pack into memory.'} The NVFP4 accuracy reference used the same 250 questions on Nov 25 with engine build 9048bad8d.
               </p>
               <p>
                 <a href={`${api}/readme`} data-testid="factory-runs-engine-readme">
