@@ -504,6 +504,12 @@ def finalize_brief(store, task_id, node_id):
                  task=_task_view(task, contract, contracts), plan=plan, neighbours=neighbours,
                  briefing=prelim.get('briefing'), preliminary=prelim, draft_final=draft_final(prelim),
                  inputs=_resolve(host, task, prelim, graph['nodes']))
+    if (contracts or {}).get('staged_release'):
+        from .node_check import VERIFIER_GRANTS
+        fixed['host_verifier'] = dict(
+            access=VERIFIER_GRANTS,
+            invocation='The worker calls factory.node_check.start with process.exec; the host runs the contracted '
+                       'verifier under these independent grants. Preserve the worker authority ceiling.')
     direct = set(node.get('depends_on', []))
     for level, (file_chars, record_chars, other_chars) in enumerate(LEVELS):
         history = _history(host, task_id, graph, node, prelim, record_chars)

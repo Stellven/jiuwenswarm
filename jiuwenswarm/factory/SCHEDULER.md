@@ -64,6 +64,10 @@ the brief would pass its total bound, `bounds.trimmed` says the bounds were tigh
    their docs and capabilities; `used_in_this_run` says how they did on earlier nodes).
    Do not bind a capsule whose earlier use for this node failed unless something relevant has
    changed (a new version, a different input), and say what changed.
+   In a staged-release graph, the node's worker starts evidence checks through
+   `factory.node_check`. The host runs the declared verifier with its own restricted grants.
+   A verifier's workspace.read grant is available to the host check even when the
+   worker's authority ceiling only permits process.exec. Keep the worker ceiling.
 4. You may make the contract stricter: add criteria, tighten a bounded verifier input in its
    allowed direction, lower a limit, narrow authority. You may never make it weaker.
 5. Propose it with `factory.scheduler.propose` and
