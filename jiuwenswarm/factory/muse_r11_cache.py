@@ -3,6 +3,8 @@ from pathlib import Path
 import struct
 
 from . import capped_run
+from .contract import load_for_task
+from .muse_r11_gate import calibration_requests, verify_calibration_binding
 from .muse_r9_measure import digest, read, verify_image, quiet_request, now, first_cached_tasks, read_log
 from .store import ScopeDenied, Store
 from scripts.factory import lab_v4_fast as lab, lab_v4_quiet as quiet, lab_warmup as w2
@@ -62,7 +64,7 @@ def header_end(path):
         return f.tell()
 
 
-def acquire(server, out, monitor):
+def acquire(server, out, monitor, prescribed):
     proposal = read(ROOT/'bench/proposed-engine-benchmark.json')
     proposal['speed_lengths'] = ['p512', 'p2048']
     prompts = r8_bench_cells.read_prompts(proposal)
@@ -77,23 +79,21 @@ def acquire(server, out, monitor):
     def notebook(words, n):
         return fit_notebook(head, tail, words, tokenize, n)[0]
     first = notebook('granite marble basalt slate quartz sandstone chalk limestone gneiss crystal', counts['p512'])
-    calibration = [notebook(words, counts[size]) for words, size in [
-        ('valley ridge beach island orchard forest desert meadow river ocean shore', 'p512'),
-        ('pitch melody scale flute piano chorus octave rhythm tempo score brass', 'p2048')]]
+    calibration = [row['rendered_prompt'] for row in prescribed]
     questions = {n: r9_prefix_check.questions(doc) for n, doc in prompts.items()}
     measured = [first, *prompts.values(), *(q for pair in questions.values() for q in pair)]
     if set(measured) & set(calibration) or len(set(calibration)) != len(calibration):
         raise ValueError('Calibration overlaps held-out prompts')
-    def record(name, cell, cohort, text, cache):
+    def record(name, cell, cohort, text, cache, n_predict=32):
         ids = tokenize(text)
         start = trace.stat().st_size
         log_start = server.log.stat().st_size
         row, evidence, error = quiet_request(monitor, lambda: lab.request(
-            server, text, 32, benchmark=True, cache_prompt=cache, retain_output=True, retain_tokens=True))
+            server, text, n_predict, benchmark=True, cache_prompt=cache, retain_output=True, retain_tokens=True))
         if error:
             raise error
         tasks = first_cached_tasks(read_log(server, log_start))
-        if len(tasks) != 1 or row['generated_tokens'] != 32:
+        if len(tasks) != 1 or row['generated_tokens'] != n_predict:
             raise ValueError('Incomplete request evidence')
         item = dict(id=name, cell=cell, cohort=cohort, prompt_sha256=w2._sha(text),
                     token_ids_sha256=w2._ids_sha(ids), prompt_n=len(ids), generated_n=row['generated_tokens'],
@@ -126,13 +126,20 @@ def acquire(server, out, monitor):
     for name, (seed, follow) in questions.items():
         record('prime-'+name, 'prime', 'warmup', seed, True)
         record('follow-'+name, 'follow-up', 'heldout', follow, True)
-    for i, text in enumerate(calibration):
-        record(f'calibration-{i+1}', 'calibration', 'calibration', text, False)
+    for row in prescribed:
+        record(row['id'], 'calibration', 'calibration', row['rendered_prompt'], False, row['n_predict'])
     return requests
 
 
 def execute(run):
     admit(run.store, run.task_id, {'arm': run.req['arm']}, None)
+    native = Store(ROOT/'r11/graph')
+    try:
+        task = native.get_task('muse-2bit-demo-r11')
+        contract = load_for_task(task, task['contract_id'])
+        prescribed = calibration_requests(contract)
+    finally:
+        native.close()
     parent = read(ROOT/'r10/parent-reference.json')
     pin = parent['evidence']['factory_verification']
     stage_path = ROOT/pin['path']
@@ -178,7 +185,8 @@ def execute(run):
             record.update(status='loaded', load_seconds=server.ready_s, argv=server.argv,
                           placement=server.placement, observed=observed, pid=server.proc.pid)
             save()
-            requests = acquire(server, out, monitor)
+            requests = acquire(server, out, monitor, prescribed)
+            verify_calibration_binding(contract, {'requests': requests})
             record['status'] = 'complete'
         except BaseException as error:
             record.update(status='stopped', error=str(error))

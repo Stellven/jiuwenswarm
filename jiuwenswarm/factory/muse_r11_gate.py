@@ -120,8 +120,8 @@ def pin_inputs(host, task, refs):
     return dict(image_id=parent['image_id'], evidence_ids=sorted(cited_ids(refs)), artifacts=[artifact])
 
 
-def verify_calibration_binding(contract, manifest):
-    """Compare every acquired calibration request to the contract's exact input file."""
+def calibration_requests(contract):
+    """Resolve and render the calibration file pinned by the admitted contract."""
     from jinja2 import Environment
     repo = Path(__file__).resolve().parents[2]
     spec = contract['inputs']['calibration_prompts']
@@ -132,26 +132,36 @@ def verify_calibration_binding(contract, manifest):
     if len(raw) != spec['size']:
         raise ValueError('Recorded calibration input size differs from the contract')
     prescribed = [json.loads(line) for line in raw.splitlines() if line.strip()]
-    observed = [r for r in manifest['requests'] if r.get('cohort') == 'calibration']
-    if not prescribed or len(prescribed) != len(observed):
-        raise ValueError(f'Calibration input mismatch: contract specifies {len(prescribed)} requests, trace contains {len(observed)}')
     folder = repo / 'ops/spark/prompts/muse'
     template = (folder/'chat_template.jinja').read_bytes()
     if digest(template) != json.loads((folder/'MANIFEST.json').read_bytes())['files']['chat_template.jinja']:
         raise ValueError('Calibration rendering template differs from recorded manifest')
     env = Environment(trim_blocks=True, lstrip_blocks=True)
     render = env.from_string(re.sub(r'\{%-?\s*(end)?generation\s*-?%\}', '', template.decode()))
-    for expected, actual in zip(prescribed, observed, strict=True):
+    rows = []
+    for expected in prescribed:
         prompt = expected.get('rendered_prompt')
         if prompt is None:
             prompt = render.render(messages=[{'role':'user', 'content':expected['prompt']}],
                                    add_generation_prompt=True, reasoning_effort='low', current_date='2026-11-30')
-        fields = (expected['id'], digest(prompt.encode()), expected['n_predict'], False)
+        rows.append({**expected, 'rendered_prompt': prompt})
+    if not rows or len({r['id'] for r in rows}) != len(rows):
+        raise ValueError('Calibration input requires unique request IDs')
+    return rows
+
+
+def verify_calibration_binding(contract, manifest):
+    prescribed = calibration_requests(contract)
+    observed = [r for r in manifest['requests'] if r.get('cohort') == 'calibration']
+    if not prescribed or len(prescribed) != len(observed):
+        raise ValueError(f'Calibration input mismatch: contract specifies {len(prescribed)} requests, trace contains {len(observed)}')
+    for expected, actual in zip(prescribed, observed, strict=True):
+        fields = (expected['id'], digest(expected['rendered_prompt'].encode()), expected['n_predict'], False)
         if fields != (actual['id'], actual['prompt_sha256'], actual['generated_n'], actual['cache_prompt']):
             raise ValueError(f'Calibration request differs from contract: {expected["id"]}')
         if 'token_ids_sha256' in expected and expected['token_ids_sha256'] != actual.get('token_ids_sha256'):
             raise ValueError('Calibration token identities differ from contract')
-    return spec['sha256']
+    return contract['inputs']['calibration_prompts']['sha256']
 
 
 def premise_inputs(host, task, refs):
