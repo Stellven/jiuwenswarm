@@ -244,6 +244,8 @@ class Replay(Builder):
         path.parent.mkdir()
         links = ''.join(f'<li>{a("../" + item["path"], item["label"])}</li>' for item in files)
         body = f'<p class="verdict"><strong>{escape(outcome)}</strong></p>'
+        if not trace['may_build']:
+            body += p(f"The node verifier passed the dispatch trace with may_build false. The final decision (rev {terminal['rev']}) stopped the graph.")
         body += '<h2>Starting engine</h2>' + p('AQBC is the released baseline.') + '<p>Image <code>'
         body += escape(self.baseline['image_id']) + '</code></p>'
         body += '<h2>Dispatch eligibility</h2>' + p(STOP_REASONS.get(trace['eligibility'], 'The trace established an eligible decode shape.'))
@@ -276,7 +278,7 @@ class Replay(Builder):
         body += '<h2>Method</h2>' + p(METHOD)
         body += p('Trace the pinned backend and check eligibility before changing source. When a change is eligible, the factory checks the fixtures and fallback before delivering the image and test requirements to the lab.')
         body += '<h2>Evidence</h2><ul>' + links + '</ul>'
-        title = 'Run 3 · Lab report'
+        title = 'Run 3 · Lab report' if trace['may_build'] else 'Run 3 · Run report'
         path.write_text(
             '<!doctype html><html lang="en"><head><meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width, initial-scale=1">'

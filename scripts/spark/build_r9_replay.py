@@ -346,7 +346,7 @@ class Replay(Builder):
             extra['capsule_diff'] = dict(caption='AQB to AQBC · Built-in prompt-cache configuration', before=before, after=after)
             diff = argument_diff(self, 'projections/prefix-reuse-arguments.diff', before, after, refs,
                                  'Diff · Prefix-reuse launch and request arguments')
-            files.append(self.projection('prefix-plan', 'Factory stage · Verified arguments and budget, with runtime trial inputs',
+            files.append(self.projection('prefix-plan', 'Node verifier · arguments and memory budget',
                                          dict(pick(plan, 'format atlas phase0 phase0b memory aqb_launch_config launch_config '
                                                          'launch_config_sha256 diff'),
                                               evidence_stages=dict(memory='Factory stage', phase0='Runtime stage',
