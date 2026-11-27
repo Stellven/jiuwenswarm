@@ -6,11 +6,13 @@ import {
   Panel,
   Position,
   ReactFlow,
-  useNodesInitialized,
+  getViewportForBounds,
+  useStore,
   useReactFlow,
   type Edge,
   type Node,
   type NodeProps,
+  type Rect,
 } from '@xyflow/react';
 import dagre from '@dagrejs/dagre';
 import { Box, ChevronsDownUp, ChevronsUpDown, ClipboardList, FileText, GitBranch, Layers3, Maximize, Minus, Plus, Workflow, X } from 'lucide-react';
@@ -342,19 +344,15 @@ function ZoomControls({
   );
 }
 
-/** Keep the replay's active nodes readable while the rest of the graph remains pannable. */
-function FocusCurrent({ ids, recorded }: { ids: string; recorded: boolean }) {
-  const { fitView, viewportInitialized } = useReactFlow();
-  const nodesInitialized = useNodesInitialized();
+/** Fit the replay's graph coordinates directly, independent of when cards are measured. */
+function FocusCurrent({ bounds }: { bounds: Rect }) {
+  const { setViewport, viewportInitialized } = useReactFlow();
+  const width = useStore((state) => state.width);
+  const height = useStore((state) => state.height);
   useLayoutEffect(() => {
-    if (!ids || !nodesInitialized || !viewportInitialized) return;
-    void fitView({
-      nodes: ids.split('|').map((id) => ({ id })),
-      padding: 0.25,
-      minZoom: recorded ? 0.82 : fitOptions.minZoom,
-      maxZoom: 1,
-    });
-  }, [fitView, ids, nodesInitialized, viewportInitialized, recorded]);
+    if (!viewportInitialized || width <= 0 || height <= 0) return;
+    void setViewport(getViewportForBounds(bounds, width, height, fitOptions.minZoom, 1, 0.25));
+  }, [bounds, height, setViewport, viewportInitialized, width]);
   return null;
 }
 
@@ -684,6 +682,19 @@ export function GraphViewer({ graph: fullGraph, replay }: { graph: GraphModel; r
   const showReplayLegend = Boolean(replay && graph.kind !== 'ontology');
   const currentIds = graph.nodes.filter((node) => progress?.get(node.id)?.phase === 'current')
     .map((node) => node.id).join('|');
+  const currentBounds = useMemo(() => {
+    if (!currentIds || grouped) return undefined;
+    const active = new Set(currentIds.split('|'));
+    const cards = geometry.placement.filter(({ node }) => active.has(node.id));
+    const x = Math.min(...cards.map(({ position }) => position.x));
+    const y = Math.min(...cards.map(({ position }) => position.y));
+    return {
+      x,
+      y,
+      width: Math.max(...cards.map(({ position, width }) => position.x + width)) - x,
+      height: Math.max(...cards.map(({ position, height }) => position.y + height)) - y,
+    };
+  }, [currentIds, geometry, grouped]);
   if (!nodes.length)
     return (
       <p className="factory-graph-empty" data-testid="factory-runs-graph-empty">
@@ -735,7 +746,7 @@ export function GraphViewer({ graph: fullGraph, replay }: { graph: GraphModel; r
           defaultMarkerColor="var(--color-text-secondary)"
           zoomOnScroll={!grouped}
           preventScrolling={!grouped}
-          fitView={!grouped && !(recorded && currentIds)}
+          fitView={!grouped && !currentBounds}
           fitViewOptions={fitOptions}
           onPaneClick={() => setSelectedId('')}
           onKeyDown={(event) => {
@@ -746,9 +757,7 @@ export function GraphViewer({ graph: fullGraph, replay }: { graph: GraphModel; r
           data-testid="factory-runs-graph-canvas"
         >
           <Background gap={19} size={1.2} color="var(--color-border-default)" />
-          {replay && !grouped && (
-            <FocusCurrent ids={currentIds} recorded={recorded} />
-          )}
+          {currentBounds && <FocusCurrent bounds={currentBounds} />}
           <ZoomControls
             grouped={Boolean(grouped)}
             onExpandAll={collapsible ? () => setCollapsed(new Set()) : undefined}
