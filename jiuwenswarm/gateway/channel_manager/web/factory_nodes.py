@@ -423,7 +423,7 @@ def run_state(data, plan, markers, running, now):
     outcome = data['_meta'].get('outcome')
     latest = max(data.get('decisions', []), key=lambda row: row.get('rev', 0), default={})
     decision_outcome = (latest.get('action') or {}).get('type')
-    if not outcome and decision_outcome in story.TERMINAL:
+    if not outcome and (decision_outcome in story.TERMINAL or decision_outcome == 'stop_missing_prerequisite'):
         outcome = decision_outcome
     stopped = str(outcome or '').startswith('stop_')
     result = dict(state='idle', reason=state.get('stop_reason'), by=None, since=None, node_id=None, job=None, markers=markers)

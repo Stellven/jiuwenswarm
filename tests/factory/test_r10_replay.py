@@ -51,7 +51,10 @@ def test_prebuild_stop_is_a_native_demo_with_source_and_report(tmp_path):
     service = FactoryHttpService(roots=[out])
     run, = service.listing()['runs']
     assert run['contract_demo'] and run['demo_order'] == 3
-    assert service.detail(run['id'])['contract']['version'] == 10
+    detail = service.detail(run['id'])
+    assert detail['contract']['version'] == 10
+    assert detail['run_state']['state'] == 'stopped'
+    assert detail['run_state']['outcome'] == 'stop_missing_prerequisite'
 
 
 def test_imported_instrumentation_uses_diff_view_even_when_store_labels_it_plain_text(tmp_path):
