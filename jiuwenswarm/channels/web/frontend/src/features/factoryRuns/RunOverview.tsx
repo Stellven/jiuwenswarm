@@ -7,7 +7,8 @@ import { ArrowUpRight, CheckCircle2, CircleDot, FileText, GitBranch, Layers3, Pa
 import { useTranslation } from 'react-i18next';
 import type { EvidenceFile, JsonRecord, RunDetail, StoryEvent } from './api';
 import { BoundCapsules, type ActivityLink } from './cc/BoundCapsules';
-import type { CapsuleFacts } from './views/ccActivityModel';
+import type { NodeExecutionFacts } from './views/ccActivityModel';
+import { NodeVerifier } from './views/TimelineVerifier';
 import { atlasTitle } from './cc/atlasNames.ts';
 import { collapseEvents, keyFileRoles, presentEvent, recordedCheckRoles, replayEvidenceText, type CuratedMeasurement, type CuratedStep } from './views/storyModel.ts';
 import { ReplayLabel } from './views/NodeEvidence';
@@ -128,8 +129,9 @@ export function RunOverview({
   currentStep,
   stepPosition,
   nodeEvidence,
-  stepCapsuleFacts,
+  stepExecution,
   onOpenActivity,
+  onOpenRecord,
 }: {
   detail: RunDetail;
   events: StoryEvent[];
@@ -142,10 +144,19 @@ export function RunOverview({
   currentStep?: CuratedStep;
   stepPosition: string;
   nodeEvidence?: ReactNode;
-  stepCapsuleFacts?: readonly CapsuleFacts[];
+  stepExecution?: NodeExecutionFacts;
   onOpenActivity?: ActivityLink;
+  onOpenRecord?: (id: string) => void;
 }) {
   const { t, i18n } = useTranslation();
+  const execution = stepExecution && (
+    <div data-testid="factory-runs-story-node-execution">
+      {stepExecution.capsuleFacts.length > 0 && (
+        <BoundCapsules facts={stepExecution.capsuleFacts} onOpenSource={onOpenActivity} compact />
+      )}
+      {onOpenRecord && <NodeVerifier result={stepExecution.nodeVerifier} onOpenRecord={onOpenRecord} compact />}
+    </div>
+  );
   const task = detail.records.tasks?.[0] || {};
   const contractId = text(task.contract_id) || text(detail.contract.contract_id);
   const star = contractId === 'star-deepseek-v1';
@@ -300,9 +311,7 @@ export function RunOverview({
                 {checkRoles.join(' · ')}
               </p>
             )}
-            {!!stepCapsuleFacts?.length && (
-              <BoundCapsules facts={stepCapsuleFacts} onOpenSource={onOpenActivity} compact />
-            )}
+            {execution}
             {focus.presenter_line ? (
               <p className="factory-curated-say" data-testid="factory-runs-curated-focus-say">{focus.presenter_line}</p>
             ) : recordedEvidence}
@@ -446,9 +455,7 @@ export function RunOverview({
       )}
       {headline}
       <RunBuilds detail={detail} events={events} />
-      {detail.run.live_demo && !!stepCapsuleFacts?.length && (
-        <BoundCapsules facts={stepCapsuleFacts} onOpenSource={onOpenActivity} compact />
-      )}
+      {detail.run.live_demo && execution}
       <div className="factory-story-overview-grid">
         <section className="factory-story-card" data-testid="factory-runs-overview-progress">
           <div className="factory-story-card-title">

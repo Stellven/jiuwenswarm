@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { capsuleFactsAt, nodeVerifierAt, reopenBoundary } from '../src/features/factoryRuns/views/ccActivityModel.ts';
+import { capsuleFactsAt, nodeReachedAt, nodeVerifierAt, reopenBoundary } from '../src/features/factoryRuns/views/ccActivityModel.ts';
 import { readFactoryEntry, recordHref } from '../src/features/factoryRuns/cc/navigation.ts';
 
-test('a verifier pass never implies worker use, and absence of a declaration stays distinct', () => {
+test('an invoked CC verifier is itself use, with the exact original source', () => {
   const activity = {
     capsules: [
       { id: 'verifies', bound_at: 20, uses: [], verifier_declaration: 'declared',
@@ -12,13 +12,17 @@ test('a verifier pass never implies worker use, and absence of a declaration sta
         verifier_records: [], verifier_declaration: 'none' },
     ],
   };
-  assert.deepEqual(capsuleFactsAt(activity, 15).map((fact) => fact.id), ['worker']);
+  assert.deepEqual(capsuleFactsAt(activity, 15).map((fact) => [fact.id, fact.use, fact.verifier]), [
+    ['worker', 'not-reached', 'not-reached'],
+  ]);
   assert.deepEqual(capsuleFactsAt(activity, 35).map((fact) => [fact.use, fact.verifier]), [
     ['bound-not-used', 'no-cc-verifier-record'], ['used', 'no-verifier-declared'],
   ]);
   assert.deepEqual(capsuleFactsAt(activity, 40).map((fact) => [fact.use, fact.verifier]), [
-    ['bound-not-used', 'pass'], ['used', 'no-verifier-declared'],
+    ['used', 'pass'], ['used', 'no-verifier-declared'],
   ]);
+  assert.equal(capsuleFactsAt(activity, 40)[0].uses[0].id, 'verified');
+  assert.equal(capsuleFactsAt(activity, 40)[0].uses[0].kind, 'cc-verifier');
 });
 
 test('binding intervals and reopened nodes preserve the recorded time boundary', () => {
@@ -43,4 +47,19 @@ test('binding intervals and reopened nodes preserve the recorded time boundary',
   assert.equal(result.status, 'closed-by-decision');
   assert.equal(result.closure.decision_id, 'native:decision:4');
   assert.equal(readFactoryEntry(recordHref('run-id', result.closure.decision_id)).record, 'native:decision:4');
+});
+
+test('a scheduler binding cannot establish reach, while an unrelated operation on the node can', () => {
+  const activity = {
+    reached: { id: 'node-work-receipt', kind: 'attempt', created: 25 },
+    capsules: [{ id: 'unused-cc', bound_at: 10, uses: [], verifier_records: [], verifier_declaration: 'none' }],
+    node_checks: [],
+    closures: [],
+  };
+  assert.equal(nodeReachedAt(activity, 10), false);
+  assert.equal(nodeVerifierAt(activity, 10).status, 'not-reached');
+  assert.equal(capsuleFactsAt(activity, 10)[0].use, 'not-reached');
+  assert.equal(nodeReachedAt(activity, 25), true);
+  assert.equal(nodeVerifierAt(activity, 25).status, 'no-node-check');
+  assert.equal(capsuleFactsAt(activity, 25)[0].use, 'bound-not-used');
 });

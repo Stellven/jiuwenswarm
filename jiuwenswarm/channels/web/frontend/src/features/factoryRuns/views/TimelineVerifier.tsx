@@ -1,7 +1,11 @@
 import { useTranslation } from 'react-i18next';
 import type { TimelineVerifierResult } from './graphModel';
 
-export function VerifierStatus({ status = 'no-node-check' }: { status?: 'pass' | 'fail' | 'no-node-check' }) {
+export function VerifierStatus({
+  status = 'no-node-check',
+}: {
+  status?: 'pass' | 'fail' | 'not-reached' | 'no-node-check';
+}) {
   const { t } = useTranslation();
   return (
     <span
@@ -45,7 +49,11 @@ export function NodeVerifier({
         )}
         {!closure && (
           <VerifierStatus
-            status={result.status === 'pass' || result.status === 'fail' ? result.status : 'no-node-check'}
+            status={
+              result.status === 'closed-by-decision' || result.status === 'closed-by-update'
+                ? 'no-node-check'
+                : result.status
+            }
           />
         )}
       </div>

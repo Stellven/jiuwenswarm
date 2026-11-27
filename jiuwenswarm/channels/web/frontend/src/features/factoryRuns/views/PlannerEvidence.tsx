@@ -2,7 +2,8 @@ import { useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { EvidenceFile, JsonRecord, NodeContract, PlannerNode, PlannerSource } from '../api';
 import { BoundCapsules, type ActivityLink } from '../cc/BoundCapsules';
-import type { CapsuleFacts } from './ccActivityModel';
+import type { CapsuleFacts, NodeExecutionFacts } from './ccActivityModel';
+import { NodeVerifier } from './TimelineVerifier';
 import { CapsuleLinksContext } from '../cc/CapsuleChips';
 import { capsuleDisplayTitle } from '../cc/capsuleModel';
 import { capsuleHref } from '../cc/navigation';
@@ -143,13 +144,13 @@ function RecordedChanges({ changes }: { changes?: readonly JsonRecord[] | null }
 export function PlannerNodeComparison({
   node,
   fallback,
-  capsuleFacts,
+  execution,
   onOpenActivity,
   ...links
 }: Links & {
   node?: PlannerNode;
   fallback?: NodeContract;
-  capsuleFacts?: readonly CapsuleFacts[];
+  execution?: NodeExecutionFacts;
   onOpenActivity?: ActivityLink;
 }) {
   const { t } = useTranslation();
@@ -192,11 +193,14 @@ export function PlannerNodeComparison({
             <ContractDocument
               document={finalDocument}
               kind="bound"
-              facts={capsuleFacts}
+              facts={execution?.capsuleFacts}
               onOpenActivity={onOpenActivity}
             />
           ) : (
             <p className="factory-muted">{t('factoryRuns.planner.noFinal')}</p>
+          )}
+          {execution && links.onOpenRecord && (
+            <NodeVerifier result={execution.nodeVerifier} onOpenRecord={links.onOpenRecord} compact />
           )}
           {final?.rationale && <p data-testid="factory-runs-planner-rationale">{final.rationale}</p>}
           <RecordLink {...links} source={final} />

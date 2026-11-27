@@ -151,7 +151,7 @@ export type NativeCheckVerdict = NativeActivitySource & {
   status: 'pass' | 'fail';
 };
 export type NativeWorkerUse = NativeActivitySource & {
-  kind: 'worker-call' | 'attempt' | 'receipt';
+  kind: 'worker-call' | 'attempt' | 'receipt' | 'cc-verifier';
   capability?: string;
 };
 export type CapsuleActivity = {
@@ -176,6 +176,7 @@ export type NodeCapsuleActivity = {
   capsules: CapsuleActivity[];
   closures: Array<NativeActivitySource & { state: 'done' | 'reopened'; decision_id?: string }>;
   node_checks: NativeCheckVerdict[];
+  reached?: (NativeActivitySource & { kind?: string }) | null;
 };
 export type NodeOutput = {
   id: string;

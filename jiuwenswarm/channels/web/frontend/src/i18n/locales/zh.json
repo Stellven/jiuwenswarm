@@ -4841,12 +4841,13 @@
       "use": "使用",
       "verifier": "CC 验证器",
       "used": "已使用",
+      "not-reached": "未到达",
       "bound-not-used": "已绑定，未使用",
       "pass": "通过",
       "fail": "失败",
       "no-cc-verifier-record": "无 CC 验证记录",
       "no-verifier-declared": "未声明验证器",
-      "legend": "已使用表示工作调用、尝试或凭据明确指向该 CC。已绑定，未使用表示未记录工作调用。无 CC 验证记录表示没有已记录的 CC 判定。",
+      "legend": "已使用表示有 CC 能力调用记录，包括其验证器。已绑定，未使用表示节点已到达但没有调用记录。未到达表示没有执行记录。无 CC 验证记录表示没有 CC 判定记录。",
       "recordedPass": "记录为通过",
       "recordedFail": "记录为失败",
       "noVerdict": "无判定记录",
@@ -4867,6 +4868,7 @@
       "verifier": {
         "pass": "通过",
         "fail": "失败",
+        "not-reached": "未到达",
         "no-node-check": "无节点检查记录"
       },
       "state": {

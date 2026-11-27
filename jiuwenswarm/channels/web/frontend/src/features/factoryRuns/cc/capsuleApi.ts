@@ -1,5 +1,5 @@
 import { getApiBase } from '../../../utils/env';
-import type { CapsuleActivity, EvidenceFile } from '../api';
+import type { CapsuleActivity, EvidenceFile, NodeCapsuleActivity } from '../api';
 
 export type CapsuleCard = {
   name: string;
@@ -120,6 +120,7 @@ export type CapsuleEvidence = {
     node_id: string;
     live?: boolean;
     capsule: CapsuleActivity;
+    reached?: NodeCapsuleActivity['reached'];
   }>;
 };
 

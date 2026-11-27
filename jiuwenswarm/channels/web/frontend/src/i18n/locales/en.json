@@ -4841,12 +4841,13 @@
       "use": "Use",
       "verifier": "CC verifier",
       "used": "Used",
+      "not-reached": "Not reached",
       "bound-not-used": "Bound, not used",
       "pass": "Pass",
       "fail": "Fail",
       "no-cc-verifier-record": "No CC verifier record",
       "no-verifier-declared": "No verifier declared",
-      "legend": "Used = a worker call, attempt or receipt names this CC. Bound, not used = no worker-use record. No CC verifier record = no recorded CC verdict.",
+      "legend": "Used = a recorded CC capability invocation, including its verifier. Bound, not used = no invocation recorded on a reached node. Not reached = no execution record. No CC verifier record = no recorded CC verdict.",
       "recordedPass": "Recorded pass",
       "recordedFail": "Recorded fail",
       "noVerdict": "No verdict recorded",
@@ -4867,6 +4868,7 @@
       "verifier": {
         "pass": "Pass",
         "fail": "Fail",
+        "not-reached": "Not reached",
         "no-node-check": "No node check recorded"
       },
       "state": {

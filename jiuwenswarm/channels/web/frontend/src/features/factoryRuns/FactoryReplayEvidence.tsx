@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { factoryApi, type EvidenceFile, type JsonRecord, type RunDetail } from './api';
 import { Loading } from './cc/CapsuleMaterial';
 import type { ActivityLink } from './cc/BoundCapsules';
-import type { CapsuleFacts } from './views/ccActivityModel';
+import type { NodeExecutionFacts } from './views/ccActivityModel';
 import { useCapsuleResource } from './cc/useCapsuleResource';
 import { DataViewer } from './views/DataViewer';
 import { PlannerNodeComparison } from './views/PlannerEvidence';
@@ -97,14 +97,14 @@ function recordedNodes(detail: RunDetail) {
   return [...titles];
 }
 
-export function ReplayNodeContractsPanel({ detail, selectedNode, onSelectNode, onOpenFile, onOpenRecord, onOpenActivity, capsuleFactsFor }: {
+export function ReplayNodeContractsPanel({ detail, selectedNode, onSelectNode, onOpenFile, onOpenRecord, onOpenActivity, executionFor }: {
   detail: RunDetail;
   selectedNode?: string;
   onSelectNode?: (id: string) => void;
   onOpenFile: (path: string) => void;
   onOpenRecord?: (id: string) => void;
   onOpenActivity?: ActivityLink;
-  capsuleFactsFor?: (id: string) => readonly CapsuleFacts[] | undefined;
+  executionFor?: (id: string) => NodeExecutionFacts | undefined;
 }) {
   const { t } = useTranslation();
   const nodes = recordedNodes(detail);
@@ -136,7 +136,7 @@ export function ReplayNodeContractsPanel({ detail, selectedNode, onSelectNode, o
           {!plannedNode && !loaded.data ? <Loading {...loaded} /> : (
             <PlannerNodeComparison key={node} node={plannedNode} fallback={loaded.data?.contract}
               files={detail.files} onOpenFile={onOpenFile} onOpenRecord={onOpenRecord}
-              capsuleFacts={capsuleFactsFor?.(node)} onOpenActivity={onOpenActivity} />
+              execution={executionFor?.(node)} onOpenActivity={onOpenActivity} />
           )}
         </>
       ) : <p className="factory-muted">No nodes are recorded for this run.</p>}

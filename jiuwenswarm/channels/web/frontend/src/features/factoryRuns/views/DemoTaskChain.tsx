@@ -4,7 +4,7 @@ import type { PlannerNode, PlannerPlan } from '../api';
 import { BoundCapsules, type ActivityLink } from '../cc/BoundCapsules';
 import type { TaskGraphTimelineNode } from './graphModel';
 import { contractObjective, PlannerCapsules } from './PlannerEvidence';
-import type { CapsuleFacts } from './ccActivityModel';
+import type { NodeExecutionFacts } from './ccActivityModel';
 import { draftChain } from './plannerViewModel';
 import { NodeVerifier } from './TimelineVerifier';
 import './demoTaskChain.css';
@@ -12,10 +12,18 @@ import './demoTaskChain.css';
 const minCardWidth = 164;
 export type DemoGraphMode = 'plan' | 'run';
 
-function PlanExecution({ facts, onOpenSource }: { facts?: readonly CapsuleFacts[]; onOpenSource?: ActivityLink }) {
+function PlanExecution({
+  execution,
+  onOpenSource,
+  onOpenRecord,
+}: {
+  execution?: NodeExecutionFacts;
+  onOpenSource?: ActivityLink;
+  onOpenRecord: (id: string) => void;
+}) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  return facts?.length ? (
+  return execution ? (
     <details
       className="factory-plan-execution"
       data-testid="factory-runs-plan-execution"
@@ -24,7 +32,12 @@ function PlanExecution({ facts, onOpenSource }: { facts?: readonly CapsuleFacts[
       <summary data-testid="factory-runs-plan-execution-toggle">
         {t('factoryRuns.ccActivity.recordedExecution')}
       </summary>
-      {open && <BoundCapsules facts={facts} onOpenSource={onOpenSource} />}
+      {open && (
+        <>
+          <BoundCapsules facts={execution.capsuleFacts} onOpenSource={onOpenSource} compact />
+          <NodeVerifier result={execution.nodeVerifier} onOpenRecord={onOpenRecord} compact />
+        </>
+      )}
     </details>
   ) : null;
 }
@@ -72,7 +85,7 @@ export function DemoTaskChain({
         const id = run.planId ?? run.id;
         return { id, draft: plannerNodes.get(id), run };
       });
-  const currentFacts = new Map(nodes.map((node) => [node.planId ?? node.id, node.capsuleFacts]));
+  const executionByNode = new Map(nodes.map((node) => [node.planId ?? node.id, node]));
   const shown = new Set(items.map((item) => item.id));
   const outside =
     planner?.nodes.filter((node) => !shown.has(node.node_id) && node.change === (planning ? 'added' : 'removed')) ?? [];
@@ -173,7 +186,11 @@ export function DemoTaskChain({
                       {draft.draft ? contractObjective(draft.draft) : t('factoryRuns.planner.noDraft')}
                     </p>
                     {draft.draft && <PlannerCapsules ids={draft.suggested_ccs} kind="suggested" />}
-                    <PlanExecution facts={currentFacts.get(id)} onOpenSource={onOpenActivity} />
+                    <PlanExecution
+                      execution={executionByNode.get(id)}
+                      onOpenSource={onOpenActivity}
+                      onOpenRecord={onOpenRecord}
+                    />
                   </>
                 )}
                 {run && (
