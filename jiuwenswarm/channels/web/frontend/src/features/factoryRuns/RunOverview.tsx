@@ -1,7 +1,7 @@
 import { createTwoFilesPatch } from 'diff';
 import { EngineRequestMethod } from './EngineReportCharts';
 import { DiffViewer } from './views/DiffViewer';
-import { mmluSummary, numeric, requestStateLabel } from './engineBenchModel';
+import { mmluSummary, numeric, requestIndexFromSpeedSource, requestStateLabel } from './engineBenchModel';
 import type { ReactNode } from 'react';
 import { ArrowUpRight, CheckCircle2, CircleDot, FileText, GitBranch, Layers3, PackageCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -82,7 +82,10 @@ function ReplayMeasurements({
               <tr key={row.path + row.pointer}>
                 <th scope="row">{hasMmlu && row.arm === 'P' ? 'AQB' : row.arm}</th>
                 <td>{row.request.slice(1)} ({row.prompt_tokens} rendered)</td>
-                <td>{requestStateLabel(row.state)}{row.repeat != null ? ` · ${row.repeat + 1}` : ''}</td>
+                <td>
+                  {requestStateLabel(row.state, requestIndexFromSpeedSource(row.sources?.[0]))}
+                  {row.repeat != null ? ` · ${row.repeat + 1}` : ''}
+                </td>
                 <td>{(row.ttft_ms / 1000).toFixed(3)}</td>
                 <td>{row.decode_tps.toFixed(3)}</td>
                 <td>{(row.total_ms / 1000).toFixed(3)}</td>

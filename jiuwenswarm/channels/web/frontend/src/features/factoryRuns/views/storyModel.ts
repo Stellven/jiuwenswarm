@@ -9,6 +9,7 @@ export type CuratedMeasurement = {
     arm: string;
     request: string;
     state: string;
+    sources?: { path?: string; record?: string }[];
     repeat?: number;
     prompt_tokens: number;
     generated_tokens?: number;

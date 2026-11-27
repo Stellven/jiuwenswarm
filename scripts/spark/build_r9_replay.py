@@ -295,14 +295,17 @@ class Replay(Builder):
         if source['sha256'] != manifest.get('files', {}).get('speed.json'):
             raise ValueError('Speed rows do not match the capped measurement manifest')
         cells = {}
-        for row in speed['rows']:
+        for request_index, row in enumerate(speed['rows']):
             if row['role'] != 'speed':
                 continue
             key = (row['state'], row['request'], row['repeat'])
             cell = cells.setdefault(key, {})
             if row['arm'] in cell:
                 raise ValueError('Duplicate standard speed row')
+            condition = 'Warm server' if row['state'] == 'warm' else (
+                'First request after start' if request_index == 0 else 'After page drop')
             cell[row['arm']] = dict(pick(row, 'cache_prompt derived_ttft_ms request_total_ms decode_tokens_per_second'),
+                                    request_index=request_index, condition=condition,
                                     quiet=pick(row['quiet'], 'status reasons'))
         rows = {'cold': [], 'warm': []}
         for (state, request, repeat), arms in cells.items():
@@ -363,7 +366,7 @@ class Replay(Builder):
             shown['cold_first_requests'] = rows['cold']
             shown['first_request_policy'] = dict(
                 score='Use every Warm server pair at 512 and 2048 under the amended checker, with cache reuse disabled on both arms.',
-                cold='Show both First request after start cells for context.',
+                cold='Show the First request after start and After page drop cells for context.',
             )
             refs.append(source)
         revised = None

@@ -1,13 +1,25 @@
 import { useMemo, useState } from 'react';
 import type { EvidenceFile, JsonRecord } from './api';
-import { requestStateLabel } from './engineBenchModel';
+import { requestIndexFromSpeedSource, requestStateLabel } from './engineBenchModel';
 import { formatChange, formatValue, labResults, type LabCell, type LabReport, type LabResults as Results, type RawRow } from './labModel';
 import './measurements.css';
 import './labResults.css';
 
 type Selected = { title: string; rows: RawRow[] };
 
-function Cell({ cell, onSelect, title }: { cell?: LabCell; onSelect: (value: Selected) => void; title: string }) {
+function labConditionLabel(condition: string, row: RawRow) {
+  const state = row.state === 'cold' || row.state === 'warm' ? row.state : condition;
+  const source = row.source as { path?: string; record?: string | number } | undefined;
+  const index = typeof row.request_index === 'number' ? row.request_index : requestIndexFromSpeedSource(source);
+  return requestStateLabel(state, index);
+}
+
+function Cell({ cell, onSelect, title, condition }: {
+  cell?: LabCell;
+  onSelect: (value: Selected) => void;
+  title: string;
+  condition?: string;
+}) {
   if (!cell || !cell.rows.length) return <span className="factory-lab-missing">—</span>;
   return (
     <button
@@ -19,6 +31,7 @@ function Cell({ cell, onSelect, title }: { cell?: LabCell; onSelect: (value: Sel
       onClick={() => onSelect({ title, rows: cell.rows })}
     >
       <b>{formatValue(cell.value, cell.unit)}</b>
+      {condition && <small data-testid="factory-runs-lab-cell-condition">{condition}</small>}
       {cell.reference ? (
         <small>reference</small>
       ) : (
@@ -98,7 +111,15 @@ function Report({ report, results, onOpenFile }: { report: LabReport; results: R
               </thead>
               <tbody>
                 {lines.map((line) => {
-                  const label = museReplay ? requestStateLabel(line.condition) : line.condition;
+                  const cellLabels = Object.fromEntries(Object.entries(line.cells).map(([arm, cell]) => [
+                    arm,
+                    museReplay
+                      ? [...new Set(cell.rows.map((row) => labConditionLabel(line.condition, row)))].join(' · ')
+                      : line.condition,
+                  ]));
+                  const distinct = new Set(Object.values(cellLabels));
+                  const differentByArm = distinct.size > 1;
+                  const label = differentByArm ? 'By arm' : Object.values(cellLabels)[0];
                   return (
                     <tr key={`${line.request}:${line.condition}`}>
                       <th scope="row">{line.request || '—'}</th>
@@ -107,7 +128,8 @@ function Report({ report, results, onOpenFile }: { report: LabReport; results: R
                         <td key={arm.id}>
                           <Cell
                             cell={line.cells[arm.id]}
-                            title={`${metric.id} · ${line.request || 'all prompts'} · ${label || 'all'} · arm ${arm.id}`}
+                            title={`${metric.id} · ${line.request || 'all prompts'} · ${cellLabels[arm.id] || 'all'} · arm ${arm.id}`}
+                            condition={differentByArm ? cellLabels[arm.id] : undefined}
                             onSelect={setSelected}
                           />
                         </td>
