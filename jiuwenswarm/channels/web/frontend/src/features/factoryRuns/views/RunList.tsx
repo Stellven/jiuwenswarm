@@ -37,11 +37,20 @@ export function FactoryRunList({
     [lang],
   );
 
+  const runDate = useMemo(
+    () => new Intl.DateTimeFormat(lang, { month: 'short', day: 'numeric', timeZone: 'America/New_York' }),
+    [lang],
+  );
+
   return (
     <div className="factory-run-list" data-testid="factory-runs-list">
       {(() => {
         const render = (items: typeof entries): ReactNode => items.map(({ run, source, shortId }) => {
-        const updated = Number.isFinite(run.updated) && run.updated > 0 ? new Date(run.updated * 1000) : null;
+        const demoDate = listView === 'demo' && run.contract_demo;
+        const seconds = demoDate ? run.created : run.updated;
+        const timestamp = typeof seconds === 'number' && Number.isFinite(seconds) && seconds > 0
+          ? new Date(seconds * 1000)
+          : null;
         const status =
           run.status === 'replay'
             ? label('runReplay')
@@ -66,13 +75,13 @@ export function FactoryRunList({
               <span className="factory-run-kind" data-testid="factory-runs-run-kind" data-variant={run.kind}>
                 {label(run.kind === 'bundle' ? 'runExport' : 'runHome')}
               </span>
-              {updated && (
+              {timestamp && (
                 <time
-                  dateTime={updated.toISOString()}
-                  title={date.format(updated) + ' ET'}
-                  data-testid="factory-runs-run-updated"
+                  dateTime={timestamp.toISOString()}
+                  title={date.format(timestamp) + ' ET'}
+                  data-testid={demoDate ? 'factory-runs-run-date' : 'factory-runs-run-updated'}
                 >
-                  {date.format(updated)} ET
+                  {demoDate ? runDate.format(timestamp) : date.format(timestamp) + ' ET'}
                 </time>
               )}
               {!(run.status === 'live' && run.task_id === 'muse-2bit-demo-r8') && <span className="factory-run-status" data-testid="factory-runs-run-status">

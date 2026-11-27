@@ -13,6 +13,8 @@ export type Run = {
   task_id: string;
   objective?: string;
   status: string;
+  /** Original task creation in Unix seconds, retained in native replay exports. */
+  created?: number;
   updated: number;
   /** Curated demo replays are pinned first in the run list. */
   demo?: boolean;

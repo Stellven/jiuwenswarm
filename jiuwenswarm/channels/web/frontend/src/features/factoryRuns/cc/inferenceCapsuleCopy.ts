@@ -1,14 +1,21 @@
 export const prefixReuseId = 'engine.kv_reuse_lab';
 export const warmTolerance = "Same as AQB: within the checker's 10% tolerance on the same server (measured ratios 0.95 to 1.03).";
-export const demoCapsuleIds: readonly string[] = ['weights.build_weight_pack_compiler', 'engine.size_prefill_batch', prefixReuseId];
+const quantizationId = 'weights.build_weight_pack_compiler';
+const prefillId = 'engine.size_prefill_batch';
+export const demoCapsuleIds: readonly string[] = [quantizationId, prefillId, prefixReuseId];
+
+export const demoContractCapsuleIds = new Map<string, readonly string[]>([
+  ['muse-2bit-demo-r8', [quantizationId, prefillId]],
+  ['muse-2bit-demo-r9', [prefixReuseId]],
+]);
 
 export const inferenceCapsules: Record<string, { title: string; method: string; evidence: string }> = {
-  'weights.build_weight_pack_compiler': {
+  [quantizationId]: {
     title: 'Quantization',
     method: 'Chooses a bit width per weight group from a sensitivity census and builds the pack.',
     evidence: 'The 267.2 GB mixed pack uses IQ2_XXS for gate and up projections and Q2_K for down projections. The original NVFP4 pack was 528.9 GB.',
   },
-  'engine.size_prefill_batch': {
+  [prefillId]: {
     title: 'Prefill plan',
     method: 'Sizes prefill batches to the target device budget using measured allocation and compute costs.',
     evidence: 'The mixed-pack microbatch grew from 512 to 2048 tokens. The NVFP4 arm used its defaults.',

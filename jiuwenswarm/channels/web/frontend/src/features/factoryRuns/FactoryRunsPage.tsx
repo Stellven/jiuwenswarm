@@ -41,6 +41,7 @@ import { TerminalViewer } from './views/TerminalViewer';
 import { useViewerLabels } from './views/viewerLabels';
 import { curatedStepFor, keyFilesFor, keyFlags as curatedKeyFlags, presentEvent } from './views/storyModel.ts';
 import { CapsuleChips, CapsuleLinksContext } from './cc/CapsuleChips';
+import { demoContractCapsuleIds } from './cc/inferenceCapsuleCopy';
 import { capsuleApi, type CapsuleCard } from './cc/capsuleApi';
 import { useCapsuleCopy } from './cc/copy';
 import { capsuleHref, runFilesHref, runHref, type FactoryEntry } from './cc/navigation';
@@ -199,6 +200,14 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   const controls = detail && runStatus?.id === selected ? runStatus.controls : detail?.controls;
   const status = detail && runStatus?.id === selected ? runStatus.run_state : detail?.run_state;
   const presentation = detail?.curated?.presentation_header;
+  const contractCapsuleIds = useMemo(() => {
+    const contractId = detail?.contract.contract_id;
+    if (!presentation || typeof contractId !== 'string') return undefined;
+    const selected = demoContractCapsuleIds.get(contractId);
+    if (!selected) return undefined;
+    const recorded = new Set(Object.values(detail?.cc_overview ?? {}).flat().map(({ id }) => id));
+    return selected.filter((id) => recorded.has(id));
+  }, [detail, presentation]);
   const r8Demo = !presentation && engineViewer && detail?.run.task_id === 'muse-2bit-demo-r8';
   const [delivery, setDelivery] = useState<Delivery>();
   useEffect(() => {
@@ -596,7 +605,10 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                 {!presentation && typeof detail.contract.title === 'string' && detail.cc_overview && (
                   <p className="factory-detail-subtitle" data-testid="factory-runs-run-subtitle">{detail.contract.title}</p>
                 )}
-                {presentation ? <CapsuleChips value={records.tasks?.map(({ component_cc, capability_cc }) => [component_cc, capability_cc])} /> : <CapsuleChips
+                {presentation ? <CapsuleChips
+                  capsuleIds={contractCapsuleIds}
+                  value={records.tasks?.map(({ component_cc, capability_cc }) => [component_cc, capability_cc])}
+                /> : <CapsuleChips
                   value={detail.cc_overview
                     ? [...new Set(Object.values(detail.cc_overview).flat().map((cc) => cc.id))]
                     : [detail.stack, records.tasks?.map(({ component_cc, capability_cc }) => [component_cc, capability_cc])]}
