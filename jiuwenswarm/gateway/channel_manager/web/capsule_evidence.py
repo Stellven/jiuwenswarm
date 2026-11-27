@@ -384,7 +384,7 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
                 plan = taskgraph.from_records(data)
                 activity, _, _ = service.capsule_activity(run, root, data, plan, catalog)
                 for node, facts in activity.items():
-                    node_activity.extend(source | dict(node_id=node, capsule=cc, live=bool(run.get('live_demo')
+                    node_activity.extend(source | dict(node_id=node, capsule=cc, reached=facts['reached'], live=bool(run.get('live_demo')
                                          and run.get('status') == 'live')) for cc in facts['capsules']
                                          if cc['id'] == capsule_id)
             except (OSError, ValueError, KeyError):
