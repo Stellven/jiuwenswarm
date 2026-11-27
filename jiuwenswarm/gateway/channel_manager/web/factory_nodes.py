@@ -201,18 +201,27 @@ def worker_calls(transcript):
                 args = _json_object(tool.get('arguments'))
                 if not (args.get('cc') and args.get('capability') and tool.get('tool_call_id')):
                     continue
-                node_id = _json_object(args.get('inputs')).get('node_id') or node
-                row = dict(id=tool['tool_call_id'], node_id=node_id, cc=args['cc'], capability=args['capability'],
-                           created=outer.get('t'), turn=turn, state=None, reason=None, attempt_id=None)
+                inputs = _json_object(args.get('inputs'))
+                node_id = inputs.get('node_id') or _json_object(inputs.get('request')).get('node_id') or node
+                row = dict(id=tool['tool_call_id'], node_id=node_id, request_node_id=node_id, cc=args['cc'], capability=args['capability'],
+                           created=outer.get('t'), turn=turn, state=None, reason=None,
+                           attempt_id=inputs.get('attempt_id'))
                 rows.append(row)
                 pending[row['id']] = row
             elif kind == 'chat.tool_result' and (row := pending.pop(outer.get('tool_call_id'), None)):
                 result = _json_object(outer.get('result'))
                 receipt = _json_object(demo_board._tool_text(outer.get('result')))
                 outputs = _json_object(receipt.get('outputs'))
+                nested = _json_object(outputs.get('result'))
                 state = receipt.get('state') or result.get('status')
-                row.update(state=state, reason=receipt.get('reason'), attempt_id=outputs.get('attempt_id'),
-                           node_id=outputs.get('node_id') or row['node_id'], release=receipt.get('release'),
+                assessment = outputs if isinstance(outputs.get('checks'), list) else nested
+                done = assessment.get('done')
+                assessed = receipt.get('cc') == row['cc'] and receipt.get('capability') == row['capability']
+                row.update(state=state, reason=receipt.get('reason'),
+                           attempt_id=outputs.get('attempt_id') or nested.get('attempt_id') or row.get('attempt_id'),
+                           node_id=outputs.get('node_id') or nested.get('node_id') or row['node_id'], release=receipt.get('release'),
+                           verifier_passed=done if assessed and isinstance(assessment.get('checks'), list) and type(done) is bool else None,
+                           result_at=outer.get('t'), receipt_id=receipt.get('call'),
                            failed=bool(result.get('error') or result.get('failed') or result.get('is_error')
                                        or _json_object(result.get('result')).get('isError') or state in {
                                            'failed', 'error', 'refused', 'rejected', 'failure', 'incomplete'}))
