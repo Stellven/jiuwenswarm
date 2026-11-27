@@ -96,7 +96,7 @@ const patterns: Partial<Record<Panel, RegExp>> = {
 type FactoryRunsProps = { entry?: Extract<FactoryEntry, { view: 'factoryRuns' }>; engineViewer?: boolean };
 
 export function FactoryRunsPage({ entry, engineViewer = false }: FactoryRunsProps) {
-  const capsuleCatalog = useCapsuleResource(engineViewer ? undefined : 'catalog', catalogRequest);
+  const capsuleCatalog = useCapsuleResource('catalog', catalogRequest);
   return (
     <CapsuleLinksContext.Provider value={capsuleCatalog.data?.capsules ?? emptyCapsules}>
       <FactoryReplay key={JSON.stringify(entry)} entry={entry} engineViewer={engineViewer} />
