@@ -2,6 +2,13 @@ import type { EvidenceFile, RunState, StoryEvent } from '../api';
 import type { CuratedReplay, ReplayNodePresentation } from './storyModel.ts';
 import { atlasTitle } from '../cc/atlasNames.ts';
 import type { NodeCheckIndex, NodeOperator } from './checkModel.ts';
+import {
+  indexTaskGraphChecks,
+  summarizeTaskGraphVerifiers,
+  type TimelineVerifierResult,
+} from './taskGraphVerifierModel.ts';
+
+export type { TimelineVerifierResult } from './taskGraphVerifierModel.ts';
 
 type Fields = Record<string, unknown>;
 type NodeKind = 'contract' | 'task' | 'step' | 'capsule' | 'entity' | 'group';
@@ -28,6 +35,8 @@ export type GraphModel = {
   links: GraphLink[];
   history: Fields[];
   taskId?: string;
+  taskChecks?: ReturnType<typeof indexTaskGraphChecks>;
+  defaultChecks?: Fields;
 };
 type GraphContext = {
   contract?: unknown;
@@ -53,6 +62,8 @@ type NodeProgress = { phase: 'upcoming' | 'seen' | 'current'; details?: Fields }
 export type TaskGraphTimelineNode = GraphNode & {
   replayState: 'done' | 'current' | 'not-reached' | 'stopped';
   boundCCs: string[];
+  ccVerifiers: Record<string, TimelineVerifierResult>;
+  nodeVerifier: TimelineVerifierResult;
 };
 
 function record(value: unknown): Fields | undefined {
@@ -186,7 +197,12 @@ function taskGraph(value: Fields, context: GraphContext): GraphModel | null {
     if (replacement) graph.link(target, idOf('step', replacement), 'superseded');
     addCapsules(graph, target, [node.capability], declarations);
   }
-  return graph.model(rows(value.history), taskId);
+  const task = tasks.find((item) => item.task_id === taskId);
+  return {
+    ...graph.model(rows(value.history), taskId),
+    taskChecks: indexTaskGraphChecks(context.observations ?? [], taskId),
+    defaultChecks: record(record(task?.constraints)?.node_checks),
+  };
 }
 
 function ontologyGraph(value: Fields): GraphModel | null {
@@ -278,7 +294,13 @@ function nodeEvent(node: Fields, event: StoryEvent) {
   );
 }
 
-function applyHistory(snapshots: Map<string, Fields>, patch: Fields, decisionRev: unknown, touched?: Set<string>) {
+function applyHistory(
+  snapshots: Map<string, Fields>,
+  patch: Fields,
+  decisionRev: unknown,
+  touched?: Set<string>,
+  onRestart?: (id: string) => void,
+) {
   for (const operation of ['add', 'update', 'cancel', 'supersede']) {
     for (const change of rows(patch[operation])) {
       const id = string(change.node_id);
@@ -331,6 +353,12 @@ function applyHistory(snapshots: Map<string, Fields>, patch: Fields, decisionRev
       snapshots.set(id, next);
     }
   }
+  for (const change of rows(patch.finalize)) {
+    const id = string(change.node_id);
+    if (!id) continue;
+    const node = snapshots.get(id);
+    if (node) snapshots.set(id, { ...node, final_contract: change.digest, check: change.check });
+  }
   for (const change of rows(patch.retire)) {
     const id = string(change.node_id);
     if (!id) continue;
@@ -354,6 +382,7 @@ function applyHistory(snapshots: Map<string, Fields>, patch: Fields, decisionRev
       if (reopened === id || !['cancelled', 'superseded', 'proposed'].includes(String(node.state))) {
         const { final_contract: _final, hold: _hold, ...fields } = node;
         touched?.add(reopened);
+        onRestart?.(reopened);
         snapshots.set(reopened, { ...fields, state: 'proposed', evidence_ids: [], reason: change.reason });
       }
       for (const [otherId, other] of snapshots) {
@@ -468,13 +497,19 @@ export function taskGraphTimeline(graph: GraphModel, replay?: GraphReplay): Task
   const orderOf = (node: GraphNode) => completionOrder.get(node.planId ?? '') ?? history.length;
   nodes.sort((a, b) => orderOf(a) - orderOf(b));
   const states = new Map<string, Fields>();
-  for (const entry of history.slice(0, revision)) {
+  const reopenedAt = new Map<string, number>();
+  for (const entry of replay ? history.slice(0, revision) : history) {
     const patch = record(entry.patch);
-    if (patch) applyHistory(states, patch, entry.decision_rev);
+    if (!patch) continue;
+    const created = entry.created;
+    applyHistory(states, patch, entry.decision_rev, undefined, (id) => {
+      if (typeof created === 'number') reopenedAt.set(id, created);
+    });
   }
 
-  const stateOf = (node: GraphNode) =>
-    !replay || (!history.length && isLatest) ? node.state : states.get(node.planId ?? '')?.state;
+  const detailsOf = (node: GraphNode) =>
+    !replay || (!history.length && isLatest) ? node.details : states.get(node.planId ?? '');
+  const stateOf = (node: GraphNode) => detailsOf(node)?.state;
   const unresolved = (node: GraphNode) => !['done', 'cancelled', 'superseded'].includes(String(stateOf(node)));
   const runState = replay?.runState;
   const since = typeof runState?.since === 'string' ? Date.parse(runState.since) / 1000 : runState?.since;
@@ -484,12 +519,25 @@ export function taskGraphTimeline(graph: GraphModel, replay?: GraphReplay): Task
   const stopped = runState?.state === 'stopped' && terminalReached;
   const finished = runState?.state === 'finished' && terminalReached;
   const current = stopped || finished ? undefined : nodes.find(unresolved);
+  const recordsPath = replay?.files?.find((file) => file.path === 'records/observations.json')?.path;
   return nodes.map((node) => {
     let replayState: TaskGraphTimelineNode['replayState'] = 'not-reached';
     if (stateOf(node) === 'done') replayState = 'done';
     else if (node === current) replayState = 'current';
     else if (stopped && unresolved(node)) replayState = 'stopped';
-    return { ...node, replayState, boundCCs: node.boundCCs ?? [] };
+    const planId = node.planId ?? '';
+    const details = detailsOf(node);
+    const spec = details?.check ?? graph.defaultChecks?.[string(details?.kind) ?? ''];
+    const boundCCs = node.boundCCs ?? [];
+    const verifiers = summarizeTaskGraphVerifiers(
+      graph.taskChecks?.get(planId) ?? [],
+      spec,
+      boundCCs,
+      replay ? cutoff : Infinity,
+      reopenedAt.get(planId) ?? -Infinity,
+      recordsPath,
+    );
+    return { ...node, replayState, boundCCs, ...verifiers };
   });
 }
 

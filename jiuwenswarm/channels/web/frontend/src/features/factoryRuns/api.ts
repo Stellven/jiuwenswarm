@@ -52,6 +52,8 @@ export type RunDetail = {
   records: Record<string, JsonRecord[]>;
   contract: JsonRecord;
   graph: JsonRecord;
+  /** Original plan for bundled runs whose curated graph is a story projection. */
+  recorded_plan?: JsonRecord | null;
   stack: unknown;
   telemetry: unknown;
   files: EvidenceFile[];
