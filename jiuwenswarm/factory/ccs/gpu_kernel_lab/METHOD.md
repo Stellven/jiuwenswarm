@@ -23,3 +23,18 @@ speedup, and finite nonnegative native error. Nonfinite JSON numbers are rejecte
 throughout the reply. The independent Python comparison does not truncate a
 short or overlong native output. Malformed-reply tests stub native transport and
 require no GPU or compiled binary.
+
+## Verify dispatch before proposing an engine change
+
+Read the parent image/build/load receipts, map the actual decode tensor shapes to the backend dispatch, and qualify any proposed batching against the pinned library. Count routed matvec launches separately from activation quantization, expert transfers and gate post-operations. When the existing backend already batches every eligible route, stop before patching or assembling an image.
+
+In this run, the read-only `trace_dispatch` capability binds AQBC's executable and CUDA library to its committed/frozen source, examines the headers of all 11 GGUF shards, and follows the recorded single-slot CUDA MoE cache path. The pinned source implements one-token MMVQ for 4096-by-4096 IQ2_XXS gate/up and Q2_K down. Eight route IDs remain the launch grid's eight Y channels even when the synthetic bank is smaller than the real 4,625-slot view. The slot IDs address weight slices, with identical row and slot strides in the fixture. Few-row MMQ starts at two tokens for these types on GB10.
+
+The pre-graph no-model fixture source is `fixtures/muse_dispatch.cpp`. It links to GGML CUDA and base libraries copied from a stopped AQBC image container, byte-matched to the retained R8 build. A one-token projection uses synthetic quantized zero weights, explicit permuted slot IDs and exact activation layout. Separate gate/up and adjacent fusion-eligible gate/up are checked independently. The zero-output check is a fixture guard. The evidence qualifies dispatch, without claiming numerical parity on model weights or measuring Muse speed.
+
+Reproduction on the approved GB10 fixture slot:
+
+1. Copy the AQBC `/opt/llamacpp` libraries using a scratch stopped Docker container. Compare their hashes to the image receipt and pinned build files. Provide the pinned `ggml/include` headers from the frozen engine source and the installed CUDA include directory.
+2. Compile only `fixtures/muse_dispatch.cpp` with `g++ -std=c++17 -O2`. Link `libggml-cuda.so.1`, `libggml-base.so.1`, `libggml.so.1` and `libcudart.so.13` from the matching image/build package. Set `LD_LIBRARY_PATH` to resolve those libraries and their pinned runtime dependencies.
+3. Check the GPU compute inventory. Run the fixture executable separately with arguments `iq2_projection`, `q2_down`, `iq2_gate_up_pair` and `iq2_adjacent_gate_up`, leaving CUDA graphs enabled. Capture each process with `nsys profile --trace=cuda --cuda-graph-trace=node --sample=none --cpuctxsw=none --capture-range=cudaProfilerApi --capture-range-end=stop --export=sqlite --output=<new-case-path>`. Keep stdout, the Nsight report, the SQLite export, and the source/executable hashes.
+4. The native CPU-only verifier checks the retained evidence digests and independently queries `CUPTI_ACTIVITY_KIND_KERNEL` via `StringIds` for kernel names, order, geometry and graph node IDs. It compares its rederivation to the raw trace and seals the result. A collector JSON field cannot approve a build.

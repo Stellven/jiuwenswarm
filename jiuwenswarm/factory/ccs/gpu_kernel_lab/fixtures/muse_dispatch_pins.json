@@ -1,0 +1,24 @@
+{
+  "format": "factory.r10-dispatch-input-pins/1",
+  "parent_sha256": "cc7332b247770208f3c6e3808d062b11a6c7686c0c7e7c82d99345902f9c69c0",
+  "fixture_source_sha256": "d7b35917085cfb912bf36d60677184bad92ae4d57615e9d4cd2e6b574755a8d8",
+  "fixture_executable_sha256": "28515b7ae96fa45e450efa13ed39c6ee93684ae49399f3b267a34d46c0c486fa",
+  "inputs": {
+    "lab/r10-aqbcd/dispatch/gpu-inventory-before.csv": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lab/r10-aqbcd/dispatch/gpu-target.csv": "e8e567b373d6c64cb9844477590020024eb964949e94ac3f9055446a166e9e6f",
+    "lab/r10-aqbcd/dispatch/image-file-receipt.json": "ba800c66dc29a5463f12272afe77827bf822cb18f999202206e9eef8effbb9bd",
+    "lab/r10-aqbcd/dispatch/iq2_adjacent_gate_up.log": "1ab93532b03bc5a9c9142ac8a453b50707826ccb2f1e1a22f22d9281727c8323",
+    "lab/r10-aqbcd/dispatch/iq2_adjacent_gate_up.nsys-rep": "ef0bd27c43cbdc0036ff044d3bdb70f5dddb7682c13eebbc9f1d37eda90c17b3",
+    "lab/r10-aqbcd/dispatch/iq2_adjacent_gate_up.sqlite": "4ff5fd2edd7a9363885fa94bb92cd18462264d409b936a5ee087a49debf86220",
+    "lab/r10-aqbcd/dispatch/iq2_gate_up_pair.log": "3265dfde73d3aa56f8c8089bbdaa1b4367fd3485e30d8ff148dfd2a86bfc2960",
+    "lab/r10-aqbcd/dispatch/iq2_gate_up_pair.nsys-rep": "61c89858e7c252a052d9b3e5ef8654a6ffaec5cdf9a19a56136508828674e417",
+    "lab/r10-aqbcd/dispatch/iq2_gate_up_pair.sqlite": "8670b61ebb67400ebddc264563b16c7a688fa3d8729662ba181bb5f07741b53b",
+    "lab/r10-aqbcd/dispatch/iq2_projection.log": "c6437dec089bed4340c6abced8e707543a09192561134bbc81283187091971bf",
+    "lab/r10-aqbcd/dispatch/iq2_projection.nsys-rep": "12e05af1185fd9eae2d556eb59e39c4507982ca7eabebd6d9d58721dc661ef7f",
+    "lab/r10-aqbcd/dispatch/iq2_projection.sqlite": "85c8c77d53f86189f03e34684d8d921c6d2ea0f9560c53ec72d8e05c13df80e8",
+    "lab/r10-aqbcd/dispatch/q2_down.log": "d5f0afcc4462ac8740784d36286f2549d177bfc894e745ce20e6e6436848cecd",
+    "lab/r10-aqbcd/dispatch/q2_down.nsys-rep": "97d0ce8602e6c41b6dd2fe7fa3e898d9e00a8643673d5587f593260ba6842643",
+    "lab/r10-aqbcd/dispatch/q2_down.sqlite": "b26f0199cb86d2edba8afbb6c2a4310b610aaa5fa269266e062d7020bbe9feff",
+    "lab/r9-aqbc/measure-engine/measurements.json": "0944ba1287ec881b0c215d612526a5ff33ec1bf205c940420a2805ed2af1f433"
+  }
+}
