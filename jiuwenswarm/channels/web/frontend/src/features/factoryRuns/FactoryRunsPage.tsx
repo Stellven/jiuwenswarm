@@ -139,13 +139,13 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
       const runs = [...result.runs].sort((a, b) => b.updated - a.updated);
       setListing({ ...result, runs });
       const firstDemo = runs.filter((run) => run.demo).sort((a, b) => (a.demo_order ?? 0) - (b.demo_order ?? 0))[0];
-      setSelected((old) => old || runs.find((run) => run.featured)?.id || firstDemo?.id || runs[0]?.id || '');
+      setSelected((old) => old || (engineViewer ? firstDemo?.id : undefined) || runs.find((run) => run.featured)?.id || firstDemo?.id || runs[0]?.id || '');
     } catch (err) {
       setError(String(err));
     } finally {
       setCatalogLoading(false);
     }
-  }, []);
+  }, [engineViewer]);
   useEffect(() => {
     void refresh();
   }, [refresh]);
@@ -561,7 +561,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                     : [detail.stack, records.tasks?.map(({ component_cc, capability_cc }) => [component_cc, capability_cc])]}
                 />
               </div>
-              {isLiveHome && (
+              {isLiveHome && !isTerminalDemo && (
                 <label className="factory-live">
                   <input
                     type="checkbox"
@@ -579,14 +579,6 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
             {demoHeadline || isTerminalDemo ? (
               <section className="factory-run-state" data-testid="factory-runs-state" data-variant="finished">
                 <strong data-testid="factory-runs-state-label">{demoHeadline || 'Finished'}</strong>
-                {isTerminalDemo && (
-                  <details className="factory-node-evidence-disclosure" data-testid="factory-runs-terminal-decision">
-                    <summary data-testid="factory-runs-terminal-decision-toggle">Run decision</summary>
-                    <p><code>report_inconclusive</code></p>
-                    {terminalDecision?.reason && <p>{terminalDecision.reason}</p>}
-                    {terminalDecision?.id && <code>{terminalDecision.id}</code>}
-                  </details>
-                )}
               </section>
             ) : (
               <RunState
@@ -605,10 +597,10 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                 Agent help with the verifier role included monitoring and specific-fix notes. Advisory findings remain in the evidence.
               </p>
             )}
-            {isLiveHome && (live || panel === 'overview' || panel === 'terminal') && (
+            {isLiveHome && !isTerminalDemo && (live || panel === 'overview' || panel === 'terminal') && (
               <LiveSession session={session} stale={sessionStale} engineViewer={engineViewer} />
             )}
-            <section className="factory-replay" data-testid="factory-runs-replay">
+            {(!isTerminalDemo || (detail.curated && !detail.curated.native)) && <section className="factory-replay" data-testid="factory-runs-replay">
               <div className="factory-replay-controls">
                 <button
                   data-testid="factory-runs-play"
@@ -671,7 +663,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                 )}
                 <ReplayLabel value={curatedStep?.replayed_from ?? cursor?.replayed_from} />
               </p>
-            </section>
+            </section>}
             <nav className="factory-tabs" data-testid="factory-runs-tabs" aria-label={t('factoryRuns.panels')}>
               {(detail.curated && (!engineViewer || !detail.curated.native) ? curatedPanels : engineViewer || detail.cc_overview ? graphRunPanels : panels).map((value) => (
                 <button

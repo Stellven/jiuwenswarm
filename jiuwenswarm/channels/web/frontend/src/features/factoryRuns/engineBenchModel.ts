@@ -101,21 +101,15 @@ export const devices: [Device, string][] = [
 export const numeric = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 export const fmt = (value: number, digits = 1) => value.toLocaleString('en-US', { maximumFractionDigits: digits });
 
-export const baselineRun = 'nov25-lab-abcde';
-export const rerun = 'r8-lab';
-export const accuracyRun = 'nov25-mmlu-q2';
+export const finalRun = 'r8-final-bench';
 
 const armTitles: Record<string, string> = {
-  A: 'A · NVFP4 baseline (E0)',
-  B: 'B · R8 + mixed 2-bit',
-  P: 'P · B + prefill plan',
+  A: 'A · NVFP4 baseline',
+  P: 'P · mixed 2-bit + prefill plan',
 };
 
 export function isReportArm(row: EngineRow) {
-  return (
-    row.kind !== 'accuracy' &&
-    ((row.run === baselineRun && row.arm === 'A') || (row.run === rerun && (row.arm === 'B' || row.arm === 'P')))
-  );
+  return row.run === finalRun && row.kind !== 'accuracy' && (row.arm === 'A' || row.arm === 'P');
 }
 
 export function excluded(row: EngineRow) {
@@ -176,7 +170,7 @@ export function groupBy<T>(items: T[], key: (item: T) => string) {
   return groups;
 }
 
-export type Ratio = { candidate: EngineRow; baselines: EngineRow[]; value: number };
+export type Ratio = { candidate: EngineRow; baselines: EngineRow[]; value: number; totalSpeedup?: number };
 
 export function ratios(rows: EngineRow[]): Ratio[] {
   const eligible = rows.filter(
@@ -190,10 +184,10 @@ export function ratios(rows: EngineRow[]): Ratio[] {
       numeric(row.metrics?.ttft_ms) &&
       row.metrics.ttft_ms > 0,
   );
-  const baseline = eligible.filter((row) => row.run === baselineRun);
+  const baseline = eligible.filter((row) => row.arm === 'A');
   return eligible.flatMap((candidate) => {
     if (
-      candidate.run !== rerun ||
+      candidate.arm !== 'P' ||
       (candidate.corrected_verdict?.status ?? (candidate.quiet?.eligible ? 'accepted' : '')) !== 'accepted'
     )
       return [];
@@ -204,11 +198,16 @@ export function ratios(rows: EngineRow[]): Ratio[] {
         row.request?.state === candidate.request?.state,
     );
     if (!baselines.length) return [];
+    const peers = eligible.filter((row) => row.arm === 'P' && row.request?.name === candidate.request?.name &&
+      row.request?.state === candidate.request?.state);
+    const totals = (samples: EngineRow[]) => samples.map((row) => row.metrics?.total_ms).filter(numeric);
     return [
       {
         candidate,
         baselines,
-        value: median(baselines.map((row) => row.metrics!.ttft_ms!)) / candidate.metrics!.ttft_ms!,
+        value: median(baselines.map((row) => row.metrics!.ttft_ms!)) / median(peers.map((row) => row.metrics!.ttft_ms!)),
+        totalSpeedup: totals(peers).length && totals(baselines).length
+          ? median(totals(baselines)) / median(totals(peers)) : undefined,
       },
     ];
   });

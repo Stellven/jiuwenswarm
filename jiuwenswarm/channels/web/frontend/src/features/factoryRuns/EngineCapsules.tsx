@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { Fragment, useCallback, useState } from 'react';
 import { factoryApi, type CapsuleOverview, type JsonRecord, type RunDetail } from './api';
 import { nodeHref, runHref } from './cc/navigation';
 import { useCapsuleResource } from './cc/useCapsuleResource';
@@ -12,10 +12,14 @@ const loadLive = async () => {
   return factoryApi.detail(live.id);
 };
 
-const titleFor = (detail: RunDetail, node: string) => {
-  const nodes = Array.isArray(detail.graph.nodes) ? detail.graph.nodes as JsonRecord[] : [];
-  const title = nodes.find((row) => row.node_id === node)?.title;
-  return typeof title === 'string' ? title : node.replaceAll('_', ' ');
+const nodeTitles: Record<string, string> = {
+  pin_inputs: 'Pin inputs', ingest_nvfp4: 'Convert NVFP4', wire_expert_scales: 'Wire expert scales',
+  build_base_engine: 'Build engine', requant_2bit: 'Compile mixed pack', size_prefill_batch: 'Plan prefill',
+  build_image: 'Build image', deliver_to_lab: 'Deliver to lab',
+};
+const featured: Record<string, string> = {
+  'weights.build_weight_pack_compiler': 'The mixed pack occupies 267.2 GB, down from 528.9 GB.',
+  'engine.size_prefill_batch': 'The plan raised the mixed-pack microbatch from 512 to 2048. NVFP4 kept its defaults.',
 };
 
 function CapsuleNode({ detail, node, capsule }: { detail: RunDetail; node: string; capsule: string }) {
@@ -27,7 +31,7 @@ function CapsuleNode({ detail, node, capsule }: { detail: RunDetail; node: strin
 
   return (
     <details data-testid="factory-runs-engine-capsule-node" data-variant={node} onToggle={(event) => setOpen(event.currentTarget.open)}>
-      <summary data-testid="factory-runs-engine-capsule-node-title">{titleFor(detail, node)}</summary>
+      <summary data-testid="factory-runs-engine-capsule-node-title"><code>{node}</code> · {nodeTitles[node]}</summary>
       {open && !nodeDetails.data && !nodeDetails.error && <p role="status">Loading node evidence…</p>}
       {nodeDetails.error && <p role="alert">{nodeDetails.error}</p>}
       {row && (
@@ -83,7 +87,7 @@ function SchedulerCapsule({ detail }: { detail: RunDetail }) {
       <ul aria-label="Final contract outputs">
         {[...latest].map(([node, record]) => (
           <li key={node}>
-            <a href={nodeHref(detail.run.id, node, 'contract')} data-testid="factory-runs-engine-scheduler-output" data-variant={node}>{titleFor(detail, node)} · contract diff</a>
+            <a href={nodeHref(detail.run.id, node, 'contract')} data-testid="factory-runs-engine-scheduler-output" data-variant={node}><code>{node}</code> · {nodeTitles[node]}</a>
             <div><code>{String(record.obs_id)}</code></div>
           </li>
         ))}
@@ -103,6 +107,7 @@ export function EngineCapsules() {
     }
   }
 
+  const cards = [...byId.values()].sort((a, b) => Number(!(a.id in featured)) - Number(!(b.id in featured)));
   return (
     <section className="engine-capsules" data-testid="factory-runs-engine-capsules">
       <h1>Capability Capsules</h1>
@@ -111,19 +116,21 @@ export function EngineCapsules() {
       {error && <p role="alert">{error}</p>}
       {data && (
         <div className="engine-capsule-list" data-testid="factory-runs-engine-capsule-list">
-          {[...byId.values()].map((capsule) => (
+          {cards.map((capsule, index) => (
+            <Fragment key={capsule.id}>
+            {index === Object.keys(featured).length && <SchedulerCapsule detail={data} />}
             <article className="engine-capsule" key={capsule.id} data-testid="factory-runs-engine-capsule" data-variant={capsule.id}>
               <h2>{capsule.title || capsule.id}</h2>
               <code>{capsule.id}</code>
-              {capsule.purpose && <p>{capsule.purpose}</p>}
+              {(featured[capsule.id] || capsule.purpose) && <p>{featured[capsule.id] || capsule.purpose}</p>}
               <ul aria-label="Recorded node bindings">
                 {capsule.nodes.map((node) => (
                   <li key={node}><CapsuleNode detail={data} node={node} capsule={capsule.id} /></li>
                 ))}
               </ul>
             </article>
+            </Fragment>
           ))}
-          <SchedulerCapsule detail={data} />
         </div>
       )}
     </section>

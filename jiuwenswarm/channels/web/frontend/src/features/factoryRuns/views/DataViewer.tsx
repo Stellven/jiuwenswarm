@@ -50,10 +50,11 @@ function Value({ value, limit = 600 }: { value: StructuredValue | undefined; lim
     );
   }
   if (typeof value === 'string') {
-    return value === '' ? (
+    const display = value.replace(/^to=self<\|message\|>/, '');
+    return display === '' ? (
       <span className="evidence-muted">{locale.empty}</span>
     ) : (
-      <span className="evidence-value">{value.length > limit ? value.slice(0, limit) + '…' : value}</span>
+      <span className="evidence-value">{display.length > limit ? display.slice(0, limit) + '…' : display}</span>
     );
   }
   return <code className="evidence-scalar">{String(value)}</code>;

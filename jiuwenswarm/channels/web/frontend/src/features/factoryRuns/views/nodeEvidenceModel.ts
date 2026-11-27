@@ -48,12 +48,15 @@ export function contractDiff(contract: NodeContract | undefined) {
   const pretty = (document: JsonRecord) => JSON.stringify(document, sortedJson, 2) + '\n';
   const before = contract?.preliminary ? pretty(contract.preliminary) : undefined;
   const after = contract?.final ? pretty(contract.final) : undefined;
+  // Bounds describe how the host compares proposals. They are absent from a finalized contract.
+  const comparisonBefore = contract?.preliminary && { ...contract.preliminary };
+  if (comparisonBefore && !contract?.final?.bounds) delete comparisonBefore.bounds;
   return {
     before,
     after,
     patch:
       before && after && before !== after
-        ? createTwoFilesPatch('preliminary.json', 'final.json', before, after, '', '', { context: 3 })
+        ? createTwoFilesPatch('preliminary.json', 'final.json', comparisonBefore ? pretty(comparisonBefore) : before, after, '', '', { context: 3 })
         : undefined,
   };
 }

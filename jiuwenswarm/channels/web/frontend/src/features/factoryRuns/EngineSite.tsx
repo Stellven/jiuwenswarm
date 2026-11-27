@@ -6,9 +6,9 @@ import { FactoryRunsPage } from './FactoryRunsPage';
 import './engineSite.css';
 
 export function EngineSite() {
-  const [entry, setEntry] = useState(() => readFactoryEntry(window.location.hash));
+  const [entry, setEntry] = useState(() => readFactoryEntry(window.location.hash || runHref()));
   useEffect(() => {
-    const update = () => setEntry(readFactoryEntry(window.location.hash));
+    const update = () => setEntry(readFactoryEntry(window.location.hash || runHref()));
     window.addEventListener('hashchange', update);
     return () => window.removeEventListener('hashchange', update);
   }, []);
@@ -16,13 +16,13 @@ export function EngineSite() {
   return (
     <div className="engine-site" data-testid="factory-runs-engine-site">
       <header className="engine-site-header">
-        <a className="engine-site-brand" href="#engine-report" data-testid="factory-runs-engine-home">
+        <a className="engine-site-brand" href={runHref()} data-testid="factory-runs-engine-home">
           Engine Factory
         </a>
         <nav aria-label="Engine Factory" data-testid="factory-runs-engine-navigation">
-          <a href="#engine-report" aria-current={entry ? undefined : 'page'} data-testid="factory-runs-engine-report-link">Engine Report</a>
           <a href={runHref()} aria-current={entry?.view === 'factoryRuns' ? 'page' : undefined} data-testid="factory-runs-engine-runs-link">Factory Runs</a>
           <a href={capsuleHref()} aria-current={entry?.view === 'capabilityCapsules' ? 'page' : undefined} data-testid="factory-runs-engine-capsules-link">Capability Capsules</a>
+          <a href="#engine-report" aria-current={entry ? undefined : 'page'} data-testid="factory-runs-engine-report-link">Engine Report</a>
         </nav>
       </header>
       <main className="engine-site-main" key={entry?.view ?? 'report'}>

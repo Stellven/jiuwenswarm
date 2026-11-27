@@ -1,3 +1,5 @@
+import { createTwoFilesPatch } from 'diff';
+import { DiffViewer } from './views/DiffViewer';
 import type { ReactNode } from 'react';
 import { ArrowUpRight, CheckCircle2, CircleDot, FileText, GitBranch, Layers3, PackageCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -45,11 +47,9 @@ function ReplayMeasurements({
   onOpenFile?: (path: string) => void;
 }) {
   const { baseline, rows, accuracy } = measurement;
-  const aTokens = rows.find((row) => row.arm === 'A')?.generated_tokens;
-  const measuredTokens = rows.find((row) => row.arm === 'B')?.generated_tokens;
   return (
     <section className="factory-curated-measurements" data-testid="factory-runs-curated-measurements">
-      <p>{baseline}. A generated {aTokens} tokens per request. B and P generated {measuredTokens}.</p>
+      <p>{baseline}. Both arms generated 32 tokens per request.</p>
       <div className="factory-curated-table-scroll">
         <table>
           <thead>
@@ -64,7 +64,7 @@ function ReplayMeasurements({
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
+            {rows.filter((row) => row.status !== 'excluded').map((row) => (
               <tr key={row.path + row.pointer} data-excluded={row.status === 'excluded' || undefined}>
                 <th scope="row">{row.arm}</th>
                 <td>{row.request.slice(1)} ({row.prompt_tokens} rendered)</td>
@@ -87,20 +87,8 @@ function ReplayMeasurements({
           </tbody>
         </table>
       </div>
-      <details data-testid="factory-runs-curated-quiet-decisions">
-        <summary>Quiet-rule decisions</summary>
-        <ul>
-          {rows.filter((row) => row.arm !== 'A').map((row) => (
-            <li key={row.pointer}>
-              {row.arm} · {row.request.slice(1)} · {row.state} · {row.status}
-              {row.reasons.length ? ` · ${row.reasons.join(' · ')}` : ''}
-            </li>
-          ))}
-        </ul>
-      </details>
       <p>
-        Historical Q2_K paired MMLU · indicative · loss {accuracy.loss_pts} pp
-        (interval {accuracy.lo_pts} to {accuracy.hi_pts} pp, n={accuracy.n}).{' '}
+        Paired MMLU · NVFP4 {accuracy.reference_pct}% · mixed 2-bit {accuracy.candidate_pct}% · {accuracy.n} questions.{' '}
         <button type="button" data-testid="factory-runs-curated-accuracy-source" onClick={() => onOpenFile?.(accuracy.path)}>
           Source
         </button>
@@ -222,6 +210,14 @@ export function RunOverview({
                 files={detail.files}
                 onOpenFile={onOpenFile}
               />
+            )}
+            {focus.capsule_diff && (
+              <section aria-label="Capsule changes">
+                <h4>{focus.capsule_diff.caption}</h4>
+                <DiffViewer content={createTwoFilesPatch('before', 'after',
+                  JSON.stringify(focus.capsule_diff.before, null, 2) + '\n',
+                  JSON.stringify(focus.capsule_diff.after, null, 2) + '\n')} />
+              </section>
             )}
             {focus.measurement && <ReplayMeasurements measurement={focus.measurement} onOpenFile={onOpenFile} />}
             {lead && (

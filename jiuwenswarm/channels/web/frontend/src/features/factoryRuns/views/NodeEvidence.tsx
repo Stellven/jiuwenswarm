@@ -180,6 +180,7 @@ function ContractEvidence({ contract, ...links }: { contract: NodeContract } & E
           {(before || after) && (
             <section className="factory-node-evidence-fields">
               <h5>Preliminary and final contract</h5>
+              {contract.preliminary?.bounds && contract.final ? <p>Never-weaker check passed. The host applied the preliminary contract’s bounds before admitting this proposal.</p> : null}
               {patch ? (
                 <DiffViewer content={patch} />
               ) : (

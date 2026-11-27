@@ -4,7 +4,7 @@ import { replayLabel, revisionEvent } from './nodeEvidenceModel.ts';
 export type KeyFile = { path: string; label: string; why?: string; step?: number };
 export type CuratedMeasurement = {
   baseline: string;
-  accuracy: { loss_pts: number; lo_pts: number; hi_pts: number; n: number; path: string };
+  accuracy: { reference_pct?: number; candidate_pct?: number; loss_pts: number; lo_pts: number; hi_pts: number; n: number; path: string };
   rows: {
     arm: string;
     request: string;
@@ -41,6 +41,7 @@ export type CuratedStep = {
   correction?: CorrectionEvent;
   correction_trail?: NodeCorrection;
   measurement?: CuratedMeasurement;
+  capsule_diff?: { caption: string; before: object; after: object };
 };
 export type CuratedReplay = {
   schema: string;

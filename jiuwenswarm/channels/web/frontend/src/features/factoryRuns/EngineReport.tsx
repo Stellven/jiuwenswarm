@@ -4,7 +4,7 @@ import { request } from './api';
 import { AccuracyPlot, DecodeBars, LengthPlot, MemoryBars, Panel, RowValue, SpeedBars } from './EngineReportCharts';
 import type { Inspect } from './EngineReportCharts';
 import {
-  accuracyRun,
+  finalRun,
   armOrder,
   armLabel,
   deliveryHeadline,
@@ -18,7 +18,6 @@ import {
   numeric,
   quietStatus,
   ratios,
-  rerun,
   sourceRef,
 } from './engineBenchModel';
 import type { Benchmark, EngineRow, Metric, QuietVerdict, Ratio } from './engineBenchModel';
@@ -26,6 +25,7 @@ import './story.css';
 import './engineReport.css';
 
 const runs: Record<string, string> = {
+  'r8-final-bench': 'R8 engine benchmark',
   'r8-lab': 'Nov 26 · R8 delivery lab',
   'nov25-lab-abcde': 'Nov 25 · E0 NVFP4 baseline',
   'nov25-mmlu-q2': 'Nov 25 · Paired MMLU',
@@ -69,7 +69,7 @@ const packFacts = (row: EngineRow): Datum[] => [
   ['Pack', value(row.pack?.name)],
   ['Format', value(row.pack?.format)],
   ['Bits per weight', value(row.pack?.bits_per_weight)],
-  ['Disk size', numeric(row.pack?.bytes) ? value(row.pack.bytes / 1024 ** 3, 'GiB') : null],
+  ['Disk size', numeric(row.pack?.bytes) ? value(row.pack.bytes / 1e9, 'GB', 1) : null],
   [
     'Census',
     row.pack?.census && typeof row.pack.census === 'object'
@@ -254,7 +254,7 @@ function SourceDialog({ rows, close }: { rows: EngineRow[]; close: () => void })
 
 function ReportTable({ rows, speed, inspect }: { rows: EngineRow[]; speed: Ratio[]; inspect: Inspect }) {
   return (
-    <Panel id="comparison" title="A / B / P comparison">
+    <Panel id="comparison" title="Baseline and mixed 2-bit comparison">
       <div className="engine-table-wrap">
         <table data-testid="factory-runs-engine-comparison-table">
           <thead>
@@ -263,10 +263,10 @@ function ReportTable({ rows, speed, inspect }: { rows: EngineRow[]; speed: Ratio
               <th scope="col">Rendered tokens</th>
               <th scope="col">Request</th>
               <th scope="col">TTFT (s)</th>
-              <th scope="col">Prefill (tok/s)</th>
               <th scope="col">Decode (tok/s)</th>
               <th scope="col">Total (s)</th>
               <th scope="col">TTFT speedup</th>
+              <th scope="col">Total speedup</th>
               <th scope="col">Settings and resources</th>
             </tr>
           </thead>
@@ -277,7 +277,7 @@ function ReportTable({ rows, speed, inspect }: { rows: EngineRow[]; speed: Ratio
               ...groupBy(requests, (row) =>
                 JSON.stringify([row.request?.name, row.request?.prompt_tokens, row.request?.state]),
               ).values(),
-            ].sort(
+            ].filter((group) => group.some((row) => !excluded(row))).sort(
               (a, b) =>
                 (a[0].request?.prompt_tokens ?? 0) - (b[0].request?.prompt_tokens ?? 0) ||
                 Number(b[0].request?.state === 'warm') - Number(a[0].request?.state === 'warm'),
@@ -327,7 +327,7 @@ function ReportTable({ rows, speed, inspect }: { rows: EngineRow[]; speed: Ratio
                         )}
                       </td>
                       <td>{row?.request?.state ?? '—'}</td>
-                      {metrics.slice(0, 4).map(([metric]) => {
+                      {metrics.slice(0, 4).filter(([metric]) => metric !== 'prefill_tps').map(([metric]) => {
                         const samples = accepted.flatMap((source) => {
                           const measurement = source.metrics?.[metric];
                           return numeric(measurement) ? [{ source, measurement }] : [];
@@ -363,6 +363,7 @@ function ReportTable({ rows, speed, inspect }: { rows: EngineRow[]; speed: Ratio
                           '—'
                         )}
                       </td>
+                      <td>{numeric(matched[0]?.totalSpeedup) ? `${fmt(matched[0].totalSpeedup)}x` : '—'}</td>
                       {index === 0 && (
                         <td rowSpan={rowsToShow.length}>
                           <Facts facts={facts.filter(([, datum]) => datum != null)} row={load} inspect={inspect} />
@@ -398,11 +399,14 @@ export function EngineReport() {
   const starts = arms.filter((row) => row.kind === 'load');
   const requests = arms.filter((row) => row.kind === 'performance');
   const speed = ratios(requests);
-  const timed = requests.filter((row) => row.run === rerun && row.corrected_verdict);
-  const excludedCount = timed.filter((row) => row.corrected_verdict?.status === 'excluded').length;
+  const clockDifferences = requests.flatMap((row) => {
+    const direct = row.source_excerpt?.client_ttft_ms;
+    const derived = row.metrics?.ttft_ms;
+    return row.arm === 'A' && !excluded(row) && numeric(direct) && numeric(derived) ? [Math.abs(direct - derived)] : [];
+  });
   const headline = deliveryHeadline(dataset?.delivery);
   const accuracy = observations
-    .filter((row) => row.kind === 'accuracy' && row.run === accuracyRun && row.arm === 'B')
+    .filter((row) => row.kind === 'accuracy' && row.run === finalRun && row.arm === 'P')
     .sort((a, b) => (b.n ?? 0) - (a.n ?? 0))
     .slice(0, 1);
   const inspect: Inspect = (row, related = []) => {
@@ -455,7 +459,7 @@ export function EngineReport() {
                 <MemoryBars rows={starts.length ? starts : arms} inspect={inspect} />
               </Panel>
               {accuracy.length > 0 && (
-                <Panel id="accuracy" title="Q2_K paired accuracy versus NVFP4">
+                <Panel id="accuracy" title="Paired MMLU: mixed 2-bit vs NVFP4">
                   <AccuracyPlot rows={accuracy} inspect={inspect} />
                 </Panel>
               )}
@@ -463,27 +467,14 @@ export function EngineReport() {
             <footer className="engine-method" data-testid="factory-runs-engine-method">
               <h2>How this was measured</h2>
               <p>
-                A is the Nov 25 baseline, E0 on NVFP4 from the Q2_K-era lab. B and P use the same R8 image, with one capped load per arm and the same
-                prompts and device budget as A. TTFT speedups match prompt and cache state. Total times cover 128
-                generated tokens for A and 32 for B and P. The paired MMLU result is for Q2_K. The new pack is the next
-                accuracy benchmark.
+                Both arms ran the same R8 image and generated 32 tokens per request. We estimated time to first token
+                from the server’s first sampled token, aligned to the client clock
+                {clockDifferences.length > 0 && ` (median difference from direct NVFP4 timing: ${fmt(median(clockDifferences))} ms)`}. Timing began on a quiet machine and
+                warm results are medians. The NVFP4 accuracy reference used the same 250 questions on Nov 25 with engine build 9048bad8d.
               </p>
               <p>
-                Admission required an idle server, one-minute load below 1 and a clear machine gate. Timing excluded
-                builds, tests, helpers and foreign processes above 50% of one core. The launch rule exempted the server
-                tree. The final rule also exempts the lab runner tree and ignores CPU windows shorter than 0.5 s.{' '}
-                {dataset?.delivery?.decision?.kind === 'report_inconclusive' && (
-                  <span data-testid="factory-runs-engine-terminal-decision">
-                    The terminal decision was <code>report_inconclusive</code>. The quiet rule excluded {excludedCount}{' '}
-                    of {timed.length} timing cells.
-                  </span>
-                )}{' '}
                 <a href={`${api}/readme`} data-testid="factory-runs-engine-readme">
                   Final evidence index
-                </a>
-                {' · '}
-                <a href={`${api}/method-history`} data-testid="factory-runs-engine-method-history">
-                  Strict-rule history
                 </a>
               </p>
             </footer>

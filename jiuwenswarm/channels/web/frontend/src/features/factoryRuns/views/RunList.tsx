@@ -98,12 +98,6 @@ export function FactoryRunList({
                 <h2 className="factory-run-group-title">Demo</h2>
                 {render([...groups.demo, ...groups.featured])}
               </section>
-              {groups.history.length > 0 && (
-                <section className="factory-run-group" data-testid="factory-runs-history-group" aria-label="History">
-                  <h2 className="factory-run-group-title">History</h2>
-                  {render(groups.history)}
-                </section>
-              )}
             </>
           );
         }

@@ -118,12 +118,12 @@ class R8Replay(Builder):
                   ['pin_inputs'], TASK, [contract, plan], refs=[f'{TASK}:plan:1'])
         finals = [row for row in self.observations.values() if row['kind'] == 'node_contract_final']
         refused = sum(row['kind'] == 'node_contract_refusal' for row in self.observations.values())
-        row = next(row for row in finals if row['values']['node_id'] == 'requant_2bit')
+        row = next(row for row in finals if row['values']['node_id'] == 'size_prefill_batch')
         value = row['values']
         preliminary = demo_board.rebuild_preliminary(value['final'], value['diff'])
         if digest(preliminary) != value['preliminary_digest'] or digest(value['final']) != value['digest']:
             raise ValueError('Scheduler contract digests do not match the retained record')
-        final_file = self.projection('requant-final-contract.json', dict(preliminary=preliminary, **value),
+        final_file = self.projection('prefill-final-contract.json', dict(preliminary=preliminary, **value),
                                      'Final contract, changes and rationale', 'Preliminary and final digests verified.',
                                      [self.record(row['obs_id'])])
         scheduler = f'sessions/{TASK}.scheduler.jsonl'
@@ -133,18 +133,18 @@ class R8Replay(Builder):
         model = None
         for number, line in enumerate(lines, 1):
             item = json.loads(line)
-            if item.get('event') == 'turn.start' and item.get('node_id') == 'requant_2bit':
+            if item.get('event') == 'turn.start' and item.get('node_id') == 'size_prefill_batch':
                 model = item['model']
                 retained.append(number)
             call = item.get('tool_call') or {}
             arguments = call.get('arguments') or {}
-            if arguments.get('capability') == 'brief' and arguments.get('inputs', {}).get('node_id') == 'requant_2bit':
+            if arguments.get('capability') == 'brief' and arguments.get('inputs', {}).get('node_id') == 'size_prefill_batch':
                 calls[call['tool_call_id']] = number
             if item.get('tool_call_id') in calls:
                 retained.extend([calls[item['tool_call_id']], number])
         if not model or len(retained) != 3:
             raise ValueError('Expected the retained scheduler model and one briefing call/result')
-        briefing_path = 'evidence/graph-r8/requant-scheduler-brief.jsonl'
+        briefing_path = 'evidence/graph-r8/prefill-scheduler-brief.jsonl'
         (self.stage / briefing_path).parent.mkdir(parents=True, exist_ok=True)
         excerpt = b''.join(lines[number - 1] for number in retained)
         (self.stage / briefing_path).write_bytes(excerpt)
@@ -153,10 +153,16 @@ class R8Replay(Builder):
                                          lines=retained, sha256=sha(excerpt), size=len(excerpt))
         brief_file = self.key(briefing_path, 'Scheduler briefing and model record',
                               'Verbatim scheduler turn start and briefing request and response.')
+        progress = self.graph_home.parent / 'bridge/PROGRESS.md'
+        refusal = next(line for line in progress.read_text().splitlines() if 'Dry-01: pin refused scope;' in line)
+        rehearsal = self.projection('scheduler-rehearsal.json', {'record': refusal},
+                                    'Scheduler rehearsal: pin refused scope',
+                                    'The host refused the proposal during the rehearsal before the run.',
+                                    [dict(path='bridge/PROGRESS.md')])
         self.step('The scheduler finalizes each node contract',
                   f'The scheduler agent ({model}) read the briefing and finalized {len(finals)} node contracts, '
-                  f'with {refused} refusals. The requant contract gives the records behind its input bindings and rationale.',
-                  ['requant_2bit'], row['obs_id'], [final_file, brief_file], refs=[r['obs_id'] for r in finals])
+                  f'with {refused} refusals. For the prefill node it added an acceptance criterion for the budget and the measured batch plan.',
+                  ['size_prefill_batch'], row['obs_id'], [final_file, rehearsal, brief_file], refs=[r['obs_id'] for r in finals])
 
     def implementation(self):
         converter = 'node-check:ingest_nvfp4:converter:6:b111d738'
@@ -221,6 +227,11 @@ class R8Replay(Builder):
                                 'Original job, original duration and current verification duration.')
         smoke_file = self.artifact('run-3b1a557a0045-rows.json', 'mixed-pack-smoke.json', 'Eight held-out smoke rows',
                                    'Fresh mixed-pack E0 responses from the single capped run.')
+        before = self.obs(source_census)['manifest']
+        from collections import Counter
+        after_types = Counter()
+        for role in replay_result['census'].values():
+            after_types.update(role)
         self.step('Quantization: the new mixed 2-bit pack',
                   f"IQ2_XXS gate/up and Q2_K down cover {experts['iq2_xxs']} and {experts['q2_k']} routed tensors. "
                   f"The pack is {self.obs(pack)['bytes'] / 1e9:.1f} GB versus {source_bytes / 1e9:.1f} GB NVFP4. "
@@ -229,6 +240,11 @@ class R8Replay(Builder):
                   'and eight held-out E0 prompts produced coherent text.',
                   ['requant_2bit'], pack, [recipe, census, manifest, receipt, smoke_file],
                   refs=[source_census, replay_id, smoke], replay=replay)
+        self.steps[-1]['capsule_diff'] = dict(
+            caption='Pack compiler · tensor types and disk size',
+            before=dict(bytes=before['bytes'], tensors=before['census_by_type']),
+            after=dict(bytes=self.obs(pack)['bytes'], tensors=dict(after_types),
+                       recipe=self.obs(pack)['inputs'].get('target', 'IQ2_XXS gate/up, Q2_K down')))
         trail = self.trails['requant_2bit']
         note_ids = {event['source'] for event in trail['events'] if event['kind'] == 'note'}
         notes = [note for note in self.notes if note['note_id'] in note_ids or
@@ -254,9 +270,7 @@ class R8Replay(Builder):
                                      [dict(path=key['path'], sha256=self.files[key['path']]['sha256']) for key in note_files])
         count = sum(len((row['values'].get('review') or {}).get('findings') or []) for row in checks)
         self.step('Agent help with the verifier role',
-                  f'The reviewer recorded {count} findings. Agent help with the verifier role identified the v4 '
-                  'producer pin, distinguished raw and canonical receipt hashes, and clarified what the replay '
-                  'evidence covered. The repaired recipe passed the capsule check.',
+                  f'{count+1} findings ({count} reviewer, 1 host); 1 repair, 3 notes; 2 pack findings stay advisory.',
                   ['requant_2bit'], 'node-check:requant_2bit:recipe:6:d3710718', [sequence, note_index],
                   refs=refs, notes=notes, trail=trail)
 
@@ -279,9 +293,16 @@ class R8Replay(Builder):
         self.step('Prefill batch plan for the 2-bit engine',
                   f"Batch and micro-batch {plan['batch']} with a {self.obs(paired)['requested_moe_cache_mib']} MiB "
                   f"expert-cache request stayed within {plan['device_budget_mib']} MiB and matched the default-batch "
-                  'output. Agent help with the verifier role clarified the recorded four-token tail.',
+                  'output. The capsule planned one 2048 micro-batch; the server log shows 2043 + 4.',
                   ['size_prefill_batch'], check, [planned, verify_file, load_log], refs=[batch, paired, *followups],
                   trail=self.trails['size_prefill_batch'])
+        plan_file = json.loads((self.stage / planned['path']).read_bytes())
+        reference = plan_file['reference']
+        self.steps[-1]['capsule_diff'] = dict(caption='Prefill arguments · NVFP4 kept defaults in calibration 2.',
+            before={'-b': reference['n_batch'], '-ub': reference['n_ubatch'],
+                    'observed cache (MiB)': reference['device_mib']['moe_cache']},
+            after={'-b': plan_file['batch'], '-ub': plan_file['ubatch'],
+                   'requested cache (MiB)': plan_file['moe_cache_mib']})
         image_receipt = self.artifact(f'{IMAGE}:receipt', 'image-build-receipt.json', 'Image build receipt',
                                       'The accepted image id and build source commit.')
         image_check = self.artifact(f'{IMAGE}:image-check', 'image-version-check.json', 'Image version check',
@@ -292,15 +313,43 @@ class R8Replay(Builder):
         request = self.projection('lab-request-and-gate.json', [self.observations[key] for key in [delivery, gate]],
                                   'Lab request and delivery gate', 'The host gate’s cited image, config and pack digests.',
                                   [self.record(delivery), self.record(gate)])
+        rejected = [obs for obs in self.observations.values() if obs['kind'] == 'build_image_request_validation']
+        failed = self.observations['107c03b2666d44ac9e6572812a57e360:build-result']
+        checker_files = [
+            self.projection(f"checker-{obs['obs_id'][:8]}.json", obs, label, why, [self.record(obs['obs_id'])])
+            for obs, label, why in [
+                *((obs, f"Rejected build request {index}", "Host validation stopped the request before a build started.")
+                  for index, obs in enumerate(rejected, 1)),
+                (failed, "Failed image build 107c03b2", "Build result before the recipe repair.")]]
         self.step('The image and the gate',
                   f"The agent commit {image['source_commit'][:9]} built image {image['image_id'][7:19]} "
                   f"with binary digest {image['executable_sha256'][:12]}. The image passed --version without a model, "
                   'and the delivery gate checked the retained digests.',
-                  ['build_image', 'deliver_to_lab'], delivery, [image_receipt, image_check, request],
+                  ['build_image', 'deliver_to_lab'], delivery, [*checker_files, image_receipt, image_check, request],
                   refs=[f'{IMAGE}:build-result', gate])
 
     def measurements(self):
         report = json.loads(self.report_path.read_bytes())
+        if report.get('format') == 'r8-final-bench':
+            report_file = self.evidence(self.report_path, 'Final engine benchmark', 'Measured A and P speed and accuracy.',
+                                        'lab_file', 'evidence/lab/report.json', source_relative_path='r8-final/report.json')
+            look = report['accuracy']
+            measurement = dict(baseline='A · NVFP4 baseline. P · mixed 2-bit + prefill plan',
+                rows=[dict(cell, path=report_file['path'], pointer=f'/cells/{index}', status='accepted', reasons=[])
+                      for index, cell in enumerate(report['cells'])],
+                accuracy=dict(n=look['n'], path=report_file['path'], reference_pct=round(100*look['acc_ref'],1),
+                              candidate_pct=round(100*look['acc_cand'],1), loss_pts=look['loss_pts'],
+                              lo_pts=look['lo_pts'], hi_pts=look['hi_pts']))
+            primary = dict(kind=report['format'], summary='The delivered image ran both benchmark arms.',
+                           created=datetime.fromisoformat(report['ended_utc']).timestamp(),
+                           id=report_file['path'], source='r8-final/report.json')
+            warm = {r['arm']: r for r in report['cells'] if r['request']=='p2048' and r['state']=='warm'}
+            say = 'The final benchmark compares NVFP4 with the mixed pack and prefill plan at 512 and 2048.'
+            if set(warm) == {'A', 'P'}:
+                say += (f" At warm 2048, the first token arrived in {warm['A']['ttft_ms']/1000:.1f} s with NVFP4 "
+                        f"and {warm['P']['ttft_ms']/1000:.1f} s with the new engine settings.")
+            self.step('The measured result', say, ['deliver_to_lab'], primary, [report_file], measurement=measurement)
+            return
         historical = json.loads(self.baseline_path.read_bytes())
         if sha(self.baseline_path.read_bytes()) != report['baseline']['sha256']:
             raise ValueError('Historical baseline digest differs from the report’s baseline pin')
