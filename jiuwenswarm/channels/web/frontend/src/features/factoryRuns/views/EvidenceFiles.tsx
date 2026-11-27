@@ -6,6 +6,7 @@ import rehypeSlug from 'rehype-slug';
 import type { EvidenceFile, FileContent } from '../api';
 import { DataViewer } from './DataViewer';
 import { DiffViewer } from './DiffViewer';
+import { HtmlArtifact } from './HtmlArtifact';
 import { DigestBadge, EvidenceMetadata } from './EvidenceMetadata';
 import { ReplayLabel } from './NodeEvidence';
 import { RawDocument } from './RawDocument';
@@ -277,7 +278,7 @@ export function EvidenceFilePreview({
   const title = file.display_path || file.path;
   const current = content?.path === file.path ? content : null;
   const metadata = current ?? file;
-  const kind = evidenceKind(metadata.path, metadata.display_path, current?.content);
+  const kind = evidenceKind(metadata.path, metadata.display_path, current?.content, metadata.media_type);
   const binary = current?.content.includes('\u0000');
   const status = file.integrity === 'missing' ? 'missing' : error ? 'error' : !current ? 'loading' : undefined;
   const titleAndTruncation = (
@@ -314,6 +315,9 @@ export function EvidenceFilePreview({
           </div>
         ) : kind === 'data' ? (
           <DataViewer name={fileName(current)} file={current} source={current.content} />
+        ) : kind === 'html' ? (
+          <HtmlArtifact title={title} file={file.integrity === 'mismatch' ? { ...current, integrity: 'mismatch' } : current}
+            resolveLink={resolveLink} onOpenFile={onOpenFile} />
         ) : kind === 'markdown' ? (
           <ReportDocument name={title} file={current} resolveLink={resolveLink} onOpenFile={onOpenFile} />
         ) : (

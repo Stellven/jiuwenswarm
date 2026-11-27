@@ -1,0 +1,9 @@
+.factory-html-artifact iframe {
+  display: block;
+  width: 100%;
+  min-height: 32rem;
+  height: 74vh;
+  border: 0;
+  background: Canvas;
+  color-scheme: light dark;
+}

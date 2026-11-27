@@ -25,6 +25,7 @@ export type Run = {
 export type EvidenceFile = {
   path: string;
   display_path?: string;
+  media_type?: string;
   artifact_ids?: string[];
   sha256: string | null;
   expected_sha256?: string | null;

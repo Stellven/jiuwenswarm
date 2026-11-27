@@ -13,16 +13,17 @@ function evidencePaths(file: EvidenceFile): string[] {
   return [...new Set([file.path, ...aliases])];
 }
 
-export type ReportFile = { file: EvidenceFile; format: 'markdown' | 'json'; label: string };
+export type ReportFile = { file: EvidenceFile; format: 'markdown' | 'json' | 'html'; label: string };
 
 export function reportFiles(files: EvidenceFile[]): ReportFile[] {
   const candidates = files.flatMap((file) =>
     evidencePaths(file).flatMap<ReportFile & { rank: number; revision: number }>((label) => {
       const name = label.split('/').pop()?.toLowerCase() ?? '';
-      const match = /(?:^|[-_.:])report(?:[-_.]v(\d+))?(?:\.(md|json))?$/.exec(name);
+      const match = /(?:^|[-_.:])report(?:[-_.]v(\d+))?(?:\.(md|json|html?))?$/.exec(name);
       if (match) {
-        const format = match[2] === 'md' ? 'markdown' : 'json';
-        return [{ file, label, format, rank: format === 'markdown' ? 0 : 1, revision: Number(match[1]) || 0 }];
+        const format = match[2] === 'md' ? 'markdown' : match[2]?.startsWith('htm') ? 'html' : 'json';
+        const rank = { html: 0, markdown: 1, json: 2 }[format];
+        return [{ file, label, format, rank, revision: Number(match[1]) || 0 }];
       }
       return [];
     }),
