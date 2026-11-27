@@ -733,10 +733,13 @@ class FactoryHttpService:
                 target = _inside(path, relative)
                 if target.is_file() and self.cached_hash(target) == expected:
                     candidates.append((target, relative, expected))
-        elif getattr(active, 'path', None) is not None:
-            current_path = active.path
-            self.validate_contract(str(current_path))
-            allow_run_contract = True
+        elif active and task.get('contract_id'):
+            constraints = task.get('constraints') or {}
+            reference = constraints.get('contract_revision') or task['contract_id']
+            self.validate_contract(reference)
+            current_path = Path(reference) if '/' in reference or reference.endswith('.json') else CONTRACTS / (reference + '.json')
+            allow_run_contract = bool(constraints.get('contract_sha256') and current_path.is_file()
+                                      and self.cached_hash(current_path) == constraints['contract_sha256'])
             candidates.append((current_path, None, (task.get('constraints') or {}).get('contract_sha256')))
             for row in factory_nodes.recent_rows(data, 'operator_contract_revision'):
                 for filename, digest_key in (('previous_file', 'previous_sha256'), ('contract_file', 'contract_sha256')):
