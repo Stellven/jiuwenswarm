@@ -36,7 +36,8 @@ OBSERVATION_FIELDS = {
                                   'reason task_revision',
     'node_contract_final': 'by cc_versions created diff digest final node_contract node_id preliminary_digest rationale',
     'node_contract_refusal': 'by node_id reason reasons errors preliminary_digest',
-    'node_check': 'entry format found key kind node_id output passed reason refs review seconds started state verifier',
+    'node_check': 'entry format found key kind node_id output passed reason refs review runtime_check_revision '
+                  'seconds started state verifier',
     'build_result': 'build_wall_seconds delivery failure_stage image_id source_commit status tag target',
     'lab_request': 'request_id package_id lab_task_id contract',
     'capped_run': 'format recipe outcome error seconds memory_cap peak_memory_bytes min_available_bytes node_id attempt_id',
@@ -129,7 +130,28 @@ class Replay(Builder):
                 and (output is None or row['values'].get('output') == output)]
 
     def finished_check(self, node, output):
-        return next((row for row in reversed(self.checks(node, output)) if row['values'].get('state') == 'finished'), None)
+        pin = self.task['constraints'].get('runtime_check_revision')
+        for row in reversed(self.checks(node, output)):
+            values = row['values']
+            if values.get('state') != 'finished':
+                continue
+            if pin and node == 'measure_engine' and values.get('runtime_check_revision') != pin:
+                continue
+            if pin and node == 'release_gate':
+                found = values.get('found') or {}
+                if values.get('passed') and found.get('runtime_check_revision') != pin:
+                    continue
+                if row['created'] < self.scoring_repin_time():
+                    continue
+            return row
+        return None
+
+    def scoring_repin_time(self):
+        for row in reversed(self.observations):
+            if (row['kind'] == 'operator_contract_revision'
+                    and row['values'].get('contract_sha256') == self.contract_sha):
+                return row['created']
+        raise ValueError('Missing native revision record for the current runtime policy')
 
     def projection(self, name, label, data, sources):
         path = f'projections/{name}.json'
@@ -316,12 +338,15 @@ class Replay(Builder):
         revised = None
         if check:
             value = check['values']
-            shown['factory_check'] = pick(value, 'passed state reason verifier')
+            shown['factory_check'] = pick(value, 'passed state reason verifier runtime_check_revision')
             sealed = (value.get('verifier') or {}).get('sealed_artifact')
             if sealed:
                 if sealed not in check['source_artifacts']:
                     raise ValueError('Runtime checker artifact is unlinked')
                 revised, source = self.artifact(sealed)
+                pin = value.get('runtime_check_revision')
+                if pin and revised.get('policy') != pin['policy']:
+                    raise ValueError('Sealed runtime verdict differs from the native scoring policy')
                 if revised.get('policy'):
                     shown['revised_checker'] = dict(pick(revised, 'policy done decision checks summary stage_reached'),
                                                     source=source, check_id=check['obs_id'])
@@ -454,7 +479,8 @@ class Replay(Builder):
                                            steps=self.steps))
         task = pick(self.task, 'task_id objective allowed_effects target budget revision current_decision_rev '
                                'evidence_cursor created contract_id component_cc capability_cc')
-        task['constraints'] = pick(self.task['constraints'], 'contract_sha256 contract_immutable contract_revision')
+        task['constraints'] = pick(self.task['constraints'], 'contract_sha256 contract_immutable contract_revision '
+                                   'runtime_check_revision')
         artifacts = [pick(row, 'artifact_id task_id sha256 size media_type complete created attempt_id')
                      for row in self.data['artifacts'] if row['artifact_id'] in self.referenced_artifacts]
         tables = dict(tasks=[task], artifacts=artifacts, evaluations=[], uploads=[])
@@ -492,7 +518,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('home', 'contract', 'output'):
         parser.add_argument('--' + name, type=Path, required=True)
-    parser.add_argument('--result', type=Path, help='Optional lab copy to verify against a retained runtime artifact')
+    parser.add_argument('--result', type=Path, help='Optional original lab runtime.json to verify against its graph artifact')
     parser.add_argument('--task', default=TASK)
     args = parser.parse_args()
     build(args.home, args.task, args.contract, args.result, args.output)
