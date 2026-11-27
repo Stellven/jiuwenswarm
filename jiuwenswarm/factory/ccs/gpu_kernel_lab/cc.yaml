@@ -1,6 +1,6 @@
 cc: '2'
 id: engine.gpu_kernel_lab
-version: 1.0.1
+version: 1.1.0
 materials:
   guide:
     path: SKILL.md
@@ -14,6 +14,11 @@ materials:
     path: COMPONENT.json
   examples:
     path: EXAMPLES.json
+  muse_dispatch_fixture:
+    path: fixtures/muse_dispatch.cpp
+  muse_dispatch_input_pins:
+    path: fixtures/muse_dispatch_pins.json
+    media_type: application/json
   roles:
     path: roles.json
     media_type: application/json
@@ -51,3 +56,17 @@ capabilities:
     changes:
     - process.exec
     - gpu.use
+
+  trace_dispatch:
+    does: Verify the route dispatch for pinned quantized AQBC decode from its source, pack headers and CUDA capture receipts.
+    takes:
+      request: json
+    gives:
+      done: json
+      decision: json
+      checks: json
+      dispatch_trace: json
+    needs:
+    - python
+    changes:
+    - process.exec
