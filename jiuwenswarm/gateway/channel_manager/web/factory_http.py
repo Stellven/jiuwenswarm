@@ -35,7 +35,7 @@ from jiuwenswarm.factory.contract import CONTRACTS
 from jiuwenswarm.factory.redact import sanitize, scrub_bytes
 from jiuwenswarm.factory.run_pause import current_in
 from jiuwenswarm.factory.store import FactoryError
-from . import factory_nodes
+from . import factory_nodes, factory_planner
 from .capsule_catalog import CapsuleCatalog, _parse as parse_material
 from .capsule_evidence import capsule_usage, collect_capsule_evidence
 from .engine_bench import read_engine_bench, read_engine_bench_document
@@ -696,12 +696,69 @@ class FactoryHttpService:
                 digest.update(chunk)
         return digest.hexdigest()
 
+    def planner_plan(self, item, path, data, graph, files=None):
+        if not any(entry.get('origin') == 'seed' for entry in graph.get('history', [])):
+            return None
+        task = data['tasks'][0]
+        active = data.get('_contract')
+        observation_path = None
+        allow_run_contract = False
+        candidates = []
+        if item['kind'] == 'bundle':
+            manifest = self.expected(item, path, data)
+            if files is not None:
+                observation_path = next((row['path'] for row in files
+                                         if row['path'] == 'records/observations.json'
+                                         and row['integrity'] == 'verified'), None)
+            else:
+                evidence = 'records/observations.json'
+                target = _inside(path, evidence)
+                if manifest.get(evidence) and target.is_file() and self.cached_hash(target) == manifest[evidence]:
+                    observation_path = evidence
+            for relative, expected in sorted(manifest.items()):
+                if not re.fullmatch(r'(?:contracts|contract-versions)/[^/]+\.json', relative):
+                    continue
+                target = _inside(path, relative)
+                if target.is_file() and self.cached_hash(target) == expected:
+                    candidates.append((target, relative, expected))
+        elif getattr(active, 'path', None) is not None:
+            current_path = active.path
+            self.validate_contract(str(current_path))
+            allow_run_contract = True
+            candidates.append((current_path, None, (task.get('constraints') or {}).get('contract_sha256')))
+            for row in factory_nodes.recent_rows(data, 'operator_contract_revision'):
+                for filename, digest_key in (('previous_file', 'previous_sha256'), ('contract_file', 'contract_sha256')):
+                    name, expected = row['values'].get(filename), row['values'].get(digest_key)
+                    if expected and isinstance(name, str) and re.fullmatch(r'[A-Za-z0-9_-]+\.json', name):
+                        for root in (current_path.parent, CONTRACTS):
+                            target = _inside(root, name)
+                            if target.is_file():
+                                candidates.append((target, None, expected))
+        contracts = []
+        for target, relative, expected in dict.fromkeys(candidates):
+            try:
+                digest = self.cached_hash(target)
+                if expected and digest != expected:
+                    continue
+                document = _json(target)
+            except (OSError, ValueError):
+                continue
+            if not isinstance(document, dict) or document.get('contract_id') != (active or {}).get('contract_id'):
+                continue
+            contracts.append(dict(document=document, source=dict(kind='contract-file', id=document['contract_id'],
+                                  path=relative, sha256=digest, version=document.get('version'))))
+        return factory_planner.project(data, graph, contracts, observation_path, allow_run_contract=allow_run_contract)
+
     def detail(self, run_id):
         item, path = self.resolve(run_id)
         data = self.load(item, path)
         plan = taskgraph.from_records(data)
         state = self._state(item, path, data, plan)
         files = self.files(item, path, data)
+        planner_plan = self.planner_plan(item, path, data, plan, files)
+        if planner_plan:
+            planner_plan = {key: value for key, value in planner_plan.items() if key != '_file'}
+            files = [row for row in files if row['path'] != factory_planner.ARTIFACT_PATH] + [planner_plan['artifact']]
         published_report = None
         if item.get('live_demo') and state['run_state']['state'] in TERMINAL_DEMO_STATES:
             item['status'] = 'replay'
@@ -727,7 +784,7 @@ class FactoryHttpService:
         return sanitize(dict(run=item, records=data, contract=data.get('_contract', {}),
                              graph=curated_graph(bundled, item['task_id'])
                              if bundled and bundled.get('graph_mode') != 'recorded' else plan,
-                             recorded_plan=plan if bundled else None, node_checks=checks,
+                             recorded_plan=plan if bundled else None, node_checks=checks, planner_plan=planner_plan,
                              cc_overview=factory_nodes.overview(data, plan, checks, self.capsule_catalog),
                              scheduler_models=self._scheduler_models(path, item['task_id']),
                              correction_overview={n['node_id']: trails.get(n['node_id'], {}).get('counts',
@@ -1059,6 +1116,10 @@ class FactoryHttpService:
     def file(self, run_id, relative):
         item, path = self.resolve(run_id)
         data = self.load(item, path)
+        if relative == factory_planner.ARTIFACT_PATH:
+            plan = self.planner_plan(item, path, data, taskgraph.from_records(data))
+            if plan:
+                return sanitize(plan['_file'])
         rows = {row['path']: row for row in self.files(item, path, data)}
         if relative not in rows and item.get('live_demo'):
             state = self._state(item, path, data, taskgraph.from_records(data))['run_state']
