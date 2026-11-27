@@ -38,3 +38,32 @@ Reproduction on the approved GB10 fixture slot:
 2. Compile only `fixtures/muse_dispatch.cpp` with `g++ -std=c++17 -O2`. Link `libggml-cuda.so.1`, `libggml-base.so.1`, `libggml.so.1` and `libcudart.so.13` from the matching image/build package. Set `LD_LIBRARY_PATH` to resolve those libraries and their pinned runtime dependencies.
 3. Check the GPU compute inventory. Run the fixture executable separately with arguments `iq2_projection`, `q2_down`, `iq2_gate_up_pair` and `iq2_adjacent_gate_up`, leaving CUDA graphs enabled. Capture each process with `nsys profile --trace=cuda --cuda-graph-trace=node --sample=none --cpuctxsw=none --capture-range=cudaProfilerApi --capture-range-end=stop --export=sqlite --output=<new-case-path>`. Keep stdout, the Nsight report, the SQLite export, and the source/executable hashes.
 4. The native CPU-only verifier checks the retained evidence digests and independently queries `CUPTI_ACTIVITY_KIND_KERNEL` via `StringIds` for kernel names, order, geometry and graph node IDs. It compares its rederivation to the raw trace and seals the result. A collector JSON field cannot approve a build.
+
+### Conditional candidate verification
+
+`verify_candidate` only enters after a host-accepted dispatch trace with
+`eligibility: eligible` and `may_build: true`. The native host supplies the
+sealed trace and digest-staged artifacts for the independently checked
+candidate diff and the fixture receipt. The receipt format is
+`factory.r10-candidate-fixtures/1`. It binds the canonical dispatch-trace
+SHA-256, candidate diff SHA-256 and recorded candidate CUDA-library SHA-256.
+The reference rows bind the original CUDA library and source revision.
+
+Each fixture receipt contains both quantized formats (`iq2_xxs` and `q2_k`),
+each with cases for `enabled`, `default_off`, `explicit_off` and
+`unsupported_shape`. The recorded switch values are `"1"`, null, `"0"` and
+`"1"`, respectively. The unsupported case has two tokens. Every case records
+the input width, row tile and output dimensions, per-token expert IDs and
+gate weights, launch kernel names and flattened route slot indices, and
+complete routed and combined output samples in order. Represent gates and
+outputs as unsigned IEEE-754 binary32 words to retain rounding and signed
+zero. Reference and candidate arrays must match exactly.
+
+Distinct and repeated routes, positive unequal gates, a partial output
+tile, and nondegenerate reference data are required. The enabled candidate
+must replace separate reference launches with one batch and preserve each
+route slot. The off and unsupported cases must reproduce the reference
+launches and outputs. Missing evidence, digest mismatch, a nonpositive
+trace, and any execution or output discrepancy leave the gate closed.
+This verifier reads execution receipts. It performs no compile, GPU
+execution, image assembly or full-model load.

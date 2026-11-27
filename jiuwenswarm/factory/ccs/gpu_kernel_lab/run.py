@@ -20,6 +20,10 @@ if __name__=='__main__':
             fixtures = Path(__file__).parent / 'fixtures'
             outputs = result(p['inputs']['request'], load(fixtures / 'muse_dispatch_pins.json'),
                              fixtures / 'muse_dispatch.cpp')
+        elif p['capability'] == 'verify_candidate':
+            from components.candidate import verify_candidate
+
+            outputs = verify_candidate(**p['inputs'])
         else:
             outputs = {'result': dispatch(p['capability'], p['inputs']['request'])}
         reply={'outcome':'ok','outputs':outputs}
