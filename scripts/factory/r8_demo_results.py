@@ -74,7 +74,7 @@ def main():
     for family in mixed.values():
         for kind, n in family.items():
             after[kind] = after.get(kind, 0) + n
-    rows = [*timed_rows(lab, 'A', 5, before), *timed_rows(lab, 'P', 3, after)]
+    rows = [*timed_rows(lab, 'A', 5, before), *timed_rows(lab, 'AQB', 3, after)]
     ref, cand = [read(lab/f'mmlu-{name}.json') for name in ('historical-A','8')]
     ids = ref['source']['question_ids_in_order']
     if cand['status'] != 'complete' or ids != cand['source']['question_ids_in_order'] or len(ids) != 250:
@@ -82,7 +82,7 @@ def main():
     look = paired.look(ref['rows'], cand['rows'], ids, 5, final=True)
     # Display observed answer counts. Only the recorded verifier can supply its decision.
     look['decision'] = read(lab/'mmlu-paired.json')['decision']
-    accuracy = dict(schema='engine-bench/1', id=f'{RUN}/P/accuracy', run=RUN, arm='P', kind='accuracy',
+    accuracy = dict(schema='engine-bench/1', id=f'{RUN}/AQB/accuracy', run=RUN, arm='AQB', kind='accuracy',
                     label='measured', test='Paired MMLU', n=look['n'], acc=look['acc_cand'], reference_acc=look['acc_ref'],
                     delta=look['loss_pts']/100, interval=dict(lo=look['lo_pts']/100, hi=look['hi_pts']/100),
                     margin=.05, verdict=look['decision'],
@@ -90,7 +90,7 @@ def main():
                     sources=[dict(path=str(lab/'mmlu-historical-A.json'), record='/rows')])
     rows.append(accuracy)
     cells = []
-    for arm in ('A','P'):
+    for arm in ('A','AQB'):
         for name in ('p512','p2048'):
             for state in ('cold','warm'):
                 match = [r for r in rows if r['kind']=='performance' and r['arm']==arm and r['request']['name']==name
@@ -114,16 +114,16 @@ def main():
         '8 of 8 nodes complete · Engine image delivered · Lab measured', '',
         'The pack compiler produced a 267.2 GB mixed 2-bit pack from 528.9 GB of NVFP4 weights. R8 checked and reused that pack, then planned a larger prefill microbatch.',
         'Both speed arms used the delivered engine image and generated 32 tokens per prompt.', '',
-        '| Prompt | Warm result | NVFP4 | Mixed 2-bit + prefill |',
+        '| Prompt | Warm result | A · NVFP4 | AQB · mixed 2-bit + prefill |',
         '| --- | --- | ---: | ---: |',
     ]
     for name in ('p512', 'p2048'):
         warm = {r['arm']: r for r in cells if r['request']==name and r['state']=='warm'}
-        if set(warm) == {'A','P'}:
+        if set(warm) == {'A','AQB'}:
             for key, label, scale in [('ttft_ms','First token (s)',1000),('decode_tps','Decode (tokens/s)',1),
                                       ('total_ms','Total time (s)',1000)]:
-                readme.append(f"| {name[1:]} | {label} | {warm['A'][key]/scale:.2f} | {warm['P'][key]/scale:.2f} |")
-    readme += ['', f"Paired MMLU on {look['n']} questions: NVFP4 {100*look['acc_ref']:.1f}%, mixed 2-bit {100*look['acc_cand']:.1f}%.",
+                readme.append(f"| {name[1:]} | {label} | {warm['A'][key]/scale:.2f} | {warm['AQB'][key]/scale:.2f} |")
+    readme += ['', f"MMLU zero-shot, {look['n']} questions: {100*look['acc_ref']:.1f}% vs {100*look['acc_cand']:.1f}% (A vs AQB).",
                '', '## Demo', '',
                'Start with the ten-step Factory Runs replay, open Capability Capsules, then compare the two arms in the Engine Report.',
                '', '## Files', '',

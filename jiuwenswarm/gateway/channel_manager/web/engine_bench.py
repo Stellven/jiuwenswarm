@@ -77,7 +77,7 @@ def _delivery_summary(directory, rows):
                  key=lambda row: row['rev'], default=None)
     image_data = _read_fixed_file(directory, 'manifests/image-receipt.json', MAX_DOCUMENT_BYTES)
     image = json.loads(image_data, parse_constant=_reject_constant) if image_data is not None else {}
-    timed = [row for row in rows if (row.get('run'), row.get('arm')) in {('r8-final-bench','A'), ('r8-final-bench','P'), ('r8-lab','B'), ('r8-lab','P')}
+    timed = [row for row in rows if (row.get('run'), row.get('arm')) in {('r8-final-bench','A'), ('r8-final-bench','AQB'), ('r8-lab','B'), ('r8-lab','P')}
              and row['kind'] == 'performance']
     image_id = image.get('image_id')
     return {
