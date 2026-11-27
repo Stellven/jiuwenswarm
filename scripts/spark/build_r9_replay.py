@@ -198,7 +198,7 @@ class Replay(Builder):
             count = len({row['values']['node_id'] for row in finals})
             first = (finals or refusals)[0]
             self.step('Scheduler node contracts', first['values']['node_id'],
-                      f'The graph has {count} finalized node contracts and {len(refusals)} recorded refusals.',
+                      f'The graph has {count} finalized node contracts and {len(refusals)} recorded refusal{"" if len(refusals) == 1 else "s"}.',
                       first, [contracts], refs=finals + refusals)
 
     def amendments(self):
@@ -261,8 +261,7 @@ class Replay(Builder):
                                                     'launch_config_sha256 diff'), refs))
             phase = plan['phase0b']
             summary = (f"Placement candidate {plan['phase0']['status']}. Phase 0b reused {phase['cached_tokens']} "
-                       f"of {phase['prompt_tokens']} tokens with a {phase['follow_up_ttft_ms'] / 1000:.1f} s follow-up. "
-                       f"The follow-up quiet status was {phase['quiet_status']}.")
+                       f"of {phase['prompt_tokens']} tokens with a {phase['follow_up_ttft_ms'] / 1000:.1f} s follow-up.")
         return summary, extra
 
     def delivery(self, files, check, request):
@@ -393,6 +392,12 @@ class Replay(Builder):
             if standard:
                 passing = sum(item['within_tolerance'] for item in standard)
                 comparisons = f' {passing}/{len(standard)} warm first-request cells met the same-load tolerance.'
+        if revised:
+            for pair in revised.get('summary', {}).get('followup', []):
+                candidate = pair['candidate']['derived_ttft_ms'] / 1000
+                control = pair['control']['derived_ttft_ms'] / 1000
+                comparisons += (f" At {pair['request'][1:]} tokens, the follow-up reached first token in "
+                                f"{candidate:.2f} s with reuse and {control:.2f} s with reuse off.")
         if runtime:
             accuracy = runtime.get('summary', {}).get('accuracy', {})
             if not accuracy and archived:
@@ -473,6 +478,7 @@ class Replay(Builder):
                 sealed = self.sealed(node, 'pinned_inputs')
                 if sealed:
                     inputs, refs = sealed
+                    summary = 'The factory checked the delivered AQB image, server executable, mixed pack and prefill plan before adding prefix reuse.'
                     files.append(self.projection('pinned-inputs', 'Verified AQB image, prefill plan and pack',
                                                  pick(inputs, 'format identity shard_verification'), refs))
             if node == 'plan_prefix_store':
@@ -482,6 +488,8 @@ class Replay(Builder):
                 sealed = self.sealed(node, 'factory_stage')
                 if sealed:
                     stage, refs = sealed
+                    summary = (f"The factory built image {stage['image_id'].split(':')[-1][:12]} with the prefix-store settings. "
+                               "It verified that the image retained the original server binary and mixed pack.")
                     files.append(self.projection('factory-stage', 'Checked image, unchanged inputs and launch config',
                                                  pick(stage, 'format status image_id base_image_id executable_sha256 '
                                                              'launch_config launch_config_sha256 checks'), refs))
@@ -496,7 +504,9 @@ class Replay(Builder):
                                              [self.ref(row) for row in (release, measured, decision) if row]))
                 primary = decision or release or measured or next(
                     row for row in self.observations if row['kind'] == 'taskgraph_patch')
-                summary = verdict['reason']
+                summary = (f"The factory accepted AQBC in decision {decision['rev']}. The release check linked the delivered image "
+                           "to the measured follow-ups and the answer identity check."
+                           if verdict['status'] == 'released' else verdict['reason'])
             if primary:
                 state = self.nodes[node]['state']
                 summary = summary or f'The graph recorded {len(checks)} checks for this node. The node is {state}.'
