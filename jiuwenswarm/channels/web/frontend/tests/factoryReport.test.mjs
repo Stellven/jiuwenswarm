@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  contractReportLabels,
   externalReportLink,
   linkedEvidence,
   reportFiles,
@@ -11,6 +12,17 @@ import {
 function evidence(path, fields = {}) {
   return { path, size: 32, sha256: 'a'.repeat(64), integrity: 'verified', ...fields };
 }
+
+test('uses run report labels for a pre-delivery stop and lab report labels for existing lab replays', () => {
+  const presentation = { objective: 'Assess the candidate', outcome: 'Replay complete' };
+  const lab = { title: 'Lab report', open: 'Open lab report' };
+  assert.deepEqual(contractReportLabels(presentation), lab);
+  assert.deepEqual(contractReportLabels({ ...presentation, report_kind: 'lab' }), lab);
+  assert.deepEqual(contractReportLabels({ ...presentation, report_kind: 'run' }), {
+    title: 'Run report',
+    open: 'Open run report',
+  });
+});
 
 test('identifies persisted reports by canonical path or original artifact name', () => {
   const files = [

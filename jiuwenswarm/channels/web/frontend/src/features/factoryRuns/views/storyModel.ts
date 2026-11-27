@@ -72,7 +72,12 @@ export type CuratedReplay = {
   native?: boolean;
   graph_mode?: 'recorded';
   node_presentation?: Record<string, ReplayNodePresentation>;
-  presentation_header?: { objective: string; outcome: string; image_id?: string | null };
+  presentation_header?: {
+    objective: string;
+    outcome: string;
+    image_id?: string | null;
+    report_kind?: 'lab' | 'run';
+  };
   contract_versions?: { version: number; path: string; sha256: string; amendment?: string; reason?: string }[];
   steps: CuratedStep[];
 };
