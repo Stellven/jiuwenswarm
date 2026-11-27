@@ -6,6 +6,7 @@ durability boundary as decisions. No registry, graph executor or polling loop.
 from __future__ import annotations
 
 import json
+import re
 import time
 
 from .store import NotFound, StaleRevision, encoded, identifier
@@ -613,7 +614,45 @@ def revise_changes(task, nodes, contracts, finals, reason, busy=()):
     return changes, problems
 
 
-def operator_revise(store, task_id, reason, *, dry_run=False, expected_graph_rev=None):
+def _contract_repin(task, key, graph, attempts):
+    from .contract import load, load_for_task
+    from .contract_v2 import file_sha256
+    from .node_contract import from_contract
+
+    previous = load_for_task(task, task['contract_id'])
+    before = task['constraints']
+    if (not isinstance(before, dict) or not before.get('contract_sha256')
+            or file_sha256(previous.path) != before['contract_sha256']):
+        raise ValueError('Repinning requires the currently frozen contract')
+    candidate = load(key)
+    if key == before.get('contract_revision'):
+        return task, None
+    if (candidate.get('schema'), candidate.get('contract_id')) != ('factory.contract/2', previous['contract_id']):
+        raise ValueError('A checked-in revision must retain the format-2 contract identifier')
+    if candidate['version'] <= previous['version']:
+        raise ValueError('A checked-in revision must increase the contract version')
+    old_nodes = from_contract(previous) or {}
+    if old_nodes.get('staged_release'):
+        staged = old_nodes['staged_release']
+        if (from_contract(candidate) or {}).get('staged_release') != staged:
+            raise ValueError('A staged revision must preserve its factory, runtime and release connections')
+        runtime = staged['runtime_stage'].split('.')[0]
+        delivery = next(n['node_id'] for n in old_nodes['nodes'] if n['kind'] == 'deliver')
+        if any(n['state'] == 'done' and n.get('node_contract') == delivery for n in graph['nodes']):
+            raise ValueError('Reopen the delivery node before repinning a staged contract')
+        runtime_nodes = {n['node_id'] for n in graph['nodes'] if n.get('node_contract') == runtime}
+        if any(attempt['kind'] in {'lab', 'model_run'} or attempt['request'].get('node_id') in runtime_nodes
+               for attempt in attempts):
+            raise ValueError('Cannot repin a staged contract after a runtime attempt has been recorded')
+    digest = file_sha256(candidate.path)
+    pin = dict(before, contract_revision=key, contract_sha256=digest)
+    evidence = dict(previous_file=previous.path.name, previous_sha256=before['contract_sha256'],
+                    previous_version=previous['version'], contract_file=candidate.path.name,
+                    contract_sha256=digest, contract_version=candidate['version'])
+    return dict(task, constraints=pin), evidence
+
+
+def operator_revise(store, task_id, reason, *, dry_run=False, expected_graph_rev=None, contract_revision=None):
     """Apply the task contract's current revision to the live graph as ONE operator graph revision.
 
     Refused (nothing changes) when revise_changes finds a problem or the result is not a valid graph that
@@ -622,7 +661,7 @@ def operator_revise(store, task_id, reason, *, dry_run=False, expected_graph_rev
     """
     if not isinstance(reason, str) or not reason.strip():
         raise ValueError('Operator patches need a reason')
-    from .contract import load
+    from .contract import load_for_task
     from .node_contract import for_task
     from .planner import contract_gate
     from .scheduler import recorded_finals
@@ -631,13 +670,21 @@ def operator_revise(store, task_id, reason, *, dry_run=False, expected_graph_rev
         graph = plan_get(host, task_id)
         if expected_graph_rev is not None and expected_graph_rev != graph['rev']:
             raise StaleRevision('Current plan revision differs from expected_graph_rev')
-        task = host.get_task(task_id)
+        old_task = task = host.get_task(task_id)
         if not task.get('contract_id'):
             raise ValueError(f'Task {task_id} has no task contract to revise against')
+        repin = None
+        if contract_revision is not None:
+            if not isinstance(contract_revision, str) or not re.fullmatch(r'[A-Za-z0-9_-]+', contract_revision):
+                raise ValueError('Supply a checked-in contract revision name without its extension')
+            attempts = [dict(row) for row in host._db.execute('SELECT kind, request FROM attempts WHERE task_id=?', (task_id,))]
+            for attempt in attempts:
+                attempt['request'] = json.loads(attempt['request'])
+            task, repin = _contract_repin(task, contract_revision, graph, attempts)
         contracts = for_task(task)
         if contracts is None:
             raise ValueError(f'Contract {task["contract_id"]} has no node contracts to revise against')
-        contract = load(task['contract_id'])
+        contract = load_for_task(task, task['contract_id'])
         contract_id = contract.get('contract_id', task['contract_id'])
         stated = f'{reason.strip()} (contract {contract_id} version {contract.get("version", "?")})'
         nodes = {n['node_id']: n for n in graph['nodes']}
@@ -653,16 +700,26 @@ def operator_revise(store, task_id, reason, *, dry_run=False, expected_graph_rev
         result = dict(schema='factory.revise/1', task_id=task_id, contract_id=contract_id,
                       contract_version=contract.get('version'), graph_rev_before=graph['rev'], changes=changes,
                       dry_run=bool(dry_run), applied=False)
-        if not changes:
+        if repin:
+            result['contract_pin'] = repin
+        if not changes and not repin:
             return dict(result, graph_rev=graph['rev'], graph=graph)
         try:
             if dry_run:  # the same checks as a recorded revision, on a detached copy
                 trial = json.loads(encoded(nodes))
-                _apply(trial, {'revise': changes}, 0, task.get('component_cc'), operator=True)
-                contract_gate(host, task_id, trial)
+                if changes:
+                    _apply(trial, {'revise': changes}, 0, task.get('component_cc'), operator=True)
+                contract_gate(host, task_id, trial, task=task)
                 return dict(result, graph_rev=graph['rev'], graph=_view(task_id, graph['rev'], trial, graph['history']))
-            view = _apply_patch(host, task_id, {'revise': changes}, graph['rev'], 0,
-                                readable=getattr(store, 'readable', ()), operator=True)
+            if repin:
+                host._record_contract_revision(old_task, task, dict(repin, reason=stated, graph_rev_before=graph['rev'],
+                                                                  graph_rev_after=graph['rev'] + bool(changes)))
+            if changes:
+                view = _apply_patch(host, task_id, {'revise': changes}, graph['rev'], 0,
+                                    readable=getattr(store, 'readable', ()), operator=True)
+            else:
+                contract_gate(host, task_id, nodes)
+                view = graph
         except ValueError as exc:
             raise ValueError(f'Revise refused, nothing changed: {exc}') from None
     return dict(result, applied=True, graph_rev=view['rev'], graph=view)
@@ -670,13 +727,15 @@ def operator_revise(store, task_id, reason, *, dry_run=False, expected_graph_rev
 
 def format_revise(result):
     """Plain lines naming each planned or recorded change."""
-    if not result['changes']:
+    if not result['changes'] and not result.get('contract_pin'):
         state = 'nothing to change; the graph already follows it'
     elif result['dry_run']:
         state = 'dry run, nothing written'
     else:
         state = f"graph rev {result['graph_rev_before']} -> {result['graph_rev']}"
     lines = [f"revise {result['task_id']} to contract {result['contract_id']} version {result['contract_version']}: {state}"]
+    if pin := result.get('contract_pin'):
+        lines.append(f"  contract pin {pin['previous_sha256']} -> {pin['contract_sha256']}")
     for change in result['changes']:
         key = change['node_id']
         if change['action'] == 'cancel':

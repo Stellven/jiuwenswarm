@@ -69,9 +69,16 @@ def load(contract_id):
 def load_for_task(task, requested_id):
     """Resolve the approved file and its internal identifier to the same contract."""
     approved = task.get('contract_id')
-    result = load(approved or requested_id)
+    constraints = task.get('constraints')
+    constraints = constraints if isinstance(constraints, dict) else {}
+    revision = constraints.get('contract_revision')
+    result = load(revision or approved or requested_id)
     if approved and requested_id not in {approved, result['contract_id']}:
         raise ValueError('Lab contract must match the task')
+    if revision:
+        from .contract_v2 import file_sha256
+        if result['contract_id'] != approved or file_sha256(result.path) != constraints.get('contract_sha256'):
+            raise ValueError('The pinned contract revision changed')
     return result
 
 

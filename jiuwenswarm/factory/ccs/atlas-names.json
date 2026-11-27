@@ -1,6 +1,6 @@
 {
   "format": "factory-cc-atlas-names/1",
-  "source": "20261120 Text Inference Engine Component Atlas: edition.json capsuleMap and kinds, memory/runtime/factory.json titles. Keys are capsule directories relative to factory/ccs (stable ids). atlas_cc_id is null for capsules the atlas does not list; their names follow the atlas naming rules.",
+  "source": "20261120 Text Inference Engine Component Atlas: edition.json capsuleMap and kinds, memory/runtime/factory.json titles. Muse Run 2 owner decision 002 maps state.prefix_store to kv_reuse_lab. Keys are capsule directories relative to factory/ccs (stable ids). atlas_cc_id is null for unmapped capsules.",
   "kinds": {
     "builder": {
       "label": "Builder",
@@ -318,12 +318,12 @@
     },
     "kv_reuse_lab": {
       "capsule_id": "engine.kv_reuse_lab",
-      "title": "KV reuse analysis",
+      "title": "Prefix store analysis",
       "kind": "analysis",
-      "atlas_cc_id": null,
+      "atlas_cc_id": "state.prefix_store",
       "component": null,
       "target": null,
-      "summary": "Inspects prefix identity, paged token storage and KV size estimates."
+      "summary": "Checks exact prefix state reuse, derives the launch config, and verifies factory and runtime evidence."
     },
     "lab_client": {
       "capsule_id": "factory.lab_client",

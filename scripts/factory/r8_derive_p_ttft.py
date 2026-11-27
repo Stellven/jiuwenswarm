@@ -8,7 +8,9 @@ from pathlib import Path
 
 def derive(row):
     progress = row['prompt_progress']
-    if not progress or progress[0]['processed'] != 0 or progress[-1]['processed'] != row['prompt_tokens']:
+    initially_cached = progress[0].get('cache', 0) if progress else 0
+    if (not progress or progress[0]['processed'] != initially_cached
+            or progress[-1]['processed'] != row['prompt_tokens'] + initially_cached):
         raise ValueError('Missing start or completion of the recorded prefill')
     if 'stream_arrivals' in row:
         anchor = next(e['elapsed_ms'] for e in row['stream_arrivals'] if e['progress'])

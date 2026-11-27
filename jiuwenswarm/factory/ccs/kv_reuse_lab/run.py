@@ -1,22 +1,44 @@
-"""Native CC v2 entrypoint: inline JSON only, package-local stdlib implementation."""
+"""Native CC v2 entrypoint for CPU reference operations and factory evidence."""
 import json
 import sys
+
+import prefix_store
 import reference
 import verification
 
 OPERATIONS = {'prefix': 'prefix', 'allocator': 'replay', 'estimate': 'estimate'}
+FACTORY_CHECKS = {
+    'verify_pins': ('pinned_inputs', 'Verified the AQB image, prefill plan, pack and trial evidence pins'),
+    'plan': ('prefix_plan', 'Verified phase 0 refusal and phase 0b engagement, legal diff and device budget'),
+    'verify_factory_stage': ('factory_stage', 'Verified the built image layers, executable, pack and launch config'),
+}
+
+
+def run(capability, inputs):
+    if capability == 'verify':
+        return {'result': verification.verify()}
+    if capability in FACTORY_CHECKS:
+        name, detail = FACTORY_CHECKS[capability]
+        result = getattr(prefix_store, capability)(**inputs)
+        checks = [dict(name=capability, status='pass', stage='native CC execution', detail=detail)]
+        return {'done': True, 'checks': checks, name: result}
+    if capability == 'verify_runtime_stage':
+        from jiuwenswarm.factory.muse_r9_runtime import verify_runtime_stage
+
+        result = verify_runtime_stage(inputs['measurements'])
+        checks = [dict(check, status=check['status'].lower(), stage='runtime acceptance') for check in result['checks']]
+        return dict(done=result['done'], checks=checks, result=result)
+    return {'result': getattr(reference, OPERATIONS[capability])(inputs['spec'])}
+
 
 def main():
     try:
         packet = json.load(sys.stdin)
-        cap = packet['capability']
-        if cap == 'verify':
-            result = verification.verify()
-        else:
-            result = getattr(reference, OPERATIONS[cap])(packet['inputs']['spec'])
-        output = {'outcome':'ok','outputs':{'result':result}}
-    except (ValueError, KeyError, TypeError, IndexError, OverflowError) as error:
-        output = {'outcome':'error','error':{'code':'INVALID_REFERENCE_INPUT','message':str(error)}}
-    print(json.dumps(output,allow_nan=False))
+        output = {'outcome': 'ok', 'outputs': run(packet['capability'], packet['inputs'])}
+    except (ValueError, KeyError, TypeError, IndexError, OverflowError, OSError, StopIteration) as error:
+        output = {'outcome': 'error', 'error': {'code': 'INVALID_REFERENCE_INPUT', 'message': str(error)}}
+    print(json.dumps(output, allow_nan=False))
 
-if __name__ == '__main__': main()
+
+if __name__ == '__main__':
+    main()

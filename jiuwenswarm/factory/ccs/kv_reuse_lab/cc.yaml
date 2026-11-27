@@ -1,6 +1,6 @@
 cc: '2'
 id: engine.kv_reuse_lab
-version: 1.0.1
+version: 1.1.0
 materials:
   method:
     path: METHOD.md
@@ -68,3 +68,44 @@ capabilities:
     - python
     changes:
     - process.exec
+  verify_pins:
+    does: Verify the AQB image receipt, pack manifest and shard census, and pinned placement and prefix trial records.
+    takes:
+      spec: json
+    gives:
+      done: {kind: json, schema: {type: boolean}}
+      checks: json
+      pinned_inputs: json
+    needs: [python]
+    changes: [process.exec, workspace.read]
+  plan:
+    does: Verify trial engagement, record the placement refusal and derive the budget-checked prefix-store configuration.
+    takes:
+      pinned_inputs: json
+    gives:
+      done: {kind: json, schema: {type: boolean}}
+      checks: json
+      prefix_plan: json
+    needs: [python]
+    changes: [process.exec, workspace.read]
+  verify_factory_stage:
+    does: Verify that the completed builder image differs from AQB only in the committed launch configuration.
+    takes:
+      prefix_plan: json
+      build_record: json
+    gives:
+      done: {kind: json, schema: {type: boolean}}
+      checks: json
+      factory_stage: json
+    needs: [python]
+    changes: [process.exec, workspace.read]
+  verify_runtime_stage:
+    does: Verify measured prefix reuse, same-load speed and full paired accuracy from the runtime evidence.
+    takes:
+      measurements: json
+    gives:
+      done: {kind: json, schema: {type: boolean}}
+      checks: json
+      result: json
+    needs: [python]
+    changes: [process.exec, workspace.read]

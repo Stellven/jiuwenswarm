@@ -335,8 +335,16 @@ def _plan_view(host, task_id, graph, contracts, node_id, prelim):
                     outputs=[dict(name=o['name'], kind=o['kind'], criteria=o.get('criteria', [])) for o in contract.get('outputs', [])],
                     **({'briefing': contract['briefing']} if contract.get('briefing') else {}))
     neighbours = dict(predecessors=[neighbour(p) for p in prelim.get('predecessors', [])])
-    neighbours['hands_to'] = neighbour(prelim['hands_to']) if prelim.get('hands_to') not in (None, 'lab_manager') else \
-        dict(node_contract='lab_manager', objective='The lab manager receives the delivered engine and runs the lab arms.')
+    handoff = prelim.get('hands_to')
+    if handoff == 'lab_manager':
+        staged = (contracts or {}).get('staged_release')
+        objective = ('The lab manager seals delivery for the graph measurement node.' if staged else
+                     'The lab manager receives the delivered engine and runs the lab arms.')
+        neighbours['hands_to'] = dict(node_contract=handoff, objective=objective)
+    elif handoff == 'operator':
+        neighbours['hands_to'] = dict(node_contract=handoff, objective='The operator receives the release verdict.')
+    else:
+        neighbours['hands_to'] = neighbour(handoff)
     return dict(rev=graph['rev'], nodes=plan), neighbours
 
 
@@ -468,7 +476,7 @@ def _capsules(known, eligible, used, file_chars):
 
 
 def finalize_brief(store, task_id, node_id):
-    from .contract import load
+    from .contract import load_for_task
     from .node_contract import node as contract_node_of
     from .node_finalize import draft_final, is_preliminary
     from .scheduler import _contracts, _graph, _resolve, catalog
@@ -485,7 +493,7 @@ def finalize_brief(store, task_id, node_id):
     if not is_preliminary(prelim):
         raise ValueError(f'Node {node_id} has no preliminary node contract')
     try:
-        contract = load(task['contract_id'])
+        contract = load_for_task(task, task['contract_id'])
     except (OSError, ValueError):
         contract = None
     plan, neighbours = _plan_view(host, task_id, graph, contracts, node_id, prelim)
@@ -496,6 +504,12 @@ def finalize_brief(store, task_id, node_id):
                  task=_task_view(task, contract, contracts), plan=plan, neighbours=neighbours,
                  briefing=prelim.get('briefing'), preliminary=prelim, draft_final=draft_final(prelim),
                  inputs=_resolve(host, task, prelim, graph['nodes']))
+    if (contracts or {}).get('staged_release'):
+        from .node_check import VERIFIER_GRANTS
+        fixed['host_verifier'] = dict(
+            access=VERIFIER_GRANTS,
+            invocation='The worker calls factory.node_check.start with process.exec; the host runs the contracted '
+                       'verifier under these independent grants. Preserve the worker authority ceiling.')
     direct = set(node.get('depends_on', []))
     for level, (file_chars, record_chars, other_chars) in enumerate(LEVELS):
         history = _history(host, task_id, graph, node, prelim, record_chars)

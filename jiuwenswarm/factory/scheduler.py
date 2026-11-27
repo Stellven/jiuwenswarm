@@ -45,6 +45,8 @@ def _contracts(host, task):
     try:
         return for_task(task)
     except (OSError, ValueError):
+        if (task.get('constraints') or {}).get('approved_capped_recipes') is not None:
+            raise
         return None
 
 
@@ -129,9 +131,9 @@ def _passed_output(host, task_id, node_id, output):
 
 
 def _contract_input(task, name):
-    from .contract import load
+    from .contract import load_for_task
     try:
-        declared = (load(task['contract_id']).get('inputs') or {}).get(name)
+        declared = (load_for_task(task, task['contract_id']).get('inputs') or {}).get(name)
     except (OSError, ValueError):
         declared = None
     label = f'input {name} of contract {task["contract_id"]}'
@@ -238,7 +240,18 @@ def admitted(store, task_id, capability, inputs):
     contracts = _contracts(host, task)
     capsule, cap, kind = NODE_CAPABILITIES[capability]
     node_id = inputs.get('node_id')
-    approved = (task.get('constraints') or {}).get('approved_model_packs')
+    constraints = task.get('constraints') or {}
+    approved = constraints.get('approved_model_packs')
+    recipes = constraints.get('approved_capped_recipes')
+    if recipes is not None:
+        if capability in {'lab.submit', 'lab.ab_submit'}:
+            raise ValueError('The task admits model loads only through its approved capped recipe')
+        if capability == 'capped_runner.start' and (not node_id or inputs.get('recipe') not in recipes.get(node_id, [])):
+            raise ValueError('The task admits this capped recipe only for its approved graph node')
+    build_nodes = constraints.get('approved_build_nodes')
+    if build_nodes is not None and capability == 'builder.submit':
+        if node_id not in build_nodes or (inputs.get('request') or {}).get('config_image') != constraints.get('config_image'):
+            raise ValueError('The task admits only its pinned config image build on the approved graph node')
     if approved is not None and capability == 'capped_runner.start':
         if not node_id:
             raise ValueError('The model-load ledger requires a node on every capped run')
@@ -260,7 +273,8 @@ def admitted(store, task_id, capability, inputs):
         yield
         return
     with _node_lock(host.home, task_id, node_id):
-        graph_node = next((n for n in _graph(host, task_id)['nodes'] if n['node_id'] == node_id), {})
+        graph = _graph(host, task_id)
+        graph_node = next((n for n in graph['nodes'] if n['node_id'] == node_id), {})
         contract_node, needs_final = effective_contract(host, task_id, graph_node, contracts)
         if needs_final:
             raise ValueError(f'Node {node_id} has a preliminary node contract; the scheduler finalizes it before work starts')
@@ -268,6 +282,25 @@ def admitted(store, task_id, capability, inputs):
                 not contract_node or contract_node['kind'] != 'deliver' or graph_node.get('kind') != 'deliver'):
             raise ValueError(f'Node {node_id} is not the contracted deliver node; only it hands the engine to the lab manager')
         dispatch_precondition(store, task_id, node_id)
+        if recipes is not None and capability == 'capped_runner.start' and \
+                node_id in (constraints.get('halt_policy') or {}).get('step_nodes', []):
+            reopened = graph_node.get('checks_after')
+            released = False
+            for event in graph['history']:
+                if reopened == f'{task_id}:plan:{event["rev"]}':
+                    released = False
+                if event['origin'] == 'operator' and any(
+                        item['node_id'] == node_id for item in event['patch'].get('release', [])):
+                    released = True
+            if not released:
+                raise ValueError(f'Node {node_id} needs its recorded operator step release before measurement')
+        staged = (contracts or {}).get('staged_release')
+        if staged and capability == 'capped_runner.start' and contract_node and \
+                contract_node['node_id'] == staged['runtime_stage'].split('.')[0]:
+            from .node_check import accepted_delivery
+            delivery = accepted_delivery(host, task_id, graph_node)
+            if (inputs.get('args') or {}).get('request_id') != delivery['found']['request_id']:
+                raise ValueError('The staged runtime must measure its accepted delivery request')
         if contract_node:
             check_ceiling(contract_node, capsule, cap)
         if kind:
@@ -428,7 +461,7 @@ def proposal_problems(contract, document, prelim, final, known):
 
 def preview_proposal(store, task_id, node_id, final, rationale):
     """Validate a rehearsal proposal without admitting work or changing graph state."""
-    from .contract import load
+    from .contract import load_for_task
     from .node_contract import node as lookup
     if hasattr(store, '_check'):
         store._check(task_id, write=True)
@@ -439,7 +472,7 @@ def preview_proposal(store, task_id, node_id, final, rationale):
     if not graph_node:
         raise ValueError(f'Unknown plan node: {node_id}')
     prelim = lookup(document, graph_node['node_contract'])
-    found = proposal_problems(load(task['contract_id']), document, prelim, final, catalog())
+    found = proposal_problems(load_for_task(task, task['contract_id']), document, prelim, final, catalog())
     if not isinstance(rationale, str) or not rationale.strip():
         found.append('A final node contract needs a rationale')
     result = dict(node_id=node_id, validated=not found, admitted=False, problems=found,
@@ -457,7 +490,7 @@ def finalize(store, task_id, node_id, final, rationale, by='scheduler-agent'):
     recorded and returned; nothing else changes. An exact repeat of an earlier final for the same
     node contract (same contract, inputs and capsule versions) is refused: something must change.
     """
-    from .contract import load
+    from .contract import load_for_task
     from .node_contract import check_spec, node as contract_node_of
     from .node_finalize import diff, digest, is_preliminary
     from .taskgraph import _apply_patch
@@ -487,7 +520,7 @@ def finalize(store, task_id, node_id, final, rationale, by='scheduler-agent'):
         if unfinished:
             raise ValueError('Finalize a node when it can run; waiting for ' + ', '.join(unfinished))
         known = catalog()
-        found = proposal_problems(load(task['contract_id']), contracts, prelim, final, known)
+        found = proposal_problems(load_for_task(task, task['contract_id']), contracts, prelim, final, known)
         inputs = _resolve(host, task, prelim, graph['nodes'])
         bound = ((final.get('work') or {}).get('bound_ccs') or []) if isinstance(final, dict) else []
         versions = {cc: known.get(cc, {}).get('version') for cc in bound if isinstance(cc, str)}

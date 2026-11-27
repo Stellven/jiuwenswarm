@@ -105,6 +105,8 @@ def problems(document, contract=None):
             kind = next((o['kind'] for o in node['outputs'] if o['name'] == verifier['output']), None)
             if verifier.get('stage') and not verifier.get('verifier'):
                 found.append(f'{key}/verifiers/{verifier["output"]}: a stage needs a verifier capability')
+            if verifier.get('seal') and (kind != 'evidence' or not verifier.get('verifier')):
+                found.append(f'{key}/verifiers/{verifier["output"]}: sealing needs an evidence verifier')
             if verifier.get('inputs') and not verifier.get('verifier'):
                 found.append(f'{key}/verifiers/{verifier["output"]}: pinned inputs need a verifier capability')
             if set(verifier.get('inputs') or {}) & {'checkout', 'diff_path'}:
@@ -121,12 +123,19 @@ def problems(document, contract=None):
             for requirement in set(node.get('requirement_ids', [])) - known_requirements:
                 found.append(f'{key}/requirement_ids: the contract has no arm, check or metric {requirement}')
         target = node['hands_to']
-        if target != 'lab_manager' and (target not in by_id or key not in by_id[target].get('predecessors', [])):
+        terminal = (document.get('staged_release') or {}).get('release_gate') == key and target == 'operator'
+        if target != 'lab_manager' and not terminal and (
+                target not in by_id or key not in by_id[target].get('predecessors', [])):
             found.append(f'{key}/hands_to: {target} must be a node that lists {key} as a predecessor')
     leaves = [n for n in nodes if not any(n['node_id'] in m.get('predecessors', []) for m in nodes)]
     delivers = [n for n in nodes if n['kind'] == 'deliver']
-    if len(leaves) != 1 or len(delivers) != 1 or leaves[0] is not delivers[0]:
+    staged = document.get('staged_release')
+    if staged:
+        found += _staged_problems(staged, by_id, leaves, delivers)
+    elif len(leaves) != 1 or len(delivers) != 1 or leaves[0] is not delivers[0]:
         found.append('nodes: exactly one leaf, the deliver node, which hands the engine to the lab manager')
+    if not staged and any(o['kind'] == 'release' for n in nodes for o in n['outputs']):
+        found.append('nodes: a release output requires staged_release')
     for node in delivers:
         if node['hands_to'] != 'lab_manager':
             found.append(f'{node["node_id"]}/hands_to: the deliver node hands to lab_manager')
@@ -138,6 +147,34 @@ def problems(document, contract=None):
     return found
 
 
+def _staged_problems(staged, by_id, leaves, delivers):
+    factory_id, _, factory_port = staged['factory_stage'].partition('.')
+    runtime_id, _, runtime_port = staged['runtime_stage'].partition('.')
+    release_id = staged['release_gate']
+    factory = by_id.get(factory_id, {})
+    runtime = by_id.get(runtime_id, {})
+    release = by_id.get(release_id, {})
+    delivery = delivers[0] if len(delivers) == 1 else {}
+    found = []
+    for stage_id, stage_port, stage in ((factory_id, factory_port, factory), (runtime_id, runtime_port, runtime)):
+        output = next((out for out in stage.get('outputs', []) if out['name'] == stage_port), {})
+        verifier = next((v for v in stage.get('verifiers', []) if v['output'] == stage_port), {})
+        if output.get('kind') != 'evidence' or not output.get('required', True) or not verifier.get('verifier'):
+            found.append(f'staged_release: {stage_id}.{stage_port} needs a required capsule-verified evidence output')
+        if stage_id == factory_id and not verifier.get('seal'):
+            found.append('staged_release: the factory-stage verifier must seal its output for delivery')
+        if stage_id == runtime_id and verifier.get('stage') != 'hardware measurement':
+            found.append('staged_release: the runtime verifier requires hardware measurement')
+    if not delivery or factory_id not in delivery.get('predecessors', []) or runtime.get('kind') != 'measure' \
+            or delivery.get('node_id') not in runtime.get('predecessors', []):
+        found.append('staged_release: the factory stage must precede delivery and delivery must precede measurement')
+    if leaves != [release] or release.get('kind') != 'accept' or release.get('hands_to') != 'operator' \
+            or runtime_id not in release.get('predecessors', []) \
+            or not any(o['kind'] == 'release' and o.get('required', True) for o in release.get('outputs', [])):
+        found.append('staged_release: the sole leaf must be an accept node with a required release output after measurement')
+    return found
+
+
 def from_contract(contract):
     """The node-contracts document a format-2 contract carries, or None."""
     return ((contract or {}).get('extensions') or {}).get(EXTENSION)
@@ -145,11 +182,16 @@ def from_contract(contract):
 
 def for_task(task):
     """The node contracts of a task's contract (validated), or None when it has none."""
-    from .contract import load
-    contract = load(task['contract_id'])
+    from .contract import load_for_task
+    contract = load_for_task(task, task['contract_id'])
     document = from_contract(contract)
     if document is None:
         return None
+    if document.get('staged_release'):
+        from .contract_v2 import file_sha256
+        expected = (task.get('constraints') or {}).get('contract_sha256')
+        if expected != file_sha256(contract.path):
+            raise ValueError('Staged release requires the unchanged task-pinned contract')
     found = problems(document, contract)
     if found:
         raise ValueError(f'Contract {task["contract_id"]} node contracts are invalid: ' + '; '.join(found[:8]))
@@ -170,7 +212,7 @@ def check_spec(node_contract):
     for verifier in node_contract['verifiers']:
         output = kinds[verifier['output']]
         entry = dict(name=output['name'], kind=output['kind'], required=output.get('required', True))
-        for field in ('verifier', 'stage', 'inputs'):
+        for field in ('verifier', 'stage', 'inputs', 'seal'):
             if verifier.get(field):
                 entry[field] = verifier[field]
         if verifier.get('review'):

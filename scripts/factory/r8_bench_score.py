@@ -175,16 +175,16 @@ def _server_identity(server, proposal, leg):
                 llama_server_sha256=binary_sha, memory_cap=server.run.cap)
 
 
-def _scores(server, questions):
+def _scores(server, questions, *, retain_distribution=False):
     body = dict(prompt=[q['prompt'] for q in questions], **REQUEST)
     reply = server.post(body)
     try:
-        return _response_rows(reply, questions)
+        return _response_rows(reply, questions, retain_distribution=retain_distribution)
     except (ValueError, TypeError, KeyError, AttributeError) as exc:
         raise capped_run.RunError('MMLU_REPLY', str(exc)) from exc
 
 
-def _response_rows(reply, questions):
+def _response_rows(reply, questions, *, retain_distribution=False):
     if isinstance(reply, dict):
         reply = [reply]
     if (not isinstance(reply, list) or len(reply) != len(questions)
@@ -215,6 +215,8 @@ def _response_rows(reply, questions):
                              probs={key: round(val, 6) for key, val in probs.items()}, letter_mass=round(mass, 4),
                              pick=pick, answer=q['answer'], correct=pick == q['answer'] and mass > 0,
                              top_token=top[0][0], response_index=item['index'], slot_id=item.get('id_slot'))
+        if retain_distribution:
+            rows[q['id']]['top_logprobs'] = [list(entry) for entry in top]
     return rows
 
 

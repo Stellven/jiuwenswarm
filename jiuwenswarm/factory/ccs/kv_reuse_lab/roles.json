@@ -2,8 +2,12 @@
   "capabilities": {
     "allocator": "tool",
     "estimate": "tool",
+    "plan": "tool",
     "prefix": "tool",
-    "verify": "tool"
+    "verify": "tool",
+    "verify_factory_stage": "tool",
+    "verify_pins": "tool",
+    "verify_runtime_stage": "tool"
   },
   "format": "factory-roles/1",
   "materials": {

@@ -125,45 +125,56 @@ def run(store, task_id, attempt_id, request):
         verify_task(store,task_id)
         stdout.touch()
         stderr.touch()
-        spark = request['target'] == 'spark-gb10'
-        engine = Path(__file__).with_name('spark_engine.py') if spark else Path(os.environ.get('FACTORY_BUILD_ENGINE', ENGINE)).resolve()
-        recipe = Path(__file__).resolve().parents[2]/'deploy/spark/Runtime.Dockerfile' if spark else RECIPE
-        for path, expected in ((engine, request['engine_sha256']), (recipe, request['recipe_sha256'])):
-            if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
-                raise PreparationError(dict(code='INPUT_CHANGED', path=str(path)))
-        if request.get('patch') and hashlib.sha256(Path(request['patch']).read_bytes()).hexdigest() != request['patch_sha256']:
-            raise PreparationError(dict(code='INPUT_CHANGED', path=request['patch']))
-        if spark:
-            if hashlib.sha256(Path(__file__).read_bytes()).hexdigest() != request.get('worker_sha256'):
-                raise PreparationError(dict(code='INPUT_CHANGED', path='build_job.py'))
-            (root/'executed-engine.py').write_bytes(engine.read_bytes())
-            (root/'executed-lifecycle.py').write_bytes(Path(__file__).with_name('lab_lifecycle.py').read_bytes())
-            if hashlib.sha256(Path(__file__).with_name('lab_lifecycle.py').read_bytes()).hexdigest() != request.get('lifecycle_sha256'):
-                raise PreparationError(dict(code='INPUT_CHANGED', path='lab_lifecycle.py'))
-            prep.update(status='success', target='spark-gb10')
+        if request.get('mode') == 'config_image':
+            from . import image_config_build
+            worker = Path(image_config_build.__file__)
+            if hashlib.sha256(worker.read_bytes()).hexdigest() != request['engine_sha256']:
+                raise PreparationError(dict(code='INPUT_CHANGED', path=str(worker)))
+            prep.update(status='success', target=request['target'], mode=request['mode'])
+            (root / 'prep.json').write_text(json.dumps(prep, indent=2) + '\n')
+            record = image_config_build.build(request, out, stdout)
+            (out / 'build-record.json').write_text(json.dumps(record, indent=2) + '\n')
+            rc = 0
         else:
-            prepare(root, prep)
-        # Persist preparation before compilation, including on abrupt termination.
-        (root / 'prep.json').write_text(json.dumps(prep, indent=2) + '\n')
-        argv = [sys.executable, str(engine), '--target', request['target'],
-                '--source', request['source']['path'], '--commit', request['source']['commit'],
-                '--tag', request['tag'], '--out', str(out)]
-        if spark:
-            argv += ['--dependency', request['dependency']['path'], '--dependency-commit', request['dependency']['commit'],
-                     '--build-target', request.get('build_target','strata-dsv41')]
-            if request.get('verify_image'):
-                argv.append('--verify-image')
-            if request.get('delivery') == 'native':
-                argv += ['--delivery', 'native', '--native-cmake-cache', request['native_cmake_cache'],
-                         '--native-cmake-cache-sha256', request['native_cmake_cache_sha256']]
-                if archive_sha256 := request.get('native_ui_archive_sha256'):
-                    argv += ['--native-ui-archive-sha256', archive_sha256]
-        if request.get('patch'):
-            argv += ['--patch', request['patch']]
-        with stdout.open('wb') as output, stderr.open('wb') as errors:
-            rc = subprocess.run(argv, stdin=subprocess.DEVNULL, stdout=output, stderr=errors).returncode
-        if (out / 'build-record.json').exists():
-            record = json.loads((out / 'build-record.json').read_text())
+            spark = request['target'] == 'spark-gb10'
+            engine = Path(__file__).with_name('spark_engine.py') if spark else Path(os.environ.get('FACTORY_BUILD_ENGINE', ENGINE)).resolve()
+            recipe = Path(__file__).resolve().parents[2]/'deploy/spark/Runtime.Dockerfile' if spark else RECIPE
+            for path, expected in ((engine, request['engine_sha256']), (recipe, request['recipe_sha256'])):
+                if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+                    raise PreparationError(dict(code='INPUT_CHANGED', path=str(path)))
+            if request.get('patch') and hashlib.sha256(Path(request['patch']).read_bytes()).hexdigest() != request['patch_sha256']:
+                raise PreparationError(dict(code='INPUT_CHANGED', path=request['patch']))
+            if spark:
+                if hashlib.sha256(Path(__file__).read_bytes()).hexdigest() != request.get('worker_sha256'):
+                    raise PreparationError(dict(code='INPUT_CHANGED', path='build_job.py'))
+                (root/'executed-engine.py').write_bytes(engine.read_bytes())
+                (root/'executed-lifecycle.py').write_bytes(Path(__file__).with_name('lab_lifecycle.py').read_bytes())
+                if hashlib.sha256(Path(__file__).with_name('lab_lifecycle.py').read_bytes()).hexdigest() != request.get('lifecycle_sha256'):
+                    raise PreparationError(dict(code='INPUT_CHANGED', path='lab_lifecycle.py'))
+                prep.update(status='success', target='spark-gb10')
+            else:
+                prepare(root, prep)
+            # Persist preparation before compilation, including on abrupt termination.
+            (root / 'prep.json').write_text(json.dumps(prep, indent=2) + '\n')
+            argv = [sys.executable, str(engine), '--target', request['target'],
+                    '--source', request['source']['path'], '--commit', request['source']['commit'],
+                    '--tag', request['tag'], '--out', str(out)]
+            if spark:
+                argv += ['--dependency', request['dependency']['path'], '--dependency-commit', request['dependency']['commit'],
+                         '--build-target', request.get('build_target','strata-dsv41')]
+                if request.get('verify_image'):
+                    argv.append('--verify-image')
+                if request.get('delivery') == 'native':
+                    argv += ['--delivery', 'native', '--native-cmake-cache', request['native_cmake_cache'],
+                             '--native-cmake-cache-sha256', request['native_cmake_cache_sha256']]
+                    if archive_sha256 := request.get('native_ui_archive_sha256'):
+                        argv += ['--native-ui-archive-sha256', archive_sha256]
+            if request.get('patch'):
+                argv += ['--patch', request['patch']]
+            with stdout.open('wb') as output, stderr.open('wb') as errors:
+                rc = subprocess.run(argv, stdin=subprocess.DEVNULL, stdout=output, stderr=errors).returncode
+            if (out / 'build-record.json').exists():
+                record = json.loads((out / 'build-record.json').read_text())
         if rc == 0 and request.get('delivery') == 'native':
             executable = record.get('executable', {})
             path = Path(executable.get('path', ''))
@@ -177,7 +188,7 @@ def run(store, task_id, attempt_id, request):
             error = dict(code='BUILD_RECORD_INVALID')
         if rc == 0 and request.get('verify_image'):
             check = record.get('image_check', {})
-            if (check.get('status') != 'passed' or check.get('source_commit') != request['source']['commit']
+            if (check.get('status') != 'passed' or check.get('source_commit') != (request.get('source') or record.get('source') or {}).get('commit')
                     or check.get('image_id') != record['image']['Id']
                     or not check.get('executable_sha256') or check['executable_sha256'] != record.get('executable_sha256')):
                 rc = 1
@@ -185,7 +196,7 @@ def run(store, task_id, attempt_id, request):
     except PreparationError as exc:
         error = exc.error
         prep.update(status='failed', error=error)
-    except (OSError, ValueError, KeyError) as exc:
+    except (OSError, ValueError, KeyError, subprocess.TimeoutExpired) as exc:
         error = dict(code='BUILD_WORKER_ERROR', detail=str(exc))
     finally:
         signal.signal(signal.SIGTERM, previous)
@@ -223,7 +234,7 @@ def run(store, task_id, attempt_id, request):
         pruned = prune_intermediates(out) if rc == 0 and image_id else {}
         values = dict(delivery=request.get('delivery', 'image'), executable=record.get('executable'), pruned_intermediates=pruned,status='success' if rc == 0 else 'failed',
             failure_stage=record.get('failure_stage') or (None if rc == 0 else 'prep' if prep['status'] != 'success' else 'build'),
-            image_id=image_id, target=request.get('target'), tag=request.get('tag'), source_commit=request.get('source', {}).get('commit'),
+            image_id=image_id, target=request.get('target'), tag=request.get('tag'), source_commit=(request.get('source') or record.get('source') or {}).get('commit'),
             source_tree=record.get('source', {}).get('tree', request.get('source', {}).get('tree')),
             patch_sha256=record.get('patch_sha256', request.get('patch_sha256')),
             toolchain=record.get('toolchain', prep.get('toolchain', {})),

@@ -1,0 +1,177 @@
+{
+  "task_id": "muse-2bit-demo-r9",
+  "contract_id": "muse-2bit-demo-r9",
+  "objective": "Add prefix-state reuse to the accepted AQB image and measure AQBC and cache-off AQB behavior in one capped load, preserving the Run 1 weights, binary, router and published baseline.",
+  "allowed_effects": [
+    "process.exec"
+  ],
+  "target": "spark-gb10",
+  "budget": {
+    "max_turns": 90,
+    "wall_clock_s": 57600
+  },
+  "initial_run_config": {
+    "env": {}
+  },
+  "component_cc": "engine.kv_reuse_lab",
+  "source": {
+    "subpath": "work",
+    "pre_integration_commit": "17e4594f0bfb7eacd3ce5d2d0dd16fb61ba9f817"
+  },
+  "constraints": {
+    "contract_immutable": true,
+    "model_runs": true,
+    "local_commits": false,
+    "push_or_publish": false,
+    "halt_policy": {
+      "step_nodes": [
+        "measure_engine"
+      ],
+      "failed_checks_in_a_row": 2,
+      "failed_runs_in_a_row": 1
+    },
+    "approved_model_packs": {
+      "measure_engine": "muse-2bit-v4/Muse-Spark-Open-816B-A42B-muse-2bit-v4-00001-of-00011.gguf"
+    },
+    "config_image": {
+      "base_image_id": "sha256:af89135d9339c6b7225afbe8361ef2ca3c3a3e6e793d52f1bf07629d71c1f30e",
+      "executable_sha256": "b5eb66eb77626bf1af51eca6f7bcb1a523844dc970339fd72fbb2356b9f2a406",
+      "launch_config": {
+        "format": "factory.r9-launch/1",
+        "args": [
+          "-lm",
+          "mmap",
+          "--cpu-moe",
+          "--moe-cache-cpu-share",
+          "0",
+          "-fit",
+          "on",
+          "-lv",
+          "4",
+          "-c",
+          "8192",
+          "-np",
+          "1",
+          "-b",
+          "2048",
+          "-ub",
+          "2048",
+          "--moe-cache-mib",
+          "62464",
+          "--swa-full",
+          "--ctx-checkpoints",
+          "32"
+        ],
+        "request": {
+          "cache_prompt": true
+        }
+      }
+    },
+    "approved_build_nodes": [
+      "build_image"
+    ],
+    "approved_capped_recipes": {
+      "measure_engine": [
+        "muse_r9_measure"
+      ]
+    },
+    "contract_sha256": "4e663a6882215008748e2544ed62a19f84b53ecdda211623e0f29799222cfdba"
+  },
+  "operator_labels": {
+    "run": "Run 2 (AQBC): prefix-store launch config over accepted AQB and one same-load adjudication.",
+    "safety": "Use the native capped_runner muse_r9_measure recipe only. The measure_engine step is held for the operator. End the turn directly after durable submission so the controller parks."
+  },
+  "resources": {
+    "capsules": [
+      "engine.kv_reuse_lab",
+      "factory.builder",
+      "factory.lab_manager",
+      "factory.capped_runner",
+      "factory.node_check"
+    ],
+    "memory_cap": "96G",
+    "need_available_gib": 100,
+    "gate_wait_s": 28800,
+    "device_budget_mib": 110000,
+    "read_roots": [
+      "${FACTORY_MUSE_DEMO}/r8-final/manifests",
+      "${FACTORY_MUSE_DEMO}/lab",
+      "${FACTORY_MUSE_DEMO}/bench",
+      "${FACTORY_MUSE_DEMO}/graph-v4/packs"
+    ],
+    "operator_inputs": {
+      "image_receipt": {
+        "path": "${FACTORY_MUSE_DEMO}/r8-final/manifests/image-receipt.json",
+        "how": "Pinned input from Run 1 or Phase 0/0b."
+      },
+      "image_check": {
+        "path": "${FACTORY_MUSE_DEMO}/r8-final/manifests/image-check.json",
+        "how": "Pinned input from Run 1 or Phase 0/0b."
+      },
+      "pack_manifest": {
+        "path": "${FACTORY_MUSE_DEMO}/r8-final/manifests/mixed-pack.json",
+        "how": "Pinned input from Run 1 or Phase 0/0b."
+      },
+      "batch_plan": {
+        "path": "${FACTORY_MUSE_DEMO}/r8-final/manifests/batch-plan.json",
+        "how": "Pinned input from Run 1 or Phase 0/0b."
+      },
+      "aqb_load": {
+        "path": "${FACTORY_MUSE_DEMO}/lab/r8-final-bench/3.load.json",
+        "how": "Pinned input from Run 1 or Phase 0/0b."
+      },
+      "aqb_speed": {
+        "path": "${FACTORY_MUSE_DEMO}/lab/r8-final-bench/3.speed.json",
+        "how": "Pinned input from Run 1 or Phase 0/0b."
+      },
+      "aqb_ttft": {
+        "path": "${FACTORY_MUSE_DEMO}/lab/r8-final-bench/3.ttft.json",
+        "how": "Pinned input from Run 1 or Phase 0/0b."
+      },
+      "phase0b": {
+        "path": "${FACTORY_MUSE_DEMO}/lab/r9-aqbc/phase-0b/check.json",
+        "how": "Pinned input from Run 1 or Phase 0/0b."
+      },
+      "phase0b_log": {
+        "path": "${FACTORY_MUSE_DEMO}/lab/r9-aqbc/phase-0b/server.log",
+        "how": "Pinned input from Run 1 or Phase 0/0b."
+      },
+      "placement_share_0": {
+        "path": "${FACTORY_MUSE_DEMO}/lab/r9-placement-check/share-0.json",
+        "how": "Pinned input from Run 1 or Phase 0/0b."
+      },
+      "placement_share_025": {
+        "path": "${FACTORY_MUSE_DEMO}/lab/r9-placement-check/share-0.25.json",
+        "how": "Pinned input from Run 1 or Phase 0/0b."
+      },
+      "placement_share_05": {
+        "path": "${FACTORY_MUSE_DEMO}/lab/r9-placement-check/share-0.5.json",
+        "how": "Pinned input from Run 1 or Phase 0/0b."
+      },
+      "r9_reference": {
+        "path": "${FACTORY_HOME}/r9-reference.json",
+        "how": "Operator manifest of frozen AQB comparisons and Run 2 output directory."
+      }
+    },
+    "r9_reference": {
+      "proposal": {
+        "path": "${FACTORY_MUSE_DEMO}/bench/proposed-engine-benchmark.json",
+        "sha256": "bc4ea1dc721599fc7778c480d7743143e1236b4d134f261ccf7a5cd8f1663d8d"
+      },
+      "aqb_speed": {
+        "path": "${FACTORY_MUSE_DEMO}/lab/r8-final-bench/3.speed.json",
+        "sha256": "69250c9729697d221498a0475fce41d3d2f5fa90505a9d5ec78773a215e845a0"
+      },
+      "aqb_ttft": {
+        "path": "${FACTORY_MUSE_DEMO}/lab/r8-final-bench/3.ttft.json",
+        "sha256": "cd33dc03cc88b392719043efb92c0a0c01473b5d23c6750660580e0cef8368c6"
+      },
+      "aqb_mmlu": {
+        "path": "${FACTORY_MUSE_DEMO}/lab/r8-final-bench/mmlu-8.json",
+        "sha256": "6b8b3a207c596bd9f7bc3af36ec6a0423c3ad8222ba8227c6c9ab7e3e994dbce"
+      },
+      "output_dir": "${FACTORY_MUSE_DEMO}/lab/r9-aqbc/measure-engine"
+    }
+  },
+  "plan": "muse-2bit-demo-r9.plan.json"
+}
