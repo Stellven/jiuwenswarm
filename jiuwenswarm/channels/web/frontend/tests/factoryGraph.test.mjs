@@ -255,3 +255,73 @@ test('the chain gets capsule IDs from the exact admitted final node contract', (
   );
   assert.deepEqual(taskGraphTimeline(graph).map(({ boundCCs }) => boundCCs), [[], ['factory.builder', 'engine.kv_reuse_lab']]);
 });
+
+test('node and capsule verdicts come from the records visible at each replay position', () => {
+  const validator = 'engine.kv_reuse_lab';
+  const helper = 'factory.builder';
+  const sourcePath = 'records/observations.json';
+  const artifact = { name: 'artifact', kind: 'evidence', verifier: `${validator}.verify`, required: true };
+  const delivery = { name: 'delivery', kind: 'lab_request', required: true };
+  const check = { outputs: [artifact, delivery] };
+  const node = { ...build, depends_on: [], check, final_contract: 'binding' };
+  const rawCheck = (obs_id, created, entry, passed, verifier, state = 'finished') => ({
+    kind: 'node_check',
+    task_id: taskId,
+    obs_id,
+    created,
+    values: { node_id: 'build', output: entry.name, entry, state, passed, verifier },
+  });
+  const graph = detectGraph({
+    schema: 'factory.taskgraph/1',
+    task_id: taskId,
+    nodes: [node],
+    history: [
+      { rev: 1, created: 10, patch: { add: [node] } },
+      { rev: 2, created: 46, patch: { reopen: [{ node_id: 'build', reason: 'Recheck against new contracts' }] } },
+    ],
+  }, {
+    observations: [
+      {
+        kind: 'node_contract_final',
+        values: { node_id: 'build', digest: 'binding', final: { work: { bound_ccs: [validator, helper] } } },
+      },
+      rawCheck('blocked-check', 20, artifact, false, { cc: validator, state: 'blocked', passed: false }),
+      rawCheck('started-check', 25, artifact, false, undefined, 'running'),
+      rawCheck('host-refused-check', 30, artifact, false, { cc: validator, state: 'succeeded', passed: true }),
+      rawCheck('sealed-artifact-check', 35, artifact, true, { cc: validator, state: 'succeeded', passed: true }),
+      rawCheck('delivery-check', 40, delivery, true),
+      rawCheck('other-settings', 50, { ...artifact, criteria: ['Other inputs'] }, true, { cc: validator, passed: true }),
+    ],
+  });
+  const events = [
+    { id: 'task', kind: 'task', created: 11 },
+    { id: 'scheduler-overview', kind: 'node_contract_final', created: 45 },
+    { id: 'blocked-check', kind: 'node_check', created: 20 },
+    { id: 'started-check', kind: 'node_check', created: 25 },
+    { id: 'host-refused-check', kind: 'node_check', created: 30 },
+    { id: 'sealed-artifact-check', kind: 'node_check', created: 35 },
+    { id: 'delivery-check', kind: 'node_check', created: 40 },
+    { id: `${taskId}:plan:2`, kind: 'revise', created: 46 },
+    { id: 'other-settings', kind: 'node_check', created: 50 },
+  ];
+  const at = (position) => taskGraphTimeline(graph, {
+    events, position, curated: { steps: [] }, files: [{ path: sourcePath }],
+  })[0];
+  assert.deepEqual(at(2), at(1));
+  assert.deepEqual(at(3).nodeVerifier, {
+    status: 'fail', records: [{ id: 'blocked-check', output: 'artifact', path: sourcePath }],
+  });
+  assert.deepEqual(at(3).ccVerifiers[validator], at(3).nodeVerifier);
+  assert.equal(at(4).nodeVerifier.status, 'not-run');
+  assert.equal(at(4).ccVerifiers[validator].status, 'not-run');
+  assert.equal(at(5).nodeVerifier.status, 'fail');
+  assert.equal(at(5).ccVerifiers[validator].status, 'pass');
+  assert.equal(at(6).nodeVerifier.status, 'not-run');
+  assert.equal(at(6).ccVerifiers[validator].status, 'pass');
+  assert.deepEqual(at(7).nodeVerifier.records.map(({ id }) => id), ['delivery-check', 'sealed-artifact-check']);
+  assert.equal(at(7).nodeVerifier.status, 'pass');
+  assert.equal(at(7).ccVerifiers[helper].status, 'not-run');
+  assert.deepEqual(at(8).nodeVerifier, { status: 'not-run', records: [] });
+  assert.deepEqual(at(9).nodeVerifier, { status: 'not-run', records: [] });
+  assert.equal(at(5).nodeVerifier.status, 'fail');
+});
