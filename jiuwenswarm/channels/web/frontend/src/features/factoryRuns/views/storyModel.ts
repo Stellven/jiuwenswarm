@@ -190,6 +190,14 @@ export function curatedStepFor(curated: CuratedReplay | null | undefined, event:
   return curated.steps.find((item) => item.step === step);
 }
 
+/** Follow new records at the end, or keep the same record while a viewer is reviewing earlier steps. */
+export function liveReplayPosition(previous: readonly StoryEvent[], next: readonly StoryEvent[], position: number) {
+  if (position === previous.length) return next.length;
+  const active = previous[position - 1];
+  const match = active ? next.findIndex((event) => event.id === active.id && event.kind === active.kind) : -1;
+  return match >= 0 ? match + 1 : Math.min(position, next.length);
+}
+
 /** Key files for the current step, resolved to run files; unresolved entries are dropped. */
 export function keyFilesFor(step: CuratedStep | undefined, files: readonly EvidenceFile[]) {
   if (!step) return [];

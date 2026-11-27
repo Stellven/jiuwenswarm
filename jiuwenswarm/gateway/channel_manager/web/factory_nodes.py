@@ -423,7 +423,7 @@ def run_state(data, plan, markers, running, now):
     outcome = data['_meta'].get('outcome')
     latest = max(data.get('decisions', []), key=lambda row: row.get('rev', 0), default={})
     decision_outcome = (latest.get('action') or {}).get('type')
-    if not outcome and (decision_outcome in story.TERMINAL or decision_outcome == 'stop_missing_prerequisite'):
+    if not outcome and (decision_outcome in story.TERMINAL or str(decision_outcome).startswith('stop_')):
         outcome = decision_outcome
     stopped = str(outcome or '').startswith('stop_')
     result = dict(state='idle', reason=state.get('stop_reason'), by=None, since=None, node_id=None, job=None, markers=markers)
@@ -462,7 +462,9 @@ def run_state(data, plan, markers, running, now):
             since=since, elapsed_seconds=max(0, now - since) if since is not None else None,
             replayed_from=request.get('replayed_from'), replay_source=story.replay_origin(request.get('replayed_from'))))
     if running:
-        return result | dict(state='running', reason=None, since=state.get('started'))
+        active = [node['node_id'] for node in plan['nodes'] if node.get('state') == 'running']
+        return result | dict(state='running', reason=None, since=state.get('started'),
+                             node_id=active[0] if len(active) == 1 else None)
     if stopped:
         # The controller can retain a checkpoint's stop_reason after a new terminal decision.
         decision = max((row for row in data.get('decisions', []) if (row.get('action') or {}).get('type') == outcome),

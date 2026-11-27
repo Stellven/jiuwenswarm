@@ -236,6 +236,7 @@ export function RunState({
   actions,
   resumeMode,
   onRun,
+  publishedReport,
 }: {
   status?: RunStateRecord;
   fallback?: string;
@@ -244,6 +245,7 @@ export function RunState({
   actions: RunOperation[];
   resumeMode?: ResumeMode;
   onRun: (action: RunOperation, reason: string) => Promise<RunOperationResult>;
+  publishedReport?: { label: string; outcome: string; onOpen: () => void };
 }) {
   const [pending, setPending] = useState<RunOperation>();
   const [preview, setPreview] = useState<RunOperationResult>();
@@ -253,6 +255,14 @@ export function RunState({
   return (
     <section className="factory-run-state" data-testid="factory-runs-state" data-variant={status?.state}>
       {status ? <RunStateBanner status={status} live={live && !historical} /> : <p>{fallback}</p>}
+      {publishedReport && (
+        <div className="factory-run-state-description">
+          <p data-testid="factory-runs-published-outcome">{publishedReport.outcome}</p>
+          <button type="button" data-testid="factory-runs-attached-report" onClick={publishedReport.onOpen}>
+            {publishedReport.label}
+          </button>
+        </div>
+      )}
       {historical && (
         <p className="factory-muted" data-testid="factory-runs-state-read-only">
           Read-only run

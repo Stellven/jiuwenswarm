@@ -1,6 +1,7 @@
 """Factory-native export and live-home views; no model work during reads.
 
 The operator supplies roots through FACTORY_RUN_ROOTS (os.pathsep separated).
+FACTORY_LIVE_DEMOS is a JSON array of read-only native demo registrations.
 Campaign measurements read FACTORY_MEASUREMENT_ROOT (default ~/predemo-spark/OPS).
 Launching is opt-in: FACTORY_LAUNCH_ROOT contains reviewed task JSON templates;
 FACTORY_LAUNCH_HOME_ROOT is a dedicated directory for new session homes.
@@ -10,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from dataclasses import dataclass
 from math import isfinite
 import os
 from pathlib import Path
@@ -50,6 +52,41 @@ HEADLINE_ID = re.compile(r'^source:OPS/final-headlines\.json@sha256:([a-f0-9]{64
 OPERATOR_OPS = ('hold', 'release', 'reopen')
 LEGACY_RESUMABLE = ('paused', 'partial')
 MAX_CHECKS = 8  # node checks kept per output in the compact view, newest last
+DEMO_REPORT_PATH = 'reports/lab-report.html'
+TERMINAL_DEMO_STATES = {'finished', 'stopped'}
+
+
+@dataclass(frozen=True)
+class LiveDemo:
+    home: Path
+    task_id: str
+    title: str
+    order: int
+    replay_root: Path | None = None
+
+
+def live_demo_settings(registrations):
+    if registrations is None:
+        registrations = json.loads(os.environ.get('FACTORY_LIVE_DEMOS', '[]'))
+    if not isinstance(registrations, list):
+        raise ValueError('FACTORY_LIVE_DEMOS must be an array')
+    demos = {}
+    for row in registrations:
+        if (not isinstance(row, dict)
+                or not all(isinstance(row.get(key), str) and row[key].strip()
+                           for key in ('home', 'task_id', 'title'))
+                or not SAFE_ID.fullmatch(row['task_id'])
+                or type(row.get('order')) is not int or row['order'] <= 0
+                or ('replay_root' in row and (not isinstance(row['replay_root'], str) or not row['replay_root'].strip()))):
+            raise ValueError('Invalid native demo registration')
+        home = Path(row['home']).expanduser().resolve()
+        replay_root = Path(row['replay_root']).expanduser().resolve() if 'replay_root' in row else None
+        key = home, row['task_id']
+        if key in demos or (replay_root is not None and
+                            (home.is_relative_to(replay_root) or replay_root.is_relative_to(home))):
+            raise ValueError('Duplicate demo or overlapping demo home and replay root')
+        demos[key] = LiveDemo(home, row['task_id'], row['title'].strip(), row['order'], replay_root)
+    return demos
 
 
 def _hash(data):
@@ -315,7 +352,7 @@ def node_check_view(data, graph, *, limit=MAX_CHECKS, only_node=None):
 
 class FactoryHttpService:
     def __init__(self, roots=None, launch_root=None, launch_home_root=None, measurement_root=None, *,
-                 capsule_catalog=None, historical_roots=None):
+                 capsule_catalog=None, historical_roots=None, live_demos=None):
         muse = Path.home() / 'muse-demo'
         default = os.pathsep.join(map(str, (Path.home() / 'predemo-spark/factory-runs',
                                           Path.home() / 'software-factory-spark-20261113/exports/factory-loop-v1',
@@ -323,8 +360,10 @@ class FactoryHttpService:
         histories = historical_roots if historical_roots is not None else os.environ.get(
             'FACTORY_HISTORY_ROOTS', str(muse / 'graph-v4')).split(os.pathsep)
         self.historical_roots = tuple(Path(p).expanduser().resolve() for p in histories if p)
-        self.roots = tuple(Path(p).expanduser().resolve() for p in
-                           (roots if roots is not None else os.environ.get('FACTORY_RUN_ROOTS', default).split(os.pathsep)) if p)
+        self.live_demos = live_demo_settings(live_demos)
+        configured_roots = roots if roots is not None else os.environ.get('FACTORY_RUN_ROOTS', default).split(os.pathsep)
+        demo_roots = [path for demo in self.live_demos.values() for path in (demo.home, demo.replay_root) if path]
+        self.roots = tuple(dict.fromkeys(Path(p).expanduser().resolve() for p in (*configured_roots, *demo_roots) if p))
         self.measurements = MeasurementEvidence(measurement_root or os.environ.get(
             'FACTORY_MEASUREMENT_ROOT', Path.home() / 'predemo-spark/OPS'))
         if launch_root is None:
@@ -406,7 +445,11 @@ class FactoryHttpService:
                                 if isinstance(homes, list) and has_creation_record:
                                     replay_sources.append((item, task_identity, homes))
                     elif kind == 'live':
-                        if self._historical(path):
+                        demo = self.live_demos.get((path, tid))
+                        if demo:
+                            item.update(name=demo.title, demo=True, demo_order=demo.order, contract_demo=True,
+                                        live_demo=True, read_only=True)
+                        elif self._historical(path):
                             item.update(read_only=True, status='replay')
                         elif SCRATCH_HOME.match(path.name):
                             item['scratch'] = True
@@ -427,13 +470,21 @@ class FactoryHttpService:
             source[0]['demo_order'] if isinstance(source[0]['demo_order'], (int, float)) else 0,
             -source[0]['updated'], source[0]['id'],
         ))
+        paths = {item['id']: path for item, path in result}
         for replay, identity, homes in preferred:
             matches = {origin['id']: origin for home in homes if isinstance(home, str)
                        for origin in native.get((home, identity), [])}
             if len(matches) == 1:
                 run_id, origin = matches.popitem()
+                if origin.get('live_demo'):
+                    demo = self.live_demos[paths[run_id], origin['task_id']]
+                    archive_path = paths[replay['id']]
+                    if demo.replay_root is None or not archive_path.is_relative_to(demo.replay_root):
+                        continue
                 replay['original_run_id'] = run_id
                 origin.setdefault('demo_replay_id', replay['id'])
+                if origin.get('live_demo'):
+                    origin['status'] = 'replay'
         return result
 
     def _historical(self, path):
@@ -475,7 +526,8 @@ class FactoryHttpService:
 
     def listing(self):
         return sanitize(dict(runs=[item for item, _ in self.catalog()], launch_templates=self.templates(),
-                             launch_enabled=bool(self.launch_root and self.launch_home_root)))
+                             launch_enabled=bool(self.launch_root and self.launch_home_root),
+                             live_demos_enabled=bool(self.live_demos)))
 
     def capsules(self, usage):
         catalog = self.capsule_catalog.listing()
@@ -519,7 +571,8 @@ class FactoryHttpService:
             self.copy_store(path, temporary)
             data = snapshot(temporary, item['task_id'])
             self.validate_contract(data['tasks'][0].get('contract_id'))
-            transcript = _inside(path, f"sessions/{item['task_id']}.jsonl") if include_transcript else None
+            transcript = (_inside(path, f"sessions/{item['task_id']}.jsonl")
+                          if include_transcript and not item.get('live_demo') else None)
             relative = f"sessions/{item['task_id']}.state.json"
             original = _inside(path, relative)
             if original.is_file():
@@ -586,7 +639,10 @@ class FactoryHttpService:
             names = set(expected) | {p.relative_to(path).as_posix() for p in path.rglob('*') if p.is_file()}
         else:
             names = set(expected)
-            for rel in (f"sessions/{item['task_id']}.jsonl", f"sessions/{item['task_id']}.state.json", 'launch.log'):
+            local_files = () if item.get('live_demo') else (
+                f"sessions/{item['task_id']}.jsonl", f"sessions/{item['task_id']}.state.json", 'launch.log',
+            )
+            for rel in local_files:
                 if (path / rel).is_file():
                     names.add(rel)
         labels = {}
@@ -644,7 +700,16 @@ class FactoryHttpService:
         item, path = self.resolve(run_id)
         data = self.load(item, path)
         plan = taskgraph.from_records(data)
+        state = self._state(item, path, data, plan)
         files = self.files(item, path, data)
+        published_report = None
+        if item.get('live_demo') and state['run_state']['state'] in TERMINAL_DEMO_STATES:
+            item['status'] = 'replay'
+            archive = self.demo_report(item)
+            if archive:
+                _, published_report, archived_files = archive
+                native_paths = {file['path'] for file in files}
+                files.extend(file for file in archived_files.values() if file['path'] not in native_paths)
         bundled = curated_replay(path) if item['kind'] == 'bundle' else None
         trails = corrections.project(data)
         # Live homes retain their Story when the graph finishes. Stepper views belong to exports.
@@ -667,11 +732,29 @@ class FactoryHttpService:
                              scheduler_models=self._scheduler_models(path, item['task_id']),
                              correction_overview={n['node_id']: trails.get(n['node_id'], {}).get('counts',
                                  dict(findings=0, notes=0, repairs=0)) for n in plan['nodes']},
-                             **self._state(item, path, data, plan), stack=monitor.engine_stack(data),
+                             **state, stack=monitor.engine_stack(data),
                              telemetry=trace, files=files, events=events,
                              summary=dict(meta=data.get('_meta', {}), telemetry=telemetry.summary(trace)),
-                             session=self._session(item, path, data) if item['kind'] == 'live' else None,
+                             session=self._session(item, path, data)
+                             if item['kind'] == 'live' and not item.get('live_demo') else None,
+                             published_report=published_report,
                              curated=replay))
+
+    def demo_report(self, item):
+        archive_id = item.get('demo_replay_id') if item.get('live_demo') else None
+        if not archive_id:
+            return None
+        archived, archive_path = self.resolve(archive_id)
+        replay = curated_replay(archive_path)
+        header = (replay or {}).get('presentation_header') or {}
+        if header.get('report_kind') not in {'run', 'lab'}:
+            return None
+        data = self.load(archived, archive_path)
+        verified = {file['path']: file for file in self.files(archived, archive_path, data)
+                    if file['integrity'] == 'verified'}
+        if DEMO_REPORT_PATH not in verified:
+            return None
+        return archive_path, header, verified
 
     @staticmethod
     def _scheduler_models(path, task_id):
@@ -805,7 +888,7 @@ class FactoryHttpService:
 
     def _live(self, run_id):
         item, path = self.resolve(run_id)
-        if item['kind'] != 'live' or self._historical(path):
+        if item['kind'] != 'live' or item.get('read_only') or self._historical(path):
             raise HTTPException(403, 'Operator controls require a writable live factory home')
         return item, path
 
@@ -909,8 +992,8 @@ class FactoryHttpService:
 
     def session(self, run_id):
         item, path = self.resolve(run_id)
-        if item['kind'] != 'live':
-            raise HTTPException(404, 'This run is an exported bundle')
+        if item['kind'] != 'live' or item.get('live_demo'):
+            raise HTTPException(404, 'This run has no public controller session')
         return sanitize(self._session(item, path, self.load(item, path, include_transcript=False)))
 
     @staticmethod
@@ -977,6 +1060,12 @@ class FactoryHttpService:
         item, path = self.resolve(run_id)
         data = self.load(item, path)
         rows = {row['path']: row for row in self.files(item, path, data)}
+        if relative not in rows and item.get('live_demo'):
+            state = self._state(item, path, data, taskgraph.from_records(data))['run_state']
+            if state['state'] in TERMINAL_DEMO_STATES and (archive := self.demo_report(item)):
+                archive_path, _, archived_files = archive
+                if relative in archived_files:
+                    path, rows = archive_path, archived_files
         if relative not in rows:
             raise HTTPException(404, 'File is not part of this run')
         target = _inside(path, relative)

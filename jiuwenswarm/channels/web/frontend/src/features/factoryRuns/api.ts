@@ -20,6 +20,7 @@ export type Run = {
   demo?: boolean;
   demo_order?: number;
   contract_demo?: boolean;
+  live_demo?: boolean;
   original_run_id?: string;
   demo_replay_id?: string;
   /** web-* launch scratch homes and synthetic smoke homes. */
@@ -62,6 +63,7 @@ export type RunDetail = {
   summary: unknown;
   session?: SessionSnapshot | null;
   curated?: CuratedReplay | null;
+  published_report?: CuratedReplay['presentation_header'] | null;
   /** Per plan node: node contract CCs, verified outputs and their host node_check records. */
   node_checks?: NodeCheckIndex;
   /** Live homes only: what an operator may do now. */
@@ -186,7 +188,12 @@ export type LaunchTemplate = {
   contract_id?: string;
   capsules?: string[];
 };
-export type RunList = { runs: Run[]; launch_templates: LaunchTemplate[]; launch_enabled: boolean };
+export type RunList = {
+  runs: Run[];
+  launch_templates: LaunchTemplate[];
+  launch_enabled: boolean;
+  live_demos_enabled?: boolean;
+};
 export type FileContent = EvidenceFile & { content: string; truncated: boolean };
 
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -199,7 +206,7 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 export const factoryApi = {
   list: () => request<RunList>('/runs'),
-  detail: (id: string) => request<RunDetail>(`/runs/${encodeURIComponent(id)}`),
+  detail: (id: string, signal?: AbortSignal) => request<RunDetail>(`/runs/${encodeURIComponent(id)}`, { signal }),
   story: (id: string, since: number) =>
     request<{ events: StoryEvent[]; cursor: number; total: number; reset?: boolean }>(
       `/runs/${encodeURIComponent(id)}/story?since=${since}`,

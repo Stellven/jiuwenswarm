@@ -50,6 +50,7 @@ export type GraphReplay = {
   files?: readonly EvidenceFile[];
   curated?: CuratedReplay | null;
   runState?: RunState;
+  liveDemo?: boolean;
   onOpenFile?: (path: string) => void;
   onOpenNode?: (nodeId: string) => void;
   replayByNode?: Map<string, unknown[]>;
@@ -495,7 +496,7 @@ export function taskGraphTimeline(graph: GraphModel, replay?: GraphReplay): Task
     }
   }
   const orderOf = (node: GraphNode) => completionOrder.get(node.planId ?? '') ?? history.length;
-  nodes.sort((a, b) => orderOf(a) - orderOf(b));
+  if (!replay?.liveDemo) nodes.sort((a, b) => orderOf(a) - orderOf(b));
   const states = new Map<string, Fields>();
   const reopenedAt = new Map<string, number>();
   for (const entry of replay ? history.slice(0, revision) : history) {
@@ -508,17 +509,18 @@ export function taskGraphTimeline(graph: GraphModel, replay?: GraphReplay): Task
   }
 
   const detailsOf = (node: GraphNode) =>
-    !replay || (!history.length && isLatest) ? node.details : states.get(node.planId ?? '');
+    !replay || (isLatest && (!history.length || replay.liveDemo)) ? node.details : states.get(node.planId ?? '');
   const stateOf = (node: GraphNode) => detailsOf(node)?.state;
   const unresolved = (node: GraphNode) => !['done', 'cancelled', 'superseded'].includes(String(stateOf(node)));
   const runState = replay?.runState;
   const since = typeof runState?.since === 'string' ? Date.parse(runState.since) / 1000 : runState?.since;
   const terminalReached =
-    (runState?.source && eventIds.has(runState.source)) ||
+    (replay?.liveDemo && isLatest) || (runState?.source && eventIds.has(runState.source)) ||
     (typeof since === 'number' && Number.isFinite(since) ? cutoff >= since : isLatest);
   const stopped = runState?.state === 'stopped' && terminalReached;
   const finished = runState?.state === 'finished' && terminalReached;
-  const current = stopped || finished ? undefined : nodes.find(unresolved);
+  const active = replay?.liveDemo && isLatest ? nodes.find((node) => node.planId === runState?.node_id && unresolved(node)) : undefined;
+  const current = stopped || finished ? undefined : active ?? nodes.find(unresolved);
   const recordsPath = replay?.files?.find((file) => file.path === 'records/observations.json')?.path;
   return nodes.map((node) => {
     let replayState: TaskGraphTimelineNode['replayState'] = 'not-reached';

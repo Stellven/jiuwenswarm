@@ -30,7 +30,10 @@ export function contractDemoRuns(runs: Run[]) {
   for (const run of runs) {
     if (!run.contract_demo) continue;
     const previous = contracts.get(run.task_id);
-    if (!previous || run.updated > previous.updated) contracts.set(run.task_id, run);
+    if (!previous || (run.live_demo && !previous.live_demo) ||
+        (Boolean(previous.live_demo) === Boolean(run.live_demo) && run.updated > previous.updated)) {
+      contracts.set(run.task_id, run);
+    }
   }
   return [...contracts.values()]
     .sort((a, b) => (a.demo_order ?? 0) - (b.demo_order ?? 0) || a.name.localeCompare(b.name));

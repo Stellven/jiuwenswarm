@@ -114,7 +114,8 @@ export function ReplayNodeContractsPanel({ detail, selectedNode, onSelectNode, o
   const node = nodes.find(([id]) => id === selection)?.[0] ?? nodes[0]?.[0];
   const loadNode = useCallback((id: string, signal: AbortSignal) => factoryApi.node(detail.run.id, id, signal),
     [detail.run.id]);
-  const loaded = useCapsuleResource(node, loadNode);
+  const contractRevision = detail.run.live_demo ? detail.records.observations?.length : undefined;
+  const loaded = useCapsuleResource(node, loadNode, contractRevision);
   return (
     <section className="factory-replay-evidence" data-testid="factory-runs-replay-node-contracts">
       {node ? (
