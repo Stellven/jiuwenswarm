@@ -1,5 +1,5 @@
-import type { CorrectionEvent, EvidenceFile, NodeCorrection, StoryEvent } from '../api';
-import { replayLabel, revisionEvent } from './nodeEvidenceModel.ts';
+import type { CorrectionEvent, EvidenceFile, JsonRecord, NodeCorrection, StoryEvent } from '../api';
+import { evidenceRecord, evidenceText, replayLabel, revisionEvent } from './nodeEvidenceModel.ts';
 
 export type KeyFile = { path: string; label: string; why?: string; step?: number };
 export type ReplayCheckStage = 'factory' | 'runtime' | 'mixed';
@@ -76,6 +76,47 @@ export type CuratedReplay = {
   contract_versions?: { version: number; path: string; sha256: string; amendment?: string; reason?: string }[];
   steps: CuratedStep[];
 };
+
+const CHECK_ROLES = ['CC verifier', 'Node verifier', 'Scheduler', 'Lab agent'] as const;
+type CheckRole = (typeof CHECK_ROLES)[number];
+
+export function recordedCheckRoles(
+  step: CuratedStep,
+  observations: readonly JsonRecord[],
+  presentation: CuratedReplay['node_presentation'],
+): CheckRole[] {
+  const references = new Set(step.records?.filter((row) => row.table === 'observations').map((row) => row.id));
+  const roles = new Set<CheckRole>();
+
+  if (step.original_kind === 'node_contract_final' || step.original_kind === 'node_contract_refusal') {
+    return observations.some((observation) => observation.kind === step.original_kind
+      && references.has(evidenceText(observation.obs_id) ?? '')) ? ['Scheduler'] : [];
+  }
+
+  for (const observation of observations) {
+    if (observation.kind !== 'node_check') continue;
+    const values = evidenceRecord(observation.values);
+    const node = evidenceText(values?.node_id);
+    const cited = references.has(evidenceText(observation.obs_id) ?? '');
+    // Some steps cite source observations that the focused node's verifier checked.
+    const evidenceIds = evidenceRecord(values?.refs)?.evidence_ids;
+    const citesSources = node && node === step.node_id && Array.isArray(evidenceIds)
+      && evidenceIds.some((value) => references.has(value));
+    if (!cited && !citesSources) continue;
+    roles.add('Node verifier');
+    const output = evidenceText(values?.output);
+    const check = node && output ? presentation?.[node]?.checks[output] : undefined;
+    if (check?.verifier_role === 'CC verifier') roles.add('CC verifier');
+    if (check?.role === 'Lab acceptance') roles.add('Lab agent');
+  }
+  // Run 1's sealed lab report is attached directly to the benchmark step.
+  if (step.original_kind === 'r8-final-bench' && step.records?.some(
+    (row) => row.table === 'file' && row.id === 'evidence/lab/report.json',
+  )) {
+    roles.add('Lab agent');
+  }
+  return CHECK_ROLES.filter((role) => roles.has(role));
+}
 
 // Plain-English names for record kinds that appear in raw factory homes. The
 // original kind always stays visible next to the title.

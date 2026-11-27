@@ -7,7 +7,7 @@ import { ArrowUpRight, CheckCircle2, CircleDot, FileText, GitBranch, Layers3, Pa
 import { useTranslation } from 'react-i18next';
 import type { EvidenceFile, JsonRecord, RunDetail, StoryEvent } from './api';
 import { atlasTitle } from './cc/atlasNames.ts';
-import { collapseEvents, presentEvent, replayCheckStage, replayEvidenceText, type CuratedMeasurement } from './views/storyModel.ts';
+import { collapseEvents, presentEvent, recordedCheckRoles, replayEvidenceText, type CuratedMeasurement } from './views/storyModel.ts';
 import { ReplayLabel } from './views/NodeEvidence';
 import { CorrectionRecord, CorrectionSequence } from './views/CorrectionSequence';
 import { correctionStatusAt } from './views/correctionModel';
@@ -176,6 +176,7 @@ export function RunOverview({
 
   if (curated) {
     const focus = curated.steps.find((step) => step.step === currentStep) ?? curated.steps[0];
+    const checkRoles = focus ? recordedCheckRoles(focus, detail.records.observations ?? [], curated.node_presentation) : [];
     const prefillStep = r8VerifierHelp && focus?.node_id === 'size_prefill_batch' && Boolean(focus.capsule_diff);
     const engineMeasurement = (r8VerifierHelp && Boolean(focus?.measurement)) ||
       (detail.contract.contract_id === 'muse-2bit-demo-r9' && focus?.node_id === 'measure_engine');
@@ -236,20 +237,20 @@ export function RunOverview({
     );
     return (
       <div className="factory-story" data-testid="factory-runs-overview">
-        <header className="factory-story-hero" data-testid="factory-runs-overview-brief">
-          {!curated.presentation_header && <>
+        {!curated.presentation_header && (
+          <header className="factory-story-hero" data-testid="factory-runs-overview-brief">
             <span className="factory-story-kicker">{curated.title}</span>
             <p className="factory-curated-label" data-testid="factory-runs-curated-summary">{curated.summary}</p>
-          </>}
-          {curated.node_presentation && (
-            <details data-testid="factory-runs-curated-check-roles">
-              <summary>Who checks what</summary>
-              <p>Factory stage runs on the factory machine using builds, digest checks and small fixtures. Runtime stage uses the full model on the target.</p>
-              <p>The CC verifier checks that the capsule’s method, tool or build was used correctly. The scheduler writes the node contract and the node verifier checks whether the node met it.</p>
-              <p>The factory delivers the image, test requirements and acceptance criteria. The lab agent runs the tests on the target and decides whether the engine passes. Lab acceptance can run without a CC.</p>
-            </details>
-          )}
-        </header>
+          </header>
+        )}
+        {curated.node_presentation && (
+          <details className="factory-curated-more factory-curated-check-roles" data-testid="factory-runs-curated-check-roles">
+            <summary data-testid="factory-runs-curated-check-roles-toggle">Who checks what</summary>
+            <p>The CC verifier checks the capsule’s method, tool use or build.</p>
+            <p>The scheduler writes the node contract. The node verifier checks whether the node met it.</p>
+            <p>The factory delivers the image, test requirements and acceptance criteria. The lab agent tests the engine on the target and decides whether it passes.</p>
+          </details>
+        )}
         {focus && (
           <section
             className="factory-story-card factory-curated-focus"
@@ -279,9 +280,9 @@ export function RunOverview({
               </button>
             )}
             <ReplayLabel value={focus.replayed_from} />
-            {!!focus.stages?.length && (
-              <p className="factory-story-kicker" data-testid="factory-runs-curated-check-stage">
-                {focus.stages.map(replayCheckStage).join(' · ')}
+            {checkRoles.length > 0 && (
+              <p className="factory-story-kicker factory-curated-role-badges" data-testid="factory-runs-curated-check-role-badges">
+                {checkRoles.join(' · ')}
               </p>
             )}
             {focus.presenter_line ? (

@@ -369,6 +369,9 @@
 .factory-curated-quotes small { font-family: inherit; color: var(--color-text-primary); }
 .factory-curated-step-key { justify-self: start; margin-left: 34px; padding: 2px 8px; border: 1px solid var(--color-border-warning); border-radius: 999px; background: transparent; color: var(--color-text-primary); font-size: 0.78rem; cursor: pointer; }
 .factory-curated-more summary { cursor: pointer; font-size: 0.85rem; color: var(--color-text-link); }
+.factory-curated-check-roles summary { width: fit-content; }
+.factory-curated-check-roles p { margin: 6px 0 0 1rem; }
+.factory-curated-role-badges { text-transform: none; }
 .factory-curated-measurements { display: grid; gap: 8px; }
 .factory-curated-measurements p { margin: 0; }
 .factory-curated-table-scroll { overflow-x: auto; }
