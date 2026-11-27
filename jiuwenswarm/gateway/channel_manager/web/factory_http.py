@@ -55,6 +55,28 @@ def _hash(data):
     return hashlib.sha256(data).hexdigest()
 
 
+def _file_text(content):
+    text = scrub_bytes(content).decode(errors='replace')
+    has_duplicate_keys = False
+
+    def collect_pairs(pairs):
+        nonlocal has_duplicate_keys
+        value = dict(pairs)
+        if len(value) != len(pairs):
+            has_duplicate_keys = True
+        return value
+
+    try:
+        parsed = json.loads(text, object_pairs_hook=collect_pairs)
+    except ValueError:
+        return text
+    safe = sanitize(parsed)
+    # An overwritten key can still carry sensitive data in the original text.
+    if has_duplicate_keys or safe != parsed:
+        return json.dumps(safe, ensure_ascii=False, indent=2)
+    return text
+
+
 def _inside(root, relative):
     path = root / relative
     if Path(relative).is_absolute() or '..' in Path(relative).parts:
@@ -936,11 +958,7 @@ class FactoryHttpService:
             raise HTTPException(404, 'Evidence file is missing')
         with target.open('rb') as stream:
             content = stream.read(MAX_FILE)
-        clean = scrub_bytes(content).decode(errors='replace')
-        try:
-            clean = json.dumps(sanitize(json.loads(clean)), ensure_ascii=False, indent=2)
-        except ValueError:
-            pass
+        clean = _file_text(content)
         return sanitize(dict(rows[relative], content=clean, truncated=target.stat().st_size > MAX_FILE))
 
     def launch(self, template_id):
