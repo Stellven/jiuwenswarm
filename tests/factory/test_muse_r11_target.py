@@ -2,6 +2,7 @@
 from collections import Counter
 import json
 from pathlib import Path
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -134,3 +135,53 @@ def test_target_uses_exact_profile_bytes_and_does_not_inherit_profile_overlay(tm
     path.chmod(0o600)
     with pytest.raises(ValueError, match='profile changed'):
         target._profile_identity(path, sha)
+
+
+def test_device_peak_is_comparable_inventory_only_without_late_native_reservations(tmp_path):
+    path = tmp_path/'server.log'
+    path.write_text('startup\nrequest one\n')
+    source = dict(model=37396.62, kv=1984.0, compute=2144.05, moe_cache=62451.0, host_compute=320.10)
+    result = target.device_budget(path, len(b'startup\n'), dict(device_mib=source))
+    assert result['device_peak_mib'] == 103975.67
+    assert result['device_peak_categories_mib']['host_compute'] == 320.10
+    with path.open('a') as stream:
+        stream.write('sched_reserve: CUDA0 compute buffer size = 400.00 MiB\n')
+    with pytest.raises(ValueError, match='Post-ready memory reservations changed'):
+        target.device_budget(path, len(b'startup\n'), dict(device_mib=source))
+
+
+def test_candidate_library_proves_opt_in_even_with_same_server_stub(tmp_path, monkeypatch):
+    image = 'a'*64
+    cached = tmp_path/'r11'/'extracted'/image
+    cached.mkdir(parents=True)
+    (cached/'llama-server').write_bytes(b'stable server stub')
+    original = b'released demand implementation'
+    (cached/'libllama.so.1').write_bytes(original)
+    runtime = tmp_path/'image'/'candidate'
+    runtime.mkdir(parents=True)
+    candidate = runtime/'libllama.so.1'
+    raw = b'\0'.join(x.encode() for x in (target.COUNTER_ENV, target.PROFILE_PATH_ENV,
+                                        target.STARTUP_MARKER, target.COUNTER_MARKER))
+    candidate.write_bytes(raw)
+    calls = []
+
+    def docker(argv, **kwargs):
+        calls.append(argv)
+        match argv[1]:
+            case 'image':
+                return SimpleNamespace(stdout='sha256:'+image)
+            case 'create':
+                return SimpleNamespace(stdout='container-id')
+            case 'cp':
+                Path(argv[-1]).write_bytes(original)
+            case 'rm':
+                pass
+        return SimpleNamespace(stdout='')
+    monkeypatch.setattr(target.subprocess, 'run', docker)
+    identity = dict(parent_image_id='sha256:'+image,
+                    parent_executable_sha256=target.digest(cached/'llama-server'),
+                    profiling_library_sha256='0'*64)
+    assert target._library_delta(tmp_path, candidate, identity)['candidate_library_sha256'] == target._bytes_sha(raw)
+    assert [call[1] for call in calls] == ['image','create','cp','rm']
+    with pytest.raises(ValueError, match='profiling overlay'):
+        target._library_delta(tmp_path, candidate, dict(identity, profiling_library_sha256=target._bytes_sha(raw)))
