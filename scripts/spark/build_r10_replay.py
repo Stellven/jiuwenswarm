@@ -179,7 +179,52 @@ class Replay(Builder):
             sources[key] = dict(path=copy, label=label)
         return sources
 
-    def step(self, title, node_id, method, result, rows, files):
+    def scheduler_capability_note(self, finals):
+        fixture = next((row for row in reversed(finals)
+                        if row['kind'] == 'node_contract_final' and row['values']['node_id'] == 'verify_fixtures'), None)
+        earlier_trace = next((row for row in finals
+                               if row['kind'] == 'node_contract_final' and row['values']['node_id'] == 'trace_dispatch'), None)
+        if not fixture or not earlier_trace:
+            return '', None, None
+        cc = 'engine.gpu_kernel_lab'
+        before = earlier_trace['values'].get('cc_versions', {}).get(cc)
+        after = fixture['values'].get('cc_versions', {}).get(cc)
+        verifiers = fixture['values'].get('final', {}).get('verifiers', [])
+        if not before or not after or before == after or not any(
+            output.get('verifier') == cc + '.verify_candidate' for output in verifiers
+        ):
+            return '', None, None
+        source = f'sessions/{self.task_id}.scheduler.jsonl'
+        path = self.home / source
+        if path.resolve() != path or not path.is_file() or path.stat().st_size > MAX_FILE:
+            return '', None, None
+        payload = path.read_bytes()
+        for number, line in reversed(list(enumerate(payload.splitlines(keepends=True), 1))):
+            row = json.loads(line)
+            if (row.get('event_type') != 'chat.final'
+                    or not row.get('session_id', '').startswith(self.task_id + '-scheduler-verify_fixtures-')):
+                continue
+            text = row.get('content', '')
+            if not isinstance(text, str):
+                continue
+            match = re.search(r'The only eligible capsule, `engine\.gpu_kernel_lab` v'
+                              + re.escape(before) + r', declares only `evaluate`, `benchmark`, and `trace_dispatch` in `cc\.yaml`\.', text)
+            if (not match or 'verify_candidate' not in text
+                    or 'I did not submit a proposal' not in text
+                    or scrub_bytes(match[0].encode()) != match[0].encode()):
+                continue
+            excerpt = dict(path=source, line=number, text=match[0])
+            proof = self.projection('projections/scheduler-capability-gap.json', dict(
+                excerpt=excerpt, source_sha256=sha(payload), line_sha256=sha(line),
+                earlier_capsule_version=before, finalized_fixture_capsule_version=after,
+                earlier_final=self.ref(earlier_trace), fixture_final=self.ref(fixture),
+            ), 'Scheduler capability gap and finalized repair', [earlier_trace, fixture])
+            summary = (f' The scheduler reported that v{before} lacked the required fixture verifier and submitted no proposal.'
+                       f' The later fixture final bound verify_candidate at v{after}.')
+            return summary, proof, excerpt
+        return '', None, None
+
+    def step(self, title, node_id, method, result, rows, files, *, quote=None):
         first = rows[0]
         primary = self.ref(first)
         kind = first.get('kind', primary['table'].rstrip('s'))
@@ -191,7 +236,7 @@ class Replay(Builder):
             original_kind=kind, original_summary=summary, created=first['created'],
             created_utc=utc(first['created']), records=[self.ref(row) for row in rows], primary_record=primary['id'],
             say=f'{method} In this run: {result}', presenter_line=method, key_files=files,
-            files=[file['path'] for file in files],
+            files=[file['path'] for file in files], **({'quotes': [quote]} if quote else {}),
         ))
 
     def report(self, outcome, candidate, terminal, trace, files, *, lab_result, trace_sources):
@@ -283,9 +328,11 @@ class Replay(Builder):
         if finals:
             contracts = self.projection('projections/node-contracts.json', [self.observation(row) for row in finals],
                                         'Recorded scheduler changes and bindings', finals)
+            note, proof, excerpt = self.scheduler_capability_note(finals)
             self.step('Scheduler node contracts', finals[0]['values']['node_id'],
                       'Finalize the node contracts with checks for each stage.',
-                      f'The scheduler recorded {len(finals)} finalization or refusal records.', finals, [contracts])
+                      f'The scheduler recorded {len(finals)} finalization or refusal records.' + note,
+                      finals, [contracts, proof] if proof else [contracts], quote=excerpt)
         pins = self.checks('pin_inputs', output='pinned_inputs')
         if pins:
             self.step('Pin the released AQBC engine', 'pin_inputs', NODES['pin_inputs']['method'],

@@ -71,6 +71,33 @@ def test_imported_instrumentation_uses_diff_view_even_when_store_labels_it_plain
                for step in replay['steps'] for f in step['key_files'])
 
 
+def test_scheduler_gap_uses_a_short_final_reply_and_genuine_version_bindings(tmp_path):
+    home, contract, _ = sources(tmp_path)
+    cc = 'engine.gpu_kernel_lab'
+    with Store(home) as store:
+        for node_id, version in [('trace_dispatch', '1.1.0'), ('verify_fixtures', '1.1.1')]:
+            store.append_observation(TASK, dict(kind='node_contract_final', values=dict(
+                node_id=node_id, cc_versions={cc: version},
+                final={'verifiers': [{'verifier': cc + '.verify_candidate'}]},
+            )))
+    session = home / 'sessions' / f'{TASK}.scheduler.jsonl'
+    session.parent.mkdir(exist_ok=True)
+    excerpt = 'The only eligible capsule, `engine.gpu_kernel_lab` v1.1.0, declares only `evaluate`, `benchmark`, and `trace_dispatch` in `cc.yaml`.'
+    content = f'Private discussion. {excerpt} The contract needs verify_candidate. I did not submit a proposal.'
+    raw = (json.dumps(dict(event_type='chat.final', session_id=TASK + '-scheduler-verify_fixtures-1',
+                           content=content)) + '\n').encode()
+    session.write_bytes(raw)
+    out = tmp_path / 'bundle'
+    build(home, contract, out)
+    proof = json.loads((out / 'projections/scheduler-capability-gap.json').read_text())
+    assert proof['source_sha256'] == proof['line_sha256'] == sha(raw)
+    assert proof['excerpt'] == {'path': f'sessions/{TASK}.scheduler.jsonl', 'line': 1, 'text': excerpt}
+    assert not (out / 'sessions').exists()
+    replay = json.loads((out / 'replay.json').read_text())
+    assert 'The later fixture final bound verify_candidate at v1.1.1.' in replay['steps'][1]['say']
+    assert 'Private discussion' not in (out / 'replay.json').read_text()
+
+
 @pytest.mark.parametrize(('eligibility', 'action', 'cite_trace', 'message'), [
     ('already_batched', 'stop_missing_prerequisite', False, 'Pre-build stop disagrees'),
     ('already_batched', 'accept', True, 'Pre-build stop disagrees'),
