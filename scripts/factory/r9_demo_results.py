@@ -13,6 +13,7 @@ def read(path):
 
 
 def normalized(folder, base_pack):
+    folder = folder.resolve()
     receipt=read(folder/'load.json')
     speed=read(folder/'speed.json')
     stage=receipt['identity']
@@ -25,7 +26,10 @@ def normalized(folder, base_pack):
     device={k:v for k,v in observed['device_mib'].items() if k!='host_compute'}
     base=dict(schema='engine-bench/1',run=RUN,comparison_group=RUN,date=receipt['started_utc'][:10],label='measured',
               engine=dict(name='Run 2 prefix store',image=stage['image_id'],sha256=stage['executable_sha256']),
-              pack=base_pack,settings=settings,memory=dict(device=device,budget=110000,fit_margin=110000-sum(device.values())))
+              pack=base_pack,settings=settings,memory=dict(device=device,budget=110000,fit_margin=110000-sum(device.values()),
+                  peak_rss=receipt['peak_process_rss_bytes']/2**20,
+                  peak_cgroup_mib=receipt['sampled_peak_memory_bytes']/2**20,
+                  min_available=receipt['min_available_bytes']/2**20))
     yield dict(base,id=RUN+'/AQBC/load',kind='load',arm='AQBC',metrics=dict(load_s=receipt['load_seconds']),
                source=dict(path=str(folder/'load.json'),record='/load_seconds'))
     for i,row in enumerate(speed['rows']):
