@@ -1,0 +1,33 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "kv_reuse_lab/cc.yaml",
+      "from_version": "1.1.0",
+      "from_release": "bb2e50097a9a3f66825b34e690bea9471308d60c2bc0cdd511519618bd86b048",
+      "from_commit": "8f780f12e371a4b82df571f2aaa076a9df8147ed",
+      "to_version": "1.1.1",
+      "to_release": "38e9958afb66fbdf5abce2bc3ae6a00efacf10ba6f72c1da9848b78e2bab007f",
+      "changed_files": [
+        "METHOD.md",
+        "cc.yaml",
+        "cpu_fixture.py",
+        "request_log.py",
+        "run.py"
+      ],
+      "unrecorded_versions": [
+        {
+          "commit": "37cfdc9d9df53b3817893e915b29d593aa25b564",
+          "version": "1.1.1",
+          "release": "5d7d9f1c1cabf1d809b9c5efa1612237667a289288fca30d9d8e1f989be3bd42"
+        },
+        {
+          "commit": "7bdc15cacda12abf3e59a9f801bfe952f043a1f5",
+          "version": "1.1.0",
+          "release": "7035d3dd76a351afe3ebeaa8f44ca435eee1219f858ebeeb5d2e7f3fdb1cd41a"
+        }
+      ],
+      "reason": "Seal the portable CPU fixture CC verifier and its package-local request log parser. Clarify that the retained runtime capability replays recorded lab acceptance."
+    }
+  ]
+}
