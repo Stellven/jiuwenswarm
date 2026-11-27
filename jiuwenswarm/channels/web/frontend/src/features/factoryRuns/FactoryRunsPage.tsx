@@ -42,6 +42,7 @@ import { TerminalViewer } from './views/TerminalViewer';
 import { useViewerLabels } from './views/viewerLabels';
 import { curatedStepFor, keyFilesFor, keyFlags as curatedKeyFlags, liveReplayPosition, presentEvent } from './views/storyModel.ts';
 import { CapsuleChips, CapsuleLinksContext } from './cc/CapsuleChips';
+import { transcriptActivity, type ActivityLink } from './cc/BoundCapsules';
 import { demoContractCapsuleIds } from './cc/inferenceCapsuleCopy';
 import { capsuleApi, type CapsuleCard } from './cc/capsuleApi';
 import { useCapsuleCopy } from './cc/copy';
@@ -118,7 +119,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   }, [selected]);
   const [loadedDetail, setDetail] = useState<RunDetail | null>(null);
   const detail = loadedDetail?.run.id === selected ? loadedDetail : null;
-  const [panel, setPanel] = useState<Panel>(entry?.file ? 'artifacts' : entry?.panel ?? (entry?.node ? 'capsules' : 'overview'));
+  const [panel, setPanel] = useState<Panel>(entry?.record ? 'events' : entry?.file ? 'artifacts' : entry?.panel ?? (entry?.node ? 'capsules' : 'overview'));
   const [events, setEvents] = useState<StoryEvent[]>([]);
   const liveDemoEvents = useRef<StoryEvent[]>([]);
   const [position, setPosition] = useState(0);
@@ -144,7 +145,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   const [sessionStale, setSessionStale] = useState(false);
   const [selectedNode, setSelectedNode] = useState(entry?.node);
   const [demoGraphMode, setDemoGraphMode] = useState<DemoGraphMode>('run');
-  const [focusedRecordId, setFocusedRecordId] = useState<string>();
+  const [focusedRecordId, setFocusedRecordId] = useState(entry?.record);
   const nodeEvidenceSection = useRef<HTMLDivElement>(null);
   const [runStatus, setRunStatus] = useState<{ id: string; run_state?: RunStateRecord; controls?: Controls }>();
   // Demo build: light theme only. The scoped dark palette had unreadable
@@ -473,7 +474,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
     }) : null),
     [detail, plan],
   );
-  const demoNodes = demoGraph && graph && detail
+  const demoNodes = detail?.run.demo && graph
     ? taskGraphTimeline(graph, {
         events,
         position,
@@ -481,6 +482,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
         runState: detail.run_state,
         liveDemo,
         checks: detail.node_checks,
+        ccActivity: detail.cc_activity,
         files: detail.files,
       })
     : [];
@@ -547,6 +549,15 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   };
   const openEvidenceFile = (path: string) =>
     selectPanel(/(?:^|\/)report[^/]*\.md$/i.test(path) ? 'report' : 'artifacts', path);
+  const openActivityRecord: ActivityLink = (source) => {
+    if (source.path && source.source_run_id && source.source_run_id !== selected) {
+      window.location.hash = runHref(source.source_run_id, source.path);
+    } else if (source.path && (transcriptActivity(source) || !eventRefs.has(source.id))) {
+      openEvidenceFile(source.path);
+    } else {
+      openVerifierRecord(source.id);
+    }
+  };
   const correctionCursor = cursor && (detail?.curated || position < events.length)
     ? { created: cursor.created, id: (curatedStep?.correction ?? cursor.correction)?.id }
     : undefined;
@@ -560,6 +571,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
         checks={detail.node_checks?.[focusedNode]}
         replayNode={demoNodes.find((node) => (node.planId ?? node.id) === focusedNode)}
         onOpenRecord={openVerifierRecord}
+        onOpenActivity={openActivityRecord}
         presentation={detail.curated?.node_presentation?.[focusedNode]}
         files={detail.files}
         revision={detail}
@@ -843,6 +855,8 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                   labels={nodeLabels}
                   replayByNode={replayByNode}
                   corrections={detail.correction_overview}
+                  factsFor={(id) => demoNodes.find((item) => item.planId === id)?.capsuleFacts}
+                  onOpenActivity={openActivityRecord}
                   selected={focusedNode}
                   onSelect={(id) => setSelectedNode((old) => old === id ? undefined : id)}
                 />
@@ -858,6 +872,8 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                   onSelectNode={setSelectedNode}
                   onOpenFile={openEvidenceFile}
                   onOpenRecord={openVerifierRecord}
+                  onOpenActivity={openActivityRecord}
+                  capsuleFactsFor={(id) => demoNodes.find((item) => item.planId === id)?.capsuleFacts}
                 />
               )}
               {panel === 'events' && (contractEvidence || focusedRecordId) && (
@@ -876,6 +892,8 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                   onSeek={seek}
                   onOpenFile={openEvidenceFile}
                   nodeEvidence={nodeEvidence}
+                  stepCapsuleFacts={demoNodes.find((item) => item.planId === (curatedStep?.node_id ?? cursor?.node_id))?.capsuleFacts}
+                  onOpenActivity={openActivityRecord}
                 />
               )}
               {panel === 'overview' && (!detail.curated || detail.curated.native) && (
@@ -884,6 +902,8 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                   labels={nodeLabels}
                   replayByNode={replayByNode}
                   corrections={detail.correction_overview}
+                  factsFor={(id) => demoNodes.find((item) => item.planId === id)?.capsuleFacts}
+                  onOpenActivity={openActivityRecord}
                   selected={focusedNode}
                   onSelect={(id) => setSelectedNode((old) => old === id ? undefined : id)}
                 />
@@ -926,6 +946,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                   }}
                   onOpenPlan={openEvidenceFile}
                   onOpenRecord={openVerifierRecord}
+                  onOpenActivity={openActivityRecord}
                 />
               ) : panel === 'graph' && (
                 <DataViewer

@@ -1,6 +1,8 @@
 import { useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { EvidenceFile, JsonRecord, NodeContract, PlannerNode, PlannerSource } from '../api';
+import { BoundCapsules, type ActivityLink } from '../cc/BoundCapsules';
+import type { CapsuleFacts } from './ccActivityModel';
 import { CapsuleLinksContext } from '../cc/CapsuleChips';
 import { capsuleDisplayTitle } from '../cc/capsuleModel';
 import { capsuleHref } from '../cc/navigation';
@@ -70,17 +72,31 @@ function RecordLink({ source, files, onOpenFile, onOpenRecord }: Links & { sourc
   ) : null;
 }
 
-function ContractDocument({ document, kind }: { document: JsonRecord; kind: 'suggested' | 'bound' }) {
+function ContractDocument({
+  document,
+  kind,
+  facts,
+  onOpenActivity,
+}: {
+  document: JsonRecord;
+  kind: 'suggested' | 'bound';
+  facts?: readonly CapsuleFacts[];
+  onOpenActivity?: ActivityLink;
+}) {
   const { t } = useTranslation();
   const objective = contractObjective(document);
   const work = evidenceRecord(document.work);
   const capsules = kind === 'suggested' ? work?.helpful_ccs : work?.bound_ccs;
+  const ids = Array.isArray(capsules) ? capsules.filter((id): id is string => typeof id === 'string') : [];
+  const recorded = facts?.filter((fact) => ids.some((id) => id.split('@', 1)[0] === fact.id)) ?? [];
+  const remaining = ids.filter((id) => !recorded.some((fact) => id.split('@', 1)[0] === fact.id));
   return (
     <>
       {objective && <p>{objective}</p>}
-      {Array.isArray(capsules) && (
-        <PlannerCapsules ids={capsules.filter((id): id is string => typeof id === 'string')} kind={kind} />
+      {Array.isArray(capsules) && (!recorded.length || remaining.length > 0) && (
+        <PlannerCapsules ids={remaining} kind={kind} />
       )}
+      {recorded.length > 0 && <BoundCapsules facts={recorded} onOpenSource={onOpenActivity} />}
       <details className="factory-node-evidence-disclosure">
         <summary data-testid="factory-runs-planner-contract-json">{t('factoryRuns.planner.recordedJson')}</summary>
         <pre>{JSON.stringify(document, null, 2)}</pre>
@@ -127,10 +143,14 @@ function RecordedChanges({ changes }: { changes?: readonly JsonRecord[] | null }
 export function PlannerNodeComparison({
   node,
   fallback,
+  capsuleFacts,
+  onOpenActivity,
   ...links
 }: Links & {
   node?: PlannerNode;
   fallback?: NodeContract;
+  capsuleFacts?: readonly CapsuleFacts[];
+  onOpenActivity?: ActivityLink;
 }) {
   const { t } = useTranslation();
   const [chosenFinal, setChosenFinal] = useState<number>();
@@ -169,7 +189,12 @@ export function PlannerNodeComparison({
         <section data-testid="factory-runs-planner-final">
           <h3>{t('factoryRuns.planner.final')}</h3>
           {finalDocument ? (
-            <ContractDocument document={finalDocument} kind="bound" />
+            <ContractDocument
+              document={finalDocument}
+              kind="bound"
+              facts={capsuleFacts}
+              onOpenActivity={onOpenActivity}
+            />
           ) : (
             <p className="factory-muted">{t('factoryRuns.planner.noFinal')}</p>
           )}

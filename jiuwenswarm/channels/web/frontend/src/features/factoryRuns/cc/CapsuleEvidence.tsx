@@ -1,10 +1,44 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { CapsuleAnalysis, CapsuleDetail, CapsuleMeasurement } from './capsuleApi';
+import { capsuleFactsAt } from '../views/ccActivityModel';
+import { CapsuleFactStatus, transcriptActivity } from './BoundCapsules';
 import { AnalysisData } from './AnalysisData';
 import { Integrity, StructuredData } from './CapsuleMaterial';
 import { isRecord, numericColumns, readableName, tableData } from './capsuleModel';
 import { type CopyKey, useCapsuleCopy } from './copy';
-import { runHref } from './navigation';
+import { nodeHref, recordHref, runHref } from './navigation';
+
+export function CapsuleNodeActivity({ capsule }: { capsule: CapsuleDetail }) {
+  const { t } = useTranslation();
+  const activities = (capsule.evidence?.node_activity ?? []).flatMap((row) => {
+    const [fact] = capsuleFactsAt({ capsules: [row.capsule], closures: [], node_checks: [] });
+    return fact ? [{ row, fact }] : [];
+  });
+  if (!activities.length) return null;
+  return (
+    <section className="cc-section" data-testid="factory-runs-capsule-node-activity">
+      <h2>{t('factoryRuns.ccActivity.inThisRun')}</h2>
+      <ul className="cc-artifact-list">
+        {activities.map(({ row, fact }) => (
+          <li key={row.run_id + '/' + row.node_id} data-testid="factory-runs-capsule-node-activity-row" data-variant={row.node_id}>
+            <div className="cc-artifact-name">
+              <small>{row.run_name}</small>
+              <a href={nodeHref(row.run_id, row.node_id, 'graph')} data-testid="factory-runs-capsule-node-activity-link">
+                {row.node_id}
+              </a>
+            </div>
+            <CapsuleFactStatus fact={fact} onOpenSource={(record) => {
+              const run = record.source_run_id ?? row.run_id;
+              window.location.hash = transcriptActivity(record) && record.path
+                ? runHref(run, record.path) : recordHref(run, record.id);
+            }} />
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
 
 function number(value: number | null | undefined, unit = '', digits = 2): string {
   if (value == null || !Number.isFinite(value)) return '—';

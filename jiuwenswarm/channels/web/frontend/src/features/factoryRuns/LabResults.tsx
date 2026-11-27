@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { EvidenceFile, JsonRecord } from './api';
 import { requestIndexFromSpeedSource, requestStateLabel } from './engineBenchModel';
 import { formatChange, formatValue, labResults, type LabCell, type LabReport, type LabResults as Results, type RawRow } from './labModel';
@@ -48,6 +49,7 @@ function Cell({ cell, onSelect, title, condition }: {
 }
 
 function Report({ report, results, onOpenFile }: { report: LabReport; results: Results; onOpenFile: (path: string) => void }) {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState<Selected>();
   const reference = results.reference.arm;
   const arms = results.arms.filter((arm) => report.tables.some((table) => table.lines.some((line) => line.cells[arm.id])));
@@ -172,9 +174,10 @@ function Report({ report, results, onOpenFile }: { report: LabReport; results: R
                           data-verdict={check.verdict === 'pass' ? 'better' : check.verdict === 'fail' ? 'worse' : undefined}
                           onClick={() => setSelected({ title: `check ${check.id}`, rows: check.rows })}
                         >
-                          <b>{check.verdict}</b>
+                          <b>{check.verdict === 'not_run' ? t('factoryRuns.ccActivity.noLabVerdict') : check.verdict}</b>
                           {check.rows.length > 1 && (
-                            <small>{check.rows.map((row) => `${row.arm ?? ''} ${row.verdict ?? ''}`.trim()).join(' · ')}</small>
+                            <small>{check.rows.map((row) => `${row.arm ?? ''} ${row.verdict === 'not_run'
+                              ? t('factoryRuns.ccActivity.noLabVerdict') : row.verdict ?? ''}`.trim()).join(' · ')}</small>
                           )}
                         </button>
                       ) : (
@@ -194,7 +197,7 @@ function Report({ report, results, onOpenFile }: { report: LabReport; results: R
       )}
       {report.notRun.length > 0 && (
         <section className="factory-lab-metric" data-testid="factory-runs-lab-not-run">
-          <h3>Not run</h3>
+          <h3>{t('factoryRuns.ccActivity.labOmissions')}</h3>
           <ul>
             {report.notRun.map((row, index) => (
               <li key={`${row.test_id}:${index}`}>

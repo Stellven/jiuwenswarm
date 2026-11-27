@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { EvidenceFile } from '../api';
 import { CapsuleHeadlineResults, useFinalHeadlines, type HeadlineRow } from '../FinalHeadlines';
 import { capsuleApi, type CapsuleCard, type CapsuleCatalog, type CapsuleDetail } from './capsuleApi';
-import { BuilderRunEvidence, CapsuleEvidenceView, Receipt } from './CapsuleEvidence';
+import { BuilderRunEvidence, CapsuleEvidenceView, CapsuleNodeActivity, Receipt } from './CapsuleEvidence';
 import { Integrity, Loading, MaterialDialog, MaterialList, SafeMarkdown, StructuredData } from './CapsuleMaterial';
 import { useTranslation } from 'react-i18next';
 import {
@@ -95,6 +95,7 @@ function KindsLegend({ capsules }: { capsules: CapsuleCard[] }) {
 
 function Card({ capsule, results }: { capsule: CapsuleCard; results?: HeadlineRow[] }) {
   const copy = useCapsuleCopy();
+  const { t } = useTranslation();
   const arm = headlineArmForCapsule(capsule.name) || capsule.arm;
   const method = inferenceCapsules[capsule.id];
   return (
@@ -118,7 +119,7 @@ function Card({ capsule, results }: { capsule: CapsuleCard; results?: HeadlineRo
       <h3>{capsuleDisplayTitle(capsule)}</h3>
       <BuilderSubtitle capsule={capsule} />
       <p>{method?.method ?? plainDescription(capsule.cc_summary || capsule.description || capsule.component || capsule.id)}</p>
-      {method && <p><strong>In this run.</strong> {method.evidence}</p>}
+      {method && <p><strong>{t('factoryRuns.ccActivity.publishedExample')}</strong> {method.evidence}</p>}
       <RawId capsule={capsule} />
       {!!results?.length && <CapsuleHeadlineResults rows={results} compact />}
       {!!capsule.used_in_runs && (
@@ -283,6 +284,7 @@ function CatalogView({ capsules, headlines }: { capsules: CapsuleCard[]; headlin
 
 function CapsuleHeader({ capsule }: { capsule: CapsuleDetail }) {
   const copy = useCapsuleCopy();
+  const { t } = useTranslation();
   const arm = headlineArmForCapsule(capsule.name) || capsule.arm;
   const method = inferenceCapsules[capsule.id];
   return (
@@ -305,7 +307,7 @@ function CapsuleHeader({ capsule }: { capsule: CapsuleDetail }) {
         <BuilderSubtitle capsule={capsule} />
         <RawId capsule={capsule} />
         <p>{method?.method ?? plainDescription(capsule.cc_summary || capsule.description || capsule.verifier || '')}</p>
-        {method && <p><strong>In this run.</strong> {method.evidence}</p>}
+        {method && <p><strong>{t('factoryRuns.ccActivity.publishedExample')}</strong> {method.evidence}</p>}
         <dl className="cc-meta">
           <div>
             <dt>{copy('atlasId')}</dt>
@@ -501,6 +503,7 @@ function DetailView({ capsule, catalog, headlines }: {
         ← {copy('back')}
       </a>
       <CapsuleHeader capsule={capsule} />
+      <CapsuleNodeActivity capsule={capsule} />
       {capsule.id === prefixReuseId && (
         <div className="cc-section"><PrefixReuseEvidence /></div>
       )}
@@ -658,7 +661,14 @@ function DetailView({ capsule, catalog, headlines }: {
 export function CapsulesPage({ name }: { name?: string }) {
   const headlines = useFinalHeadlines();
   const catalog = useCapsuleResource(name ? 'manifests-only' : 'with-usage', catalogRequest);
-  const detail = useCapsuleResource(name, capsuleApi.detail);
+  const [refresh, setRefresh] = useState(0);
+  const detail = useCapsuleResource(name, capsuleApi.detail, refresh);
+  const watchingLive = detail.data?.evidence?.node_activity?.some((row) => row.live);
+  useEffect(() => {
+    if (!watchingLive || !name) return;
+    const timer = window.setInterval(() => setRefresh((value) => value + 1), 5000);
+    return () => window.clearInterval(timer);
+  }, [watchingLive, name]);
   const copy = useCapsuleCopy();
   return (
     <div className="cc-page" data-testid="factory-runs-capsule-page" data-variant={name ? 'detail' : 'catalog'}>

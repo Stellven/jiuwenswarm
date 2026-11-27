@@ -85,40 +85,49 @@ export type CuratedReplay = {
 const CHECK_ROLES = ['CC verifier', 'Node verifier', 'Scheduler', 'Lab agent'] as const;
 type CheckRole = (typeof CHECK_ROLES)[number];
 
-export function recordedCheckRoles(
-  step: CuratedStep,
-  observations: readonly JsonRecord[],
-  presentation: CuratedReplay['node_presentation'],
-): CheckRole[] {
+function nativeRoles(observation: JsonRecord): CheckRole[] {
+  const values = evidenceRecord(observation.values);
+  if (observation.kind === 'node_contract_final' || observation.kind === 'node_contract_refusal') return ['Scheduler'];
+  if (observation.kind === 'lab_report' && values?.valid !== false) return ['Lab agent'];
+  if (observation.kind !== 'node_check' || !values || (values.state != null && values.state !== 'finished')) return [];
+  const roles: CheckRole[] = [];
+  if (typeof values.passed === 'boolean') roles.push('Node verifier');
+  const verifier = evidenceRecord(values.verifier);
+  if (evidenceText(verifier?.cc) && typeof verifier?.passed === 'boolean') roles.push('CC verifier');
+  return roles;
+}
+
+export function recordedCheckRoles(step: CuratedStep, observations: readonly JsonRecord[]): CheckRole[] {
   const references = new Set(step.records?.filter((row) => row.table === 'observations').map((row) => row.id));
   const roles = new Set<CheckRole>();
-
-  if (step.original_kind === 'node_contract_final' || step.original_kind === 'node_contract_refusal') {
-    return observations.some((observation) => observation.kind === step.original_kind
-      && references.has(evidenceText(observation.obs_id) ?? '')) ? ['Scheduler'] : [];
-  }
-
   for (const observation of observations) {
-    if (observation.kind !== 'node_check') continue;
     const values = evidenceRecord(observation.values);
-    const node = evidenceText(values?.node_id);
     const cited = references.has(evidenceText(observation.obs_id) ?? '');
-    // Some steps cite source observations that the focused node's verifier checked.
     const evidenceIds = evidenceRecord(values?.refs)?.evidence_ids;
-    const citesSources = node && node === step.node_id && Array.isArray(evidenceIds)
+    const citesSources = values?.node_id && values.node_id === step.node_id && Array.isArray(evidenceIds)
       && evidenceIds.some((value) => references.has(value));
     if (!cited && !citesSources) continue;
-    roles.add('Node verifier');
-    const output = evidenceText(values?.output);
-    const check = node && output ? presentation?.[node]?.checks[output] : undefined;
-    if (check?.verifier_role === 'CC verifier') roles.add('CC verifier');
-    if (check?.role === 'Lab acceptance') roles.add('Lab agent');
+    if (typeof step.created === 'number' && typeof observation.created === 'number' && observation.created > step.created) continue;
+    for (const role of nativeRoles(observation)) {
+      if (role !== 'Scheduler' || step.original_kind.startsWith('node_contract_')) roles.add(role);
+    }
   }
-  // Run 1's sealed lab report is attached directly to the benchmark step.
+  // The finalized Run 1 lab report is one of the step's sealed file sources.
   if (step.original_kind === 'r8-final-bench' && step.records?.some(
     (row) => row.table === 'file' && row.id === 'evidence/lab/report.json',
-  )) {
-    roles.add('Lab agent');
+  )) roles.add('Lab agent');
+  return CHECK_ROLES.filter((role) => roles.has(role));
+}
+
+export function keyFileRoles(file: EvidenceFile | undefined, step: CuratedStep, observations: readonly JsonRecord[]): CheckRole[] {
+  if (!file?.artifact_ids?.length) return [];
+  const artifactIds = new Set(file.artifact_ids);
+  const roles = new Set<CheckRole>();
+  for (const row of observations) {
+    if (typeof step.created === 'number' && typeof row.created === 'number' && row.created > step.created) continue;
+    if (Array.isArray(row.source_artifacts) && row.source_artifacts.some((id) => artifactIds.has(id))) {
+      for (const role of nativeRoles(row)) roles.add(role);
+    }
   }
   return CHECK_ROLES.filter((role) => roles.has(role));
 }
