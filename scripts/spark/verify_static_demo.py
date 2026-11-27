@@ -210,6 +210,15 @@ class DemoWalk:
             anchor.scroll_into_view_if_needed()
         self.page.screenshot(path=self.screenshots / f'{label}.png', animations='disabled')
 
+    def report_shot(self, name, anchor):
+        self.get('html-artifact').locator('iframe').evaluate(
+            "frame => frame.scrollIntoView({block: 'start'})")
+        anchor.evaluate("""node => {
+            const frame = node.ownerDocument.defaultView;
+            frame.scrollTo(0, frame.scrollY + node.getBoundingClientRect().top - 16);
+        }""")
+        self.shot(name)
+
     def report(self, expected):
         self.evidence.step = f'run-{self.run}-report'
         self.get('attached-report').click()
@@ -228,7 +237,8 @@ class DemoWalk:
         if self.run in (1, 2):
             expect(report.locator('.metric-charts .chart-bar').first).to_be_visible()
             expect(report.locator('.memory-chart').first).to_be_visible()
-            self.shot('report-memory', report.locator('.memory-chart').first)
+            self.report_shot('report-gains', report.locator('.metric-charts').first)
+            self.report_shot('report-memory', report.locator('.memory-chart').first)
         else:
             expect(report.get_by_role('heading', name='Dispatch eligibility')).to_be_visible()
             expect(report.get_by_role('table').filter(has_text='CC verifier').first).to_contain_text('Not reached')
