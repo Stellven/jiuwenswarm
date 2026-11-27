@@ -201,12 +201,13 @@ class R8Replay(Builder):
                   ['wire_expert_scales'], wiring, [wiring_diff, fixture], refs=['156a50a3480d41f0bf02c7d43111be96'])
         build = self.artifact('run-b9a0873d31b3-result.json', 'e0-build.json', 'E0 compile receipt',
                               'The source commit and executable from the capped build.')
-        smoke = self.artifact('run-14b78261ad4b-rows.json', 'e0-nvfp4-smoke.json', 'E0 cold NVFP4 smoke row',
+        smoke = self.artifact('run-14b78261ad4b-rows.json', 'e0-nvfp4-smoke.json',
+                              'E0 NVFP4 smoke · First request after start',
                               'The recorded request, generated text and timings.')
         smoke_receipt = self.artifact('run-14b78261ad4b-result.json', 'e0-nvfp4-smoke-receipt.json',
                                       'Capped smoke receipt', 'Recorded 96 GiB cgroup limit and smoke outcome.')
         self.step('Base engine E0 compiled and smoke-tested',
-                  f"E0 compiled from the agent’s commit. One cold NVFP4 request under the "
+                  f"E0 compiled from the agent’s commit. One NVFP4 smoke request under the "
                   f"{self.obs(e0)['memory_max'].removesuffix('G')} GiB cap generated coherent text.",
                   ['build_base_engine'], e0, [build, smoke, smoke_receipt],
                   refs=['fcb58c0234a740e6b6c4b8d51a90d1c0', '86da5cbc27ac49079abce7c3c5129834'])
@@ -359,7 +360,7 @@ class R8Replay(Builder):
             report_file = self.evidence(self.report_path, 'Final engine benchmark', 'Measured A and AQB speed and accuracy.',
                                         'lab_file', 'evidence/lab/report.json', source_relative_path='r8-final/report.json')
             look = report['accuracy']
-            measurement = dict(baseline='A · NVFP4 baseline. AQB · mixed 2-bit + prefill plan. Warm rows show medians',
+            measurement = dict(baseline='A · NVFP4 baseline. AQB · mixed 2-bit + prefill plan. Warm server rows show medians',
                 rows=[dict(cell, path=report_file['path'], pointer=f'/cells/{index}', status='accepted', reasons=[])
                       for index, cell in enumerate(cells)],
                 accuracy=dict(n=look['n'], path=report_file['path'], reference_pct=round(100*look['acc_ref'],1),
@@ -375,7 +376,7 @@ class R8Replay(Builder):
             warm_a_2048 = by_cell['A', 'p2048', 'warm']['ttft_ms'] / 1000
             warm_aqb_2048 = by_cell['AQB', 'p2048', 'warm']['ttft_ms'] / 1000
             self.step('Measured speed and accuracy',
-                      f'On warm requests, AQB reached the first token in {warm_aqb_512:.1f} s versus {warm_a_512:.1f} s for A '
+                      f'For Warm server rows, AQB reached the first token in {warm_aqb_512:.1f} s versus {warm_a_512:.1f} s for A '
                       f'at 512, and {warm_aqb_2048:.1f} s versus {warm_a_2048:.1f} s at 2048. '
                       f"On {look['n']} MMLU zero-shot questions, A scored {look['acc_ref']:.1%} and AQB scored {look['acc_cand']:.1%}.",
                       ['deliver_to_lab'], primary, [report_file], measurement=measurement)
@@ -436,7 +437,7 @@ class R8Replay(Builder):
         warm_a = warm_p['baseline_a']['client_ttft_ms']
         warm_p = warm_p['measured']['client_ttft_ms']
         self.step('The measured result',
-                  f'At warm 2048, TTFT was {warm_a / 1000:.1f} s for historical A, {warm_b / 1000:.1f} s for B '
+                  f'At 2048 tokens on a Warm server, TTFT was {warm_a / 1000:.1f} s for historical A, {warm_b / 1000:.1f} s for B '
                   f'and {warm_p / 1000:.1f} s for P. P was {warm_a / warm_p:.1f}× as fast to the first token as A.',
                   ['deliver_to_lab'], primary, [row_projection, report_file, baseline_file, accuracy_file],
                   measurement=measurement)

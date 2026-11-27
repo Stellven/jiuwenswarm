@@ -101,6 +101,13 @@ export const devices: [Device, string][] = [
 export const numeric = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 export const fmt = (value: number, digits = 1) => value.toLocaleString('en-US', { maximumFractionDigits: digits });
 
+export function requestStateLabel(state?: string) {
+  if (state === 'cold') return 'First request after start';
+  if (state === 'warm') return 'Warm server';
+  if (state === 'follow-up') return 'Follow-up';
+  return state;
+}
+
 export function mmluSummary(n: number, baselinePct: number, candidatePct: number) {
   return `MMLU zero-shot, ${n} questions: ${baselinePct.toFixed(1)}% vs ${candidatePct.toFixed(1)}%`;
 }
