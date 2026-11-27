@@ -734,21 +734,11 @@ class FactoryHttpService:
                 if target.is_file() and self.cached_hash(target) == expected:
                     candidates.append((target, relative, expected))
         elif active and task.get('contract_id'):
-            constraints = task.get('constraints') or {}
-            reference = constraints.get('contract_revision') or task['contract_id']
-            self.validate_contract(reference)
-            current_path = Path(reference) if '/' in reference or reference.endswith('.json') else CONTRACTS / (reference + '.json')
-            allow_run_contract = bool(constraints.get('contract_sha256') and current_path.is_file()
-                                      and self.cached_hash(current_path) == constraints['contract_sha256'])
-            candidates.append((current_path, None, (task.get('constraints') or {}).get('contract_sha256')))
-            for row in factory_nodes.recent_rows(data, 'operator_contract_revision'):
-                for filename, digest_key in (('previous_file', 'previous_sha256'), ('contract_file', 'contract_sha256')):
-                    name, expected = row['values'].get(filename), row['values'].get(digest_key)
-                    if expected and isinstance(name, str) and re.fullmatch(r'[A-Za-z0-9_-]+\.json', name):
-                        for root in (current_path.parent, CONTRACTS):
-                            target = _inside(root, name)
-                            if target.is_file():
-                                candidates.append((target, None, expected))
+            sources = self.live_contract_sources(data)
+            candidates.extend((target, None, digest) for target, digest in sources)
+            if sources:
+                current, expected = sources[0]
+                allow_run_contract = bool(expected and current.is_file() and self.cached_hash(current) == expected)
         contracts = []
         for target, relative, expected in dict.fromkeys(candidates):
             try:
@@ -764,12 +754,62 @@ class FactoryHttpService:
                                   path=relative, sha256=digest, version=document.get('version'))))
         return factory_planner.project(data, graph, contracts, observation_path, allow_run_contract=allow_run_contract)
 
+    def live_contract_sources(self, data):
+        task = data['tasks'][0]
+        constraints = task.get('constraints') or {}
+        reference = constraints.get('contract_revision') or task.get('contract_id')
+        if not reference:
+            return []
+        self.validate_contract(reference)
+        current = Path(reference) if '/' in reference or reference.endswith('.json') else CONTRACTS / (reference + '.json')
+        candidates = [(current, constraints.get('contract_sha256'))]
+        for row in factory_nodes.recent_rows(data, 'operator_contract_revision'):
+            for filename, digest_key in (('previous_file', 'previous_sha256'), ('contract_file', 'contract_sha256')):
+                name, expected = row['values'].get(filename), row['values'].get(digest_key)
+                if expected and isinstance(name, str) and re.fullmatch(r'[A-Za-z0-9_-]+\.json', name):
+                    for root in dict.fromkeys((current.parent, CONTRACTS)):
+                        target = _inside(root, name)
+                        if target.is_file():
+                            candidates.append((target, expected))
+        return list(dict.fromkeys(candidates))
+
+    def live_contract_versions(self, item, data):
+        if not item.get('live_demo') or not data.get('_contract'):
+            return [], {}
+        amendments = {row['values'].get('contract_sha256'): row['values']
+                      for row in factory_nodes.recent_rows(data, 'operator_contract_revision')}
+        versions, files = {}, {}
+        for target, expected in self.live_contract_sources(data):
+            if not expected or not target.is_file() or target.stat().st_size > MAX_FILE:
+                continue
+            raw = target.read_bytes()
+            if len(raw) > MAX_FILE or _hash(raw) != expected:
+                continue
+            contract = json.loads(raw)
+            version = contract.get('version')
+            if contract.get('contract_id') != data['tasks'][0].get('contract_id') or type(version) is not int or version in versions:
+                continue
+            path = 'contract-versions/' + target.name
+            source = amendments.get(expected) or {}
+            marker = (contract.get('extensions') or {}).get('muse.r11-calibration-amendment') or {}
+            amendment = str(source['amendment']).zfill(3) if source.get('amendment') else marker.get('amendment')
+            versions[version] = dict(version=version, path=path, sha256=expected, amendment=amendment,
+                                     reason=marker.get('method_note') or source.get('reason'))
+            files[path] = dict(path=path, display_path=f'Owner contract · revision {version}',
+                               size=len(raw), media_type='application/json', artifact_ids=[],
+                               sha256=expected, expected_sha256=expected, integrity='verified',
+                               content=_file_text(raw), truncated=False)
+        return [versions[version] for version in sorted(versions)], files
+
     def detail(self, run_id):
         item, path = self.resolve(run_id)
         data = self.load(item, path)
         plan = taskgraph.from_records(data)
         state = self._state(item, path, data, plan)
         files = self.files(item, path, data)
+        contract_versions, version_files = self.live_contract_versions(item, data)
+        files.extend({key: value for key, value in row.items() if key not in {'content', 'truncated'}}
+                     for row in version_files.values())
         planner_plan = self.planner_plan(item, path, data, plan, files)
         if planner_plan:
             planner_plan = {key: value for key, value in planner_plan.items() if key != '_file'}
@@ -798,6 +838,7 @@ class FactoryHttpService:
         checks = node_check_view(data, plan)
         cc_activity, _, _ = self.capsule_activity(item, path, data, plan)
         return sanitize(dict(run=item, records=data, contract=data.get('_contract', {}),
+                             contract_versions=contract_versions,
                              graph=curated_graph(bundled, item['task_id'])
                              if bundled and bundled.get('graph_mode') != 'recorded' else plan,
                              recorded_plan=plan if bundled else None, node_checks=checks, planner_plan=planner_plan,
@@ -1192,6 +1233,10 @@ class FactoryHttpService:
     def file(self, run_id, relative):
         item, path = self.resolve(run_id)
         data = self.load(item, path)
+        if relative.startswith('contract-versions/') and item.get('live_demo'):
+            _, versions = self.live_contract_versions(item, data)
+            if relative in versions:
+                return sanitize(versions[relative])
         if relative == factory_planner.ARTIFACT_PATH:
             plan = self.planner_plan(item, path, data, taskgraph.from_records(data))
             if plan:
