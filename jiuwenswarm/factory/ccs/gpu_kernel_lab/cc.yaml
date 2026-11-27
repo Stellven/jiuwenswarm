@@ -1,6 +1,6 @@
 cc: '2'
 id: engine.gpu_kernel_lab
-version: 1.1.0
+version: 1.1.1
 materials:
   guide:
     path: SKILL.md
@@ -66,6 +66,21 @@ capabilities:
       decision: json
       checks: json
       dispatch_trace: json
+    needs:
+    - python
+    changes:
+    - process.exec
+
+  verify_candidate:
+    does: Check pinned conditional candidate fixtures for exact quantized parity, route coverage, fallback, and off-switch behavior.
+    takes:
+      dispatch_trace: json
+      candidate_patch: artifact
+      fixture_receipt: artifact
+    gives:
+      done: json
+      checks: json
+      fixture_evidence: json
     needs:
     - python
     changes:
