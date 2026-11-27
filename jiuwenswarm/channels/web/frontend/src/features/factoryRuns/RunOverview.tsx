@@ -7,7 +7,7 @@ import { ArrowUpRight, CheckCircle2, CircleDot, FileText, GitBranch, Layers3, Pa
 import { useTranslation } from 'react-i18next';
 import type { EvidenceFile, JsonRecord, RunDetail, StoryEvent } from './api';
 import { atlasTitle } from './cc/atlasNames.ts';
-import { collapseEvents, presentEvent, recordedCheckRoles, replayEvidenceText, type CuratedMeasurement } from './views/storyModel.ts';
+import { collapseEvents, presentEvent, recordedCheckRoles, replayEvidenceText, type CuratedMeasurement, type CuratedStep } from './views/storyModel.ts';
 import { ReplayLabel } from './views/NodeEvidence';
 import { CorrectionRecord, CorrectionSequence } from './views/CorrectionSequence';
 import { correctionStatusAt } from './views/correctionModel';
@@ -124,6 +124,7 @@ export function RunOverview({
   onOpenFile,
   onSeek,
   currentStep,
+  stepPosition,
   nodeEvidence,
 }: {
   detail: RunDetail;
@@ -134,7 +135,8 @@ export function RunOverview({
   headline?: ReactNode;
   onOpenFile?: (path: string) => void;
   onSeek?: (cursor: number) => void;
-  currentStep?: number;
+  currentStep?: CuratedStep;
+  stepPosition: string;
   nodeEvidence?: ReactNode;
 }) {
   const { t, i18n } = useTranslation();
@@ -175,7 +177,7 @@ export function RunOverview({
   );
 
   if (curated) {
-    const focus = curated.steps.find((step) => step.step === currentStep) ?? curated.steps[0];
+    const focus = currentStep;
     const checkRoles = focus ? recordedCheckRoles(focus, detail.records.observations ?? [], curated.node_presentation) : [];
     const prefillStep = r8VerifierHelp && focus?.node_id === 'size_prefill_batch' && Boolean(focus.capsule_diff);
     const engineMeasurement = (r8VerifierHelp && Boolean(focus?.measurement)) ||
@@ -258,7 +260,7 @@ export function RunOverview({
             data-variant={String(focus.step)}
           >
             <p className="factory-curated-count">
-              Step {focus.step} of {curated.steps.length}
+              <span data-testid="factory-runs-curated-focus-position">{stepPosition}</span>
               <small className="factory-original-kind" title="Original record kind">
                 {focus.original_kind}
                 {(focus.created_utc || focus.created) && (

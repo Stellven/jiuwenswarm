@@ -1,3 +1,8 @@
+/* The browser audience viewer can fit below the main application's window floor. */
+html:not(.electron-desktop):has(.factory-runs-page--audience) {
+  min-width: 0;
+}
+
 .factory-runs-page {
   display: flex;
   width: 100%;
@@ -148,6 +153,7 @@
   overflow-wrap: anywhere;
 }
 .factory-replay {
+  container: factory-replay / inline-size;
   padding: 16px;
   background: var(--color-bg-secondary);
   border-radius: 10px;
@@ -157,18 +163,106 @@
   margin: 12px 0 0;
   font-size: 13px;
 }
+/* Replay details can change under the controls without becoming a scroll anchor. */
+.factory-replay,
+.factory-replay ~ .factory-evidence {
+  overflow-anchor: none;
+}
+.factory-main:has(.factory-replay) {
+  scrollbar-gutter: stable;
+}
 .factory-replay-controls {
+  display: grid;
+  grid-template-columns: repeat(3, 5.5rem) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+.factory-runs-page .factory-replay-controls button {
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: center;
+  gap: 5px;
+  min-block-size: 38px;
+  padding: 6px 4px;
+  white-space: nowrap;
+}
+.factory-replay-controls button svg {
+  flex: none;
+}
+.factory-runs-page .factory-replay-controls button:disabled {
+  opacity: 1;
+  background: var(--color-surface-muted);
+  color: var(--color-text-secondary);
+  border-color: var(--color-border-default);
 }
 .factory-replay-controls input {
-  flex: 1;
-  min-width: 40px;
+  inline-size: 100%;
+  min-inline-size: 0;
+  margin: 0;
 }
 .factory-replay-controls output {
+  display: grid;
+  justify-self: end;
+  text-align: end;
   font-size: 12px;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+.factory-replay-controls output > span {
+  grid-area: 1 / 1;
+}
+.factory-replay-position-measure {
+  visibility: hidden;
+}
+.factory-replay-position-measure::before {
+  content: attr(data-label);
+}
+.factory-current-event[data-variant='curated'] {
+  display: grid;
+  grid-template-rows: 20px 34px;
+}
+.factory-current-event[data-variant='curated'] .factory-current-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.factory-current-event[data-variant='curated'] .factory-current-event-details {
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  gap: 6px;
+  min-width: 0;
+  margin-inline: -4px;
+  padding-inline: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+}
+.factory-current-event[data-variant='curated'] .factory-current-event-details::-webkit-scrollbar {
+  height: 6px;
+}
+.factory-current-event[data-variant='curated'] .factory-current-event-details::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: var(--color-border-hover);
+}
+.factory-current-event[data-variant='curated'] .factory-current-event-details > * {
+  flex: none;
+  margin-inline: 0;
+}
+.factory-current-event[data-variant='curated'] .cc-chips {
+  flex-wrap: nowrap;
+  max-width: none;
+}
+.factory-current-event[data-variant='curated'] .cc-chip {
+  white-space: nowrap;
+}
+@container factory-replay (max-width: 36rem) {
+  .factory-replay-controls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .factory-replay-controls input {
+    grid-column: span 2;
+  }
 }
 .factory-tabs {
   display: flex;
@@ -308,6 +402,9 @@
   .factory-runs-page {
     flex-direction: column;
     overflow: auto;
+  }
+  .factory-runs-page:has(.factory-replay) {
+    scrollbar-gutter: stable;
   }
   .factory-rail {
     width: auto;

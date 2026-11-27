@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Plus, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Plus, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   factoryApi,
@@ -120,6 +120,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   const [panel, setPanel] = useState<Panel>(entry?.file ? 'artifacts' : entry?.panel ?? (entry?.node ? 'capsules' : 'overview'));
   const [events, setEvents] = useState<StoryEvent[]>([]);
   const [position, setPosition] = useState(0);
+  const replayStart = detail?.curated && events.length > 0 ? 1 : 0;
   const [live, setLive] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [error, setError] = useState('');
@@ -399,6 +400,10 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   const replayByArtifact = useMemo(() => artifactReplayOrigins(detail?.records.observations ?? []), [detail]);
   const cursor = visibleEvents[visibleEvents.length - 1];
   const curatedStep = curatedStepFor(detail?.curated, cursor);
+  const formatReplayPosition = (step: number) => detail?.curated
+    ? t('factoryRuns.stepPosition', { step, total: events.length })
+    : `${step} / ${events.length}`;
+  const stepPosition = formatReplayPosition(position);
   const focusedNode = selectedNode ?? (curatedStep?.original_kind === 'revise' ? undefined : curatedStep?.node_id);
   useEffect(() => {
     if (selectedNode) nodeEvidenceSection.current?.scrollIntoView({ block: 'start' });
@@ -498,7 +503,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   const seek = (next: number) => {
     setPlaying(false);
     setSelectedNode(undefined);
-    setPosition(next);
+    setPosition(Math.max(replayStart, Math.min(next, events.length)));
   };
   const headline = finalHeadlines &&
     <FinalHeadlines publication={finalHeadlines} onOpen={openIterationChild} />;
@@ -535,7 +540,11 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
     </nav>
   );
   return (
-    <div className="factory-runs-page" data-testid="factory-runs-page" data-appearance={appearance}>
+    <div
+      className={`factory-runs-page${engineViewer ? ' factory-runs-page--audience' : ''}`}
+      data-testid="factory-runs-page"
+      data-appearance={appearance}
+    >
       <aside className="factory-rail" data-testid="factory-runs-rail">
         <div className="factory-heading">
           <h1 data-testid="factory-runs-title">{t('factoryRuns.title')}</h1>
@@ -670,35 +679,27 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
             )}
             {presentation && navigation}
             {(presentation ? ['overview', 'graph'].includes(panel) : !isTerminalDemo || (detail.curated && !detail.curated.native)) && <section className="factory-replay" data-testid="factory-runs-replay">
-              <div className="factory-replay-controls">
+              <div className="factory-replay-controls" data-testid="factory-runs-replay-controls">
                 <button
+                  type="button"
                   data-testid="factory-runs-play"
                   disabled={live || events.length === 0}
                   onClick={() => {
-                    if (position === events.length) setPosition(detail.curated ? 1 : 0);
+                    if (position === events.length) setPosition(replayStart);
                     setSelectedNode(undefined);
                     setPlaying(!playing);
                   }}
                 >
                   {t(playing ? 'factoryRuns.pause' : 'factoryRuns.play')}
                 </button>
-                <input
-                  type="range"
-                  data-testid="factory-runs-scrubber"
-                  aria-label={t('factoryRuns.replay')}
-                  min={detail.curated ? 1 : 0}
-                  max={events.length}
-                  value={position}
-                  disabled={live}
-                  onChange={(event) => seek(Number(event.target.value))}
-                />
                 <button
                   type="button"
                   data-testid="factory-runs-step-prev"
-                  disabled={live || position <= (detail.curated ? 1 : 0)}
+                  disabled={live || position <= replayStart}
                   onClick={() => seek(position - 1)}
                 >
-                  ← Prev
+                  <ArrowLeft size={16} aria-hidden="true" />
+                  {t('factoryRuns.previousStep')}
                 </button>
                 <button
                   type="button"
@@ -706,31 +707,50 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                   disabled={live || position >= events.length}
                   onClick={() => seek(position + 1)}
                 >
-                  Next →
+                  {t('factoryRuns.nextStep')}
+                  <ArrowRight size={16} aria-hidden="true" />
                 </button>
+                <input
+                  type="range"
+                  data-testid="factory-runs-scrubber"
+                  aria-label={t('factoryRuns.replay')}
+                  aria-valuetext={stepPosition}
+                  min={replayStart}
+                  max={events.length}
+                  value={position}
+                  disabled={live || events.length <= replayStart}
+                  onChange={(event) => seek(Number(event.target.value))}
+                />
                 <output data-testid="factory-runs-position">
-                  {detail.curated ? `Step ${position} of ${events.length}` : `${position} / ${events.length}`}
+                  <span aria-hidden="true" className="factory-replay-position-measure" data-label={formatReplayPosition(events.length)} />
+                  <span>{stepPosition}</span>
                 </output>
               </div>
-              <p data-testid="factory-runs-current-event">
-                {cursor && shownCursor ? (
-                  <>
-                    <strong className="factory-current-title" data-testid="factory-runs-current-title" title={shownCursor.curated ? 'Presentation title' : undefined}>
-                      {curatedStep ? `Step ${curatedStep.step} · ` : ''}{shownCursor.title}
-                    </strong>{' '}
+              <p
+                className="factory-current-event"
+                data-testid="factory-runs-current-event"
+                data-variant={detail.curated ? 'curated' : 'recorded'}
+              >
+                {shownCursor ? (
+                  <strong className="factory-current-title" data-testid="factory-runs-current-title" title={shownCursor.title}>
+                    {shownCursor.title}
+                  </strong>
+                ) : (
+                  t('factoryRuns.start')
+                )}
+                {cursor && (
+                  <span className="factory-current-event-details" data-testid="factory-runs-current-event-details">
                     <small className="factory-original-kind factory-inline-kind" data-testid="factory-runs-current-kind" title="Original record kind">
                       {cursor.kind}
                     </small>
                     {!curatedStep && <span className="factory-current-summary"> · {cursor.summary}</span>}
-                  </>
-                ) : (
-                  t('factoryRuns.start')
+                    <CapsuleChips value={capsuleEvent(cursor)} />
+                    {revisionEvent(cursor) !== undefined && (
+                      <span className="factory-node-evidence-kind">Graph revision {revisionEvent(cursor)}</span>
+                    )}
+                    <ReplayLabel value={curatedStep?.replayed_from ?? cursor.replayed_from} />
+                  </span>
                 )}
-                {cursor && <CapsuleChips value={capsuleEvent(cursor)} />}
-                {cursor && revisionEvent(cursor) !== undefined && (
-                  <span className="factory-node-evidence-kind">Graph revision {revisionEvent(cursor)}</span>
-                )}
-                <ReplayLabel value={curatedStep?.replayed_from ?? cursor?.replayed_from} />
               </p>
             </section>}
             {!presentation && navigation}
@@ -766,7 +786,8 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                   measurements={measurementSummary}
                   headline={measurementSummary || finalHeadlines?.run_id === selected ? headline : undefined}
                   eventCapsules={(event) => <CapsuleChips value={capsuleEvent(event)} />}
-                  currentStep={curatedStep?.step}
+                  currentStep={curatedStep}
+                  stepPosition={stepPosition}
                   onSeek={seek}
                   onOpenFile={openEvidenceFile}
                   nodeEvidence={nodeEvidence}
