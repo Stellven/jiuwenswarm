@@ -576,6 +576,10 @@ class NodeChecks:
             if verifier_inputs and any(k not in approved or approved[k] != v for k, v in verifier_inputs.items()):
                 raise CheckError('The runtime verifier takes the host measurement and the pinned scoring policy')
             verifier_inputs = approved
+        elif checkpoint and entry.get('verifier') == 'engine.gpu_kernel_lab.verify_candidate':
+            if verifier_inputs:
+                raise CheckError('The candidate verifier takes only host-bound inputs; cite the ready artifacts and checks in refs')
+            verifier_inputs = self._candidate_inputs(task, node, checkpoint, refs)
         elif staged and entry.get('verifier'):
             verifier_inputs = self._stage_inputs(task, node, document, port, verifier_inputs)
         if verifier_inputs and not entry.get('verifier'):
@@ -626,6 +630,53 @@ class NodeChecks:
         if any(key in supplied and supplied[key] != value for key, value in values.items()):
             raise CheckError('The stage verifier inputs disagree with accepted host evidence')
         return dict(supplied, **values) or None
+
+    def _candidate_inputs(self, task, node, checkpoint, refs):
+        from .dispatch_gate import checked_trace
+        from .taskgraph import plan_get
+
+        task_id = task['task_id']
+        host = getattr(self.store, '_store', self.store)
+        nodes = {item['node_id']: item for item in plan_get(host, task_id)['nodes']}
+        trace_check, trace = checked_trace(host, task_id, checkpoint, nodes)
+        if not trace['may_build'] or checkpoint['node_id'] not in node['depends_on']:
+            raise CheckError('The candidate fixtures require their accepted eligible trace predecessor')
+
+        patch_entry = next((out for out in outputs_of(node['check'])
+                            if out['name'] == 'candidate_patch' and out['kind'] == 'diff'
+                            and out.get('required', True)), None)
+        patch_checks = current_checks(host, task_id, node, 'candidate_patch')
+        patch = patch_checks[-1] if patch_checks else {}
+        if (not patch_entry or patch.get('state') != 'finished' or not patch.get('passed')
+                or patch.get('entry') != patch_entry):
+            raise CheckError('Complete the current candidate_patch output check before verifying fixtures')
+        patch_digest = patch['diff_sha256']
+        artifacts = (self.store.read_artifact(task_id, aid) for aid in patch['source_artifacts'])
+        diffs = [item for item in artifacts
+                 if item['media_type'] == 'text/x-diff' and item['sha256'] == patch_digest]
+        if len(diffs) != 1:
+            raise CheckError('The current candidate_patch check does not identify exactly one verified diff')
+
+        proof = self._evidence(task, node, refs)['evidence_ids']
+        if trace_check['obs_id'] not in proof or patch['obs_id'] not in proof:
+            raise CheckError('Cite the accepted dispatch trace and the current candidate_patch check together')
+        receipt_records = [self.store.read(task_id, eid) for eid in set(proof)]
+        receipts = [item for item in receipt_records if item.get('kind') == 'operator_input'
+                    and item.get('values', {}).get('key') == 'candidate_fixture_receipt']
+        if len(receipts) != 1:
+            raise CheckError('Cite one host-imported candidate_fixture_receipt operator input')
+        receipt = receipts[0]
+        artifact_id = receipt['values'].get('artifact_id')
+        if not artifact_id or artifact_id not in receipt['source_artifacts']:
+            raise CheckError('The fixture receipt is not linked to its operator input')
+        fixture = self.store.read_artifact(task_id, artifact_id)
+        if fixture['media_type'] != 'application/json' or fixture['sha256'] != receipt['values'].get('sha256'):
+            raise CheckError('The fixture receipt does not match its host-pinned JSON digest')
+
+        def pin(artifact):
+            return dict(uri=(host.home / artifact['location']).resolve().as_uri(), sha256=artifact['sha256'])
+
+        return dict(dispatch_trace=trace, candidate_patch=pin(diffs[0]), fixture_receipt=pin(fixture))
 
     # -- diff outputs --------------------------------------------------------------------
     def _start_diff(self, task, node, entry, checkout, diff_path, verifier_inputs, background):
@@ -860,6 +911,14 @@ class NodeChecks:
     def _call_verifier(self, request, work, approved_inputs=None):
         from jiuwenswarm.ccv2.ccv2 import Host
         verifier = request['verifier']
+        if (verifier['cc'], verifier['capability']) == ('engine.gpu_kernel_lab', 'verify_candidate'):
+            task = self.store.get_task(request['task_id'])
+            checkpoint = (task.get('constraints') or {}).get('dispatch_checkpoint')
+            if checkpoint:
+                node = self._node(task['task_id'], request['node_id'])
+                current = self._candidate_inputs(task, node, checkpoint, request['refs'])
+                if current != request['verifier_inputs']:
+                    raise CheckError('The checked trace, patch or fixture receipt changed after this request was prepared')
         host = Host(self.store.home / 'ccstore')
         declaration, _ = host.release(verifier['release'])
         capability = declaration['capabilities'][verifier['capability']]

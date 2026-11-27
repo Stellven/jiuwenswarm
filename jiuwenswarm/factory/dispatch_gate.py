@@ -3,7 +3,7 @@
 import json
 
 
-def outcome(store, task_id, checkpoint, nodes):
+def checked_trace(store, task_id, checkpoint, nodes):
     from .node_check import accepted_output
 
     host = getattr(store, '_store', store)
@@ -21,13 +21,13 @@ def outcome(store, task_id, checkpoint, nodes):
         raise ValueError('Dispatch checkpoint sealed an unknown eligibility')
     if result.get('may_build') is not (state == 'eligible'):
         raise ValueError('Dispatch checkpoint eligibility and build permission disagree')
-    return check, state
+    return check, result
 
 
 def require_eligible(store, task_id, checkpoint, nodes):
-    _, state = outcome(store, task_id, checkpoint, nodes)
-    if state != 'eligible':
-        raise ValueError(f'Dispatch checkpoint refused candidate work: {state}')
+    _, result = checked_trace(store, task_id, checkpoint, nodes)
+    if not result['may_build']:
+        raise ValueError(f"Dispatch checkpoint refused candidate work: {result['eligibility']}")
 
 
 def validate_terminal(store, task_id, checkpoint, decision):
@@ -38,7 +38,8 @@ def validate_terminal(store, task_id, checkpoint, decision):
     if kind not in {'stop_missing_prerequisite', 'accept', 'reject', 'report_inconclusive'}:
         return
     nodes = {node['node_id']: node for node in plan_get(store, task_id)['nodes']}
-    check, state = outcome(store, task_id, checkpoint, nodes)
+    check, result = checked_trace(store, task_id, checkpoint, nodes)
+    state = result['eligibility']
     if kind == 'accept':
         raise ValueError('Factory delivery is not a target lab acceptance verdict')
     if state == 'eligible':
