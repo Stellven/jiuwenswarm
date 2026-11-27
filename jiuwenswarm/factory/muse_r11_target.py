@@ -1,4 +1,4 @@
-"""Independent AQBC/QBCE paired acquisition from the accepted Run 4 delivery."""
+"""Independent AQBC/AQBCE paired acquisition from the accepted Run 4 delivery."""
 from datetime import datetime
 import hashlib
 import json
@@ -8,7 +8,6 @@ from pathlib import Path
 import re
 import signal
 import stat
-import subprocess
 import threading
 import time
 
@@ -32,7 +31,8 @@ PROFILE_PATH_ENV = 'LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH'
 STARTUP_MARKER = 'muse_cache_startup'
 COUNTER_MARKER = 'muse_cache_counters'
 COUNTERS = (
-    'demand_hits', 'demand_misses', 'demand_evictions', 'read_only_hits', 'read_only_misses',
+    'graphs', 'demand_hits', 'demand_misses', 'demand_evictions', 'demand_seeded_hits', 'demand_seeded_evictions',
+    'read_only_hits', 'read_only_misses', 'read_only_seeded_hits',
     'hit_bytes', 'host_bytes', 'prefill_hits', 'prefill_misses', 'decode_hits', 'decode_misses',
 )
 SEED_FIELDS = ('slots_admitted', 'slots_populated', 'charged_bytes', 'uploaded_bytes')
@@ -307,6 +307,9 @@ def _validate_counters(values):
     checked(values['prefill_hits'] + values['decode_hits'] == values['demand_hits'] + values['read_only_hits']
             and values['prefill_misses'] + values['decode_misses'] == values['demand_misses'] + values['read_only_misses'],
             'Native phase counters double count or omit lookups')
+    checked(values['demand_seeded_hits'] <= values['demand_hits']
+            and values['demand_seeded_evictions'] <= values['demand_evictions']
+            and values['read_only_seeded_hits'] <= values['read_only_hits'], 'Native seeded-event counters exceed totals')
     return {key: values[key] for key in COUNTERS}
 
 
@@ -408,6 +411,10 @@ def acquire(server, monitor, out, arm, workload, ticker):
             checked(log_start <= after_source['start'] < after_source['end'] <= log_end,
                     'No native cache sample strictly inside the measured request')
             counters = _delta(before, after)
+            if arm == 'AQBC':
+                checked(not any(counters[key] for key in ('demand_seeded_hits', 'demand_seeded_evictions',
+                                                          'read_only_seeded_hits')),
+                        'The switch-off arm recorded seeded traffic')
             hits = counters['prefill_hits'] + counters['decode_hits']
             misses = counters['prefill_misses'] + counters['decode_misses']
             checked(hits + misses > 0, 'No expert lookup in a measured request')
