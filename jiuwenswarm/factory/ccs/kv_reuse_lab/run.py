@@ -17,6 +17,10 @@ FACTORY_CHECKS = {
 def run(capability, inputs):
     if capability == 'verify':
         return {'result': verification.verify()}
+    if capability == 'verify_cpu_fixture':
+        import cpu_fixture
+
+        return {'result': cpu_fixture.verify(inputs['evidence'])}
     if capability in FACTORY_CHECKS:
         name, detail = FACTORY_CHECKS[capability]
         result = getattr(prefix_store, capability)(**inputs)

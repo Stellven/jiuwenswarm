@@ -4,14 +4,13 @@ import argparse
 from itertools import takewhile
 import json
 from pathlib import Path
-import re
 import signal
 import time
 from uuid import uuid4
 
 from jiuwenswarm.factory import capped_run
 from jiuwenswarm.factory.lab_lifecycle import QuietLease, atomic_json
-from jiuwenswarm.factory.muse_r9_measure import first_cached_tasks
+from jiuwenswarm.factory.ccs.kv_reuse_lab.cpu_fixture import read_request_cache, verify, verify_mode
 from scripts.factory import lab_v4_fast as lab, r8_final_benchmark as bench
 from scripts.factory.warmup_w1 import fit_notebook
 
@@ -78,19 +77,6 @@ def make_prompts(server):
                 requests=[dict(prompt=text, token_ids=ids) for text, ids in zip(texts, tokens)])
 
 
-def read_request_cache(raw, expected_tokens):
-    """Read the first cached-token count for one completed request."""
-    tasks = first_cached_tasks(raw)
-    if len(tasks) != 1:
-        raise ValueError('The raw log slice does not contain exactly one inference request')
-    task = tasks[0]
-    count = task.get('cached_tokens')
-    if (task['slot_id'] != 0 or task.get('prompt_tokens') != expected_tokens or 'end' not in task
-            or type(count) is not int or not 0 <= count < expected_tokens):
-        raise ValueError('The task lacks a valid initial cached-token observation')
-    return task
-
-
 def request(server, cell):
     start = server.log.stat().st_size
     timing = lab.request(server, cell['prompt'], 16, benchmark=True, cache_prompt=True)
@@ -132,13 +118,7 @@ def run_config(output, name, model, engine, prompts):
         record.update(status='loaded', argv=server.argv, ready_s=server.ready_s, pid=server.proc.pid,
                       cpu_only=dict(cuda_visible_devices=env['CUDA_VISIBLE_DEVICES'], requested_gpu_layers=0))
         startup = server.log.read_text(errors='replace')
-        if (not re.search(r'\bn_swa\s*=\s*512\b', startup)
-                or re.search(r'offloaded [1-9]\d*/|CUDA\d+\s+(?:model|KV|compute) buffer size', startup)):
-            raise ValueError('Server did not confirm the pinned sliding window and CPU-only buffers')
-        full_swa = 'using full-size SWA cache' in startup
-        if full_swa != (name == 'configured'):
-            raise ValueError('Server log shows the other configuration\'s SWA mode')
-        record['full_swa'] = full_swa
+        record['full_swa'] = verify_mode(startup, model['window_tokens'], configured=name == 'configured')
         if prompts is None:
             prompts = make_prompts(server)
             atomic_json(output / 'prompts.json', prompts)
@@ -199,9 +179,56 @@ def run(output=OUT):
     return report
 
 
+def recorded_evidence(output):
+    """Regenerate a portable verifier packet from the sealed Spark evidence."""
+    manifest = bench.read(output / 'manifest.json')
+    required = {'summary.json', 'prompts.json', *(f'{name}/server.log' for name in CONFIGS)}
+    if manifest['status'] != 'complete' or not required <= manifest['files'].keys():
+        raise ValueError('Recorded CPU fixture evidence is incomplete')
+    for name, digest in manifest['files'].items():
+        path = output / name
+        if (not path.resolve().is_relative_to(output.resolve()) or path.is_symlink()
+                or bench.digest(path) != digest):
+            raise ValueError(f'CPU fixture file changed: {name}')
+    summary = bench.read(output / 'summary.json')
+    prompts = bench.read(output / 'prompts.json')
+    if summary['model']['sha256'] != manifest['model_sha256']:
+        raise ValueError('CPU fixture model identity differs from the sealed evidence')
+    configurations = {}
+    for name, flags in CONFIGS.items():
+        arm = summary['configurations'][name]
+        if (arm['args'] != [*BASE, *flags] or arm['status'] != 'complete' or arm['server_closed'] is not True
+                or arm['server_log'] != f'{name}/server.log'
+                or arm['server_log_sha256'] != manifest['files'][arm['server_log']]):
+            raise ValueError(f'{name}: Recorded CPU configuration is inconsistent')
+        args = arm['argv']
+        model_index = args.index('-m')
+        fit_index = args.index('-fitt', model_index + 2)
+        if (args[model_index - 1] != summary['engine']['executable']
+                or Path(args[model_index + 1]) != output / summary['model']['path']
+                or args[model_index + 2:fit_index] != ['-lm', 'mmap', *arm['args']]
+                or arm['gate']['ok'] is not True or 'MemoryMax=96G' not in args or 'MemorySwapMax=0' not in args):
+            raise ValueError(f'{name}: Recorded CPU executable, model or arguments differ')
+        raw = (output / arm['server_log']).read_bytes()
+        rows = arm['rows']
+        first, second = rows
+        if not 0 <= first['server_log_start'] < first['server_log_end'] <= second['server_log_start'] < second['server_log_end'] <= len(raw):
+            raise ValueError(f'{name}: Recorded server log intervals are invalid')
+        slices = [raw[row['server_log_start']:row['server_log_end']].decode(errors='replace') for row in rows]
+        configurations[name] = dict(model_sha256=summary['model']['sha256'],
+                                    executable_sha256=summary['engine']['sha256'],
+                                    extra_args=list(flags), cache_prompt=arm['cache_prompt'],
+                                    startup_log=raw[:first['server_log_start']].decode(errors='replace'),
+                                    request_logs=slices)
+    return dict(model=summary['model'], executable_sha256=summary['engine']['sha256'],
+                request_tokens=[row['token_ids'] for row in prompts['requests']], configurations=configurations)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--execute', action='store_true', help='Run both gated CPU configurations once')
+    commands = parser.add_mutually_exclusive_group()
+    commands.add_argument('--execute', action='store_true', help='Run both gated CPU configurations once')
+    commands.add_argument('--verify', action='store_true', help='Check existing evidence without starting a process')
     args = parser.parse_args()
     if args.execute:
         def interrupt(_number, _frame):
@@ -210,6 +237,8 @@ def main():
         report = run()
         for name, result in report['configurations'].items():
             print(f'{name}: {result["cached_tokens"]}/{result["prompt_tokens"]} prompt tokens reused')
+    elif args.verify:
+        print(json.dumps(verify(recorded_evidence(OUT)), indent=2))
     else:
         model, engine = check_inputs(OUT)
         print(json.dumps(dict(status='verified_inputs', model=model, engine=engine, configurations=CONFIGS), indent=2))

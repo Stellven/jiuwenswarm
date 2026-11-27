@@ -11,6 +11,7 @@ import time
 
 from jiuwenswarm.factory import capped_run
 from jiuwenswarm.factory.lab_mailbox import canonical
+from jiuwenswarm.factory.llama_request_log import first_cached_tasks
 from jiuwenswarm.factory.lab_manager import LabManager
 from jiuwenswarm.factory.store import ScopeDenied
 from scripts.factory import lab_v4_fast as lab, lab_v4_quiet as quiet
@@ -30,9 +31,6 @@ MMLU_FORMAT = 'muse-r9-mmlu/2'
 MMLU_IDENTITY = dict(mode='ordered-letter-identity', question_count=25, min_matches=24,
                      source_question_count=250, reference_correct=229, zero_external_reuse=True)
 DEVICE_BUDGET = 110000
-TASK_LOG = re.compile(r'\bid\s+(\d+)\s*\|\s*task\s+(\d+)\s*\|\s*(.*)')
-NEW_PROMPT = re.compile(r'\bnew prompt, .*?task\.n_tokens = (\d+)')
-CACHED = re.compile(r'^cached n_tokens = (\d+), memory_seq_rm \[(\d+), end\)')
 
 
 def digest(path):
@@ -187,34 +185,6 @@ def verify_image(stage, directory):
     return Path(binary_dir) / 'llama-server', observed
 
 
-def first_cached_tasks(raw):
-    """Return the first cache count after each request starts, with exact supporting log lines."""
-    tasks = {}
-    for line in raw.decode('utf-8', errors='replace').splitlines():
-        match = TASK_LOG.search(line)
-        if not match:
-            continue
-        slot_id, task_id = map(int, match.groups()[:2])
-        message = match[3]
-        key = (slot_id, task_id)
-        if message.startswith('processing task, '):
-            tasks[key] = dict(slot_id=slot_id, task_id=task_id, start=line)
-        if key not in tasks:
-            continue
-        task = tasks[key]
-        prompt = NEW_PROMPT.search(message)
-        if prompt:
-            task.update(prompt_tokens=int(prompt[1]), prompt_line=line)
-        cached = CACHED.match(message)
-        if cached and 'prompt_tokens' in task and 'cached_tokens' not in task:
-            if cached[1] != cached[2]:
-                raise ValueError('Server cache count disagrees with the memory erase start')
-            task.update(cached_tokens=int(cached[1]), cache_line=line)
-        if message.startswith(('restored context checkpoint', 'restoring context checkpoint')):
-            task.setdefault('checkpoint_lines', []).append(line)
-        if message.startswith('stop processing:'):
-            task['end'] = line
-    return list(tasks.values())
 
 
 def speed_schedule():

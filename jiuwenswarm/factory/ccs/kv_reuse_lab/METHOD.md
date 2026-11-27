@@ -8,7 +8,31 @@
 
 GB10 has unified memory: count its shared pool once. Use operator-supplied actual capacity (including a 64 GB target if configured), measured residency, OS/model/workspace allocations and reserve; do not add CPU RAM to GPU VRAM. ARM64, CUDA capability and model-specific DeepSeek v4.1 support remain unverified. Evaluate exact token equality separately from speed, hit rate and resident bytes. Compare cold/warm shared-prefix and no-prefix workloads, release/COW pressure, tenant isolation and changed revision invalidation. Retain actual runtime traces before a performance or engagement claim.
 
-## Muse Run 2 prefix-store image
+## Factory-stage CPU fixture
+
+Use a public sliding-window GGUF under 1 GB on a caller-supplied CPU host. Use the
+same executable and model in both runs. Start one CPU-only server at a time
+after local admission. Disable device offload and run stock flags first, then
+add `--swa-full --ctx-checkpoints 32`. In each run enable `cache_prompt` and send
+the same two tokenized questions over a shared document of about 1.5 attention
+windows. Keep separate startup and request logs.
+
+`verify_cpu_fixture(evidence)` takes `model` with `bytes`, `sha256` and
+`window_tokens`, `executable_sha256`, two `request_tokens` lists and
+`configurations.stock` and `configurations.configured`. In both configurations
+include `model_sha256`, `executable_sha256`, `extra_args`, `cache_prompt`,
+`startup_log` and two `request_logs` slices. This CC verifier checks CPU
+placement, the effective SWA mode and the first cached-token count in each
+request. The target lab evaluates performance after delivery.
+
+In this run, the Spark wrapper `scripts/factory/prefix_reuse_cpu_fixture.py`
+used the delivered binary on a 253 MB Gemma 3 fixture. Both configurations
+reused all 769 shared tokens of the 788-token follow-up with `cache_prompt`
+enabled. Stock already reported a maximum of 32 context checkpoints. The
+configured log additionally confirmed full-size SWA. The fixture measured
+identical reuse with both flag sets.
+
+## Muse Run 2 prefix reuse image
 
 `verify_pins` reads the frozen AQB lab receipts, image check, prefill plan,
 packed-model manifest, and the retained Phase 0 and Phase 0b evidence. Pack

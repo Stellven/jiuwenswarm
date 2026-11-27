@@ -1,6 +1,6 @@
 cc: '2'
 id: engine.kv_reuse_lab
-version: 1.1.0
+version: 1.1.1
 materials:
   method:
     path: METHOD.md
@@ -79,7 +79,7 @@ capabilities:
     needs: [python]
     changes: [process.exec, workspace.read]
   plan:
-    does: Verify trial engagement, record the placement refusal and derive the budget-checked prefix-store configuration.
+    does: Verify trial engagement, record the placement refusal and derive the budget-checked prefix-reuse configuration.
     takes:
       pinned_inputs: json
     gives:
@@ -99,6 +99,14 @@ capabilities:
       factory_stage: json
     needs: [python]
     changes: [process.exec, workspace.read]
+  verify_cpu_fixture:
+    does: Check CPU-only evidence of prompt reuse on a small sliding-window model with the engine's default cache and configured cache.
+    takes:
+      evidence: json
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec]
   verify_runtime_stage:
     does: Verify measured prefix reuse, same-load speed and full paired accuracy from the runtime evidence.
     takes:
