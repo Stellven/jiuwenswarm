@@ -9,6 +9,7 @@ python="${R8_SITE_PYTHON:-$HOME/predemo-spark/jiuwenswarm/.venv/bin/python}"
 session="${R8_SITE_SESSION:-r8-site}"
 
 if [[ "${1:-}" == --serve ]]; then
+  export FACTORY_LIVE_DEMOS='[{"home":"/home/user2/muse-demo/r11/graph","task_id":"muse-2bit-demo-r11","title":"Run 4 \u00b7 Expert cache profile seeding (AQBCE)","order":4,"replay_root":"/home/user2/muse-demo/r11/curated-replay"}]'
   cd -- "$repo"
   exec >>"$log" 2>&1
   exec "$python" -m scripts.spark.r8_engine_site --dist "$dist" --replay "$replay"
