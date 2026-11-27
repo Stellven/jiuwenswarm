@@ -494,7 +494,7 @@ export function EngineReport() {
         </header>
         {headline && (
           <p className="engine-delivery-headline" data-testid="factory-runs-engine-delivery-headline">
-            {headline}
+            {arms.some((row) => row.arm === 'AQBC') && 'Run 1 · '}{headline}
           </p>
         )}
         {status && (
