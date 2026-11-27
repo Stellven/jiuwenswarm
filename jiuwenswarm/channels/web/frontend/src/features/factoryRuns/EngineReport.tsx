@@ -9,6 +9,8 @@ import {
   armLabel,
   deliveryHeadline,
   devices,
+  engineRequestGroup,
+  engineRequestLabel,
   evidenceLabel,
   excluded,
   fmt,
@@ -18,7 +20,6 @@ import {
   numeric,
   quietStatus,
   ratios,
-  requestStateLabel,
   sourceRef,
 } from './engineBenchModel';
 import type { Benchmark, EngineRow, Metric, QuietVerdict, Ratio } from './engineBenchModel';
@@ -158,7 +159,7 @@ function SourceDialog({ rows, close }: { rows: EngineRow[]; close: () => void })
               data-variant={source.id}
               onClick={() => setRow(source)}
             >
-              {source.arm} · {requestStateLabel(source.request?.state) ?? 'State unknown'} ·{' '}
+              {source.arm} · {engineRequestLabel(source) ?? 'State unknown'} ·{' '}
               {source.request?.repeat == null ? source.id.split('/').at(-1) : `repeat ${source.request.repeat}`}
             </button>
           ))}
@@ -196,7 +197,7 @@ function SourceDialog({ rows, close }: { rows: EngineRow[]; close: () => void })
         facts={[
           ['Rendered prompt length', value(row.request?.prompt_tokens, 'tokens')],
           ['Request label', value(row.request?.name)],
-          ['Request state', value(requestStateLabel(row.request?.state))],
+          ['Request state', value(engineRequestLabel(row))],
           ['Repeat', value(row.request?.repeat)],
           ['Requested generation', value(row.request?.n_predict, 'tokens')],
           ['Generated', value(row.request?.generated_tokens, 'tokens')],
@@ -268,7 +269,7 @@ function ReportTable({ rows, speed, inspect }: { rows: EngineRow[]; speed: Ratio
             const requests = arm.filter((row) => row.kind === 'performance');
             const groups = [
               ...groupBy(requests, (row) =>
-                JSON.stringify([row.request?.name, row.request?.prompt_tokens, row.request?.state]),
+                JSON.stringify([row.request?.name, row.request?.prompt_tokens, engineRequestGroup(row)]),
               ).values(),
             ].filter((group) => group.some((row) => !excluded(row))).sort(
               (a, b) =>
@@ -319,7 +320,7 @@ function ReportTable({ rows, speed, inspect }: { rows: EngineRow[]; speed: Ratio
                           '—'
                         )}
                       </td>
-                      <td>{requestStateLabel(row?.request?.state) ?? '—'}</td>
+                      <td>{(row && engineRequestLabel(row)) ?? '—'}</td>
                       {metrics.slice(0, 4).filter(([metric]) => metric !== 'prefill_tps').map(([metric]) => {
                         const samples = accepted.flatMap((source) => {
                           const measurement = source.metrics?.[metric];
@@ -395,11 +396,11 @@ function ControlTable({ rows, inspect }: { rows: EngineRow[]; inspect: Inspect }
       <summary>Run 2 first requests on the same server</summary>
       <table>
         <thead><tr><th>Document</th><th>Request</th><th>Arm</th><th>First token (s)</th><th>Decode (tok/s)</th><th>Total (s)</th></tr></thead>
-        <tbody>{[...groupBy(standard, (row) => [row.request?.name, row.request?.state, row.arm].join('/'))]
+        <tbody>{[...groupBy(standard, (row) => [row.request?.name, engineRequestGroup(row), row.arm].join('/'))]
           .sort(([left], [right]) => left.localeCompare(right, undefined, { numeric: true }))
           .map(([key, samples]) => {
             const first = samples[0];
-            return <tr key={key}><th>{first.request?.name?.slice(1)}</th><td>{requestStateLabel(first.request?.state)}</td>
+            return <tr key={key}><th>{first.request?.name?.slice(1)}</th><td>{engineRequestLabel(first)}</td>
               <td>{first.arm === 'AQB' ? 'AQB control' : first.arm}</td>
               {(['ttft_ms', 'decode_tps', 'total_ms'] as const).map((metric) => {
                 const values = samples.map((row) => row.metrics?.[metric]).filter(numeric);
