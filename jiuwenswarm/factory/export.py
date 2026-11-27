@@ -196,9 +196,9 @@ def export_task(task_id, out, home=None, extra_files=()):
         for cid in sorted(contract_ids):
             if cid in historical:
                 continue
-            from .contract import load
+            from .contract import load, load_for_task
             try:
-                contract = load(cid)
+                contract = load_for_task(task, cid) if cid == task.get('contract_id') else load(cid)
             except FileNotFoundError:
                 omissions.append(dict(contract_id=cid, reason='operator_contract_unavailable'))
                 origins.append(dict(contract_id=cid, source='unavailable', path=None))

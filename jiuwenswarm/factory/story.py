@@ -121,9 +121,9 @@ def load_source(source, home=None, *, records=None, transcript_path=None, notes_
             contracts = [json.loads(p.read_text(encoding='utf-8')) for p in (path / 'contracts').glob('*.json')]
             data['_contract'] = next((c for c in contracts if c.get('contract_id') == contract_id), {})
         else:
-            from .contract import load
+            from .contract import load_for_task
             try:
-                data['_contract'] = dict(load(contract_id))
+                data['_contract'] = dict(load_for_task(task, contract_id))
             except (ValueError, OSError, AttributeError):
                 data['_contract'] = {}
     latest = max(data.get('decisions', []), key=lambda d: d['rev'], default={})

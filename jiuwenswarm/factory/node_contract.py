@@ -182,8 +182,8 @@ def from_contract(contract):
 
 def for_task(task):
     """The node contracts of a task's contract (validated), or None when it has none."""
-    from .contract import load
-    contract = load(task['contract_id'])
+    from .contract import load_for_task
+    contract = load_for_task(task, task['contract_id'])
     document = from_contract(contract)
     if document is None:
         return None

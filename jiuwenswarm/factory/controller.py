@@ -769,7 +769,7 @@ class Controller:
                 + (' Earlier attempts and checks of the reopened nodes no longer count; start fresh ones.' if op == 'reopen' else ''))
         return graph
 
-    def revise(self, task_id, reason, dry_run=False):
+    def revise(self, task_id, reason, dry_run=False, contract_revision=None):
         """Operator: apply the task contract's current revision to the graph (taskgraph.operator_revise).
 
         Refused while a controller runs this home (the run caches per-node state). After a recorded revise the
@@ -778,7 +778,7 @@ class Controller:
         """
         from .taskgraph import operator_revise
         if dry_run:
-            return operator_revise(self.store, task_id, reason, dry_run=True)
+            return operator_revise(self.store, task_id, reason, dry_run=True, contract_revision=contract_revision)
         try:
             lock = self._lock()
             lock.__enter__()
@@ -786,7 +786,7 @@ class Controller:
             raise ValueError(f'A controller is running in this FACTORY_HOME: pause it first (jiuwenswarm-factory pause '
                              f'{task_id} "<reason>"), wait until it stops, then revise') from None
         try:
-            result = operator_revise(self.store, task_id, reason)
+            result = operator_revise(self.store, task_id, reason, contract_revision=contract_revision)
             if not result['applied']:
                 return result
             touched = {c['node_id'] for c in result['changes'] if c['action'] in {'add', 'cancel'} or c.get('unfinalize')}

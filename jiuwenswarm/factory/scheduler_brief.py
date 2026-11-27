@@ -476,7 +476,7 @@ def _capsules(known, eligible, used, file_chars):
 
 
 def finalize_brief(store, task_id, node_id):
-    from .contract import load
+    from .contract import load_for_task
     from .node_contract import node as contract_node_of
     from .node_finalize import draft_final, is_preliminary
     from .scheduler import _contracts, _graph, _resolve, catalog
@@ -493,7 +493,7 @@ def finalize_brief(store, task_id, node_id):
     if not is_preliminary(prelim):
         raise ValueError(f'Node {node_id} has no preliminary node contract')
     try:
-        contract = load(task['contract_id'])
+        contract = load_for_task(task, task['contract_id'])
     except (OSError, ValueError):
         contract = None
     plan, neighbours = _plan_view(host, task_id, graph, contracts, node_id, prelim)

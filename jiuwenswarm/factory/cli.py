@@ -246,6 +246,7 @@ def main(argv=None):
                                            '(cancel removed nodes, add new ones, rewire pending ones)')
     revise.add_argument('task_id')
     revise.add_argument('reason')
+    revise.add_argument('--contract-revision', help='activate a checked-in contract revision before changing the graph')
     revise.add_argument('--dry-run', action='store_true', help='print the planned changes and write nothing')
     revise.add_argument('--json', action='store_true')
     plan = sub.add_parser('plan', help='show revisable task graph and decision-linked history')
@@ -376,7 +377,8 @@ def main(argv=None):
             print(render_text(controller.operator(args.task_id, args.command, args.node_id, args.reason)))
         elif args.command == 'revise':
             from .taskgraph import format_revise, render_text
-            result = controller.revise(args.task_id, args.reason, dry_run=args.dry_run)
+            result = controller.revise(args.task_id, args.reason, dry_run=args.dry_run,
+                                       contract_revision=args.contract_revision)
             if args.json:
                 print(json.dumps(scrub({k: v for k, v in result.items() if k != 'graph'}), indent=2))
             else:

@@ -277,7 +277,10 @@ def accepted_delivery(host, task_id, runtime_node):
     output = next(out['name'] for out in delivery['outputs']
                   if out['kind'] == 'lab_request' and out.get('required', True))
     producer = _predecessor(host, task_id, runtime_node, delivery['node_id'])
-    return accepted_output(host, task_id, producer, output)
+    check = accepted_output(host, task_id, producer, output)
+    if check['found'].get('contract_sha256') != host.get_task(task_id)['constraints']['contract_sha256']:
+        raise CheckError('The accepted delivery must use the active pinned contract')
+    return check
 
 
 # ---- what is checked --------------------------------------------------------------------
@@ -989,26 +992,31 @@ class NodeChecks:
         package = json.loads(self.store.artifact_bytes(task['task_id'], 'lab-package:' + sent['values']['package_id']))
         if package['origin'].get('node_id') != node['node_id']:
             raise CheckError(f'lab request {request_id} was composed for node {package["origin"].get("node_id")}, not {node["node_id"]}')
+        pinned = (task.get('constraints') or {}).get('contract_sha256')
+        package_digest = package['contract']['sha256']
+        if pinned and package_digest != pinned:
+            raise CheckError('The lab request was sealed under a stale contract')
         lab_task = package['lab_task']
         tested = dict(arm={a for test in lab_task['tests'] for a in test['arms']},
                       check={test['check'] for test in lab_task['tests'] if test.get('check')},
                       metric={m for test in lab_task['tests'] for m in test.get('measure', [])})
         missing = []
         if node.get('node_contract'):
-            from .contract import load
+            from .contract import load_for_task
             from .contract_v2 import arm_ids, check_ids, metric_ids
             from .node_contract import for_task
             from .scheduler import effective_contract
             contract_node = effective_contract(getattr(self.store, '_store', self.store), task['task_id'],
                                                node, for_task(task))[0] or {}
-            contract = load(task['contract_id'])
+            contract = load_for_task(task, task['contract_id'])
             kinds = {**{a: 'arm' for a in arm_ids(contract)}, **{c: 'check' for c in check_ids(contract)},
                      **{m: 'metric' for m in metric_ids(contract)}}
             # Each requirement counts only as what it is: an arm must be tested, a check run, a metric measured.
             missing = sorted(r for r in contract_node.get('requirement_ids', []) if r not in tested.get(kinds.get(r), set()))
         if missing:
             raise CheckError('the lab task does not test ' + ', '.join(missing))
-        return dict(request_id=request_id, package_id=sent['values']['package_id'], tests=[t['id'] for t in lab_task['tests']],
+        return dict(request_id=request_id, package_id=sent['values']['package_id'], contract_sha256=package_digest,
+                    tests=[t['id'] for t in lab_task['tests']],
                     artifacts=['lab-package:' + sent['values']['package_id']])
 
     def _evidence(self, task, node, refs):

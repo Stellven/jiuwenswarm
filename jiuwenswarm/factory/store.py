@@ -173,6 +173,22 @@ class Store:
     def get_task(self, task_id):
         return self._get('tasks', task_id, task_id)
 
+    def _record_contract_revision(self, task, candidate, values):
+        """Repin a task and append the operator receipt inside the graph revision transaction."""
+        task_id = task['task_id']
+        revision = task['revision'] + 1
+        updated = self._db.execute(
+            'UPDATE tasks SET constraints=?, revision=? WHERE task_id=? AND revision=?',
+            (encoded(candidate['constraints']), revision, task_id, task['revision']))
+        if updated.rowcount != 1:
+            raise StaleRevision('Current task revision changed')
+        self._insert('observations', dict(
+            obs_id=f'{task_id}:contract-revision:{revision}', task_id=task_id, source_artifacts=[],
+            kind='operator_contract_revision', values=dict(values, task_revision=revision),
+            error={}, host_run={'by': 'factory operator revise'}, confidence=None,
+            limitations='Operator activation of a new checked-in contract pin; earlier graph records are retained.',
+            created=time.time()))
+
     def _insert(self, table, record):
         columns = {row['name'] for row in self._db.execute(f'PRAGMA table_info({table})')}
         if set(record) - columns:
@@ -512,7 +528,7 @@ class ScopedStore:
     def append_observation(self, task_id, record):
         self._agent_id(record.get('obs_id'))
         if 'host_run' in record or record.get('kind') in {'build_result', 'lab_result', 'evaluation', 'admission', 'operator_intervention', 'taskgraph_patch', 'branch_workbench_operation', 'lab_request', 'lab_report', 'lab_answer', 'node_check',
-                                                                            'node_contract_final', 'node_contract_refusal', 'prior_artifact', 'host_reading', 'capped_run', 'operator_halt', 'operator_input', 'attempt_excused', 'operator_pause'}:
+                                                                            'node_contract_final', 'node_contract_refusal', 'prior_artifact', 'host_reading', 'capped_run', 'operator_halt', 'operator_input', 'attempt_excused', 'operator_pause', 'operator_contract_revision'}:
             raise ScopeDenied('Observation fields are reserved for the host')
         self._check(task_id, write=True)
         return self._store.append_observation(task_id, record)

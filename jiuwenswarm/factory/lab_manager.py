@@ -438,6 +438,10 @@ class LabManager:
             package = json.loads(self.store.artifact_bytes(task_id, 'lab-package:' + package_id))
         except NotFound:
             raise ValueError('Unknown lab package; compose it first') from None
+        task = self.store.get_task(task_id)
+        _, current_digest = self._contract(task, package['contract']['id'])
+        if package['contract']['sha256'] != current_digest:
+            raise ValueError('The lab package was sealed under a stale contract. Compose it again.')
         request_id = 'labreq-' + hashlib.sha256(f'{task_id}\0{package_id}\0{idem_key}'.encode()).hexdigest()[:24]
         self.mailbox.open_request(request_id, package)
         thread = self.mailbox.thread(request_id)

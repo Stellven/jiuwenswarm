@@ -118,7 +118,7 @@ def graph_nodes(task, plan, node_contracts):
 def plan_for_task(task, plan=None):
     """(planner name, seed patch nodes) for a new task, or (None, None) to use the fixed suggestion."""
     from .node_contract import for_task
-    from .contract import load
+    from .contract import load_for_task
     if not task.get('contract_id'):
         if plan is not None:
             raise PlanError('A plan needs a task contract with node contracts')
@@ -135,14 +135,15 @@ def plan_for_task(task, plan=None):
         return None, None
     if plan is None:
         external = _external()
-        plan = external(task, load(task['contract_id']), node_contracts) if external else contract_plan(task, None, node_contracts)
+        plan = (external(task, load_for_task(task, task['contract_id']), node_contracts) if external
+                else contract_plan(task, None, node_contracts))
     found = check_plan(plan, node_contracts)
     if found:
         raise PlanError('The plan does not fit the node contracts: ' + '; '.join(found[:8]))
     return plan.get('planner', 'unnamed planner'), graph_nodes(task, plan, node_contracts)
 
 
-def contract_gate(host, task_id, after):
+def contract_gate(host, task_id, after, *, task=None):
     """Every revision of a planned graph keeps the contracted work: called on each plan patch.
 
     The agent may add its own nodes and reorder, retry or supersede work, but every node
@@ -151,7 +152,7 @@ def contract_gate(host, task_id, after):
     node may be a deliver node.
     """
     from .node_contract import check_spec, for_task
-    task = host.get_task(task_id)
+    task = task if task is not None else host.get_task(task_id)
     contracts = None
     if task.get('contract_id'):
         try:

@@ -131,9 +131,9 @@ def _passed_output(host, task_id, node_id, output):
 
 
 def _contract_input(task, name):
-    from .contract import load
+    from .contract import load_for_task
     try:
-        declared = (load(task['contract_id']).get('inputs') or {}).get(name)
+        declared = (load_for_task(task, task['contract_id']).get('inputs') or {}).get(name)
     except (OSError, ValueError):
         declared = None
     label = f'input {name} of contract {task["contract_id"]}'
@@ -461,7 +461,7 @@ def proposal_problems(contract, document, prelim, final, known):
 
 def preview_proposal(store, task_id, node_id, final, rationale):
     """Validate a rehearsal proposal without admitting work or changing graph state."""
-    from .contract import load
+    from .contract import load_for_task
     from .node_contract import node as lookup
     if hasattr(store, '_check'):
         store._check(task_id, write=True)
@@ -472,7 +472,7 @@ def preview_proposal(store, task_id, node_id, final, rationale):
     if not graph_node:
         raise ValueError(f'Unknown plan node: {node_id}')
     prelim = lookup(document, graph_node['node_contract'])
-    found = proposal_problems(load(task['contract_id']), document, prelim, final, catalog())
+    found = proposal_problems(load_for_task(task, task['contract_id']), document, prelim, final, catalog())
     if not isinstance(rationale, str) or not rationale.strip():
         found.append('A final node contract needs a rationale')
     result = dict(node_id=node_id, validated=not found, admitted=False, problems=found,
@@ -490,7 +490,7 @@ def finalize(store, task_id, node_id, final, rationale, by='scheduler-agent'):
     recorded and returned; nothing else changes. An exact repeat of an earlier final for the same
     node contract (same contract, inputs and capsule versions) is refused: something must change.
     """
-    from .contract import load
+    from .contract import load_for_task
     from .node_contract import check_spec, node as contract_node_of
     from .node_finalize import diff, digest, is_preliminary
     from .taskgraph import _apply_patch
@@ -520,7 +520,7 @@ def finalize(store, task_id, node_id, final, rationale, by='scheduler-agent'):
         if unfinished:
             raise ValueError('Finalize a node when it can run; waiting for ' + ', '.join(unfinished))
         known = catalog()
-        found = proposal_problems(load(task['contract_id']), contracts, prelim, final, known)
+        found = proposal_problems(load_for_task(task, task['contract_id']), contracts, prelim, final, known)
         inputs = _resolve(host, task, prelim, graph['nodes'])
         bound = ((final.get('work') or {}).get('bound_ccs') or []) if isinstance(final, dict) else []
         versions = {cc: known.get(cc, {}).get('version') for cc in bound if isinstance(cc, str)}
