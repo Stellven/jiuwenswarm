@@ -87,7 +87,7 @@ class Replay(Builder):
                                 sha256=sha(raw), size=len(raw))
         return dict(path=path, label=label)
 
-    def copy_artifact(self, identity, label):
+    def copy_artifact(self, identity, label, *, diff=False):
         row = self.registry[identity]
         if not row['complete'] or row['size'] > MAX_FILE:
             raise ValueError('Incomplete or oversized public evidence artifact: ' + identity)
@@ -100,6 +100,10 @@ class Replay(Builder):
         if not re.fullmatch(r'\.[A-Za-z0-9_-]{1,12}', suffix):
             suffix = '.txt'
         raw = path.read_bytes()
+        if diff:
+            if not raw.startswith((b'diff --git ', b'--- ')) or b'\n+++ ' not in raw:
+                raise ValueError('Expected a native unified source diff or patch')
+            suffix = '.diff'
         if scrubbed(raw, row['media_type']):
             raise ValueError('Public artifact requires redaction: ' + identity)
         exported = self.copy(path, f'evidence/{row["sha256"]}{suffix}',
@@ -357,10 +361,7 @@ class Replay(Builder):
         references = {value for row in linked for value in (row.get('source_artifacts') or [])}
         if identity not in references:
             raise ValueError('Diff is not linked to its native check or build record')
-        file = self.copy_artifact(identity, label)
-        if Path(file['path']).suffix not in ('.diff', '.patch'):
-            raise ValueError('Expected a native source diff or patch')
-        return file
+        return self.copy_artifact(identity, label, diff=True)
 
 
 def scrubbed(raw, media_type):

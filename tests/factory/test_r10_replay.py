@@ -54,6 +54,23 @@ def test_prebuild_stop_is_a_native_demo_with_source_and_report(tmp_path):
     assert service.detail(run['id'])['contract']['version'] == 10
 
 
+def test_imported_instrumentation_uses_diff_view_even_when_store_labels_it_plain_text(tmp_path):
+    home, contract, _ = sources(tmp_path)
+    raw = b'--- before\n+++ after\n@@ -1 +1 @@\n-old\n+new\n'
+    artifact = 'prior-dispatch_fixture_diff'
+    with Store(home) as store:
+        store.put_artifact(TASK, artifact, raw, 'text/plain', None)
+        store.append_observation(TASK, dict(kind='operator_input', source_artifacts=[artifact],
+            values=dict(key='dispatch_fixture_diff', artifact_id=artifact, sha256=sha(raw))))
+    out = tmp_path / 'bundle'
+    build(home, contract, out, instrumentation_diff=artifact)
+    copied = out / f'evidence/{sha(raw)}.diff'
+    assert copied.read_bytes() == raw
+    replay = json.loads((out / 'replay.json').read_bytes())
+    assert any(f['label'] == 'Pre-graph dispatch probe instrumentation diff'
+               for step in replay['steps'] for f in step['key_files'])
+
+
 @pytest.mark.parametrize(('eligibility', 'action', 'cite_trace', 'message'), [
     ('already_batched', 'stop_missing_prerequisite', False, 'Pre-build stop disagrees'),
     ('already_batched', 'accept', True, 'Pre-build stop disagrees'),
