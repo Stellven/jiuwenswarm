@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from math import isfinite
 import os
 from pathlib import Path
 import re
@@ -388,7 +389,9 @@ class FactoryHttpService:
                     # Task names can be reused by separate launches, so bind the original creation record too.
                     created = task.get('created')
                     task_identity = (tid, created)
-                    has_creation_record = isinstance(created, (int, float))
+                    has_creation_record = type(created) in (int, float) and isfinite(created) and created > 0
+                    if has_creation_record:
+                        item['created'] = created
                     if kind == 'live' and has_creation_record:
                         native.setdefault((path.name, task_identity), []).append(item)
                     if path.name == 'graph-r8' and tid == 'muse-2bit-demo-r8':

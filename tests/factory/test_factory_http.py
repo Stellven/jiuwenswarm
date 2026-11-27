@@ -32,6 +32,28 @@ def client(service):
     return TestClient(app)
 
 
+def test_demo_run_date_uses_recorded_task_creation(bundle):
+    task_file = bundle / 'records/tasks.json'
+    tasks = json.loads(task_file.read_text())
+    created = 1795713964.8986309
+    tasks[0]['created'] = created
+    task_file.write_text(json.dumps(tasks))
+    replay = bundle / 'replay.json'
+    replay.write_text(json.dumps(dict(
+        schema='factory.curated-replay/1', title='Demo contract', steps=[],
+        presentation_header=dict(objective='Read evidence', outcome='Done'),
+    )))
+    manifest = {p.relative_to(bundle).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+                for p in (task_file, replay, bundle / 'report.md')}
+    (bundle / 'MANIFEST.json').write_text(json.dumps(manifest))
+
+    service = FactoryHttpService(roots=[bundle])
+    row, = client(service).get('/api/factory/runs').json()['runs']
+    assert row['contract_demo']
+    assert row['created'] == created
+    assert row['updated'] == bundle.stat().st_mtime
+
+
 def test_manifest_mismatch_is_visible_and_missing_file_preserved(bundle):
     service = FactoryHttpService(roots=[bundle])
     rid = service.listing()['runs'][0]['id']
