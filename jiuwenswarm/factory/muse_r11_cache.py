@@ -20,17 +20,25 @@ OUT = ROOT/'lab/r11-aqbce'
 PROFILE_LIB = ROOT/'r11/instrumentation/libllama.so.1'
 
 
-def admit(store, task_id, args, node_id):
+def admit(store, task_id, args, node_id, *, attempt_id=None):
+    from . import muse_r11_target as target
+
     capped_run._fields(args, {'arm'})
     task = store.get_task(task_id)
     arm = args['arm']
     if (task_id != TASK or Path(store.home).resolve() != ROOT/'r11/lab-home' or node_id
             or task['constraints'].get('attempt_limits') != {'model_run': 3}
             or task['resources'].get('memory_cap') != '96G'
-            or task['resources'].get('device_budget_mib') != 110000):
+            or task['resources'].get('device_budget_mib') != 110000
+            or task['resources'].get('floor_gib') != 8
+            or task['resources'].get('need_available_gib') != 100):
         raise ScopeDenied('This recipe requires the independent Run 4 target lab grant.')
-    if arm != 'profile':
-        raise ScopeDenied('Candidate measurements require the sealed build and delivery.')
+    if arm not in ('profile', *target.ARMS):
+        raise ScopeDenied('Unknown Run 4 arm.')
+    target.admit_order(store, task_id, arm, attempt_id)
+    if arm in target.ARMS:
+        identity, _, _, _ = target.delivery(ROOT)
+        return dict(recipe=RECIPE, arm=arm, delivery=identity)
     from .muse_r11_gate import graph, check_for
     native_home = ROOT/'r11/graph'
     if not (native_home/'factory.sqlite').is_file():
@@ -132,7 +140,12 @@ def acquire(server, out, monitor, prescribed):
 
 
 def execute(run):
-    admit(run.store, run.task_id, {'arm': run.req['arm']}, None)
+    from . import muse_r11_target as target
+
+    arm = run.req['arm']
+    if arm in target.ARMS:
+        return target.execute(run, ROOT, OUT)
+    admit(run.store, run.task_id, {'arm': arm}, None, attempt_id=run.run_id)
     native = Store(ROOT/'r11/graph')
     try:
         task = native.get_task('muse-2bit-demo-r11')
