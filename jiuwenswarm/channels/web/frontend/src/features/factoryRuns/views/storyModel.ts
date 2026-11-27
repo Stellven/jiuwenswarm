@@ -46,6 +46,7 @@ export type CuratedStep = {
   original_kind: string;
   summary?: string;
   say?: string;
+  presenter_line?: string;
   branch?: string;
   event_cursor?: number;
   key_files: KeyFile[];
@@ -71,6 +72,8 @@ export type CuratedReplay = {
   native?: boolean;
   graph_mode?: 'recorded';
   node_presentation?: Record<string, ReplayNodePresentation>;
+  presentation_header?: { objective: string; outcome: string; image_id?: string | null };
+  contract_versions?: { version: number; path: string; sha256: string; amendment?: string; reason?: string }[];
   steps: CuratedStep[];
 };
 

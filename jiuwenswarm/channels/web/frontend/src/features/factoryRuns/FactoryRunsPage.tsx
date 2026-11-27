@@ -35,6 +35,8 @@ import { evidenceKind } from './views/dataModel';
 import { EvidenceFileBrowser } from './views/EvidenceFiles';
 import { detectGraph } from './views/graphModel';
 import { FactoryRunList } from './views/RunList';
+import { contractDemoRuns } from './views/runListModel';
+import { ReplayContractPanel, ReplayEventsPanel, ReplayNodeContractsPanel } from './FactoryReplayEvidence';
 import { TerminalViewer } from './views/TerminalViewer';
 import { useViewerLabels } from './views/viewerLabels';
 import { curatedStepFor, keyFilesFor, keyFlags as curatedKeyFlags, presentEvent } from './views/storyModel.ts';
@@ -62,7 +64,16 @@ const panels = [
   'terminal',
   'report',
 ] as const;
-type Panel = (typeof panels)[number];
+const contractReplayTabs = [
+  ['report', 'Lab report'],
+  ['overview', 'Story'],
+  ['graph', 'Task graph'],
+  ['contract', 'Contract'],
+  ['node-contracts', 'Node contracts'],
+  ['events', 'Events'],
+  ['artifacts', 'Files and diffs'],
+] as const;
+type Panel = (typeof panels)[number] | (typeof contractReplayTabs)[number][0];
 // A curated replay tells one story: the stepper, its graph, its files and the report.
 const curatedPanels: readonly Panel[] = ['overview', 'graph', 'artifacts', 'report'];
 // A task-graph run (node contracts, scheduler, capsule checks) has no ontology or iteration records.
@@ -119,6 +130,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   const [file, setFile] = useState<FileContent | null>(null);
   const [filePath, setFilePath] = useState(entry?.file || '');
   const [fileError, setFileError] = useState('');
+  const [diffsOnly, setDiffsOnly] = useState(false);
   const [childSource, setChildSource] = useState<{ id: string; sha256?: string }>();
   const [expectedSha, setExpectedSha] = useState('');
   const [focusedDecisionId, setFocusedDecisionId] = useState<string>();
@@ -139,7 +151,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
       const runs = [...result.runs].sort((a, b) => b.updated - a.updated);
       setListing({ ...result, runs });
       const firstDemo = runs.filter((run) => run.demo).sort((a, b) => (a.demo_order ?? 0) - (b.demo_order ?? 0))[0];
-      setSelected((old) => old || (engineViewer ? firstDemo?.id : undefined) || runs.find((run) => run.featured)?.id || firstDemo?.id || runs[0]?.id || '');
+      setSelected((old) => old || contractDemoRuns(runs)[0]?.id || (engineViewer ? firstDemo?.id : undefined) || runs.find((run) => run.featured)?.id || firstDemo?.id || runs[0]?.id || '');
     } catch (err) {
       setError(String(err));
     } finally {
@@ -186,7 +198,8 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   const isLiveHome = detail?.run.id === selected && detail.run.kind === 'live' && !detail.run.read_only && !detail.curated;
   const controls = detail && runStatus?.id === selected ? runStatus.controls : detail?.controls;
   const status = detail && runStatus?.id === selected ? runStatus.run_state : detail?.run_state;
-  const r8Demo = engineViewer && detail?.run.task_id === 'muse-2bit-demo-r8';
+  const presentation = detail?.curated?.presentation_header;
+  const r8Demo = !presentation && engineViewer && detail?.run.task_id === 'muse-2bit-demo-r8';
   const [delivery, setDelivery] = useState<Delivery>();
   useEffect(() => {
     if (!r8Demo) return;
@@ -311,12 +324,12 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   const matchingFiles = useMemo(() => {
     const files = (detail?.files ?? []).map((item) => labelCheckArtifact(item, checkNames));
     return files.filter((item) => {
-      if (panel === 'artifacts') return true;
       const kind = evidenceKind(item.path, item.display_path);
+      if (panel === 'artifacts') return !presentation || !diffsOnly || kind === 'diff';
       if ((panel === 'diffs' && kind === 'diff') || (panel === 'terminal' && kind === 'log')) return true;
       return [item.path, item.display_path || ''].some((name) => patterns[panel]?.test(name));
     });
-  }, [detail, panel, checkNames]);
+  }, [detail, panel, checkNames, presentation, diffsOnly]);
   const defaultFile =
     matchingFiles.find((item) => {
       const name = item.display_path || item.path;
@@ -413,6 +426,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   ];
   const selectPanel = (value: Panel, path = '', digest = '') => {
     setPanel(value);
+    setDiffsOnly(false);
     setExpectedSha(digest);
     if (path !== filePath) {
       setFilePath(path);
@@ -426,6 +440,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
     setSelected(id);
     setLive(false);
     setPanel('overview');
+    setDiffsOnly(false);
     setFocusedDecisionId(undefined);
     setSelectedNode(undefined);
     setChildSource(undefined);
@@ -489,6 +504,26 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
   ) {
     measurementSummary = <MeasurementSummary onOpenMeasurements={() => selectPanel('measurements')} />;
   }
+  const nativeTabs = detail?.curated && (!engineViewer || !detail.curated.native)
+    ? curatedPanels : engineViewer || detail?.cc_overview ? graphRunPanels : panels;
+  const tabItems = presentation ? contractReplayTabs : nativeTabs.map((value) => [
+    value, value === 'artifacts' ? label('artifacts') : t(`factoryRuns.${value}`),
+  ] as const);
+  const navigation = detail && (
+    <nav className="factory-tabs" data-testid="factory-runs-tabs" aria-label={t('factoryRuns.panels')}>
+      {tabItems.map(([value, title]) => (
+        <button
+          key={value}
+          data-testid="factory-runs-panel-tab"
+          data-variant={value}
+          aria-pressed={panel === value}
+          onClick={() => selectPanel(value)}
+        >
+          {title}
+        </button>
+      ))}
+    </nav>
+  );
   return (
     <div className="factory-runs-page" data-testid="factory-runs-page" data-appearance={appearance}>
       <aside className="factory-rail" data-testid="factory-runs-rail">
@@ -509,11 +544,11 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
             <RefreshCw aria-hidden size={16} />
           </button>
         </div>
-        {!engineViewer && <button
+        {(!engineViewer || listing.runs.some((run) => run.contract_demo)) && <button
           className="factory-story-launch-button"
           type="button"
           data-testid="factory-runs-launch-button"
-          disabled={catalogLoading || (!listing.launch_enabled && !listing.launch_templates.length)}
+          disabled={engineViewer || catalogLoading || (!listing.launch_enabled && !listing.launch_templates.length)}
           onClick={() => setLaunchOpen(true)}
         >
           <Plus aria-hidden size={17} /> {t('factoryRuns.launch')}
@@ -555,14 +590,17 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                   {t(detail.run.kind === 'bundle' ? 'factoryRuns.story.bundle' : 'factoryRuns.story.factoryHome')}
                 </p>
                 <h2 data-testid="factory-runs-run-title">{detail.run.name}</h2>
-                {typeof detail.contract.title === 'string' && detail.cc_overview && (
+                {presentation && (
+                  <p className="factory-detail-subtitle" data-testid="factory-runs-run-objective">{presentation.objective}</p>
+                )}
+                {!presentation && typeof detail.contract.title === 'string' && detail.cc_overview && (
                   <p className="factory-detail-subtitle" data-testid="factory-runs-run-subtitle">{detail.contract.title}</p>
                 )}
-                <CapsuleChips
+                {presentation ? <CapsuleChips value={records.tasks?.map(({ component_cc, capability_cc }) => [component_cc, capability_cc])} /> : <CapsuleChips
                   value={detail.cc_overview
                     ? [...new Set(Object.values(detail.cc_overview).flat().map((cc) => cc.id))]
                     : [detail.stack, records.tasks?.map(({ component_cc, capability_cc }) => [component_cc, capability_cc])]}
-                />
+                />}
               </div>
               {isLiveHome && !isTerminalDemo && (
                 <label className="factory-live">
@@ -579,7 +617,21 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                 </label>
               )}
             </header>
-            {demoHeadline || isTerminalDemo ? (
+            {presentation ? (
+              <section className="factory-run-state factory-contract-result" data-testid="factory-runs-state" data-variant="finished">
+                <div>
+                  <strong data-testid="factory-runs-state-label">{presentation.outcome}</strong>
+                  {presentation.image_id && (
+                    <span className="factory-contract-image" data-testid="factory-runs-engine-image">
+                      Engine image <code>{presentation.image_id}</code>
+                    </span>
+                  )}
+                </div>
+                <button type="button" data-testid="factory-runs-attached-report" onClick={() => selectPanel('report')}>
+                  Open lab report
+                </button>
+              </section>
+            ) : demoHeadline || isTerminalDemo ? (
               <section className="factory-run-state" data-testid="factory-runs-state" data-variant="finished">
                 <strong data-testid="factory-runs-state-label">{demoHeadline || 'Finished'}</strong>
               </section>
@@ -595,7 +647,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                 onRun={runOperation}
               />
             )}
-            {detail.contract.contract_id === 'muse-2bit-demo-r8' && (
+            {!presentation && detail.contract.contract_id === 'muse-2bit-demo-r8' && (
               <p className="factory-correction-explanation" data-testid="factory-runs-correction-explanation">
                 Agent help with the verifier role included monitoring and specific-fix notes. Advisory findings remain in the evidence.
               </p>
@@ -603,7 +655,8 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
             {isLiveHome && !isTerminalDemo && (live || panel === 'overview' || panel === 'terminal') && (
               <LiveSession session={session} stale={sessionStale} engineViewer={engineViewer} />
             )}
-            {(!isTerminalDemo || (detail.curated && !detail.curated.native)) && <section className="factory-replay" data-testid="factory-runs-replay">
+            {presentation && navigation}
+            {(presentation ? ['overview', 'graph'].includes(panel) : !isTerminalDemo || (detail.curated && !detail.curated.native)) && <section className="factory-replay" data-testid="factory-runs-replay">
               <div className="factory-replay-controls">
                 <button
                   data-testid="factory-runs-play"
@@ -667,21 +720,9 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                 <ReplayLabel value={curatedStep?.replayed_from ?? cursor?.replayed_from} />
               </p>
             </section>}
-            <nav className="factory-tabs" data-testid="factory-runs-tabs" aria-label={t('factoryRuns.panels')}>
-              {(detail.curated && (!engineViewer || !detail.curated.native) ? curatedPanels : engineViewer || detail.cc_overview ? graphRunPanels : panels).map((value) => (
-                <button
-                  key={value}
-                  data-testid="factory-runs-panel-tab"
-                  data-variant={value}
-                  aria-pressed={panel === value}
-                  onClick={() => selectPanel(value)}
-                >
-                  {value === 'artifacts' ? label('artifacts') : t(`factoryRuns.${value}`)}
-                </button>
-              ))}
-            </nav>
+            {!presentation && navigation}
             <section className="factory-evidence" data-testid="factory-runs-evidence">
-              {(!detail.curated || detail.curated.native) && ['contract', 'capsules'].includes(panel) && (
+              {!presentation && (!detail.curated || detail.curated.native) && ['contract', 'capsules'].includes(panel) && (
                 <CapsuleOverviewStrip
                   nodes={detail.cc_overview}
                   labels={nodeLabels}
@@ -691,7 +732,19 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                   onSelect={(id) => setSelectedNode((old) => old === id ? undefined : id)}
                 />
               )}
-              {['contract', 'capsules'].includes(panel) && nodeEvidence}
+              {!presentation && ['contract', 'capsules'].includes(panel) && nodeEvidence}
+              {presentation && panel === 'contract' && (
+                <ReplayContractPanel detail={detail} onOpenFile={(item) => selectPanel('artifacts', item.path)} />
+              )}
+              {presentation && panel === 'node-contracts' && (
+                <ReplayNodeContractsPanel
+                  detail={detail}
+                  selectedNode={selectedNode}
+                  onSelectNode={setSelectedNode}
+                  onOpenFile={openEvidenceFile}
+                />
+              )}
+              {presentation && panel === 'events' && <ReplayEventsPanel detail={detail} />}
               {panel === 'overview' && (
                 <RunOverview
                   detail={detail}
@@ -759,7 +812,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                 />
               )}
               {panel === 'graph' && nodeEvidence}
-              {panel === 'contract' && !selectedFile && !focusedNode && (
+              {!presentation && panel === 'contract' && !selectedFile && !focusedNode && (
                 <DataViewer
                   key={selected}
                   name={t('factoryRuns.contract')}
@@ -770,7 +823,7 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
               {panel === 'capsules' && !focusedNode && !detail.cc_overview && (
                 <DataViewer key={selected} name={t('factoryRuns.capsules')} value={detail.stack} />
               )}
-              {['capsules', 'contract'].includes(panel) && !focusedNode && detail.cc_overview && (
+              {!presentation && ['capsules', 'contract'].includes(panel) && !focusedNode && detail.cc_overview && (
                 <p className="factory-pick-node" data-testid="factory-runs-pick-node">
                   {panel === 'capsules'
                     ? 'Pick a node above to see each capsule it used: what the capsule gave the worker, the diff, pack, plan or image it produced, and its checks.'
@@ -823,7 +876,14 @@ function FactoryReplay({ entry, engineViewer }: FactoryRunsProps) {
                   onOpenReport={(runId, reportId, sha256) => openIterationChild(runId, 'report', reportId, sha256)}
                 />
               )}
-              {!['overview','graph','report','iterations','measurements'].includes(panel) && !(engineViewer && panel === 'terminal') && (
+              {presentation && panel === 'artifacts' && (
+                <div className="factory-tabs" data-testid="factory-runs-file-filters" aria-label="File types">
+                  <button type="button" aria-pressed={!diffsOnly} onClick={() => setDiffsOnly(false)}>All files</button>
+                  <button type="button" aria-pressed={diffsOnly} onClick={() => setDiffsOnly(true)}>Diffs</button>
+                </div>
+              )}
+              {!(presentation && panel === 'contract') &&
+                !['overview', 'graph', 'report', 'iterations', 'measurements', 'node-contracts', 'events'].includes(panel) && !(engineViewer && panel === 'terminal') && (
                 <EvidenceFileBrowser
                   key={`${selected}:${panel}`}
                   files={matchingFiles}

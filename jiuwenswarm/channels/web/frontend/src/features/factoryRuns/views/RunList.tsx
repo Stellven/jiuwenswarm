@@ -2,7 +2,7 @@ import { Fragment, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CapsuleChips } from '../cc/CapsuleChips';
 import type { Run } from '../api';
-import { groupRunEntries, runListEntries } from './runListModel';
+import { contractDemoRuns, groupRunEntries, runListEntries } from './runListModel';
 import { useViewerLabels } from './viewerLabels';
 
 export function FactoryRunList({
@@ -19,6 +19,8 @@ export function FactoryRunList({
   const { t } = useTranslation();
   const { label, lang } = useViewerLabels();
   const entries = useMemo(() => runListEntries(runs), [runs]);
+  const demos = useMemo(() => runListEntries(contractDemoRuns(runs)), [runs]);
+  const [listView, setListView] = useState<'demo' | 'all'>('demo');
   const [showEverything, setShowEverything] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
   const groups = useMemo(() => groupRunEntries(entries, showEverything), [entries, showEverything]);
@@ -57,7 +59,7 @@ export function FactoryRunList({
             onClick={() => onSelect(run.id)}
           >
             <strong className={run.demo ? 'factory-run-demo-name' : undefined} title={run.name} data-testid="factory-runs-run-name">
-              {run.demo && <span className="factory-run-demo-badge" data-testid="factory-runs-run-demo">Demo</span>}
+              {run.demo && !run.contract_demo && <span className="factory-run-demo-badge" data-testid="factory-runs-run-demo">Demo</span>}
               {run.name}
             </strong>
             <span className="factory-run-meta">
@@ -87,10 +89,30 @@ export function FactoryRunList({
               </small>
             )}
           </button>
-          <CapsuleChips value={[run.task_id,run.objective]} />
+          {(!demos.length || listView === 'all') && <CapsuleChips value={[run.task_id, run.objective]} />}
           </Fragment>
         );
       });
+        if (demos.length) {
+          return (
+            <>
+              <nav className="factory-tabs" aria-label="Run lists" data-testid="factory-runs-list-tabs">
+                <button type="button" aria-pressed={listView === 'demo'} onClick={() => {
+                  setListView('demo');
+                  if (!demos.some(({ run }) => run.id === selected)) onSelect(demos[0].run.id);
+                }}>Demo</button>
+                <button type="button" aria-pressed={listView === 'all'} onClick={() => setListView('all')}>All runs</button>
+              </nav>
+              <section
+                className="factory-run-group"
+                data-testid={listView === 'demo' ? 'factory-runs-demo-group' : 'factory-runs-all-group'}
+                aria-label={listView === 'demo' ? 'Demo contracts' : 'All runs'}
+              >
+                {render(listView === 'demo' ? demos : entries)}
+              </section>
+            </>
+          );
+        }
         if (engineViewer) {
           return (
             <>

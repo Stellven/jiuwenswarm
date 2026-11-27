@@ -366,6 +366,8 @@ class FactoryHttpService:
                     if replay:
                         item.update(name=replay['title'], demo=True, demo_order=replay.get('order', 0),
                                     objective=replay.get('summary', ''))
+                        if replay.get('presentation_header'):
+                            item['contract_demo'] = True
                     elif kind == 'live':
                         if self._historical(path):
                             item.update(read_only=True, status='replay')

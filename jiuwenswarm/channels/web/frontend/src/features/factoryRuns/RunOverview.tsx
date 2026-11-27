@@ -182,11 +182,65 @@ export function RunOverview({
     const lead = focus?.key_files[0];
     const correction = focus?.correction ?? events.find((event) => event.step === focus?.step)?.correction;
     const stepSummary = focus?.say || focus?.original_summary;
+    const recordedEvidence = focus && (
+      <>
+        {(!correction || curated.node_presentation) && stepSummary && (
+          <p className="factory-curated-say" data-testid="factory-runs-curated-focus-say">
+            {curated.node_presentation ? replayEvidenceText(stepSummary) : stepSummary}
+          </p>
+        )}
+        {correction && (
+          <CorrectionRecord
+            event={correctionStatusAt(correction, verifiedCorrections)}
+            compact
+            r8VerifierHelp={r8VerifierHelp}
+            files={detail.files}
+            onOpenFile={onOpenFile}
+          />
+        )}
+        {focus.capsule_diff && (
+          <section aria-label="Capsule changes" data-testid="factory-runs-curated-capsule-diff">
+            <h4 data-testid="factory-runs-curated-capsule-diff-caption">{focus.capsule_diff.caption}</h4>
+            <DiffViewer content={createTwoFilesPatch('before', 'after',
+              JSON.stringify(focus.capsule_diff.before, null, 2) + '\n',
+              JSON.stringify(focus.capsule_diff.after, null, 2) + '\n')} />
+            {prefillStep && <p>Lab load at context 8192: 62,464 MiB cache (same rule, more context).</p>}
+          </section>
+        )}
+        {focus.measurement && <ReplayMeasurements measurement={focus.measurement} onOpenFile={onOpenFile} />}
+        {engineMeasurement && (
+          <details className="factory-curated-more" data-testid="factory-runs-curated-engine-method">
+            <summary>Measurement method</summary>
+            <EngineRequestMethod />
+          </details>
+        )}
+        {(focus.quotes?.length ?? 0) > 0 && (
+          <ul className="factory-curated-quotes" data-testid="factory-runs-curated-quotes">
+            {focus.quotes?.map((quote) => (
+              <li key={`${quote.path}:${quote.line}`}>
+                <q>{quote.text}</q>
+                <small>
+                  {quote.path.replace(/^evidence\//, '')} · line {quote.line} (verbatim)
+                </small>
+              </li>
+            ))}
+          </ul>
+        )}
+        {focus.correction_trail && (
+          <details className="factory-curated-more">
+            <summary>Correction sequence</summary>
+            <CorrectionSequence corrections={focus.correction_trail} files={detail.files} onOpenFile={onOpenFile} />
+          </details>
+        )}
+      </>
+    );
     return (
       <div className="factory-story" data-testid="factory-runs-overview">
         <header className="factory-story-hero" data-testid="factory-runs-overview-brief">
-          <span className="factory-story-kicker">{curated.title}</span>
-          <p className="factory-curated-label" data-testid="factory-runs-curated-summary">{curated.summary}</p>
+          {!curated.presentation_header && <>
+            <span className="factory-story-kicker">{curated.title}</span>
+            <p className="factory-curated-label" data-testid="factory-runs-curated-summary">{curated.summary}</p>
+          </>}
           {curated.node_presentation && (
             <details data-testid="factory-runs-curated-check-roles">
               <summary>Who checks what</summary>
@@ -230,63 +284,29 @@ export function RunOverview({
                 {focus.stages.map(replayCheckStage).join(' · ')}
               </p>
             )}
-            {(!correction || curated.node_presentation) && stepSummary && (
-              <p className="factory-curated-say" data-testid="factory-runs-curated-focus-say">
-                {curated.node_presentation ? replayEvidenceText(stepSummary) : stepSummary}
-              </p>
-            )}
-            {correction && (
-              <CorrectionRecord
-                event={correctionStatusAt(correction, verifiedCorrections)}
-                compact
-                r8VerifierHelp={r8VerifierHelp}
-                files={detail.files}
-                onOpenFile={onOpenFile}
-              />
-            )}
-            {focus.capsule_diff && (
-              <section aria-label="Capsule changes" data-testid="factory-runs-curated-capsule-diff">
-                <h4 data-testid="factory-runs-curated-capsule-diff-caption">{focus.capsule_diff.caption}</h4>
-                <DiffViewer content={createTwoFilesPatch('before', 'after',
-                  JSON.stringify(focus.capsule_diff.before, null, 2) + '\n',
-                  JSON.stringify(focus.capsule_diff.after, null, 2) + '\n')} />
-                {prefillStep && <p>Lab load at context 8192: 62,464 MiB cache (same rule, more context).</p>}
-              </section>
-            )}
-            {focus.measurement && <ReplayMeasurements measurement={focus.measurement} onOpenFile={onOpenFile} />}
-            {engineMeasurement && (
-              <details className="factory-curated-more" data-testid="factory-runs-curated-engine-method">
-                <summary>Measurement method</summary>
-                <EngineRequestMethod />
-              </details>
-            )}
+            {focus.presenter_line ? (
+              <p className="factory-curated-say" data-testid="factory-runs-curated-focus-say">{focus.presenter_line}</p>
+            ) : recordedEvidence}
             {lead && (
               <button
                 type="button"
                 className="factory-curated-lead"
                 data-testid="factory-runs-curated-focus-key-file"
                 data-variant={lead.path}
+                title={lead.why}
                 disabled={!fileByPath.get(lead.path)}
                 onClick={() => onOpenFile?.(lead.path)}
               >
                 ★ {lead.label}
-                {lead.why && <small>{lead.why}</small>}
+                {!focus.presenter_line && lead.why && <small>{lead.why}</small>}
               </button>
             )}
-            {(focus.quotes?.length ?? 0) > 0 && (
-              <ul className="factory-curated-quotes" data-testid="factory-runs-curated-quotes">
-                {focus.quotes?.map((quote) => (
-                  <li key={`${quote.path}:${quote.line}`}>
-                    <q>{quote.text}</q>
-                    <small>
-                      {quote.path.replace(/^evidence\//, '')} · line {quote.line} (verbatim)
-                    </small>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <details className="factory-curated-more" key={focus.step} open={(curated.graph_mode === 'recorded' && !prefillStep) || undefined}>
+            <details className="factory-curated-more"
+              key={focus.step}
+              open={(!focus.presenter_line && curated.graph_mode === 'recorded' && !prefillStep) || undefined}
+              data-testid="factory-runs-curated-recorded-evidence">
               <summary>Recorded summary and other key files</summary>
+              {focus.presenter_line && recordedEvidence}
               {!correction && focus.original_summary && focus.original_summary !== stepSummary && (
                 <p className="factory-muted">
                   {curated.node_presentation ? replayEvidenceText(focus.original_summary) : focus.original_summary}
@@ -308,16 +328,11 @@ export function RunOverview({
                   </li>
                 ))}
               </ul>
+              {focus.presenter_line && nodeEvidence}
             </details>
-            {focus.correction_trail && (
-              <details className="factory-curated-more">
-                <summary>Correction sequence</summary>
-                <CorrectionSequence corrections={focus.correction_trail} files={detail.files} onOpenFile={onOpenFile} />
-              </details>
-            )}
           </section>
         )}
-        {nodeEvidence}
+        {!focus?.presenter_line && nodeEvidence}
         <section className="factory-story-card factory-curated" data-testid="factory-runs-curated-steps">
           <ol className="factory-curated-steps">
             {curated.steps.map((step) => (

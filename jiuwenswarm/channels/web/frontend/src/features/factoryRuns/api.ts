@@ -17,6 +17,7 @@ export type Run = {
   /** Curated demo replays are pinned first in the run list. */
   demo?: boolean;
   demo_order?: number;
+  contract_demo?: boolean;
   /** web-* launch scratch homes and synthetic smoke homes. */
   scratch?: boolean;
   /** An older export snapshot of a task that has a newer export. */

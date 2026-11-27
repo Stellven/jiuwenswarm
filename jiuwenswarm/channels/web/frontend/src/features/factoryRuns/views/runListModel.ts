@@ -25,6 +25,17 @@ export function runListEntries(runs: Run[]) {
 
 type Entry = ReturnType<typeof runListEntries>[number];
 
+export function contractDemoRuns(runs: Run[]) {
+  const contracts = new Map<string, Run>();
+  for (const run of runs) {
+    if (!run.contract_demo) continue;
+    const previous = contracts.get(run.task_id);
+    if (!previous || run.updated > previous.updated) contracts.set(run.task_id, run);
+  }
+  return [...contracts.values()]
+    .sort((a, b) => (a.demo_order ?? 0) - (b.demo_order ?? 0) || a.name.localeCompare(b.name));
+}
+
 /** Curated demo replays first (in their declared order); every other run below. */
 export function groupRunEntries(entries: Entry[], showEverything = false) {
   const featured = entries.filter(({ run }) => run.featured);

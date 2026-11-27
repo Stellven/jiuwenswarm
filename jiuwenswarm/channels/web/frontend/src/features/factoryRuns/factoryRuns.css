@@ -179,6 +179,19 @@
 .factory-tabs button {
   font-size: 12px;
 }
+.factory-contract-result {
+  align-items: center;
+}
+.factory-contract-result > div {
+  min-width: 0;
+}
+.factory-contract-image {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
 .factory-stats {
   display: flex;
   gap: 14px;
