@@ -30,7 +30,7 @@ export function FactoryRunList({
         hour: '2-digit',
         minute: '2-digit',
         hourCycle: 'h23',
-        timeZone: 'UTC',
+        timeZone: 'America/New_York',
       }),
     [lang],
   );
@@ -67,15 +67,15 @@ export function FactoryRunList({
               {updated && (
                 <time
                   dateTime={updated.toISOString()}
-                  title={updated.toISOString()}
+                  title={date.format(updated) + ' ET'}
                   data-testid="factory-runs-run-updated"
                 >
-                  {date.format(updated)} UTC
+                  {date.format(updated)} ET
                 </time>
               )}
-              <span className="factory-run-status" data-testid="factory-runs-run-status">
+              {!(run.status === 'live' && run.task_id === 'muse-2bit-demo-r8') && <span className="factory-run-status" data-testid="factory-runs-run-status">
                 {status}
-              </span>
+              </span>}
             </span>
             {(source || shortId) && (
               <small

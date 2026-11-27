@@ -172,6 +172,7 @@ export function RunOverview({
 
   if (curated) {
     const focus = curated.steps.find((step) => step.step === currentStep) ?? curated.steps[0];
+    const prefillStep = r8VerifierHelp && focus?.node_id === 'size_prefill_batch' && Boolean(focus.capsule_diff);
     const lead = focus?.key_files[0];
     const correction = focus?.correction ?? events.find((event) => event.step === focus?.step)?.correction;
     const stepSummary = focus?.say || focus?.original_summary;
@@ -192,7 +193,7 @@ export function RunOverview({
               <small className="factory-original-kind" title="Original record kind">
                 {focus.original_kind}
                 {(focus.created_utc || focus.created) && (
-                  <> · {(focus.created_utc ?? new Date((focus.created ?? 0) * 1000).toISOString()).slice(0, 19).replace('T', ' ')} UTC</>
+                  <> · {new Date(focus.created_utc ?? (focus.created ?? 0) * 1000).toLocaleString(i18n.resolvedLanguage, { timeZone: 'America/New_York', dateStyle: 'medium', timeStyle: 'medium' })} ET</>
                 )}
               </small>
             </p>
@@ -230,6 +231,7 @@ export function RunOverview({
                 <DiffViewer content={createTwoFilesPatch('before', 'after',
                   JSON.stringify(focus.capsule_diff.before, null, 2) + '\n',
                   JSON.stringify(focus.capsule_diff.after, null, 2) + '\n')} />
+                {prefillStep && <p>Lab load at context 8192: 62,464 MiB cache (same rule, more context).</p>}
               </section>
             )}
             {focus.measurement && <ReplayMeasurements measurement={focus.measurement} onOpenFile={onOpenFile} />}
@@ -258,7 +260,7 @@ export function RunOverview({
                 ))}
               </ul>
             )}
-            <details className="factory-curated-more" open={curated.graph_mode === 'recorded' || undefined}>
+            <details className="factory-curated-more" key={focus.step} open={(curated.graph_mode === 'recorded' && !prefillStep) || undefined}>
               <summary>Recorded summary and other key files</summary>
               {!correction && focus.original_summary && focus.original_summary !== stepSummary && (
                 <p className="factory-muted">{focus.original_summary}</p>
